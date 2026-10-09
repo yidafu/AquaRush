@@ -25,6 +25,8 @@ import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -49,6 +51,42 @@ class DailyCollectionQueryApiServiceImpl(
     val end = LocalDate.parse(endDate)
     return dailyCollectionRecordRepository.findByCollectionDateBetween(start, end)
   }
+
+  override fun findByDeliveryWorkerIdAndCollectionDate(
+    deliveryWorkerId: Long,
+    collectionDate: LocalDate,
+  ): DailyCollectionRecordModel? = dailyCollectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(deliveryWorkerId, collectionDate)
+
+  override fun findByDeliveryWorkerIdAndCollectionDate(
+    deliveryWorkerId: Long,
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel> =
+    dailyCollectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(deliveryWorkerId, collectionDate, pageable)
+
+  override fun findByCollectionDate(collectionDate: LocalDate): List<DailyCollectionRecordModel> =
+    dailyCollectionRecordRepository.findByCollectionDate(collectionDate)
+
+  override fun findByCollectionDate(
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findByCollectionDate(collectionDate, pageable)
+
+  override fun findByDeliveryWorkerId(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findByDeliveryWorkerId(deliveryWorkerId, pageable)
+
+  override fun findByCollectionDateBetween(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findByCollectionDateBetween(startDate, endDate)
+
+  override fun findById(id: Long): DailyCollectionRecordModel? = dailyCollectionRecordRepository.findById(id).orElse(null)
+
+  override fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findAll(pageable)
+
+  override fun findAll(): List<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findAll()
 }
 
 @Service
@@ -68,4 +106,13 @@ class DailyReconciliationQueryApiServiceImpl(
     val end = LocalDate.parse(endDate)
     return dailyReconciliationRepository.findByReconciliationDateBetween(start, end)
   }
+
+  override fun findByReconciliationDate(reconciliationDate: LocalDate): DailyReconciliationModel? =
+    dailyReconciliationRepository.findByReconciliationDate(reconciliationDate)
+
+  override fun findById(id: Long): DailyReconciliationModel? = dailyReconciliationRepository.findById(id).orElse(null)
+
+  override fun findAll(): List<DailyReconciliationModel> = dailyReconciliationRepository.findAll()
+
+  override fun findAll(pageable: Pageable): Page<DailyReconciliationModel> = dailyReconciliationRepository.findAll(pageable)
 }

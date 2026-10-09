@@ -22,9 +22,11 @@ package dev.yidafu.aqua.order.service.impl
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -209,4 +211,30 @@ class OrderQueryServiceImpl(
       endOfDay = endOfDay,
       deliveryWorkerId = deliveryWorkerId,
     )
+
+  override fun countDeliveredByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId)
+
+  override fun sumDeliveredAmountCentsByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
+
+  override fun countAndSumDeliveredByPaymentType(
+    deliveryWorkerId: Long,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long> = orderRepository.countAndSumDeliveredByPaymentType(deliveryWorkerId, paymentType, startDate, endDate)
+
+  override fun findDeliveredOrdersByDateRange(
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> = orderRepository.findDeliveredOrdersByDateRange(deliveryWorkerId, startDate, endDate, pageable)
 }

@@ -21,6 +21,9 @@ package dev.yidafu.aqua.api.service.reconciliation
 
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.time.LocalDate
 
 /**
  * 跨模块对账查询服务接口
@@ -33,6 +36,43 @@ interface DailyCollectionQueryApiService {
     startDate: String,
     endDate: String,
   ): List<DailyCollectionRecordModel>
+
+  /**
+   * 送水员指定日收款日报（跨模块数据访问统一走 api/service —— ArchUnit P1）
+   */
+  fun findByDeliveryWorkerIdAndCollectionDate(
+    deliveryWorkerId: Long,
+    collectionDate: LocalDate,
+  ): DailyCollectionRecordModel?
+
+  fun findByDeliveryWorkerIdAndCollectionDate(
+    deliveryWorkerId: Long,
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
+
+  fun findByCollectionDate(collectionDate: LocalDate): List<DailyCollectionRecordModel>
+
+  fun findByCollectionDate(
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
+
+  fun findByDeliveryWorkerId(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
+
+  fun findByCollectionDateBetween(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<DailyCollectionRecordModel>
+
+  fun findById(id: Long): DailyCollectionRecordModel?
+
+  fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel>
+
+  fun findAll(): List<DailyCollectionRecordModel>
 }
 
 interface DailyReconciliationQueryApiService {
@@ -42,4 +82,12 @@ interface DailyReconciliationQueryApiService {
     startDate: String,
     endDate: String,
   ): List<DailyReconciliationModel>
+
+  fun findByReconciliationDate(reconciliationDate: LocalDate): DailyReconciliationModel?
+
+  fun findById(id: Long): DailyReconciliationModel?
+
+  fun findAll(): List<DailyReconciliationModel>
+
+  fun findAll(pageable: Pageable): Page<DailyReconciliationModel>
 }
