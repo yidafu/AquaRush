@@ -28,7 +28,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import java.time.LocalDateTime
 
 class FileMetadataCoverageTest :
   FunSpec({
@@ -89,7 +88,6 @@ class FileMetadataCoverageTest :
       val c = metadata(id = 8L)
 
       a shouldBe b
-      a.shouldBe(b)
       (a == a).shouldBeTrue()
       a.hashCode() shouldBe b.hashCode()
       (a == c).shouldBeFalse()
@@ -132,10 +130,8 @@ class FileMetadataCoverageTest :
           "OTHER",
         )
       FileType.entries.forEach { t ->
-        t.name.shouldNotBeNull()
         metadata(fileType = t).fileType shouldBe t
       }
       FileType.valueOf("OTHER") shouldBe FileType.OTHER
-      LocalDateTime.now().shouldNotBeNull()
     }
   })
