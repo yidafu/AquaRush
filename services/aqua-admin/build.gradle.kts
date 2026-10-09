@@ -49,6 +49,10 @@ dependencies {
   implementation(libs.spring.boot.starter.validation)
   implementation(libs.mappie.api)
   implementation(libs.liquibase.core)
+  // liquibase-kotlin：Kotlin DSL changelog（compiled parser 经 ServiceLoader 自动注册，
+  // 与 spring-boot-starter-liquibase 的 SpringLiquibase 直接配合）
+  implementation(libs.liquibase.kotlin.dsl)
+  implementation(libs.liquibase.kotlin.compiled.parser)
   runtimeOnly(libs.postgresql)
 
   // Test dependencies

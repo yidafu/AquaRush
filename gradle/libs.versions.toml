@@ -70,6 +70,7 @@ exposed-spring-transaction = { module = "org.jetbrains.exposed:spring7-transacti
 # Liquibase Kotlin DSL（编译期 changelog）
 liquibase-kotlin-starter-compiled = { module = "io.github.momosetkn:liquibase-kotlin-starter-compiled", version.ref = "liquibase-kotlin" }
 liquibase-kotlin-dsl = { module = "io.github.momosetkn:liquibase-kotlin-dsl", version.ref = "liquibase-kotlin" }
+liquibase-kotlin-compiled-parser = { module = "io.github.momosetkn:liquibase-kotlin-compiled-parser", version.ref = "liquibase-kotlin" }
 
 # Jackson (Updated for Jackson 3.x)
 #implementation("tools.jackson.core:jackson-annotations:3.0.0")

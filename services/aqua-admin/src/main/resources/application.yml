@@ -26,6 +26,15 @@ spring:
       leak-detection-threshold: 60000
       pool-name: DeliveryAdminServicePool
 
+  liquibase:
+    # changelog 已迁移为 liquibase-kotlin 编译期 DSL（Kotlin 类）：
+    # 路径即类 FQCN（KotlinCompiledLiquibaseChangeLogParser 反射加载 db.changelog.DbChangelogMaster），
+    # parser 经 ServiceLoader 自动注册，无需其他配置。
+    change-log: db/changelog/DbChangelogMaster
+    default-schema: public
+    drop-first: false         # 生产环境必须为 false！
+    enabled: true
+
   jpa:
     hibernate:
       ddl-auto: none  # 不进行任何自动 DDL 操作
@@ -37,12 +46,6 @@ spring:
         format_sql: true
       jakarta.persistence.schema-generation.create-source: metadata-then-scripts
       jakarta.persistence.schema-generation.drop-source: metadata-then-scripts
-
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.xml
-    default-schema: public
-    drop-first: false         # 生产环境必须为 false！
-    enabled: true            # Disable Liquibase for admin service since main app manages schema
 
   artemis:
     mode: native

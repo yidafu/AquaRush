@@ -133,6 +133,20 @@ kover {
     subprojects()
   }
   reports {
+    filters {
+      excludes {
+        // 与子模块 filters 同口径：生成代码不进全库覆盖率分母
+        packages(
+          "dev.yidafu.aqua.api.dto",
+          "dev.yidafu.aqua.common.graphql.generated",
+          "dev.yidafu.aqua.common.infra.exposed",
+          "db.changelog",
+          "db.changelog.changes",
+        )
+        classes("*Mapper*", "*Exception", "*Exceptions", "*Application", "*SoftDeletableTable")
+        annotatedBy("org.springframework.context.annotation.Configuration")
+      }
+    }
     // 全库总体阈值（所有模块合并后的总覆盖率）
     verify {
       rule {
@@ -155,6 +169,10 @@ subprojects {
             // Exposed 基建（JPA -> Exposed 迁移，方案 §5.1）：自动配置无业务逻辑，
             // 其行为由 services 层集成测试与 ops 仓储实现测试间接验证
             "dev.yidafu.aqua.common.infra.exposed",
+            // liquibase-kotlin 编译期 changelog（P2 XML 机械转换产物）：纯数据声明，
+            // 正确性由真实 PG 全量迁移验证把关，不参与单元覆盖率分母
+            "db.changelog",
+            "db.changelog.changes",
           )
           classes("*Mapper*", "*Exception", "*Exceptions", "*Application", "*SoftDeletableTable")
           annotatedBy("org.springframework.context.annotation.Configuration")
