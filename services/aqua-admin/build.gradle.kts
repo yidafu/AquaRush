@@ -78,6 +78,7 @@ dependencies {
 tasks.withType<Test>().configureEach {
   // ArchUnit 全 classpath 扫描 + 全部 Spring 上下文同 JVM,1g 会 OOM(Java heap space)
   maxHeapSize = "2g"
+  // 若仍 OOM: heap 问题 → forkEvery=50 分进程; metaspace 问题 → 调 org.gradle.jvmargs(daemon 另一 JVM)
   exclude("**/db/AddressCoordinateMigrationTest.class")
   exclude("**/delivery/resolvers/DeliveryTrajectoryResolverGraphQLIntegrationTest.class")
   // 同 JVM 缓存的多个 Spring 上下文各持 Hikari 池(main 配置 min-idle=10/max=30),
