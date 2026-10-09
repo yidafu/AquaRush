@@ -227,11 +227,12 @@ class PaymentRefundRepositoryImpl(
     page: Int,
     size: Int,
   ): Page<PaymentRefundModel> {
-    val condition = completedInWindow(startDate, endDate)
     val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100))
 
     val (content, total) =
       transaction(database) {
+        // activeOnly 依赖事务上下文,条件必须在事务内构造
+        val condition = completedInWindow(startDate, endDate)
         val content =
           PaymentRefundsTable
             .selectAll()

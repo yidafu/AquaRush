@@ -126,12 +126,13 @@ class PaymentRepositoryImpl(
             col to sortOrder
           }
         }.ifEmpty { listOf(PaymentsTable.id to SortOrder.ASC) }
-    val condition =
-      PaymentsTable.activeOnly {
-        (PaymentsTable.status eq status.name) and (PaymentsTable.expiredAt less expiredAt)
-      }
     val (content, total) =
       transaction(database) {
+        // activeOnly 依赖事务上下文(currentTransaction),条件必须在事务内构造
+        val condition =
+          PaymentsTable.activeOnly {
+            (PaymentsTable.status eq status.name) and (PaymentsTable.expiredAt less expiredAt)
+          }
         val content =
           PaymentsTable
             .selectAll()
