@@ -57,6 +57,7 @@ object OrdersTable : SoftDeletableTable("orders") {
   val paymentTransactionId = varchar("payment_transaction_id", 128).nullable()
   val paidAt = datetime("paid_at").nullable()
   val deliveryWorkerId = long("delivery_worker_id").nullable()
+  val deliveryAddressId = long("delivery_address_id").nullable()
   val deliveryPhotos = jsonString("delivery_photos").nullable()
   val deliveryPhotoReviewStatus = varchar("delivery_photo_review_status", 20).nullable()
   val deliveryPhotoReviewedAt = datetime("delivery_photo_reviewed_at").nullable()
@@ -289,7 +290,7 @@ object OrderOperationsTable : Table("order_operations") {
   val operatorId = long("operator_id").nullable()
   val operatorType = varchar("operator_type", 20).nullable()
   val description = varchar("description", 500).nullable()
-  val extraData = text("extra_data").nullable()
+  val extraData = jsonString("extra_data").nullable()
   val createdAt = datetime("created_at")
   override val primaryKey = PrimaryKey(id)
 }

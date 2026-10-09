@@ -30,7 +30,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // FK/CHECK/UNIQUE 约束不由 Exposed 表表达(DDL 层持有),唯一约束在各表 KDoc 注明;
 // created_at/updated_at 均 NOT NULL,由仓储插入时赋值(与 ReconciliationTables 风格一致)。
 
-/** 优惠券模板表(`coupon_templates`,19 列)。 */
+/** 优惠券模板表(`coupon_templates`,20 列)。 */
 object CouponTemplatesTable : SoftDeletableTable("coupon_templates") {
   val id = long("id")
   val name = varchar("name", 100)
