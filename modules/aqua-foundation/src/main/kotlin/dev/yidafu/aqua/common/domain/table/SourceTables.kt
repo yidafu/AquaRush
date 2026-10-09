@@ -131,7 +131,7 @@ object UserActionLogsTable : Table("user_action_logs") {
   override val primaryKey = PrimaryKey(id, createdAt)
 }
 
-/** 退款表(`payment_refunds`,trade 域,19 列)。注意列名与属性名的映射:reason/refund_no/processed_at。 */
+/** 退款表(`payment_refunds`,trade 域,20 列)。注意列名与属性名的映射:reason/refund_no/processed_at。 */
 object PaymentRefundsTable : SoftDeletableTable("payment_refunds") {
   val id = long("id")
   val paymentId = long("payment_id")
@@ -149,6 +149,7 @@ object PaymentRefundsTable : SoftDeletableTable("payment_refunds") {
   val updatedAt = datetime("updated_at")
   val refundType = varchar("refund_type", 20)
   val adminNote = varchar("admin_note", 1000).nullable()
+  val processedBy = long("processed_by").nullable()
   override val primaryKey = PrimaryKey(id)
 }
 
@@ -193,7 +194,7 @@ object TicketPurchasesTable : SoftDeletableTable("ticket_purchases") {
   override val primaryKey = PrimaryKey(id)
 }
 
-/** 用户桶票表(`user_tickets`,marketing 域,15 列)。 */
+/** 用户桶票表(`user_tickets`,marketing 域,16 列;ticket_no 有 DB 唯一约束 —— 列级不表达,此处 KDoc 留痕)。 */
 object UserTicketsTable : SoftDeletableTable("user_tickets") {
   val id = long("id")
   val userId = long("user_id")
@@ -207,6 +208,7 @@ object UserTicketsTable : SoftDeletableTable("user_tickets") {
   val returnedAt = datetime("returned_at").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
+  val ticketNo = varchar("ticket_no", 32)
   override val primaryKey = PrimaryKey(id)
 }
 
