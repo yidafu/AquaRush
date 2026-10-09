@@ -33,6 +33,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateReviewRequestInput
+import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import io.kotest.assertions.throwables.shouldThrow
@@ -45,6 +46,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import tools.jackson.databind.ObjectMapper
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DomainDeliveryTimeSlot
 
 /**
  * 用户端订单 Resolver 单元测试(F-ORD-001/005/006/007):
@@ -102,12 +104,21 @@ class ClientOrderMutationResolverTest :
       every { orderMutationService.createOrder(any()) } answers {
         val req = firstArg<dev.yidafu.aqua.api.dto.CreateOrderRequest>()
         withClue("userId 必须为登录用户") { req.userId shouldBe 1L }
+        withClue("deliveryTime → deliveryTimeSlot 同名转换(AC-ORD-001-05)") {
+          req.deliveryTimeSlot shouldBe DomainDeliveryTimeSlot.AFTERNOON
+        }
+        withClue("clientRequestId 幂等键透传(R-ORD-06)") { req.clientRequestId shouldBe "req-001" }
         created
       }
 
       val result =
         resolver.createOrder(
-          CreateOrderInput(items = listOf(OrderItemInput(productId = 10L, quantity = 2)), addressId = 20L),
+          CreateOrderInput(
+            items = listOf(OrderItemInput(productId = 10L, quantity = 2)),
+            addressId = 20L,
+            deliveryTime = DeliveryTimeSlot.AFTERNOON,
+            clientRequestId = "req-001",
+          ),
           principal,
         )
 
