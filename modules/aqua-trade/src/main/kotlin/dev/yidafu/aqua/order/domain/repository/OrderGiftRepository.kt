@@ -20,13 +20,15 @@
 package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderGiftModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
 /**
- * 订单赠品行仓储(R-MKT-09:赠品随单落库,配送明细/订单详情联查)
+ * 订单赠品行仓储(R-MKT-09:赠品随单落库,配送明细/订单详情联查)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法;
+ * order_gifts 为裸表(无软删列,不作 is_deleted 过滤);saveAll 为单事务批量 upsert。
  */
-@Repository
-interface OrderGiftRepository : JpaRepository<OrderGiftModel, Long> {
+interface OrderGiftRepository {
   fun findByOrderId(orderId: Long): List<OrderGiftModel>
+
+  /** 单事务批量 upsert(全部成功或全部回滚),返回回填 id 后的实体列表。 */
+  fun saveAll(entities: List<OrderGiftModel>): List<OrderGiftModel>
 }

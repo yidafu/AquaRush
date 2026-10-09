@@ -20,27 +20,24 @@
 package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
-import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
-@Repository
-interface OrderOperationRepository : JpaRepository<OrderOperationModel, Long> {
+/**
+ * 订单操作流水仓库(订单时间线)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法
+ * (findByOrderIdAndOperationType 无人调用已删除);
+ * order_operations 为裸表(无软删列,不作 is_deleted 过滤)。
+ */
+interface OrderOperationRepository {
   /**
-   * 根据订单ID查询操作记录，按创建时间倒序排列
+   * 根据订单ID查询操作记录,按创建时间倒序排列(id 破平)。
    */
   fun findByOrderIdOrderByCreatedAtDesc(orderId: Long): List<OrderOperationModel>
 
   /**
-   * 根据订单ID查询特定类型的操作记录
-   */
-  fun findByOrderIdAndOperationType(
-    orderId: Long,
-    operationType: OrderOperationType,
-  ): List<OrderOperationModel>
-
-  /**
-   * 统计订单的操作记录数量
+   * 统计订单的操作记录数量。
    */
   fun countByOrderId(orderId: Long): Long
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: OrderOperationModel): OrderOperationModel
 }
