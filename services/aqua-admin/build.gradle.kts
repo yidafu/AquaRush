@@ -77,6 +77,11 @@ dependencies {
 tasks.withType<Test>().configureEach {
   exclude("**/db/AddressCoordinateMigrationTest.class")
   exclude("**/delivery/resolvers/DeliveryTrajectoryResolverGraphQLIntegrationTest.class")
+  // 同 JVM 缓存的多个 Spring 上下文各持 Hikari 池(main 配置 min-idle=10/max=30),
+  // 上下文数增多时超过本地 PostgreSQL max_connections=100 → 后续上下文
+  // "FATAL: sorry, too many clients already" 连锁失败。测试并发极低,收紧连接池。
+  environment("SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE", "1")
+  environment("SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE", "5")
 }
 
 kotlin {
