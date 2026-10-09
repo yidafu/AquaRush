@@ -21,23 +21,20 @@ package dev.yidafu.aqua.delivery.mapper
 
 import dev.yidafu.aqua.common.domain.model.DeliveryTrajectoryModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTrajectory
-import tech.mappie.api.ObjectMappie
 
 /**
- * 配送轨迹点模型 → GraphQL 类型映射(F-ADR-012,R-ADR-03)
+ * 配送轨迹点模型 → GraphQL 类型映射(F-ADR-012,R-ADR-03,原 DeliveryTrajectoryMapper ObjectMappie 迁移)。
  *
  * 数据库 double 精度坐标投影为 GraphQL Float(与 Address 投影一致)。
  */
-object DeliveryTrajectoryMapper : ObjectMappie<DeliveryTrajectoryModel, DeliveryTrajectory>() {
-  override fun map(from: DeliveryTrajectoryModel): DeliveryTrajectory =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::deliveryWorkerId fromProperty from::deliveryWorkerId
-      to::orderId fromProperty from::orderId
-      to::longitude fromExpression { from.longitude.toFloat() }
-      to::latitude fromExpression { from.latitude.toFloat() }
-      to::accuracy fromExpression { from.accuracy?.toFloat() }
-      to::reportedAt fromProperty from::reportedAt
-      to::createdAt fromProperty from::createdAt
-    }
-}
+fun DeliveryTrajectoryModel.toGraphQL(): DeliveryTrajectory =
+  DeliveryTrajectory(
+    id = id ?: 0L,
+    deliveryWorkerId = deliveryWorkerId,
+    orderId = orderId,
+    longitude = longitude.toFloat(),
+    latitude = latitude.toFloat(),
+    accuracy = accuracy?.toFloat(),
+    reportedAt = reportedAt,
+    createdAt = createdAt,
+  )

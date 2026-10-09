@@ -35,7 +35,7 @@ import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderPaymentParams
 import dev.yidafu.aqua.common.graphql.generated.Review
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.order.mapper.CreateOrderInputMapper
+import dev.yidafu.aqua.order.mapper.toRequest
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -74,7 +74,7 @@ class ClientOrderMutationResolver(
   ): Order {
     val order =
       orderMutationService.createOrder(
-        CreateOrderInputMapper.map(input).copy(userId = principal.id),
+        input.toRequest().copy(userId = principal.id),
       )
     return order.toGraphQL()
   }

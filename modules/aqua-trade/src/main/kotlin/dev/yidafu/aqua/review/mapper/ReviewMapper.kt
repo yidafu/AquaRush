@@ -21,16 +21,21 @@ package dev.yidafu.aqua.review.mapper
 
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.graphql.generated.Review
-import tech.mappie.api.ObjectMappie
 
 /**
- * Mapper for converting Review domain entity to GraphQL Review type
+ * ReviewModel → GraphQL Review(原 ReviewMapper ObjectMappie 迁移,F-ORD-007 一单一评)。
+ * deliveryWorkerName 不在 ReviewModel 上,恒为 null,由联查展示填充。
  */
-object ReviewMapper : ObjectMappie<ReviewModel, Review>() {
-  override fun map(from: ReviewModel) =
-    mapping {
-      to::reviewId fromExpression { from.id ?: -1L }
-      // Fields with same name and type - auto-mapped by Mappie
-      to::deliveryWorkerName fromValue null // Not available in ReviewModel
-    }
-}
+fun ReviewModel.toGraphQL(): Review =
+  Review(
+    reviewId = id ?: -1L,
+    orderId = orderId,
+    userId = userId,
+    deliveryWorkerId = deliveryWorkerId,
+    rating = rating,
+    comment = comment,
+    isAnonymous = isAnonymous,
+    createdAt = createdAt,
+    // Not available in ReviewModel
+    deliveryWorkerName = null,
+  )

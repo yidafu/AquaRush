@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
-import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -52,7 +52,7 @@ class AdminDeliveryWorkerQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
-  fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(adminService.findAllDeliveryCapable())
+  fun deliveryWorkers(): List<DeliveryWorker> = adminService.findAllDeliveryCapable().map { it.toDeliveryWorker() }
 
   /**
    * 查询在线配送员（管理员功能）
@@ -60,7 +60,7 @@ class AdminDeliveryWorkerQueryResolver(
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun onlineDeliveryWorkers(): List<DeliveryWorker> =
-    DeliveryWorkerMapper.mapList(adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE))
+    adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE).map { it.toDeliveryWorker() }
 
   /**
    * 根据ID查询配送员（管理员功能）
@@ -72,7 +72,7 @@ class AdminDeliveryWorkerQueryResolver(
   ): DeliveryWorker? =
     adminService.findById(id)?.let {
       if (it.role == AdminRoleModel.DELIVERY_WORKER || it.role == AdminRoleModel.ADMIN) {
-        DeliveryWorkerMapper.map(it)
+        it.toDeliveryWorker()
       } else {
         null
       }
