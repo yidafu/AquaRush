@@ -36,8 +36,8 @@ import dev.yidafu.aqua.common.graphql.generated.Review
 import dev.yidafu.aqua.order.mapper.toOrderItemVo
 
 /**
- * 用户端订单域 GraphQL 映射(纯函数直构,不使用 mappie —— aqua-client 未应用 mappie 编译插件,
- * 其默认 map 实现会抛 KotlinNothingValueException;参见 ClientMarketingMapper 说明)。
+ * 用户端订单域 GraphQL 映射(纯函数直构,手写转换不依赖编译期生成 mapper,
+ * 避免通用映射框架默认 map 实现抛出 KotlinNothingValueException;参见 ClientMarketingMapper 说明)。
  * 枚举按同名条目 valueOf 互转;金额一律为分(R-MON-01)。
  */
 

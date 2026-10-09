@@ -1,6 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   // JPA→Exposed 迁移 P3:仓储全部改写为 Exposed DSL,摘除 QueryDSL/KSP
   id("aqua.kotlin.exposed")
 }
@@ -57,11 +56,6 @@ dependencies {
   implementation("com.github.javafaker:javafaker:1.0.2")
   implementation(libs.spring.retry)
   implementation(libs.resilience4j.spring.boot3)
-
-  // ========================================================
-  // Mappie
-  // ========================================================
-  implementation(libs.mappie.api)
 
   // ========================================================
   // 测试依赖

@@ -1,6 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   id("aqua.kotlin.querydsl")
 }
 
@@ -22,9 +21,6 @@ dependencies {
   // Apache POI for Excel export functionality
   implementation("org.apache.poi:poi:5.2.5")
   implementation("org.apache.poi:poi-ooxml:5.2.5")
-
-  // Mappie
-  implementation(libs.mappie.api)
 
   // Hibernate Types for JSON support
 //  implementation("com.vladmihalcea:hibernate-types-60:2.21.1")

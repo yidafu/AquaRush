@@ -81,7 +81,7 @@ class ClientAuthResolver(
   }
 
   /**
-   * 领域实体 → GraphQL UserInfo(纯函数直构,不使用 mappie —— aqua-client 未应用 mappie 编译插件)
+   * 领域实体 → GraphQL UserInfo(纯函数直构,手写转换不依赖编译期生成 mapper)
    */
   private fun UserModel.toUserInfo(): UserInfo =
     UserInfo(

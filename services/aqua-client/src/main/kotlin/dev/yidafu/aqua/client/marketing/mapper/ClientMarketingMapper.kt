@@ -58,8 +58,8 @@ import dev.yidafu.aqua.common.graphql.generated.ValidityType as GraphQLValidityT
 
 // 用户端营销域 GraphQL VO 映射(F-MKT-002/003/007、R-MKT-01/02/07/08):
 // 所有映射均带外部数据(已领数量/可用性/票种名/配送费等),统一采用纯函数直接构造生成 VO;
-// 枚举按同名条目 valueOf 互转;不采用 ObjectMappie/EnumMappie —— aqua-client 服务模块未应用
-// mappie 编译插件,其默认 map 实现会抛 KotlinNothingValueException。
+// 枚举按同名条目 valueOf 互转;手写转换(不依赖编译期生成 mapper),
+// 避免通用映射框架默认 map 实现抛出 KotlinNothingValueException。
 
 // 枚举映射(域枚举 → 生成枚举,条目同名)
 fun DomainCouponType.toGraphQL(): GraphQLCouponType = GraphQLCouponType.valueOf(name)

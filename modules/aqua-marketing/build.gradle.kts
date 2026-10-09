@@ -1,14 +1,10 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   id("aqua.kotlin.querydsl")
 }
 
 dependencies {
   implementation(project(":modules:aqua-foundation"))
-
-  // Mappie
-  implementation(libs.mappie.api)
 
   // Spring Boot(barrel 子域模块内解析器需 web/security/validation/actuator)
   implementation(libs.bundles.spring.boot.web)

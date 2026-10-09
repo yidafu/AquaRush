@@ -1,6 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   id("aqua.kotlin.querydsl")
 }
 
@@ -49,11 +48,6 @@ dependencies {
   // aqua-review: Redis
   implementation(libs.bundles.redis)
   implementation(libs.bundles.cache)
-
-  // ========================================================
-  // Mappie
-  // ========================================================
-  implementation(libs.mappie.api)
 
   // ========================================================
   // 测试依赖

@@ -85,7 +85,6 @@ dependencies {
   implementation(libs.spring.boot.starter.thymeleaf)
   implementation(libs.bundles.spring.boot.data)
   implementation(libs.bundles.graphql)
-  implementation(libs.mappie.api)
   implementation(libs.spring.boot.starter.validation)
   implementation(libs.liquibase.core)
   runtimeOnly(libs.postgresql)
