@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package dev.yidafu.aqua.logging.partition.domain.repository
@@ -24,14 +24,22 @@ import dev.yidafu.aqua.logging.partition.domain.model.enums.LogBackupStatus
 import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 /**
- * 日志离线备份记录 Repository(F-SYS-006)
+ * 日志离线备份记录 Repository(F-SYS-006)。
+ *
+ * JPA→Exposed 迁移 P5:剥离 `JpaRepository`,仅声明实际被调用的方法
+ * (原 `save`/`findAll(pageable)` 继承自 JpaRepository);备份记录表无软删列。
  */
 @Repository
-interface LogBackupRecordRepository : JpaRepository<LogBackupRecordModel, Long> {
+interface LogBackupRecordRepository {
+  /** upsert 语义(对齐 JPA `save`)。 */
+  fun save(entity: LogBackupRecordModel): LogBackupRecordModel
+
+  /** 全量分页查询(调用方按 startedAt 倒序传入 Sort)。 */
+  fun findAll(pageable: Pageable): Page<LogBackupRecordModel>
+
   /**
    * 按日志表分页查询备份记录(恒 startedAt 倒序)
    */

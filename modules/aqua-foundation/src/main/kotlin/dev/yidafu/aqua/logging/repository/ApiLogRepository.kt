@@ -20,17 +20,20 @@
 package dev.yidafu.aqua.logging.repository
 
 import dev.yidafu.aqua.common.domain.model.ApiLogModel
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 /**
- * API日志Repository
+ * API 请求日志仓储(`api_logs`,logging 域)。
+ *
+ * JPA→Exposed 迁移 P5:剥离 `JpaRepository`,仅声明实际被调用的方法
+ * (原 `save` 继承自 JpaRepository);日志表**无软删列**,查询即全量可见。
+ * 多条件过滤分页见 [ApiLogRepositoryCustom]。
  */
 @Repository
-interface ApiLogRepository :
-  JpaRepository<ApiLogModel, Long>,
-  ApiLogRepositoryCustom {
-  fun findByCorrelationId(correlationId: String): List<ApiLogModel>
+interface ApiLogRepository : ApiLogRepositoryCustom {
+  /** upsert 语义(对齐 JPA `save`):无 id 或 id 不存在时插入雪花 id,否则按 id 覆盖业务列。 */
+  fun save(entity: ApiLogModel): ApiLogModel
 
-  fun findByUserId(userId: Long): List<ApiLogModel>
+  /** 按关联 id 取同一请求链路的所有日志(created_at 升序)。 */
+  fun findByCorrelationId(correlationId: String): List<ApiLogModel>
 }

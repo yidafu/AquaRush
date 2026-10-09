@@ -115,7 +115,7 @@ class UserActionLogControllerIntegrationTest(
 
       awaitCount(1)
 
-      val log = userActionLogRepository.findAll().single()
+      val log = userActionLogRepository.findByUserId("u-2001").single()
       log.userId shouldBe "u-2001"
       log.target shouldBe "add-to-cart"
       log.pageUrl shouldBe "/pages/product-detail/index"
