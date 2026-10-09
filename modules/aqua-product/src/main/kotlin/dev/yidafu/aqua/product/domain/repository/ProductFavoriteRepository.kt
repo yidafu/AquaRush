@@ -22,16 +22,12 @@ package dev.yidafu.aqua.product.domain.repository
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
 
-@Repository
-interface ProductFavoriteRepository :
-  JpaRepository<ProductFavoriteModel, Long>,
-  JpaSpecificationExecutor<ProductFavoriteModel>,
-  ProductFavoriteRepositoryCustom {
-  // Existing methods (kept for Spring Data JPA query derivation)
+/**
+ * 商品收藏仓储(JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,
+ * 仅保留实际被调用的方法;查询过滤 is_deleted)。
+ */
+interface ProductFavoriteRepository : ProductFavoriteRepositoryCustom {
   fun findByUserIdAndProductId(
     userId: Long,
     productId: Long,
@@ -42,15 +38,10 @@ interface ProductFavoriteRepository :
     pageable: Pageable,
   ): Page<ProductFavoriteModel>
 
-  // New enable field methods
-  fun findByUserIdAndProductIdAndEnable(
-    userId: Long,
-    productId: Long,
-    enable: Boolean,
-  ): ProductFavoriteModel?
-
   fun findByProductId(productId: Long): List<ProductFavoriteModel>
 
-  // All @Query methods have been migrated to QueryDSL and are now in ProductFavoriteRepositoryCustom
-  // The implementations are in ProductFavoriteRepositoryImpl
+  fun count(): Long
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: ProductFavoriteModel): ProductFavoriteModel
 }

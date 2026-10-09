@@ -1,7 +1,8 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
-  id("aqua.kotlin.querydsl")
+  // JPA→Exposed 迁移 P4:仓储全部改写为 Exposed DSL,摘除 QueryDSL/KSP
+  id("aqua.kotlin.exposed")
 }
 
 dependencies {
@@ -26,10 +27,6 @@ dependencies {
   // Mappie
   implementation(libs.mappie.api)
 
-  // Hibernate Types for JSON support
-//  implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
-
-  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
+  // 仓储实现 H2 实现级测试(aqua.kotlin.exposed 不带 test 依赖)
+  testImplementation(libs.h2)
 }
-
-// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

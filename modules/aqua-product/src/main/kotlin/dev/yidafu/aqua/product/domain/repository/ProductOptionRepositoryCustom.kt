@@ -22,7 +22,7 @@ package dev.yidafu.aqua.product.domain.repository
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
 
 /**
- * 商品属性选项字典仓库 QueryDSL 自定义查询(ProductOptionRepository 中手写 @Query 迁移至此)。
+ * 商品属性选项字典仓库自定义查询(JPA→Exposed 迁移 P4)。
  */
 interface ProductOptionRepositoryCustom {
   /**

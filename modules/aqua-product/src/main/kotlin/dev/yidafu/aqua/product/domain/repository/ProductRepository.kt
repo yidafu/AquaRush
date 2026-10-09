@@ -21,75 +21,28 @@ package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
+import java.util.Optional
 
-@Repository
-interface ProductRepository :
-  JpaRepository<ProductModel, Long>,
-  JpaSpecificationExecutor<ProductModel>,
-  ProductRepositoryCustom {
-  // 参数须用域枚举 ProductModelStatus(实体字段类型),传 GraphQL 生成枚举会在运行期报 QueryArgumentException
+/**
+ * 商品仓储(JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,
+ * 仅保留实际被调用的方法;查询过滤 is_deleted,deleteById 软删)。
+ */
+interface ProductRepository : ProductRepositoryCustom {
+  // 参数须用域枚举 ProductModelStatus(实体字段类型)
   fun findByStatus(status: ProductModelStatus): List<ProductModel>
 
-  fun findByStatus(
-    status: ProductStatus,
-    pageable: org.springframework.data.domain.Pageable,
-  ): org.springframework.data.domain.Page<ProductModel>
+  fun findById(id: Long): Optional<ProductModel>
 
-  fun findByNameContaining(
-    name: String,
-    pageable: org.springframework.data.domain.Pageable,
-  ): org.springframework.data.domain.Page<ProductModel>
+  /** 存量接口遗留的无界查询(违反规则 10,statistics/收藏分析存量使用;不新增调用)。 */
+  fun findAll(): List<ProductModel>
 
-  fun findByNameContainingAndStatus(
-    name: String,
-    status: ProductStatus,
-    pageable: org.springframework.data.domain.Pageable,
-  ): org.springframework.data.domain.Page<ProductModel>
+  fun findAllById(ids: List<Long>): List<ProductModel>
 
-  fun findByPriceBetween(
-    minPrice: Long,
-    maxPrice: Long,
-    pageable: org.springframework.data.domain.Pageable,
-  ): org.springframework.data.domain.Page<ProductModel>
+  fun existsById(id: Long): Boolean
 
-  // Sorting and ordering
-  fun findAllByOrderBySalesVolumeDesc(): List<ProductModel>
+  /** 语义对齐 @SoftDelete 下的 deleteById:软删。 */
+  fun deleteById(id: Long)
 
-  fun decreaseStock(
-    productId: Long,
-    quantity: Int,
-  ): Int {
-    val product = findById(productId).orElse(null)
-    return if (product != null && product.stock >= quantity) {
-      product.stock -= quantity
-      if (product.stock == 0) {
-        product.status = ProductModelStatus.OUT_OF_STOCK
-      }
-      save(product)
-      1
-    } else {
-      0
-    }
-  }
-
-  fun increaseStock(
-    productId: Long,
-    quantity: Int,
-  ): Int {
-    val product = findById(productId).orElse(null)
-    return if (product != null) {
-      product.stock += quantity
-      if (product.stock > 0 && product.status == ProductModelStatus.OUT_OF_STOCK) {
-        product.status = ProductModelStatus.ONLINE
-      }
-      save(product)
-      1
-    } else {
-      0
-    }
-  }
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: ProductModel): ProductModel
 }
