@@ -48,7 +48,7 @@ interface PaymentRefundRepositoryCustom {
 
   /**
    * 退款申请分页查询(R-PAY-02 后台退款管理页):
-   * status 为空=全部状态;日期按创建时间过滤(空=不限);按创建时间倒序。
+   * status 为空=全部状态;日期按创建时间过滤(空=不限);按创建时间倒序(id 破平防跨页重复);content+count 同事务。
    */
   fun findRefundRequests(
     status: RefundStatus?,
@@ -60,8 +60,8 @@ interface PaymentRefundRepositoryCustom {
 
   /**
    * 日期窗口内已退款(COMPLETED)记录分页查询(微信资金对账-退款对账用):
-   * 口径同聚合查询 = status=COMPLETED 按退款成功时间(refundedAt/processed_at)归属窗口;
-   * 按退款成功时间倒序,与微信退款账单按退款成功日的归属对齐。
+   * 口径同聚合查询 = status=COMPLETED 按退款成功时间(refundedAt/processed_at)归属闭区间窗口;
+   * 按退款成功时间倒序(id 破平防跨页重复),与微信退款账单按退款成功日的归属对齐;content+count 同事务。
    */
   fun findRefundedByDateRange(
     startDate: LocalDateTime,

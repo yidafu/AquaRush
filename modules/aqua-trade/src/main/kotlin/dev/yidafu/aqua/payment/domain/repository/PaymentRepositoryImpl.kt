@@ -19,143 +19,224 @@
 
 package dev.yidafu.aqua.payment.domain.repository
 
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import dev.yidafu.aqua.common.domain.model.QPaymentModel.Companion.paymentModel
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.PaymentsTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.plus
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * Enhanced PaymentRepository implementation using QueryDSL
+ * 支付单仓储实现(JPA→Exposed 迁移 P4,替代原 QueryDSL 实现 + PaymentSpecifications 组装)。
+ * 查询过滤 is_deleted([PaymentsTable.activeOnly]);金额一律 Long 分;
+ * [claimExpired] 为单条条件 UPDATE(原子,幂等且互斥),WHERE 同样带 activeOnly。
  */
 @Repository
-class PaymentRepositoryImpl : PaymentRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class PaymentRepositoryImpl(
+  private val database: Database,
+) : PaymentRepository {
+  /** [Pageable] Sort 属性名 → 列映射(原 JPA 派生查询按实体属性名解析 Sort)。 */
+  private val sortColumns: Map<String, Expression<*>> =
+    mapOf(
+      "id" to PaymentsTable.id,
+      "orderId" to PaymentsTable.orderId,
+      "userId" to PaymentsTable.userId,
+      "status" to PaymentsTable.status,
+      "amount" to PaymentsTable.amountCents,
+      "createdAt" to PaymentsTable.createdAt,
+      "updatedAt" to PaymentsTable.updatedAt,
+      "expiredAt" to PaymentsTable.expiredAt,
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
+  private fun toModel(row: ResultRow): PaymentModel =
+    PaymentModel(
+      id = row[PaymentsTable.id],
+      orderId = row[PaymentsTable.orderId],
+      userId = row[PaymentsTable.userId],
+      transactionId = row[PaymentsTable.transactionId],
+      prepayId = row[PaymentsTable.prepayId],
+      amount = row[PaymentsTable.amountCents],
+      currency = row[PaymentsTable.currency],
+      status = PaymentStatus.valueOf(row[PaymentsTable.status]),
+      paymentMethod = PaymentMethod.valueOf(row[PaymentsTable.paymentMethod]),
+      description = row[PaymentsTable.description],
+      failureReason = row[PaymentsTable.failureReason],
+      paidAt = row[PaymentsTable.paidAt],
+      expiredAt = row[PaymentsTable.expiredAt],
+      version = row[PaymentsTable.version],
+      createdAt = row[PaymentsTable.createdAt],
+      updatedAt = row[PaymentsTable.updatedAt],
+      deletedAt = row[PaymentsTable.deletedAt],
+      deletedBy = row[PaymentsTable.deletedBy],
+    )
 
-  override fun findByUserIdAndStatusEnhanced(
-    userId: Long,
+  override fun findByOrderId(orderId: Long): Optional<PaymentModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        PaymentsTable
+          .selectAll()
+          .where { PaymentsTable.activeOnly { PaymentsTable.orderId eq orderId } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun findByTransactionId(transactionId: String): Optional<PaymentModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        PaymentsTable
+          .selectAll()
+          .where { PaymentsTable.activeOnly { PaymentsTable.transactionId eq transactionId } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun findByStatusAndExpiredAtBefore(
     status: PaymentStatus,
-  ): List<PaymentModel> =
-    queryFactory
-      .selectFrom(paymentModel)
-      .where(
-        paymentModel.userId
-          .eq(userId)
-          .and(paymentModel.status.eq(status)),
-      ).fetch()
-
-  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel> =
-    queryFactory
-      .selectFrom(paymentModel)
-      .where(
-        paymentModel.status
-          .eq(PaymentStatus.PENDING)
-          .and(paymentModel.expiredAt.lt(now)),
-      ).fetch()
-
-  override fun findByCreatedAtBetweenEnhanced(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<PaymentModel> =
-    queryFactory
-      .selectFrom(paymentModel)
-      .where(paymentModel.createdAt.between(startDate, endDate))
-      .fetch()
-
-  override fun countByStatusAndCreatedAtBetweenEnhanced(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long =
-    queryFactory
-      .query()
-      .from(paymentModel)
-      .where(
-        paymentModel.status
-          .eq(status)
-          .and(paymentModel.createdAt.between(startDate, endDate)),
-      ).fetchCount()
-
-  override fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long {
-    val sumAmount = paymentModel.amount.sumLong()
-    @Suppress("UNCHECKED_CAST")
-    return queryFactory
-      .query()
-      .from(paymentModel)
-      .where(
-        paymentModel.status
-          .eq(status)
-          .and(paymentModel.createdAt.between(startDate, endDate)),
-      ).select(sumAmount)
-      .fetchOne() as? Long ?: 0L
-  }
-
-  override fun findPaymentsWithFilters(
-    userId: Long?,
-    status: PaymentStatus?,
-    transactionId: String?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    minAmount: Long?,
-    maxAmount: Long?,
-  ): List<PaymentModel> {
-    val builder = BooleanBuilder()
-
-    userId?.let { builder.and(paymentModel.userId.eq(it)) }
-    status?.let { builder.and(paymentModel.status.eq(it)) }
-    transactionId?.let { builder.and(paymentModel.transactionId.eq(it)) }
-    startDate?.let { start ->
-      endDate?.let { end ->
-        builder.and(paymentModel.createdAt.between(start, end))
+    expiredAt: LocalDateTime,
+    pageable: Pageable,
+  ): Page<PaymentModel> {
+    val orders =
+      pageable.sort
+        .mapNotNull { order ->
+          sortColumns[order.property]?.let { col ->
+            val sortOrder = if (order.isAscending) SortOrder.ASC else SortOrder.DESC
+            col to sortOrder
+          }
+        }.ifEmpty { listOf(PaymentsTable.id to SortOrder.ASC) }
+    val condition =
+      PaymentsTable.activeOnly {
+        (PaymentsTable.status eq status.name) and (PaymentsTable.expiredAt less expiredAt)
       }
-    }
-    minAmount?.let { builder.and(paymentModel.amount.goe(it)) }
-    maxAmount?.let { builder.and(paymentModel.amount.loe(it)) }
-
-    return queryFactory
-      .selectFrom(paymentModel)
-      .where(builder)
-      .orderBy(paymentModel.createdAt.desc())
-      .fetch()
+    val (content, total) =
+      transaction(database) {
+        val content =
+          PaymentsTable
+            .selectAll()
+            .where { condition }
+            .orderBy(*orders.toTypedArray())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .toList()
+            .map(::toModel)
+        content to PaymentsTable.selectAll().where { condition }.count()
+      }
+    return PageImpl(content, pageable, total)
   }
 
-  /**
-   * 原子认领过期支付:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
-   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
-   */
-  @Transactional
+  override fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<PaymentModel> =
+    transaction(database) {
+      PaymentsTable
+        .selectAll()
+        .where {
+          PaymentsTable.activeOnly {
+            (PaymentsTable.createdAt greaterEq startDate) and (PaymentsTable.createdAt lessEq endDate)
+          }
+        }.toList()
+    }.map(::toModel)
+
+  override fun findById(id: Long): Optional<PaymentModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        PaymentsTable
+          .selectAll()
+          .where { PaymentsTable.activeOnly { PaymentsTable.id eq id } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun save(entity: PaymentModel): PaymentModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val exists =
+        PaymentsTable
+          .selectAll()
+          .where { PaymentsTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        PaymentsTable.update({ PaymentsTable.id eq id }) {
+          it[orderId] = entity.orderId
+          it[userId] = entity.userId
+          it[transactionId] = entity.transactionId
+          it[prepayId] = entity.prepayId
+          it[amountCents] = entity.amount
+          it[currency] = entity.currency
+          it[status] = entity.status.name
+          it[paymentMethod] = entity.paymentMethod.name
+          it[description] = entity.description
+          it[failureReason] = entity.failureReason
+          it[paidAt] = entity.paidAt
+          it[expiredAt] = entity.expiredAt
+          // version 数据库侧 +1(对齐 JPA @Version 每次更新递增;避免陈旧实体回写导致版本回退)
+          it[version] = PaymentsTable.version + 1L
+          it[updatedAt] = LocalDateTime.now()
+        }
+      } else {
+        PaymentsTable.insert {
+          it[PaymentsTable.id] = id
+          it[orderId] = entity.orderId
+          it[userId] = entity.userId
+          it[transactionId] = entity.transactionId
+          it[prepayId] = entity.prepayId
+          it[amountCents] = entity.amount
+          it[currency] = entity.currency
+          it[status] = entity.status.name
+          it[paymentMethod] = entity.paymentMethod.name
+          it[description] = entity.description
+          it[failureReason] = entity.failureReason
+          it[paidAt] = entity.paidAt
+          it[expiredAt] = entity.expiredAt
+          it[version] = entity.version
+          it[PaymentsTable.createdAt] = entity.createdAt
+          it[updatedAt] = entity.updatedAt
+        }
+      }
+      entity
+    }
+
   override fun claimExpired(
     id: Long,
     now: LocalDateTime,
-  ): Int {
-    entityManager.flush()
-    val updated =
-      queryFactory
-        .update(paymentModel)
-        .set(paymentModel.status, PaymentStatus.EXPIRED)
-        .set(paymentModel.version, paymentModel.version.add(1L))
-        .set(paymentModel.updatedAt, now)
-        .where(
-          paymentModel.id.eq(id),
-          paymentModel.status.eq(PaymentStatus.PENDING),
-          paymentModel.expiredAt.isNotNull().and(paymentModel.expiredAt.loe(now)),
-        ).execute()
-        .toInt()
-    entityManager.clear()
-    return updated
-  }
+  ): Int =
+    transaction(database) {
+      PaymentsTable.update({
+        PaymentsTable.activeOnly {
+          (PaymentsTable.id eq id) and
+            (PaymentsTable.status eq PaymentStatus.PENDING.name) and
+            PaymentsTable.expiredAt.isNotNull() and
+            (PaymentsTable.expiredAt lessEq now)
+        }
+      }) {
+        it[status] = PaymentStatus.EXPIRED.name
+        it[version] = PaymentsTable.version + 1L
+        it[updatedAt] = now
+      }
+    }
 }
