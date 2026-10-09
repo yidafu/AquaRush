@@ -22,6 +22,7 @@ package dev.yidafu.aqua.ops.feedback.domain.table
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
 import dev.yidafu.aqua.common.domain.table.SoftDeletableTable
+import dev.yidafu.aqua.common.domain.table.jsonString
 import org.jetbrains.exposed.v1.javatime.datetime
 
 /**
@@ -42,7 +43,7 @@ object FeedbackTable : SoftDeletableTable("feedbacks") {
    * 序列化/反序列化**必须**走 `ArrayNodeConverter`（与 JPA AttributeConverter 完全同一条路径），
    * 保证迁移前后 JSON 文本逐字节一致（迁移方案 §9 R4）。
    */
-  val images = text("images").nullable()
+  val images = jsonString("images").nullable()
   val contactInfo = varchar("contact_info", 100).nullable()
   val status = enumerationByName("status", 30, FeedbackStatus::class)
   val handleResult = text("handle_result").nullable()

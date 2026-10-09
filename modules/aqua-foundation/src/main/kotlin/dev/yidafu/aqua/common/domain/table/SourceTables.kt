@@ -27,7 +27,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 此处为全量列映射(单一事实源,P4 直接复用,避免 analytics 局部定义导致重复)。
 // 列定义逐字对齐 changelog DDL(v1.0.0-init + 后续 addColumn 演进的最终形态)。
 // 除特别说明外均为 @SoftDelete 表 —— 查询必须显式过滤各表的 isDeleted 列。
-// json 列以 text() 映射(PostgreSQL/H2 的 json 列接受字符串读写),结构化转换由仓储层负责。
+// json 列(DDL 类型 json)一律以 jsonString() 映射,结构化转换由仓储层负责;text() 会在 PostgreSQL 上绑定失败。
 
 /** 订单表(`orders`,trade 域,46 列)。 */
 object OrdersTable : SoftDeletableTable("orders") {
@@ -57,7 +57,7 @@ object OrdersTable : SoftDeletableTable("orders") {
   val paymentTransactionId = varchar("payment_transaction_id", 128).nullable()
   val paidAt = datetime("paid_at").nullable()
   val deliveryWorkerId = long("delivery_worker_id").nullable()
-  val deliveryPhotos = text("delivery_photos").nullable()
+  val deliveryPhotos = jsonString("delivery_photos").nullable()
   val deliveryPhotoReviewStatus = varchar("delivery_photo_review_status", 20).nullable()
   val deliveryPhotoReviewedAt = datetime("delivery_photo_reviewed_at").nullable()
   val deliveryPhotoReviewedBy = long("delivery_photo_reviewed_by").nullable()
@@ -84,7 +84,7 @@ object OrderItemsTable : SoftDeletableTable("order_items") {
   val quantity = integer("quantity")
   val unitPriceCents = long("unit_price_cents")
   val totalPriceCents = long("total_price_cents")
-  val productSnapshot = text("product_snapshot")
+  val productSnapshot = jsonString("product_snapshot")
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)
@@ -229,22 +229,22 @@ object ProductsTable : SoftDeletableTable("products") {
   val name = varchar("name", 255)
   val priceCents = long("price_cents")
   val thumbnailUrl = varchar("thumbnail_url", 512)
-  val detailImages = text("detail_images").nullable()
+  val detailImages = jsonString("detail_images").nullable()
   val description = text("description").nullable()
   val stockQuantity = integer("stock_quantity")
   val status = varchar("status", 20)
   val subtitle = varchar("subtitle", 500).nullable()
   val originalPriceCents = long("original_price_cents").nullable()
   val depositPriceCents = long("deposit_price_cents")
-  val imageGallery = text("image_gallery").nullable()
+  val imageGallery = jsonString("image_gallery").nullable()
   val specification = varchar("specification", 100)
   val waterSource = varchar("water_source", 200).nullable()
   val mineralContent = varchar("mineral_content", 200).nullable()
   val salesVolume = integer("sales_volume")
   val sortOrder = integer("sort_order")
-  val tags = text("tags").nullable()
+  val tags = jsonString("tags").nullable()
   val detailContent = text("detail_content").nullable()
-  val certificateImages = text("certificate_images").nullable()
+  val certificateImages = jsonString("certificate_images").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)
@@ -267,8 +267,8 @@ object AdminsTable : SoftDeletableTable("admins") {
   val updatedAt = datetime("updated_at")
   val avatarUrl = varchar("avatar_url", 512).nullable()
   val onlineStatus = varchar("online_status", 20)
-  val coordinates = text("coordinates").nullable()
-  val currentLocation = text("current_location").nullable()
+  val coordinates = jsonString("coordinates").nullable()
+  val currentLocation = jsonString("current_location").nullable()
   val rating = double("rating").nullable()
   val totalOrders = integer("total_orders").default(0)
   val completedOrders = integer("completed_orders").default(0)
