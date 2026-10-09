@@ -22,9 +22,9 @@ package dev.yidafu.aqua.storage.domain.repository
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.storage.domain.model.FileMetadata
-import dev.yidafu.aqua.storage.domain.model.QFileMetadata
-import dev.yidafu.aqua.storage.domain.model.enums.FileType
+import dev.yidafu.aqua.common.domain.model.FileMetadata
+import dev.yidafu.aqua.common.domain.model.QFileMetadata
+import dev.yidafu.aqua.common.domain.model.enums.FileType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page

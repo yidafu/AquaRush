@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.storage.domain.repository
 
-import dev.yidafu.aqua.storage.domain.model.FileMetadata
-import dev.yidafu.aqua.storage.domain.model.enums.FileType
+import dev.yidafu.aqua.common.domain.model.FileMetadata
+import dev.yidafu.aqua.common.domain.model.enums.FileType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime

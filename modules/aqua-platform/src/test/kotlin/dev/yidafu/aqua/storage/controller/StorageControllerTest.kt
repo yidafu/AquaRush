@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.storage.controller
 
-import dev.yidafu.aqua.storage.domain.model.FileMetadata
-import dev.yidafu.aqua.storage.domain.model.enums.FileType
+import dev.yidafu.aqua.common.domain.model.FileMetadata
+import dev.yidafu.aqua.common.domain.model.enums.FileType
 import dev.yidafu.aqua.storage.dto.FileMetadataResponse
 import dev.yidafu.aqua.storage.service.StorageService
 import io.kotest.assertions.withClue

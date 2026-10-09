@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.storage.service.storage
 
+import dev.yidafu.aqua.common.domain.model.FileMetadata
+import dev.yidafu.aqua.common.domain.model.enums.FileType
 import dev.yidafu.aqua.storage.config.StorageProperties
-import dev.yidafu.aqua.storage.domain.model.FileMetadata
-import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
