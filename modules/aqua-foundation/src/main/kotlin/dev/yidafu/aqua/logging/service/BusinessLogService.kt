@@ -20,11 +20,14 @@
 package dev.yidafu.aqua.logging.service
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
+import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
 import dev.yidafu.aqua.logging.config.LoggingProperties
 import dev.yidafu.aqua.logging.repository.BusinessLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -86,30 +89,37 @@ class BusinessLogService(
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,
-  ): Page<BusinessLogModel> = queryBusinessLogs(level, loggerName, null, userId, startTime, endTime, pageable)
-
-  /**
-   * 分页查询业务日志(GraphQL 用,含业务域/操作类型维度,恒 createdAt 倒序 —— F-LOG-003)
-   * @param domain 业务域枚举名(ORDER/PAYMENT/DELIVERY/USER/AUTH),映射 logger_name 模糊筛选
-   * @param operationType 操作类型,精确匹配 operation 列
-   */
-  fun queryBusinessLogs(
-    level: String?,
-    loggerName: String?,
-    operation: String?,
-    userId: Long?,
-    startTime: LocalDateTime?,
-    endTime: LocalDateTime?,
-    pageable: Pageable,
   ): Page<BusinessLogModel> =
     businessLogRepository.findByFilters(
       level,
       loggerName,
-      operation,
+      null,
       userId,
       startTime,
       endTime,
       pageable,
+    )
+
+  /**
+   * 分页查询业务日志(GraphQL 用,含业务域/操作类型维度,恒 createdAt 倒序 —— F-LOG-003)
+   *
+   * input.domain(业务域枚举名 ORDER/PAYMENT/DELIVERY/USER/AUTH)映射 logger_name 模糊筛选;
+   * input.operationType 精确匹配 operation 列;page/size 空值回填默认 0/10。
+   */
+  fun queryBusinessLogs(input: BusinessLogListInput): Page<BusinessLogModel> =
+    businessLogRepository.findByFilters(
+      level = input.level?.name,
+      loggerName = input.domain?.name,
+      operation = input.operationType,
+      userId = input.userId,
+      startTime = input.startTime,
+      endTime = input.endTime,
+      pageable =
+        PageRequest.of(
+          input.page ?: 0,
+          input.size ?: 10,
+          Sort.by(Sort.Direction.DESC, "createdAt"),
+        ),
     )
 
   /**

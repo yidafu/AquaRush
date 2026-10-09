@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.BackupLogPartitionInput
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecord
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.logging.partition.mapper.LogBackupRecordMapper
+import dev.yidafu.aqua.logging.partition.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -65,7 +65,7 @@ class AdminLogBackupMutationResolver(
         operatorName = principal.username,
         retentionDays = retentionDaysOf(table),
       )
-    return LogBackupRecordMapper.map(record)
+    return record.toGraphQL()
   }
 
   /**

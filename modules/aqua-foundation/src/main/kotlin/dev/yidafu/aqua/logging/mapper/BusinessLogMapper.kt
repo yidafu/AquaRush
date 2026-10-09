@@ -19,33 +19,23 @@
 
 package dev.yidafu.aqua.logging.mapper
 
-import dev.yidafu.aqua.api.dto.BusinessLogListRequest
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import dev.yidafu.aqua.common.graphql.generated.BizLogLevel
 import dev.yidafu.aqua.common.graphql.generated.BusinessLog
-import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
-import tech.mappie.api.ObjectMappie
 
 /**
- * 业务日志映射器:域实体 → GraphQL 类型
+ * 业务日志领域模型 → GraphQL 类型
  */
-object BusinessLogMapper : ObjectMappie<BusinessLogModel, BusinessLog>() {
-  override fun map(from: BusinessLogModel): BusinessLog =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::level fromExpression { BizLogLevel.valueOf(from.level) }
-    }
-}
-
-/**
- * 业务日志列表查询输入映射器:GraphQL 输入 → 服务请求
- */
-object BusinessLogListInputMapper : ObjectMappie<BusinessLogListInput, BusinessLogListRequest>() {
-  override fun map(from: BusinessLogListInput): BusinessLogListRequest =
-    mapping {
-      to::page fromValue (from.page ?: 0)
-      to::size fromValue (from.size ?: 10)
-      to::domain fromExpression { src -> src.domain?.name }
-      to::level fromExpression { src -> src.level?.name }
-    }
-}
+fun BusinessLogModel.toGraphQL(): BusinessLog =
+  BusinessLog(
+    correlationId = correlationId,
+    createdAt = createdAt,
+    id = id ?: 0L,
+    level = BizLogLevel.valueOf(level),
+    loggerName = loggerName,
+    message = message,
+    operation = operation,
+    stackTrace = stackTrace,
+    userId = userId,
+    username = username,
+  )

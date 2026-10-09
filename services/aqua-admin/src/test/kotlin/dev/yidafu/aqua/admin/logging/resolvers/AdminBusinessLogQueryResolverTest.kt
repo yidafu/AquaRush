@@ -30,8 +30,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
 
 class AdminBusinessLogQueryResolverTest :
@@ -56,10 +54,6 @@ class AdminBusinessLogQueryResolverTest :
     }
     test("businessLogs should pass through input filters") {
       // Given
-      val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-      every {
-        businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable)
-      } returns PageImpl(listOf(createSampleLog()))
       val input =
         BusinessLogListInput(
           domain = BizLogDomain.ORDER,
@@ -71,6 +65,7 @@ class AdminBusinessLogQueryResolverTest :
           startTime = null,
           userId = 1L,
         )
+      every { businessLogService.queryBusinessLogs(input) } returns PageImpl(listOf(createSampleLog()))
 
       // When
       val result = resolver.businessLogs(input)
@@ -78,20 +73,17 @@ class AdminBusinessLogQueryResolverTest :
       // Then
       result.list.size shouldBe 1
       result.pageInfo.total shouldBe 1
-      verify { businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable) }
+      verify { businessLogService.queryBusinessLogs(input) }
     }
     test("businessLogs should use defaults when input is null") {
       // Given
-      val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-      every {
-        businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable)
-      } returns PageImpl(emptyList())
+      every { businessLogService.queryBusinessLogs(BusinessLogListInput()) } returns PageImpl(emptyList())
 
       // When
       val result = resolver.businessLogs(null)
 
       // Then
       result.list.size shouldBe 0
-      verify { businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable) }
+      verify { businessLogService.queryBusinessLogs(BusinessLogListInput()) }
     }
   })

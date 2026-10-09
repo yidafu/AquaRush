@@ -19,15 +19,11 @@
 
 package dev.yidafu.aqua.admin.logging.resolvers
 
-import dev.yidafu.aqua.api.dto.BusinessLogListRequest
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogVoPage
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
-import dev.yidafu.aqua.logging.mapper.BusinessLogListInputMapper
-import dev.yidafu.aqua.logging.mapper.BusinessLogMapper
+import dev.yidafu.aqua.logging.mapper.toGraphQL
 import dev.yidafu.aqua.logging.service.BusinessLogService
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -50,20 +46,9 @@ class AdminBusinessLogQueryResolver(
   fun businessLogs(
     @Argument input: BusinessLogListInput?,
   ): BusinessLogVoPage {
-    val request = input?.let { BusinessLogListInputMapper.map(it) } ?: BusinessLogListRequest()
-    val pageable = PageRequest.of(request.page, request.size, Sort.by(Sort.Direction.DESC, "createdAt"))
-    val page =
-      businessLogService.queryBusinessLogs(
-        level = request.level,
-        loggerName = request.domain,
-        operation = request.operationType,
-        userId = request.userId,
-        startTime = request.startTime,
-        endTime = request.endTime,
-        pageable = pageable,
-      )
+    val page = businessLogService.queryBusinessLogs(input ?: BusinessLogListInput())
     return BusinessLogVoPage(
-      list = page.content.map { BusinessLogMapper.map(it) },
+      list = page.content.map { it.toGraphQL() },
       pageInfo =
         PageInfo(
           total = page.totalElements.toInt(),
