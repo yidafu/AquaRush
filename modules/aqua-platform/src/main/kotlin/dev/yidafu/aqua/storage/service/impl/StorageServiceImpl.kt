@@ -32,7 +32,6 @@ import dev.yidafu.aqua.storage.service.storage.StorageStrategy
 import org.apache.tika.Tika
 import org.springframework.core.io.Resource
 import org.springframework.data.domain.Page
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -117,7 +116,7 @@ class StorageServiceImpl(
 
   override fun getFile(id: Long): Resource {
     val metadata =
-      fileMetadataRepository.findByIdOrNull(id)
+      fileMetadataRepository.findById(id).orElse(null)
         ?: throw NoSuchElementException("File not found with id: $id")
 
     return storageStrategy.retrieve(metadata.storagePath)
@@ -128,7 +127,7 @@ class StorageServiceImpl(
     parameters: ImageParameters,
   ): ByteArray {
     val metadata =
-      fileMetadataRepository.findByIdOrNull(id)
+      fileMetadataRepository.findById(id).orElse(null)
         ?: throw NoSuchElementException("File not found with id: $id")
 
     if (metadata.fileType != FileType.IMAGE) {
@@ -140,7 +139,7 @@ class StorageServiceImpl(
 
   override fun getFileMetadata(id: Long): FileMetadataResponse {
     val metadata =
-      fileMetadataRepository.findByIdOrNull(id)
+      fileMetadataRepository.findById(id).orElse(null)
         ?: throw NoSuchElementException("File not found with id: $id")
 
     val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
@@ -149,7 +148,7 @@ class StorageServiceImpl(
 
   override fun deleteFile(id: Long): Boolean {
     val metadata =
-      fileMetadataRepository.findByIdOrNull(id)
+      fileMetadataRepository.findById(id).orElse(null)
         ?: throw NoSuchElementException("File not found with id: $id")
 
     return try {

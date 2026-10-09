@@ -23,14 +23,11 @@ import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.util.Optional
 
-@Repository
-interface UserRepository :
-  JpaRepository<UserModel, Long>,
-  UserRepositoryCustom {
+/** 用户仓储(JPA→Exposed 迁移 P3 收尾,JpaRepository 派生查询显式化;跨模块读走 api/service)。 */
+interface UserRepository : UserRepositoryCustom {
   fun findByWechatOpenId(wechatOpenId: String): UserModel?
 
   fun findByPhone(phone: String): UserModel?
@@ -70,4 +67,47 @@ interface UserRepository :
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long
+
+  // ===== 基础操作(JpaRepository 显式化)=====
+  fun findById(id: Long): Optional<UserModel>
+
+  /** 存量接口遗留的无界查询(违反规则 10,仅 DebugJwtController 存量使用;不新增调用)。 */
+  fun findAll(): List<UserModel>
+
+  fun findAll(pageable: Pageable): Page<UserModel>
+
+  fun findAllById(ids: List<Long>): List<UserModel>
+
+  fun count(): Long
+
+  fun existsById(id: Long): Boolean
+
+  /** 语义对齐 @SoftDelete 下的 delete:软删。 */
+  fun delete(entity: UserModel)
+
+  /** 语义对齐 @SoftDelete 下的 deleteById:软删。 */
+  fun deleteById(id: Long)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: UserModel): UserModel
+}
+
+/** 用户域跨模块查询(F-MKT/统计口径;JPA→Exposed 迁移 P3 收尾)。 */
+interface UserRepositoryCustom {
+  fun getUserTotalSpent(userId: Long): Double
+
+  fun getUserBalance(userId: Long): Double
+
+  fun getUserAddressCount(userId: Long): Int
+
+  fun canUserReview(
+    userId: Long,
+    orderId: Long,
+  ): Boolean
+
+  fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
+    keyword: String,
+    status: UserStatus,
+    pageable: Pageable,
+  ): Page<UserModel>
 }

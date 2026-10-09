@@ -19,17 +19,12 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerRankingItemDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
-import dev.yidafu.aqua.common.domain.model.QOrderModel
-import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.LocalDate
@@ -40,13 +35,6 @@ class DeliveryWorkerStatisticsServiceImpl(
   private val deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService,
   private val statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom,
 ) : DeliveryWorkerStatisticsService {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
-
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
-
   override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
     // 送水员总数(账号单表,配送能力角色条件 count,避免全表加载)
     val totalWorkers = adminService.countDeliveryCapable()
@@ -99,25 +87,12 @@ class DeliveryWorkerStatisticsServiceImpl(
   }
 
   override fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerRankingItemDTO> {
-    val orderModel = QOrderModel.orderModel
-
     val today = LocalDate.now()
-    val todayStart = today.atStartOfDay()
 
-    // Get today's completed order counts per worker
-    // 业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属(不受用户确认延迟影响)
-    val deliveredAt = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
+    // 今日完成单数按送水员分组(业绩口径 R-ORD-11:待确认收货+已完成,按送达时间归属;
+    // P3 迁移:原 QueryDSL 查询搬入 StatisticsDeliveryWorkerRepository)
     val todayOrderCounts =
-      queryFactory
-        .select(orderModel.deliveryWorkerId, orderModel.count())
-        .from(orderModel)
-        .where(
-          orderModel.status.`in`(listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)),
-          deliveredAt.goe(todayStart),
-          orderModel.deliveryWorkerId.isNotNull,
-        ).groupBy(orderModel.deliveryWorkerId)
-        .fetch()
-        .associate { it.get(orderModel.deliveryWorkerId) to it.get(orderModel.count())?.toInt() }
+      statisticsDeliveryWorkerRepository.countTodayCompletedOrdersByWorker(today.atStartOfDay())
 
     // Get all workers and their statistics(账号单表,配送能力角色)
     val workers = adminService.findAllDeliveryCapable()

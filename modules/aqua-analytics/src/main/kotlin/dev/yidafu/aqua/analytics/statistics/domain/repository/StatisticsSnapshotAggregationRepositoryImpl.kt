@@ -19,11 +19,8 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
-import com.querydsl.core.types.Expression
-import com.querydsl.core.types.dsl.DateTemplate
-import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.core.types.dsl.NumberPath
-import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.analytics.common.exposed.dateTrunc
+import dev.yidafu.aqua.analytics.common.exposed.longOf
 import dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind
 import dev.yidafu.aqua.common.domain.model.DailyMarketingFactModel
 import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
@@ -32,98 +29,94 @@ import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRevenueFactModel
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
-import dev.yidafu.aqua.common.domain.model.QOrderGiftModel.Companion.orderGiftModel
-import dev.yidafu.aqua.common.domain.model.QOrderItemModel.Companion.orderItemModel
-import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
-import dev.yidafu.aqua.common.domain.model.QPaymentRefundModel.Companion.paymentRefundModel
-import dev.yidafu.aqua.common.domain.model.QTicketPurchaseModel.Companion.ticketPurchaseModel
-import dev.yidafu.aqua.common.domain.model.QUserActionLogModel.Companion.userActionLogModel
-import dev.yidafu.aqua.common.domain.model.QUserCouponModel.Companion.userCouponModel
-import dev.yidafu.aqua.common.domain.model.QUserModel.Companion.userModel
-import dev.yidafu.aqua.common.domain.model.QUserTicketModel.Companion.userTicketModel
-import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.OrderGiftsTable
+import dev.yidafu.aqua.common.domain.table.OrderItemsTable
+import dev.yidafu.aqua.common.domain.table.OrdersTable
+import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
+import dev.yidafu.aqua.common.domain.table.TicketPurchasesTable
+import dev.yidafu.aqua.common.domain.table.UserActionLogsTable
+import dev.yidafu.aqua.common.domain.table.UserCouponsTable
+import dev.yidafu.aqua.common.domain.table.UserTicketsTable
+import dev.yidafu.aqua.common.domain.table.UsersTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.coalesce
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.countDistinct
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.min
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.sum
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 统计快照按日聚合仓储实现
+ * 统计快照按日聚合仓储实现(JPA→Exposed 迁移 P3)。
  * 所有聚合均按单日窗口 [date, date+1) 过滤源表,金额按订单只计一次(防 P1-3 虚增)。
+ * 源表均为 @SoftDelete 表 —— 每处查询显式过滤 is_deleted=false,与 Hibernate 行为一致。
+ * ResultRow 取值全部在事务闭包内(聚合表达式 hashCode 依赖事务上下文)。
  */
 @Repository
-class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregationRepository {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
-
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
-
+class StatisticsSnapshotAggregationRepositoryImpl(
+  private val database: Database,
+) : StatisticsSnapshotAggregationRepository {
   override fun aggregateOrderFacts(date: LocalDate): List<DailyOrderFactModel> {
     val window = dateWindow(date)
+    val orderCount = OrdersTable.id.count()
+    val amountSum = OrdersTable.totalAmountCents.sum()
+    val quantitySum = OrderItemsTable.quantity.sum()
 
     // 查询 1:仅 orders 聚合 —— 订单数与金额按订单只计一次(不 join order_items,防多商品订单金额重复求和,P1-3)
-    val orderRows =
-      queryFactory
-        .select(
-          orderModel.status,
-          orderModel.deliveryWorkerId,
-          orderModel.id.count(),
-          orderModel.amountCents.sumLong().coalesce(0L),
-        ).from(orderModel)
-        .where(orderModel.createdAt.goe(window.start), orderModel.createdAt.lt(window.end))
-        .groupBy(orderModel.status, orderModel.deliveryWorkerId)
-        .fetch()
-        .map { row ->
-          OrderGroupKey(status = row.get(orderModel.status)!!.name, deliveryWorkerId = row.get(orderModel.deliveryWorkerId)) to
-            OrderCounts(
-              orderCount = row.get(orderModel.id.count())!!,
-              amountCents = row.get(orderModel.amountCents.sumLong().coalesce(0L))!!,
-              itemQuantity = 0L,
-            )
-        }.toMap()
+    val orderRows: MutableMap<OrderGroupKey, OrderCounts> =
+      transaction(database) {
+        OrdersTable
+          .select(OrdersTable.status, OrdersTable.deliveryWorkerId, orderCount, amountSum)
+          .where { OrdersTable.activeOnly { OrdersTable.createdAt greaterEq window.start and (OrdersTable.createdAt less window.end) } }
+          .groupBy(OrdersTable.status, OrdersTable.deliveryWorkerId)
+          .toList()
+          .associate { row ->
+            OrderGroupKey(row[OrdersTable.status], row[OrdersTable.deliveryWorkerId]) to
+              OrderCounts(row[orderCount], row.longOf(amountSum), 0L)
+          }.toMutableMap()
+      }
 
     // 查询 2:订单 ⋈ 明细 —— 商品件数按明细汇总(仅取件数,不与金额混算)
-    val quantityRows =
-      queryFactory
-        .select(
-          orderModel.status,
-          orderModel.deliveryWorkerId,
-          orderItemModel.quantity.sumLong().coalesce(0L),
-        ).from(orderModel)
-        .leftJoin(orderItemModel)
-        .on(orderItemModel.orderId.eq(orderModel.id))
-        .where(orderModel.createdAt.goe(window.start), orderModel.createdAt.lt(window.end))
-        .groupBy(orderModel.status, orderModel.deliveryWorkerId)
-        .fetch()
-
-    val merged = orderRows.toMutableMap()
-    quantityRows.forEach { row ->
-      val key =
-        OrderGroupKey(
-          status = row.get(orderModel.status)!!.name,
-          deliveryWorkerId = row.get(orderModel.deliveryWorkerId),
-        )
-      val counts = merged[key]
-      if (counts != null) {
-        merged[key] = counts.copy(itemQuantity = row.get(orderItemModel.quantity.sumLong().coalesce(0L))!!)
-      } else {
-        // 有明细但订单聚合缺失(理论不发生:明细必属订单);仍补零行保证一致性
-        merged[key] =
-          OrderCounts(
-            orderCount = 0L,
-            amountCents = 0L,
-            itemQuantity = row.get(orderItemModel.quantity.sumLong().coalesce(0L))!!,
-          )
-      }
+    transaction(database) {
+      OrdersTable
+        .join(OrderItemsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
+        .select(OrdersTable.status, OrdersTable.deliveryWorkerId, quantitySum)
+        .where {
+          OrdersTable
+            .activeOnly { OrdersTable.createdAt greaterEq window.start and (OrdersTable.createdAt less window.end) }
+            .and(OrderItemsTable.activeOnly())
+        }.groupBy(OrdersTable.status, OrdersTable.deliveryWorkerId)
+        .toList()
+        .forEach { row ->
+          val key = OrderGroupKey(row[OrdersTable.status], row[OrdersTable.deliveryWorkerId])
+          val qty = row.longOf(quantitySum)
+          val existing = orderRows[key]
+          orderRows[key] =
+            if (existing != null) {
+              existing.copy(itemQuantity = qty)
+            } else {
+              OrderCounts(0L, 0L, qty) // 有明细但订单聚合缺失(理论不发生:明细必属订单);补零行保证一致性
+            }
+        }
     }
 
-    return merged.map { (key, counts) ->
+    return orderRows.map { (key, counts) ->
       DailyOrderFactModel(
         statDate = date,
         status = key.status,
@@ -137,107 +130,103 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
 
   override fun aggregateProductFacts(date: LocalDate): List<DailyProductFactModel> {
     val window = dateWindow(date)
-    return queryFactory
-      .select(
-        orderModel.status,
-        orderItemModel.productId,
-        orderItemModel.quantity.sumLong().coalesce(0L),
-        orderItemModel.totalPriceCents.sumLong().coalesce(0L),
-        orderModel.id.countDistinct(),
-      ).from(orderModel)
-      .leftJoin(orderItemModel)
-      .on(orderItemModel.orderId.eq(orderModel.id))
-      .where(orderModel.createdAt.goe(window.start), orderModel.createdAt.lt(window.end))
-      .groupBy(orderModel.status, orderItemModel.productId)
-      .fetch()
-      .map { row ->
-        DailyProductFactModel(
-          statDate = date,
-          status = row.get(orderModel.status)!!.name,
-          productId = row.get(orderItemModel.productId)!!,
-          quantity = row.get(orderItemModel.quantity.sumLong().coalesce(0L))!!,
-          revenueCents = row.get(orderItemModel.totalPriceCents.sumLong().coalesce(0L))!!,
-          orderCount = row.get(orderModel.id.countDistinct())!!,
-        )
-      }
+    val quantitySum = OrderItemsTable.quantity.sum()
+    val revenueSum = OrderItemsTable.totalPriceCents.sum()
+    val distinctOrders = OrdersTable.id.countDistinct()
+    return transaction(database) {
+      OrdersTable
+        .join(OrderItemsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
+        .select(OrdersTable.status, OrderItemsTable.productId, quantitySum, revenueSum, distinctOrders)
+        .where {
+          OrdersTable
+            .activeOnly { OrdersTable.createdAt greaterEq window.start and (OrdersTable.createdAt less window.end) }
+            .and(OrderItemsTable.activeOnly())
+        }.groupBy(OrdersTable.status, OrderItemsTable.productId)
+        .toList()
+        .map { row ->
+          DailyProductFactModel(
+            statDate = date,
+            status = row[OrdersTable.status],
+            productId = row[OrderItemsTable.productId],
+            quantity = row.longOf(quantitySum),
+            revenueCents = row.longOf(revenueSum),
+            orderCount = row[distinctOrders],
+          )
+        }
+    }
   }
 
   override fun aggregateUserFact(date: LocalDate): DailyUserFactModel {
     val window = dateWindow(date)
     val newUserCount =
-      queryFactory
-        .select(userModel.id.count())
-        .from(userModel)
-        .where(userModel.createdAt.goe(window.start), userModel.createdAt.lt(window.end))
-        .fetchOne() ?: 0L
-
+      transaction(database) {
+        UsersTable
+          .select(UsersTable.id.count())
+          .where { UsersTable.activeOnly { UsersTable.createdAt greaterEq window.start and (UsersTable.createdAt less window.end) } }
+          .first()[UsersTable.id.count()]
+      }
     val loginUserCount =
-      queryFactory
-        .select(userActionLogModel.userId.countDistinct())
-        .from(userActionLogModel)
-        .where(
-          userActionLogModel.actionType.eq("USER_LOGIN"),
-          userActionLogModel.createdAt.goe(window.start),
-          userActionLogModel.createdAt.lt(window.end),
-        ).fetchOne() ?: 0L
-
-    return DailyUserFactModel(
-      statDate = date,
-      newUserCount = newUserCount,
-      loginUserCount = loginUserCount,
-    )
+      transaction(database) {
+        UserActionLogsTable
+          .select(UserActionLogsTable.userId.countDistinct())
+          .where {
+            (UserActionLogsTable.actionType eq "USER_LOGIN") and
+              (UserActionLogsTable.createdAt greaterEq window.start) and
+              (UserActionLogsTable.createdAt less window.end)
+          }.first()[UserActionLogsTable.userId.countDistinct()]
+      }
+    return DailyUserFactModel(statDate = date, newUserCount = newUserCount, loginUserCount = loginUserCount)
   }
 
   override fun aggregateRefundFacts(date: LocalDate): List<DailyRefundFactModel> {
     val window = dateWindow(date)
-    return queryFactory
-      .select(
-        paymentRefundModel.status,
-        paymentRefundModel.refundType,
-        paymentRefundModel.id.count(),
-        paymentRefundModel.refundAmount.sumLong().coalesce(0L),
-      ).from(paymentRefundModel)
-      .where(paymentRefundModel.refundedAt.goe(window.start), paymentRefundModel.refundedAt.lt(window.end))
-      .groupBy(paymentRefundModel.status, paymentRefundModel.refundType)
-      .fetch()
-      .map { row ->
-        DailyRefundFactModel(
-          statDate = date,
-          status = row.get(paymentRefundModel.status)!!.name,
-          refundType = row.get(paymentRefundModel.refundType)!!.name,
-          refundCount = row.get(paymentRefundModel.id.count())!!,
-          refundAmountCents = row.get(paymentRefundModel.refundAmount.sumLong().coalesce(0L))!!,
-        )
-      }
+    val refundCount = PaymentRefundsTable.id.count()
+    val amountSum = PaymentRefundsTable.refundAmountCents.sum()
+    return transaction(database) {
+      PaymentRefundsTable
+        .select(PaymentRefundsTable.status, PaymentRefundsTable.refundType, refundCount, amountSum)
+        .where {
+          PaymentRefundsTable.activeOnly {
+            PaymentRefundsTable.processedAt greaterEq window.start and (PaymentRefundsTable.processedAt less window.end)
+          }
+        }.groupBy(PaymentRefundsTable.status, PaymentRefundsTable.refundType)
+        .toList()
+        .map { row ->
+          DailyRefundFactModel(
+            statDate = date,
+            status = row[PaymentRefundsTable.status],
+            refundType = row[PaymentRefundsTable.refundType],
+            refundCount = row[refundCount],
+            refundAmountCents = row.longOf(amountSum),
+          )
+        }
+    }
   }
 
   /**
    * 已完成营收事实:仅 status=COMPLETED 且 completed_at 落在单日窗口 [date, date+1) 的订单。
    * 归属日为完成时间 —— 跨日完成(下单日 ≠ 完成日)的订单营收计入完成日,避免既不在下单日
    * (当时未完成)也不在完成日(created_at 不在窗口)而永久丢失(仪表盘营收趋势为空)。
-   * 金额按订单只计一次(orders 单表聚合,不 join order_items,P1-3)。
-   * 当日无已完成订单时返回空列表 —— 无 GROUP BY 的聚合查询恒返回一行 count=0,过滤掉以免写入零值营收行
-   * (读取方 findByStatDateBetween 求和/按日 groupBy,缺行即 0,见 StatisticsServiceImpl)。
+   * 金额按订单只计一次(orders 单表聚合,P1-3);无完成订单的日期返回空列表(查询侧补零)。
    */
   override fun aggregateRevenueFacts(date: LocalDate): List<DailyRevenueFactModel> {
     val window = dateWindow(date)
-    return queryFactory
-      .select(
-        orderModel.id.count(),
-        orderModel.amountCents.sumLong().coalesce(0L),
-      ).from(orderModel)
-      .where(
-        orderModel.status.eq(OrderModelStatus.COMPLETED),
-        orderModel.completedAt.goe(window.start),
-        orderModel.completedAt.lt(window.end),
-      ).fetch()
-      .map { row ->
-        DailyRevenueFactModel(
-          statDate = date,
-          orderCount = row.get(orderModel.id.count())!!,
-          amountCents = row.get(orderModel.amountCents.sumLong().coalesce(0L))!!,
-        )
-      }.filter { it.orderCount > 0L }
+    val orderCount = OrdersTable.id.count()
+    val amountSum = OrdersTable.totalAmountCents.sum()
+    return transaction(database) {
+      OrdersTable
+        .select(orderCount, amountSum)
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.status eq "COMPLETED") and
+              (OrdersTable.completedAt greaterEq window.start) and
+              (OrdersTable.completedAt less window.end)
+          }
+        }.toList()
+        .map { row ->
+          DailyRevenueFactModel(statDate = date, orderCount = row[orderCount], amountCents = row.longOf(amountSum))
+        }
+    }.filter { it.orderCount > 0L }
   }
 
   /**
@@ -250,7 +239,7 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
    * 聚合日期范围营销事实(按日分组,查询侧实时兜底段与快照写共用同一实现):
    * 营销订单数(任一快照优惠,按订单去重)+ 券/满减/首单立减让利 + 用券数 + 水票销售/核销 + 赠品件数;
    * 归属日:订单=createdAt,券=used_at,购票=paidAt(回退 createdAt),水票核销=usedAt,赠品=createdAt。
-   * 空数据日补零(DATE_TRUNC 按日分组,Postgres/H2 兼容,与 getDailyOrderStatistics 同模式)。
+   * 空数据日补零(DATE_TRUNC 按日分组,Postgres/H2 兼容)。
    */
   override fun aggregateMarketingFactsRange(
     startDate: LocalDate,
@@ -258,84 +247,116 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
   ): List<DailyMarketingFactModel> {
     require(!startDate.isAfter(endDate)) { "营销事实聚合起止日期非法: $startDate > $endDate" }
     val window = dateWindow(startDate, endDate)
-    val orderDate = dayExpr(orderModel.createdAt)
-    val couponDate = dayExpr(userCouponModel.usedAt)
-    val paidDate = dayExpr(ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt))
-    val ticketUsedDate = dayExpr(userTicketModel.usedAt)
-    val giftDate = dayExpr(orderGiftModel.createdAt)
+    val orderDate = dateTrunc("day", OrdersTable.createdAt)
+    val couponDate = dateTrunc("day", UserCouponsTable.usedAt)
+    val paidDate = dateTrunc("day", coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt))
+    val ticketUsedDate = dateTrunc("day", UserTicketsTable.usedAt)
+    val giftDate = dateTrunc("day", OrderGiftsTable.createdAt)
+    val distinctOrders = OrdersTable.id.countDistinct()
+    val couponSum = OrdersTable.couponDiscountCents.sum()
+    val promotionSum = OrdersTable.promotionDiscountCents.sum()
+    val firstOrderSum = OrdersTable.firstOrderDiscountCents.sum()
+    val couponCount = UserCouponsTable.id.count()
+    val salesCount = TicketPurchasesTable.totalCount.sum()
+    val salesRevenue = TicketPurchasesTable.packagePriceCents.sum()
+    val redeemedCount = UserTicketsTable.id.count()
+    val giftQty = OrderGiftsTable.quantity.sum()
+
+    data class OrderAgg(
+      val orders: Long,
+      val coupon: Long,
+      val promotion: Long,
+      val firstOrder: Long,
+    )
+
+    data class SalesAgg(
+      val count: Long,
+      val revenue: Long,
+    )
 
     // 订单侧:按日 营销订单数 + 三列优惠金额合计(券/满减/首单可同单,订单数按订单去重)
-    val orderByDay =
-      queryFactory
-        .select(
-          orderDate,
-          orderModel.id.countDistinct(),
-          orderModel.couponDiscountCents.sumLong().coalesce(0L),
-          orderModel.promotionDiscountCents.sumLong().coalesce(0L),
-          orderModel.firstOrderDiscountCents.sumLong().coalesce(0L),
-        ).from(orderModel)
-        .where(
-          orderModel.createdAt.goe(window.start),
-          orderModel.createdAt.lt(window.end),
-          orderModel.couponDiscountCents
-            .gt(0L)
-            .or(orderModel.promotionDiscountCents.gt(0L))
-            .or(orderModel.firstOrderDiscountCents.gt(0L)),
-        ).groupBy(orderDate)
-        .fetch()
-        .associate { row -> row.get(orderDate)!!.toLocalDate() to row }
+    val orderByDay: Map<LocalDate, OrderAgg> =
+      transaction(database) {
+        OrdersTable
+          .select(orderDate, distinctOrders, couponSum, promotionSum, firstOrderSum)
+          .where {
+            OrdersTable.activeOnly {
+              (OrdersTable.createdAt greaterEq window.start) and
+                (OrdersTable.createdAt less window.end) and
+                (
+                  OrdersTable.couponDiscountCents greater 0L or
+                    (OrdersTable.promotionDiscountCents greater 0L) or
+                    (OrdersTable.firstOrderDiscountCents greater 0L)
+                )
+            }
+          }.groupBy(orderDate)
+          .toList()
+          .associate { row ->
+            row[orderDate]!!.toLocalDate() to
+              OrderAgg(row[distinctOrders], row.longOf(couponSum), row.longOf(promotionSum), row.longOf(firstOrderSum))
+          }
+      }
 
     // 用券数:USED 且 used_at 在窗口,按日
-    val couponByDay =
-      queryFactory
-        .select(couponDate, userCouponModel.id.count())
-        .from(userCouponModel)
-        .where(
-          userCouponModel.status.eq(UserCouponStatus.USED),
-          userCouponModel.usedAt.goe(window.start),
-          userCouponModel.usedAt.lt(window.end),
-        ).groupBy(couponDate)
-        .fetch()
-        .associate { row -> row.get(couponDate)!!.toLocalDate() to row.get(userCouponModel.id.count())!! }
+    val couponByDay: Map<LocalDate, Long> =
+      transaction(database) {
+        UserCouponsTable
+          .select(couponDate, couponCount)
+          .where {
+            UserCouponsTable.activeOnly {
+              (UserCouponsTable.status eq UserCouponStatus.USED.name) and
+                (UserCouponsTable.usedAt greaterEq window.start) and
+                (UserCouponsTable.usedAt less window.end)
+            }
+          }.groupBy(couponDate)
+          .toList()
+          .associate { row -> row[couponDate]!!.toLocalDate() to row[couponCount] }
+      }
 
     // 水票销售:PAID 购票按 paidAt(回退 createdAt)归属,按日;张数含赠送(N+M)
-    val ticketSalesByDay =
-      queryFactory
-        .select(
-          paidDate,
-          ticketPurchaseModel.totalCount.sumLong().coalesce(0L),
-          ticketPurchaseModel.packagePriceCents.sumLong().coalesce(0L),
-        ).from(ticketPurchaseModel)
-        .where(
-          ticketPurchaseModel.paymentStatus.eq(TicketPurchaseStatus.PAID),
-          ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt).goe(window.start),
-          ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt).lt(window.end),
-        ).groupBy(paidDate)
-        .fetch()
-        .associate { row -> row.get(paidDate)!!.toLocalDate() to row }
+    val ticketSalesByDay: Map<LocalDate, SalesAgg> =
+      transaction(database) {
+        TicketPurchasesTable
+          .select(paidDate, salesCount, salesRevenue)
+          .where {
+            TicketPurchasesTable.activeOnly {
+              (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
+                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
+                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
+            }
+          }.groupBy(paidDate)
+          .toList()
+          .associate { row -> row[paidDate]!!.toLocalDate() to SalesAgg(row.longOf(salesCount), row.longOf(salesRevenue)) }
+      }
 
     // 水票核销:USED 按 usedAt,按日
-    val ticketRedeemedByDay =
-      queryFactory
-        .select(ticketUsedDate, userTicketModel.id.count())
-        .from(userTicketModel)
-        .where(
-          userTicketModel.status.eq(UserTicketStatus.USED),
-          userTicketModel.usedAt.goe(window.start),
-          userTicketModel.usedAt.lt(window.end),
-        ).groupBy(ticketUsedDate)
-        .fetch()
-        .associate { row -> row.get(ticketUsedDate)!!.toLocalDate() to row.get(userTicketModel.id.count())!! }
+    val ticketRedeemedByDay: Map<LocalDate, Long> =
+      transaction(database) {
+        UserTicketsTable
+          .select(ticketUsedDate, redeemedCount)
+          .where {
+            UserTicketsTable.activeOnly {
+              (UserTicketsTable.status eq UserTicketStatus.USED.name) and
+                (UserTicketsTable.usedAt greaterEq window.start) and
+                (UserTicketsTable.usedAt less window.end)
+            }
+          }.groupBy(ticketUsedDate)
+          .toList()
+          .associate { row -> row[ticketUsedDate]!!.toLocalDate() to row[redeemedCount] }
+      }
 
-    // 赠品件数:order_gifts 按 created_at,按日
-    val giftByDay =
-      queryFactory
-        .select(giftDate, orderGiftModel.quantity.sumLong().coalesce(0L))
-        .from(orderGiftModel)
-        .where(orderGiftModel.createdAt.goe(window.start), orderGiftModel.createdAt.lt(window.end))
-        .groupBy(giftDate)
-        .fetch()
-        .associate { row -> row.get(giftDate)!!.toLocalDate() to row.get(orderGiftModel.quantity.sumLong().coalesce(0L))!! }
+    // 赠品件数:order_gifts 按 created_at,按日(无软删列)
+    val giftByDay: Map<LocalDate, Long> =
+      transaction(database) {
+        OrderGiftsTable
+          .select(giftDate, giftQty)
+          .where {
+            (OrderGiftsTable.createdAt greaterEq window.start) and
+              (OrderGiftsTable.createdAt less window.end)
+          }.groupBy(giftDate)
+          .toList()
+          .associate { row -> row[giftDate]!!.toLocalDate() to row.longOf(giftQty) }
+      }
 
     // 按日补零(与用户事实一致,快照覆盖连续)
     return dateRange(startDate, endDate).map { date ->
@@ -343,22 +364,20 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
       val salesRow = ticketSalesByDay[date]
       DailyMarketingFactModel(
         statDate = date,
-        marketingOrderCount = orderRow?.get(orderModel.id.countDistinct()) ?: 0L,
-        couponBenefitCents = orderRow?.get(orderModel.couponDiscountCents.sumLong().coalesce(0L)) ?: 0L,
-        promotionBenefitCents = orderRow?.get(orderModel.promotionDiscountCents.sumLong().coalesce(0L)) ?: 0L,
-        firstOrderBenefitCents = orderRow?.get(orderModel.firstOrderDiscountCents.sumLong().coalesce(0L)) ?: 0L,
+        marketingOrderCount = orderRow?.orders ?: 0L,
+        couponBenefitCents = orderRow?.coupon ?: 0L,
+        promotionBenefitCents = orderRow?.promotion ?: 0L,
+        firstOrderBenefitCents = orderRow?.firstOrder ?: 0L,
         couponRedeemedCount = couponByDay[date] ?: 0L,
-        ticketSalesCount = salesRow?.get(ticketPurchaseModel.totalCount.sumLong().coalesce(0L)) ?: 0L,
-        ticketSalesRevenueCents = salesRow?.get(ticketPurchaseModel.packagePriceCents.sumLong().coalesce(0L)) ?: 0L,
+        ticketSalesCount = salesRow?.count ?: 0L,
+        ticketSalesRevenueCents = salesRow?.revenue ?: 0L,
         ticketRedeemedCount = ticketRedeemedByDay[date] ?: 0L,
         giftQuantity = giftByDay[date] ?: 0L,
       )
     }
   }
 
-  /**
-   * 聚合单日营销使用事实(F-STA-007):由范围版本 [aggregateMarketingUsageFactsRange] 取单日。
-   */
+  /** 聚合单日营销使用事实(F-STA-007):由范围版本 [aggregateMarketingUsageFactsRange] 取单日。 */
   override fun aggregateMarketingUsageFacts(date: LocalDate): List<DailyMarketingUsageFactModel> =
     aggregateMarketingUsageFactsRange(date, date)
 
@@ -375,136 +394,156 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
     val window = dateWindow(startDate, endDate)
     val rows = mutableListOf<DailyMarketingUsageFactModel>()
 
-    val orderDate = dayExpr(orderModel.createdAt)
-    val couponUsedDate = dayExpr(userCouponModel.usedAt)
-    val paidDate = dayExpr(ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt))
-    val ticketUsedDate = dayExpr(userTicketModel.usedAt)
-    val giftDate = dayExpr(orderGiftModel.createdAt)
+    val orderDate = dateTrunc("day", OrdersTable.createdAt)
+    val couponUsedDate = dateTrunc("day", UserCouponsTable.usedAt)
+    val paidDate = dateTrunc("day", coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt))
+    val ticketUsedDate = dateTrunc("day", UserTicketsTable.usedAt)
+    val giftDate = dateTrunc("day", OrderGiftsTable.createdAt)
+    val distinctOrders = OrdersTable.id.countDistinct()
+    val couponSum = OrdersTable.couponDiscountCents.sum()
+    val couponCount = UserCouponsTable.id.count()
+    val salesCount = TicketPurchasesTable.totalCount.sum()
+    val salesRevenue = TicketPurchasesTable.packagePriceCents.sum()
+    val redeemedCount = UserTicketsTable.id.count()
+    val giftOrders = OrderGiftsTable.orderId.countDistinct()
+    val giftQty = OrderGiftsTable.quantity.sum()
 
     // 券行:orders ⋈ user_coupons(orders.coupon_id = user_coupons.id)→ (日, coupon_template_id) 分组
-    val couponOrderRows =
-      queryFactory
-        .select(
-          orderDate,
-          userCouponModel.couponTemplateId,
-          orderModel.id.countDistinct(),
-          orderModel.couponDiscountCents.sumLong().coalesce(0L),
-        ).from(orderModel)
-        .join(userCouponModel)
-        .on(userCouponModel.id.eq(orderModel.couponId))
-        .where(
-          orderModel.createdAt.goe(window.start),
-          orderModel.createdAt.lt(window.end),
-          orderModel.couponDiscountCents.gt(0L),
-        ).groupBy(orderDate, userCouponModel.couponTemplateId)
-        .fetch()
-    val couponRedeemedByDateTemplate =
-      queryFactory
-        .select(couponUsedDate, userCouponModel.couponTemplateId, userCouponModel.id.count())
-        .from(userCouponModel)
-        .where(
-          userCouponModel.status.eq(UserCouponStatus.USED),
-          userCouponModel.usedAt.goe(window.start),
-          userCouponModel.usedAt.lt(window.end),
-        ).groupBy(couponUsedDate, userCouponModel.couponTemplateId)
-        .fetch()
-        .associate { row ->
-          (row.get(couponUsedDate)!!.toLocalDate() to row.get(userCouponModel.couponTemplateId)!!) to
-            row.get(userCouponModel.id.count())!!
-        }
-    couponOrderRows.forEach { row ->
-      val date = row.get(orderDate)!!.toLocalDate()
-      val templateId = row.get(userCouponModel.couponTemplateId) ?: return@forEach
+    val couponOrderRows: Map<Pair<LocalDate, Long>, Pair<Long, Long>> =
+      transaction(database) {
+        OrdersTable
+          .join(UserCouponsTable, JoinType.INNER, additionalConstraint = { UserCouponsTable.id eq OrdersTable.couponId })
+          .select(orderDate, UserCouponsTable.couponTemplateId, distinctOrders, couponSum)
+          .where {
+            OrdersTable
+              .activeOnly {
+                (OrdersTable.createdAt greaterEq window.start) and
+                  (OrdersTable.createdAt less window.end) and
+                  (OrdersTable.couponDiscountCents greater 0L)
+              }.and(UserCouponsTable.activeOnly())
+          }.groupBy(orderDate, UserCouponsTable.couponTemplateId)
+          .toList()
+          .mapNotNull { row ->
+            val templateId = row[UserCouponsTable.couponTemplateId] ?: return@mapNotNull null
+            (row[orderDate]!!.toLocalDate() to templateId) to Pair(row[distinctOrders], row.longOf(couponSum))
+          }.toMap()
+      }
+
+    val couponRedeemedByDateTemplate: Map<Pair<LocalDate, Long>, Long> =
+      transaction(database) {
+        UserCouponsTable
+          .select(couponUsedDate, UserCouponsTable.couponTemplateId, couponCount)
+          .where {
+            UserCouponsTable.activeOnly {
+              (UserCouponsTable.status eq UserCouponStatus.USED.name) and
+                (UserCouponsTable.usedAt greaterEq window.start) and
+                (UserCouponsTable.usedAt less window.end)
+            }
+          }.groupBy(couponUsedDate, UserCouponsTable.couponTemplateId)
+          .toList()
+          .mapNotNull { row ->
+            val templateId = row[UserCouponsTable.couponTemplateId] ?: return@mapNotNull null
+            (row[couponUsedDate]!!.toLocalDate() to templateId) to row[couponCount]
+          }.toMap()
+      }
+
+    couponOrderRows.forEach { (dateTemplate, agg) ->
+      val (date, templateId) = dateTemplate
       rows +=
         DailyMarketingUsageFactModel(
           statDate = date,
           kind = MarketingBreakdownKind.COUPON_TEMPLATE.name,
           refId = templateId,
-          orderCount = row.get(orderModel.id.countDistinct()) ?: 0L,
-          benefitCents = row.get(orderModel.couponDiscountCents.sumLong().coalesce(0L)) ?: 0L,
-          usageCount = couponRedeemedByDateTemplate[date to templateId] ?: 0L,
+          orderCount = agg.first,
+          benefitCents = agg.second,
+          usageCount = couponRedeemedByDateTemplate[dateTemplate] ?: 0L,
         )
     }
 
     // 满减/首单立减行:订单快照列按 (日, 活动 ID) 分组
     appendSnapshotActivityRows(
-      rows = rows,
-      window = window,
-      orderDate = orderDate,
-      activityIdPath = orderModel.promotionActivityId,
-      discountPath = orderModel.promotionDiscountCents,
-      kind = MarketingBreakdownKind.PROMOTION_ACTIVITY,
+      rows,
+      window,
+      OrdersTable.promotionActivityId,
+      OrdersTable.promotionDiscountCents,
+      MarketingBreakdownKind.PROMOTION_ACTIVITY,
     )
     appendSnapshotActivityRows(
-      rows = rows,
-      window = window,
-      orderDate = orderDate,
-      activityIdPath = orderModel.firstOrderActivityId,
-      discountPath = orderModel.firstOrderDiscountCents,
-      kind = MarketingBreakdownKind.FIRST_ORDER_ACTIVITY,
+      rows,
+      window,
+      OrdersTable.firstOrderActivityId,
+      OrdersTable.firstOrderDiscountCents,
+      MarketingBreakdownKind.FIRST_ORDER_ACTIVITY,
     )
 
-    // 赠品行:order_gifts 按 (日, gift_activity_id) 分组(让利估算在查询侧按当前目录价计算)
-    val giftRows =
-      queryFactory
-        .select(
-          giftDate,
-          orderGiftModel.giftActivityId,
-          orderGiftModel.orderId.countDistinct(),
-          orderGiftModel.quantity.sumLong().coalesce(0L),
-        ).from(orderGiftModel)
-        .where(
-          orderGiftModel.createdAt.goe(window.start),
-          orderGiftModel.createdAt.lt(window.end),
-          orderGiftModel.giftActivityId.isNotNull(),
-        ).groupBy(giftDate, orderGiftModel.giftActivityId)
-        .fetch()
-    giftRows.forEach { row ->
-      val date = row.get(giftDate)!!.toLocalDate()
-      val refId = row.get(orderGiftModel.giftActivityId) ?: return@forEach
+    // 赠品行:order_gifts 按 (日, gift_activity_id) 分组(让利估算在查询侧按当前目录价计算;无软删列)
+    val giftRows: Map<Pair<LocalDate, Long>, Pair<Long, Long>> =
+      transaction(database) {
+        OrderGiftsTable
+          .select(giftDate, OrderGiftsTable.giftActivityId, giftOrders, giftQty)
+          .where {
+            (OrderGiftsTable.createdAt greaterEq window.start) and
+              (OrderGiftsTable.createdAt less window.end) and
+              OrderGiftsTable.giftActivityId.isNotNull()
+          }.groupBy(giftDate, OrderGiftsTable.giftActivityId)
+          .toList()
+          .mapNotNull { row ->
+            val activityId = row[OrderGiftsTable.giftActivityId] ?: return@mapNotNull null
+            (row[giftDate]!!.toLocalDate() to activityId) to Pair(row[giftOrders], row.longOf(giftQty))
+          }.toMap()
+      }
+    giftRows.forEach { (dateActivity, agg) ->
+      val (date, activityId) = dateActivity
       rows +=
         DailyMarketingUsageFactModel(
           statDate = date,
           kind = MarketingBreakdownKind.GIFT_ACTIVITY.name,
-          refId = refId,
-          orderCount = row.get(orderGiftModel.orderId.countDistinct()) ?: 0L,
+          refId = activityId,
+          orderCount = agg.first,
           benefitCents = 0L,
-          usageCount = row.get(orderGiftModel.quantity.sumLong().coalesce(0L)) ?: 0L,
+          usageCount = agg.second,
         )
     }
 
     // 票种行:销售(PAID 按 paidAt 回退 createdAt,张数含赠送)+ 核销(USED 按 usedAt),按 (日, ticket_type_id)
-    val ticketSalesRows =
-      queryFactory
-        .select(
-          paidDate,
-          ticketPurchaseModel.ticketTypeId,
-          ticketPurchaseModel.totalCount.sumLong().coalesce(0L),
-          ticketPurchaseModel.packagePriceCents.sumLong().coalesce(0L),
-        ).from(ticketPurchaseModel)
-        .where(
-          ticketPurchaseModel.paymentStatus.eq(TicketPurchaseStatus.PAID),
-          ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt).goe(window.start),
-          ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt).lt(window.end),
-        ).groupBy(paidDate, ticketPurchaseModel.ticketTypeId)
-        .fetch()
-    val ticketRedeemedByDateType =
-      queryFactory
-        .select(ticketUsedDate, userTicketModel.ticketTypeId, userTicketModel.id.count())
-        .from(userTicketModel)
-        .where(
-          userTicketModel.status.eq(UserTicketStatus.USED),
-          userTicketModel.usedAt.goe(window.start),
-          userTicketModel.usedAt.lt(window.end),
-        ).groupBy(ticketUsedDate, userTicketModel.ticketTypeId)
-        .fetch()
-        .associate { row ->
-          (row.get(ticketUsedDate)!!.toLocalDate() to row.get(userTicketModel.ticketTypeId)!!) to
-            row.get(userTicketModel.id.count())!!
-        }
-    ticketSalesRows.forEach { row ->
-      val date = row.get(paidDate)!!.toLocalDate()
-      val typeId = row.get(ticketPurchaseModel.ticketTypeId) ?: return@forEach
+    val ticketSalesRows: Map<Pair<LocalDate, Long>, Pair<Long, Long>> =
+      transaction(database) {
+        TicketPurchasesTable
+          .select(paidDate, TicketPurchasesTable.ticketTypeId, salesCount, salesRevenue)
+          .where {
+            TicketPurchasesTable.activeOnly {
+              (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
+                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
+                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
+            }
+          }.groupBy(paidDate, TicketPurchasesTable.ticketTypeId)
+          .toList()
+          .mapNotNull { row ->
+            val typeId = row[TicketPurchasesTable.ticketTypeId] ?: return@mapNotNull null
+            (row[paidDate]!!.toLocalDate() to typeId) to Pair(row.longOf(salesCount), row.longOf(salesRevenue))
+          }.toMap()
+      }
+
+    val ticketRedeemedByDateType: Map<Pair<LocalDate, Long>, Long> =
+      transaction(database) {
+        UserTicketsTable
+          .select(ticketUsedDate, UserTicketsTable.ticketTypeId, redeemedCount)
+          .where {
+            UserTicketsTable.activeOnly {
+              (UserTicketsTable.status eq UserTicketStatus.USED.name) and
+                (UserTicketsTable.usedAt greaterEq window.start) and
+                (UserTicketsTable.usedAt less window.end)
+            }
+          }.groupBy(ticketUsedDate, UserTicketsTable.ticketTypeId)
+          .toList()
+          .mapNotNull { row ->
+            val typeId = row[UserTicketsTable.ticketTypeId] ?: return@mapNotNull null
+            (row[ticketUsedDate]!!.toLocalDate() to typeId) to row[redeemedCount]
+          }.toMap()
+      }
+
+    ticketSalesRows.forEach { (dateType, agg) ->
+      val (date, typeId) = dateType
       rows +=
         DailyMarketingUsageFactModel(
           statDate = date,
@@ -513,9 +552,9 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
           orderCount = 0L,
           benefitCents = 0L,
           usageCount = 0L,
-          ticketSalesCount = row.get(ticketPurchaseModel.totalCount.sumLong().coalesce(0L)) ?: 0L,
-          ticketSalesRevenueCents = row.get(ticketPurchaseModel.packagePriceCents.sumLong().coalesce(0L)) ?: 0L,
-          ticketRedeemedCount = ticketRedeemedByDateType[date to typeId] ?: 0L,
+          ticketSalesCount = agg.first,
+          ticketSalesRevenueCents = agg.second,
+          ticketRedeemedCount = ticketRedeemedByDateType[dateType] ?: 0L,
         )
     }
 
@@ -528,79 +567,71 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
   private fun appendSnapshotActivityRows(
     rows: MutableList<DailyMarketingUsageFactModel>,
     window: DateWindow,
-    orderDate: DateTemplate<LocalDateTime>,
-    activityIdPath: NumberPath<Long>,
-    discountPath: NumberPath<Long>,
+    activityIdColumn: org.jetbrains.exposed.v1.core.Column<Long?>,
+    discountColumn: org.jetbrains.exposed.v1.core.Column<Long>,
     kind: MarketingBreakdownKind,
   ) {
-    val activityRows =
-      queryFactory
-        .select(
-          orderDate,
-          activityIdPath,
-          orderModel.id.countDistinct(),
-          discountPath.sumLong().coalesce(0L),
-        ).from(orderModel)
-        .where(
-          orderModel.createdAt.goe(window.start),
-          orderModel.createdAt.lt(window.end),
-          activityIdPath.isNotNull(),
-          discountPath.gt(0L),
-        ).groupBy(orderDate, activityIdPath)
-        .fetch()
-    activityRows.forEach { row ->
-      val date = row.get(orderDate)!!.toLocalDate()
-      val refId = row.get(activityIdPath) ?: return@forEach
-      val orderCount = row.get(orderModel.id.countDistinct()) ?: 0L
+    val orderDate = dateTrunc("day", OrdersTable.createdAt)
+    val distinctOrders = OrdersTable.id.countDistinct()
+    val discountSum = discountColumn.sum()
+    val activityRows: Map<Pair<LocalDate, Long>, Pair<Long, Long>> =
+      transaction(database) {
+        OrdersTable
+          .select(orderDate, activityIdColumn, distinctOrders, discountSum)
+          .where {
+            OrdersTable.activeOnly {
+              (OrdersTable.createdAt greaterEq window.start) and
+                (OrdersTable.createdAt less window.end) and
+                activityIdColumn.isNotNull() and
+                (discountColumn greater 0L)
+            }
+          }.groupBy(orderDate, activityIdColumn)
+          .toList()
+          .mapNotNull { row ->
+            val activityId = row[activityIdColumn] ?: return@mapNotNull null
+            (row[orderDate]!!.toLocalDate() to activityId) to Pair(row[distinctOrders], row.longOf(discountSum))
+          }.toMap()
+      }
+    activityRows.forEach { (dateActivity, agg) ->
+      val (date, refId) = dateActivity
       rows +=
         DailyMarketingUsageFactModel(
           statDate = date,
           kind = kind.name,
           refId = refId,
-          orderCount = orderCount,
-          benefitCents = row.get(discountPath.sumLong().coalesce(0L)) ?: 0L,
-          usageCount = orderCount,
+          orderCount = agg.first,
+          benefitCents = agg.second,
+          usageCount = agg.first,
         )
     }
   }
 
-  /** 按日分组表达式(DATE_TRUNC('day'),Postgres/H2 兼容,与 getDailyOrderStatistics 同模式)。 */
-  private fun dayExpr(expr: Expression<LocalDateTime>): DateTemplate<LocalDateTime> =
-    Expressions.dateTemplate(LocalDateTime::class.java, "DATE_TRUNC('day', {0})", expr)
-
-  private fun dateRange(
-    start: LocalDate,
-    end: LocalDate,
-  ): List<LocalDate> =
-    generateSequence(start) { it.plusDays(1) }
-      .takeWhile { !it.isAfter(end) }
-      .toList()
-
+  /** 最早源数据日期(orders/users/user_action_logs/payment_refunds 四源最小创建/处理日期);无任何源数据时返回 null。 */
   override fun findEarliestSourceDate(): LocalDate? {
     val orderEarliest =
-      queryFactory
-        .select(orderModel.createdAt.min())
-        .from(orderModel)
-        .fetchOne()
+      transaction(database) {
+        OrdersTable.select(OrdersTable.createdAt.min()).where { OrdersTable.activeOnly() }.first()[OrdersTable.createdAt.min()]
+      }
     val userEarliest =
-      queryFactory
-        .select(userModel.createdAt.min())
-        .from(userModel)
-        .fetchOne()
+      transaction(database) {
+        UsersTable.select(UsersTable.createdAt.min()).where { UsersTable.activeOnly() }.first()[UsersTable.createdAt.min()]
+      }
     val loginEarliest =
-      queryFactory
-        .select(userActionLogModel.createdAt.min())
-        .from(userActionLogModel)
-        .fetchOne()
+      transaction(database) {
+        UserActionLogsTable.select(UserActionLogsTable.createdAt.min()).first()[UserActionLogsTable.createdAt.min()]
+      }
     val refundEarliest =
-      queryFactory
-        .select(paymentRefundModel.refundedAt.min())
-        .from(paymentRefundModel)
-        .fetchOne()
+      transaction(database) {
+        PaymentRefundsTable
+          .select(PaymentRefundsTable.processedAt.min())
+          .where {
+            PaymentRefundsTable.activeOnly()
+          }.first()[PaymentRefundsTable.processedAt.min()]
+      }
 
-    return listOfNotNull(orderEarliest, userEarliest, loginEarliest, refundEarliest)
-      .minOrNull()
-      ?.toLocalDate()
+    val candidates: List<LocalDateTime> =
+      listOf(orderEarliest, userEarliest, loginEarliest, refundEarliest).filterIsInstance<LocalDateTime>()
+    return candidates.minOrNull()?.toLocalDate()
   }
 
   private fun dateWindow(date: LocalDate): DateWindow = DateWindow(start = date.atStartOfDay(), end = date.plusDays(1).atStartOfDay())
@@ -609,6 +640,14 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
     startDate: LocalDate,
     endDate: LocalDate,
   ): DateWindow = DateWindow(start = startDate.atStartOfDay(), end = endDate.plusDays(1).atStartOfDay())
+
+  private fun dateRange(
+    start: LocalDate,
+    end: LocalDate,
+  ): List<LocalDate> =
+    generateSequence(start) { it.plusDays(1) }
+      .takeWhile { !it.isAfter(end) }
+      .toList()
 
   private data class DateWindow(
     val start: LocalDateTime,

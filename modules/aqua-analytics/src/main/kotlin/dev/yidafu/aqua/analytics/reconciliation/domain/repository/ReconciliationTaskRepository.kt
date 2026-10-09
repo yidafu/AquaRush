@@ -22,46 +22,62 @@ package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 
 /**
- * 对账任务仓库接口
+ * 对账任务仓储(JPA→Exposed 迁移 P3)。
+ * 原 JpaRepository 派生方法收进接口,实现为 reconciliation_tasks 上的 Exposed DSL;
+ * 表带 @SoftDelete —— 查询过滤 is_deleted=false,删除翻 is_deleted=true。
  */
-@Repository
-interface ReconciliationTaskRepository :
-  JpaRepository<ReconciliationTaskModel, Long>,
-  ReconciliationTaskRepositoryCustom {
-  /**
-   * 根据任务ID查找任务
-   */
+interface ReconciliationTaskRepository {
   fun findByTaskId(taskId: String): ReconciliationTaskModel?
 
-  /**
-   * 根据任务状态查找任务
-   */
   fun findByStatus(status: ReconciliationTaskStatus): List<ReconciliationTaskModel>
 
-  /**
-   * 根据任务类型和状态查找任务
-   */
   fun findByTaskTypeAndStatus(
     taskType: ReconciliationTaskType,
     status: ReconciliationTaskStatus,
   ): List<ReconciliationTaskModel>
 
-  /**
-   * 查找正在运行的任务
-   */
   fun findByStatusIn(statuses: List<ReconciliationTaskStatus>): List<ReconciliationTaskModel>
 
-  /**
-   * 查找最新的任务
-   */
   fun findFirstByOrderByTaskDateDesc(): ReconciliationTaskModel?
 
-  /**
-   * 检查是否有正在运行的任务
-   */
   fun existsByStatus(status: ReconciliationTaskStatus): Boolean
+
+  fun findAll(): List<ReconciliationTaskModel>
+
+  /** 语义对齐 @SoftDelete 下的 JpaRepository.deleteAll:全表软删(UPDATE is_deleted=true)。 */
+  fun deleteAll(): Int
+
+  fun findAll(pageable: Pageable): Page<ReconciliationTaskModel>
+
+  fun save(entity: ReconciliationTaskModel): ReconciliationTaskModel
+
+  fun findByTaskDateBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationTaskModel>
+
+  fun findByTaskTypeAndTaskDateBetween(
+    taskType: ReconciliationTaskType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationTaskModel>
+
+  fun countByTaskTypeAndStatus(
+    taskType: ReconciliationTaskType,
+    status: ReconciliationTaskStatus,
+  ): Long
+
+  /** 对账任务分页查询(后台微信资金对账页):任务类型/状态/对账日期范围均可选,按对账日期倒序。 */
+  fun findTasksPaged(
+    taskType: ReconciliationTaskType?,
+    status: ReconciliationTaskStatus?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    pageable: Pageable,
+  ): Page<ReconciliationTaskModel>
 }

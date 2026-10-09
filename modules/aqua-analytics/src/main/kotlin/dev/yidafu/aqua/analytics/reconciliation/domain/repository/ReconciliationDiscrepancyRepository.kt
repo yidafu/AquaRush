@@ -20,51 +20,62 @@
 package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 
 /**
- * 对账差异仓库接口
+ * 对账差异仓储(JPA→Exposed 迁移 P3)。语义同 [ReconciliationTaskRepository]。
  */
-@Repository
-interface ReconciliationDiscrepancyRepository :
-  JpaRepository<ReconciliationDiscrepancyModel, Long>,
-  ReconciliationDiscrepancyRepositoryCustom {
-  /**
-   * 根据任务ID查找差异
-   */
+interface ReconciliationDiscrepancyRepository {
   fun findByTaskId(taskId: String): List<ReconciliationDiscrepancyModel>
 
-  /**
-   * 根据任务ID和状态查找差异
-   */
   fun findByTaskIdAndStatus(
     taskId: String,
     status: String,
   ): List<ReconciliationDiscrepancyModel>
 
-  /**
-   * 根据差异类型查找差异
-   */
   fun findByDiscrepancyType(discrepancyType: DiscrepancyType): List<ReconciliationDiscrepancyModel>
 
-  /**
-   * 根据源系统查找差异
-   */
   fun findBySourceSystem(sourceSystem: SourceSystem): List<ReconciliationDiscrepancyModel>
 
-  /**
-   * 根据任务ID和差异类型查找差异
-   */
   fun findByTaskIdAndDiscrepancyType(
     taskId: String,
     discrepancyType: DiscrepancyType,
   ): List<ReconciliationDiscrepancyModel>
 
-  /**
-   * 查找所有未解决的差异
-   */
   fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancyModel>
+
+  /** 语义对齐原 JpaRepository.findById(返回 Optional)。 */
+  fun findById(id: Long): java.util.Optional<ReconciliationDiscrepancyModel>
+
+  fun save(entity: ReconciliationDiscrepancyModel): ReconciliationDiscrepancyModel
+
+  fun saveAll(entities: List<ReconciliationDiscrepancyModel>): List<ReconciliationDiscrepancyModel>
+
+  /** 语义对齐 @SoftDelete 下的 JpaRepository.deleteAll:全表软删(UPDATE is_deleted=true)。 */
+  fun deleteAll(): Int
+
+  fun countUnresolvedByTaskId(taskId: String): Long
+
+  /** 按差异类型分组计数:返回 (type, count) 对。 */
+  fun countByDiscrepancyTypeGroup(taskId: String): List<Pair<String, Long>>
+
+  fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationDiscrepancyModel>
+
+  /** 清理 beforeDate 之前已解决的差异:语义为软删(UPDATE is_deleted=true),返回受影响行数。 */
+  fun deleteResolvedBefore(beforeDate: LocalDateTime): Int
+
+  /** 对账差异分页查询(后台微信资金对账页):任务ID/解决状态均可选,按创建时间倒序。 */
+  fun findDiscrepanciesPaged(
+    taskId: String?,
+    status: DiscrepancyStatus?,
+    pageable: Pageable,
+  ): Page<ReconciliationDiscrepancyModel>
 }

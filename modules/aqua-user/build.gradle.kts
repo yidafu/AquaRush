@@ -1,8 +1,8 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
-  alias(libs.plugins.ksp)
-  id("aqua.kotlin.querydsl")
+  // JPA→Exposed 迁移 P3:仓储全部改写为 Exposed DSL,摘除 QueryDSL/KSP
+  id("aqua.kotlin.exposed")
 }
 
 dependencies {

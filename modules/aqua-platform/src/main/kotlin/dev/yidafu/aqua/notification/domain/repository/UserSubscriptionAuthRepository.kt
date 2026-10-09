@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.notification.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -28,11 +27,14 @@ import java.util.*
  * 微信订阅消息授权仓库(R-NTF-01)
  */
 @Repository
-interface UserSubscriptionAuthRepository : JpaRepository<UserSubscriptionAuthModel, Long> {
+interface UserSubscriptionAuthRepository {
   fun findByUserIdAndTemplateId(
     userId: Long,
     templateId: String,
   ): Optional<UserSubscriptionAuthModel>
 
   fun findByUserId(userId: Long): List<UserSubscriptionAuthModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: UserSubscriptionAuthModel): UserSubscriptionAuthModel
 }

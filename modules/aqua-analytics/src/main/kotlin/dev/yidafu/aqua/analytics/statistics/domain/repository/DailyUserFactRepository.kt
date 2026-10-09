@@ -20,16 +20,16 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 /**
- * 用户日事实仓储(第 3 层历史趋势指标中间表)
- * 快照任务按日期 delete-then-insert;查询侧按日期范围读取(新增用户/登录用户)。
+ * DailyUserFactModel 仓储(JPA→Exposed 迁移 P3)。
+ * 原 Spring Data 派生方法收进接口,实现为 DailyUserFactsTable 上的 Exposed DSL(ExposedUserFactRepositoryImpl);
+ * 快照任务按日期 delete-then-insert,查询侧按日期范围读取后组合口径。
  */
-@Repository
-interface DailyUserFactRepository : JpaRepository<DailyUserFactModel, Long> {
+interface DailyUserFactRepository {
+  fun count(): Long
+
   fun findByStatDateBetween(
     startDate: LocalDate,
     endDate: LocalDate,
@@ -37,13 +37,13 @@ interface DailyUserFactRepository : JpaRepository<DailyUserFactModel, Long> {
 
   fun deleteByStatDateIn(dates: Collection<LocalDate>): Long
 
-  /**
-   * 最新快照日期(用于缺口自愈判定)
-   */
+  fun saveAll(entities: List<DailyUserFactModel>): List<DailyUserFactModel>
+
+  fun save(entity: DailyUserFactModel): DailyUserFactModel
+
+  /** 最新快照日期(缺口自愈/回补起点判定)。 */
   fun findFirstByOrderByStatDateDesc(): DailyUserFactModel?
 
-  /**
-   * 最早快照日期(查询侧快照覆盖范围判定:用户事实表按日连续写入,min/max 即覆盖区间)
-   */
+  /** 最早快照日期(一次性回补起点判定)。 */
   fun findFirstByOrderByStatDateAsc(): DailyUserFactModel?
 }

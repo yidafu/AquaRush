@@ -23,7 +23,6 @@ import dev.yidafu.aqua.common.domain.model.FileMetadata
 import dev.yidafu.aqua.common.domain.model.enums.FileType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.*
@@ -32,9 +31,20 @@ import java.util.*
  * 文件元数据仓库接口
  */
 @Repository
-interface FileMetadataRepository :
-  JpaRepository<FileMetadata, Long>,
-  FileMetadataRepositoryCustom {
+interface FileMetadataRepository : FileMetadataRepositoryCustom {
+  fun findById(id: Long): Optional<FileMetadata>
+
+  /** 实体无 @SoftDelete 注解 → 硬删(行 DELETE),与 JPA 版行为一致。 */
+  fun delete(entity: FileMetadata)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: FileMetadata): FileMetadata
+
+  /** 存量接口遗留的无界查询(违反规则 10,由调用方 StorageService 内部使用;不新增调用)。 */
+  fun findAll(): List<FileMetadata>
+
+  fun findAll(pageable: Pageable): Page<FileMetadata>
+
   /**
    * 根据存储路径查找文件
    */

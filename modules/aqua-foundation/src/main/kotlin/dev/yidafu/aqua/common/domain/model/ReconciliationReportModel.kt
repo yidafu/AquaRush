@@ -60,6 +60,12 @@ class ReconciliationReportModel : SoftDeletable {
   @Column(name = "generated_at", nullable = false)
   var generatedAt: LocalDateTime = LocalDateTime.now()
 
+  @Column(name = "created_at", nullable = false)
+  var createdAt: LocalDateTime = LocalDateTime.now()
+
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now()
+
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 

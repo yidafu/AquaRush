@@ -20,16 +20,16 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 /**
- * 商品日事实仓储(第 3 层历史趋势指标中间表)
- * 快照任务按日期 delete-then-insert;查询侧按日期范围读取后组合口径(仅 COMPLETED)。
+ * DailyProductFactModel 仓储(JPA→Exposed 迁移 P3)。
+ * 原 Spring Data 派生方法收进接口,实现为 DailyProductFactsTable 上的 Exposed DSL(ExposedProductFactRepositoryImpl);
+ * 快照任务按日期 delete-then-insert,查询侧按日期范围读取后组合口径。
  */
-@Repository
-interface DailyProductFactRepository : JpaRepository<DailyProductFactModel, Long> {
+interface DailyProductFactRepository {
+  fun count(): Long
+
   fun findByStatDateBetween(
     startDate: LocalDate,
     endDate: LocalDate,
@@ -37,8 +37,13 @@ interface DailyProductFactRepository : JpaRepository<DailyProductFactModel, Long
 
   fun deleteByStatDateIn(dates: Collection<LocalDate>): Long
 
-  /**
-   * 最新快照日期(用于缺口自愈判定)
-   */
+  fun saveAll(entities: List<DailyProductFactModel>): List<DailyProductFactModel>
+
+  fun save(entity: DailyProductFactModel): DailyProductFactModel
+
+  /** 最新快照日期(缺口自愈/回补起点判定)。 */
   fun findFirstByOrderByStatDateDesc(): DailyProductFactModel?
+
+  /** 最早快照日期(一次性回补起点判定)。 */
+  fun findFirstByOrderByStatDateAsc(): DailyProductFactModel?
 }

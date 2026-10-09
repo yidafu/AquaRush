@@ -1,6 +1,6 @@
 plugins {
   id("aqua.spring.boot.library")
-  id("aqua.kotlin.querydsl")
+  id("aqua.kotlin.exposed")
 }
 
 group = "dev.yidafu.aqua"
@@ -53,6 +53,7 @@ dependencies {
   // ========================================================
   // 测试依赖
   // ========================================================
+  testImplementation(libs.h2)
   testImplementation(libs.spring.boot.starter.test)
 }
 
@@ -65,6 +66,3 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     freeCompilerArgs.add("-Xjsr305=strict")
   }
 }
-
-// QueryDSL 生成源码目录
-// Q 类由 querydsl-ksp 生成到 build/generated/ksp/main/kotlin，由 KSP 插件自动加入 source set

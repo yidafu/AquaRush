@@ -38,6 +38,8 @@ open class UserModel(
   var id: Long? = null,
   @Column(name = "wechat_openid", unique = true, nullable = false)
   val wechatOpenId: String = "",
+  // 对齐 DDL users.wechat_unionid(实体历史缺失,Hibernate 建表少列导致 Exposed 读炸)
+  var wechatUnionid: String? = null,
   @Column(name = "nickname")
   var nickname: String? = null,
   @Column(name = "phone")

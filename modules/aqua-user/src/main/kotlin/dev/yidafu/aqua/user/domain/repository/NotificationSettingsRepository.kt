@@ -20,13 +20,14 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.Optional
 
-@Repository
-interface NotificationSettingsRepository : JpaRepository<NotificationSettingsModel, Long> {
+/** 用户通知开关仓储(user 域;JPA→Exposed 迁移 P3 收尾)。 */
+interface NotificationSettingsRepository {
   fun findByUserId(userId: Long): Optional<NotificationSettingsModel>
 
   fun deleteByUserId(userId: Long)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: NotificationSettingsModel): NotificationSettingsModel
 }
