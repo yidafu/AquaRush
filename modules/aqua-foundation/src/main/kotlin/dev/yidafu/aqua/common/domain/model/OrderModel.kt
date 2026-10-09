@@ -151,6 +151,8 @@ data class OrderModel(
   var deliveryRemark: String? = null,
   @Column(name = "search_content", columnDefinition = "text")
   var searchContent: String? = null,
+  @Column(name = "delivery_address_id")
+  var deliveryAddressId: Long? = null,
   // ========================================================================
   // Hibernate Associations
   // ========================================================================

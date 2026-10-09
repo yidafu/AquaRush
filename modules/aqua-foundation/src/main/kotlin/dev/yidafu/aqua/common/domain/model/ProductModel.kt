@@ -54,6 +54,13 @@ open class ProductModel(
   @Column(name = "detail_images", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
   var imageGallery: ArrayNode? = null,
+
+  // 遗留死列(V100 即有,业务只写 detail_images):此前实体未映射,ddl-auto 测试库
+  // 建不出该列,Exposed 全量映射的 SELECT 炸列 —— P4 补齐与 DDL 对齐。
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "image_gallery", columnDefinition = "json")
+  @Convert(converter = ArrayNodeConverter::class)
+  var imageGalleryLegacy: ArrayNode? = null,
   @Column(name = "specification", nullable = false, length = 100)
   var specification: String = "",
   @Column(name = "water_source", length = 200)
@@ -75,6 +82,11 @@ open class ProductModel(
   var tags: ArrayNode? = null,
   @Column(name = "description", columnDefinition = "TEXT")
   var detailContent: String? = null,
+
+  // 遗留死列(V100 即有,业务实际用 description 列,见上一字段):Exposed 全量映射的
+  // SELECT 会列出该列,ddl-auto 测试库必须建出 —— P4 补齐与 DDL 对齐,业务不读写。
+  @Column(name = "detail_content", columnDefinition = "TEXT")
+  var detailContentLegacy: String? = null,
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "certificate_images", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
@@ -87,6 +99,8 @@ open class ProductModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
+  @Column(name = "deposit_price_cents", nullable = false)
+  var depositPriceCents: Long = 0L,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
