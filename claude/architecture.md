@@ -51,7 +51,7 @@ Services use `<admin|client>/{config, <domain>/{resolvers, controller, dto}}`.
 
 Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages (use `util`); module-root `exception/` (use `domain/exception/`); `.imports` files outside `META-INF/spring/`.
 
-> 以上目录约定由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.DirectoryStructureTest`（规则 D1–D6）。
+> 其中 util/utils、exception 位置、api.query/common.dto、实体集中、resolvers 复数、Input 归位由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.DirectoryStructureTest`（规则 D1–D6）；`*ApiService` 新后缀与 `.imports` 位置等其余约定仍靠评审。
 
 ## Module Dependencies
 
@@ -66,12 +66,12 @@ Modules are structured with clear dependency hierarchy:
 
 **Module Dependency Rule**:
 
-- **IMPORTANT**: Domain modules **MUST NOT** directly call Repository interfaces from other modules (known exception: aqua-analytics imports `delivery.domain.repository` — tracked as debt)
+- **IMPORTANT**: Domain modules **MUST NOT** directly call Repository interfaces from other modules（历史债务已于 2026-10 清理，P1 已强制）
 - All cross-module data access must go through the service interfaces in `aqua-foundation` `api/service/**`
 - Each domain module only exposes its functionality via Service interfaces in `api/service`
 - This ensures clean module boundaries and proper encapsulation
 
-> 本节依赖规则由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.ModuleDependencyTest`（规则 P1–P4）。admin/client 直连模块 repository 属计划内豁免（services 非领域模块）。
+> 本节的跨模块 repository 直连、ops/marketing 依赖隔离、foundation 反向依赖与模块循环依赖由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.ModuleDependencyTest`（规则 P1–P4）。正向约定（跨模块数据访问须经 `api/service` 等）与 admin/client 豁免范围仍靠评审（admin/client 直连模块 repository 属计划内豁免，services 非领域模块）。
 
 **Event-Driven Architecture with Artemis MQ**:
 - Domain events are published via ActiveMQ Artemis
