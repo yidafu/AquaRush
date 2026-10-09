@@ -32,7 +32,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
 
 /** 首单立减/新人专享价活动查询服务单元测试(F-MKT-009 列表/详情)。 */
@@ -48,16 +47,16 @@ class FirstOrderActivityQueryServiceImplTest :
     test("listActivities with keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<FirstOrderActivityModel> = PageImpl(listOf(FirstOrderActivityModel(id = 1L, name = "首单")))
-      every { firstOrderActivityRepository.findAll(any<Specification<FirstOrderActivityModel>>(), any<Pageable>()) } returns page
+      every { firstOrderActivityRepository.searchActivities(any(), any()) } returns page
 
       val result = service.listActivities("首单", pageable)
 
       result.totalElements shouldBe 1
-      verify { firstOrderActivityRepository.findAll(any<Specification<FirstOrderActivityModel>>(), any<Pageable>()) }
+      verify { firstOrderActivityRepository.searchActivities(any(), any()) }
     }
     test("listActivities without keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { firstOrderActivityRepository.findAll(any<Specification<FirstOrderActivityModel>>(), any<Pageable>()) } returns
+      every { firstOrderActivityRepository.searchActivities(any(), any()) } returns
         PageImpl(emptyList())
 
       val result = service.listActivities(null, pageable)

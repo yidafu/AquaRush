@@ -19,43 +19,153 @@
 
 package dev.yidafu.aqua.marketing.flashsale.domain.repository
 
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
-import dev.yidafu.aqua.common.domain.model.QFlashSaleActivityModel.Companion.flashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.FlashSaleActivitiesTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * 限时特价活动仓库 QueryDSL 实现。
- * 注意:@SoftDelete 由 Hibernate 在 SQL 层自动过滤已删行。
+ * 限时特价活动仓储实现(JPA→Exposed 迁移 P4)。
+ * 查询过滤 is_deleted;delete 软删三列写入(语义对齐 @SoftDelete + P4 约定)。
  */
 @Repository
-class FlashSaleActivityRepositoryImpl : FlashSaleActivityRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class FlashSaleActivityRepositoryImpl(
+  private val database: Database,
+) : FlashSaleActivityRepository {
+  private fun toModel(row: ResultRow): FlashSaleActivityModel =
+    FlashSaleActivityModel(
+      id = row[FlashSaleActivitiesTable.id],
+      name = row[FlashSaleActivitiesTable.name],
+      productId = row[FlashSaleActivitiesTable.productId],
+      salePriceCents = row[FlashSaleActivitiesTable.salePriceCents],
+      validFrom = row[FlashSaleActivitiesTable.validFrom],
+      validTo = row[FlashSaleActivitiesTable.validTo],
+      status = PromotionActivityStatus.valueOf(row[FlashSaleActivitiesTable.status]),
+      createdAt = row[FlashSaleActivitiesTable.createdAt],
+      updatedAt = row[FlashSaleActivitiesTable.updatedAt],
+      deletedAt = row[FlashSaleActivitiesTable.deletedAt],
+      deletedBy = row[FlashSaleActivitiesTable.deletedBy],
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
+  override fun findById(id: Long): Optional<FlashSaleActivityModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        FlashSaleActivitiesTable
+          .selectAll()
+          .where { FlashSaleActivitiesTable.activeOnly { FlashSaleActivitiesTable.id eq id } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun searchActivities(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<FlashSaleActivityModel> {
+    var condition: Op<Boolean> = Op.TRUE
+    keyword?.takeIf { it.isNotBlank() }?.let {
+      condition = condition and (FlashSaleActivitiesTable.name.lowerCase() like "%${it.lowercase()}%")
+    }
+    val (content, total) =
+      transaction(database) {
+        val content =
+          FlashSaleActivitiesTable
+            .selectAll()
+            .where { FlashSaleActivitiesTable.activeOnly { condition } }
+            // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
+            .orderBy(FlashSaleActivitiesTable.id to SortOrder.ASC)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .toList()
+            .map(::toModel)
+        content to FlashSaleActivitiesTable.selectAll().where { FlashSaleActivitiesTable.activeOnly { condition } }.count()
+      }
+    return PageImpl(content, pageable, total)
   }
+
+  override fun save(entity: FlashSaleActivityModel): FlashSaleActivityModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val now = LocalDateTime.now()
+      val exists =
+        FlashSaleActivitiesTable
+          .selectAll()
+          .where { FlashSaleActivitiesTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        FlashSaleActivitiesTable.update({ FlashSaleActivitiesTable.id eq id }) {
+          it[name] = entity.name
+          it[productId] = entity.productId
+          it[salePriceCents] = entity.salePriceCents
+          it[validFrom] = entity.validFrom
+          it[validTo] = entity.validTo
+          it[status] = entity.status.name
+          it[updatedAt] = now
+        }
+      } else {
+        FlashSaleActivitiesTable.insert {
+          it[FlashSaleActivitiesTable.id] = id
+          it[name] = entity.name
+          it[productId] = entity.productId
+          it[salePriceCents] = entity.salePriceCents
+          it[validFrom] = entity.validFrom
+          it[validTo] = entity.validTo
+          it[status] = entity.status.name
+          it[FlashSaleActivitiesTable.createdAt] = entity.createdAt
+          it[updatedAt] = entity.updatedAt
+        }
+      }
+      entity
+    }
+
+  // ===== FlashSaleActivityRepositoryCustom =====
 
   override fun findActiveByProductId(
     productId: Long,
     status: PromotionActivityStatus,
     now: LocalDateTime,
   ): FlashSaleActivityModel? =
-    queryFactory
-      .selectFrom(flashSaleActivityModel)
-      .where(
-        flashSaleActivityModel.status.eq(status),
-        flashSaleActivityModel.validFrom.loe(now),
-        flashSaleActivityModel.validTo.goe(now),
-        flashSaleActivityModel.productId.eq(productId),
-      ).orderBy(flashSaleActivityModel.validFrom.desc())
-      .fetchFirst()
+    transaction(database) {
+      FlashSaleActivitiesTable
+        .selectAll()
+        .where {
+          FlashSaleActivitiesTable.activeOnly {
+            (FlashSaleActivitiesTable.productId eq productId) and
+              (FlashSaleActivitiesTable.status eq status.name) and
+              (FlashSaleActivitiesTable.validFrom lessEq now) and
+              (FlashSaleActivitiesTable.validTo greaterEq now)
+          }
+        }.orderBy(
+          FlashSaleActivitiesTable.validFrom to SortOrder.DESC,
+          FlashSaleActivitiesTable.id to SortOrder.DESC,
+        ).limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   override fun existsOverlap(
     productId: Long,
@@ -63,17 +173,19 @@ class FlashSaleActivityRepositoryImpl : FlashSaleActivityRepositoryCustom {
     newValidFrom: LocalDateTime,
     newValidTo: LocalDateTime,
     excludeId: Long?,
-  ): Boolean {
-    val builder =
-      BooleanBuilder()
-        .and(flashSaleActivityModel.productId.eq(productId))
-        .and(flashSaleActivityModel.status.eq(status))
-        .and(flashSaleActivityModel.validFrom.lt(newValidTo))
-        .and(flashSaleActivityModel.validTo.gt(newValidFrom))
-    excludeId?.let { builder.and(flashSaleActivityModel.id.ne(it)) }
-    return queryFactory
-      .selectFrom(flashSaleActivityModel)
-      .where(builder)
-      .fetchCount() > 0
-  }
+  ): Boolean =
+    transaction(database) {
+      FlashSaleActivitiesTable
+        .selectAll()
+        .where {
+          FlashSaleActivitiesTable.activeOnly {
+            (FlashSaleActivitiesTable.productId eq productId) and
+              (FlashSaleActivitiesTable.status eq status.name) and
+              (FlashSaleActivitiesTable.validFrom less newValidTo) and
+              (FlashSaleActivitiesTable.validTo greater newValidFrom) and
+              (if (excludeId != null) FlashSaleActivitiesTable.id neq excludeId else Op.TRUE)
+          }
+        }.limit(1)
+        .any()
+    }
 }

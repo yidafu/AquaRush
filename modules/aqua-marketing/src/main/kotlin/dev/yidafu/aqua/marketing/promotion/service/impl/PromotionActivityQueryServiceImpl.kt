@@ -27,7 +27,6 @@ import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRe
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityTierRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -42,17 +41,7 @@ class PromotionActivityQueryServiceImpl(
   override fun listActivities(
     keyword: String?,
     pageable: Pageable,
-  ): Page<PromotionActivityModel> {
-    val spec =
-      Specification<PromotionActivityModel> { root, _, cb ->
-        if (keyword.isNullOrBlank()) {
-          null
-        } else {
-          cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%")
-        }
-      }
-    return promotionActivityRepository.findAll(spec, pageable)
-  }
+  ): Page<PromotionActivityModel> = promotionActivityRepository.searchActivities(keyword, pageable)
 
   override fun getActivity(id: Long): PromotionActivityModel? = promotionActivityRepository.findById(id).orElse(null)
 

@@ -25,7 +25,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
 /**
- * Custom repository for Product queries using QueryDSL
+ * Custom repository for Product search queries (JPA→Exposed 迁移 P4)
  */
 interface ProductRepositoryCustom {
   /**

@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -37,17 +36,7 @@ class GiftActivityQueryServiceImpl(
   override fun listActivities(
     keyword: String?,
     pageable: Pageable,
-  ): Page<GiftActivityModel> {
-    val spec =
-      Specification<GiftActivityModel> { root, _, cb ->
-        if (keyword.isNullOrBlank()) {
-          null
-        } else {
-          cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%")
-        }
-      }
-    return giftActivityRepository.findAll(spec, pageable)
-  }
+  ): Page<GiftActivityModel> = giftActivityRepository.searchActivities(keyword, pageable)
 
   override fun getActivity(id: Long): GiftActivityModel? = giftActivityRepository.findById(id).orElse(null)
 }

@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.marketing.flashsale.domain.repository.FlashSaleActivityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -37,17 +36,7 @@ class FlashSaleActivityQueryServiceImpl(
   override fun listActivities(
     keyword: String?,
     pageable: Pageable,
-  ): Page<FlashSaleActivityModel> {
-    val spec =
-      Specification<FlashSaleActivityModel> { root, _, cb ->
-        if (keyword.isNullOrBlank()) {
-          null
-        } else {
-          cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%")
-        }
-      }
-    return flashSaleActivityRepository.findAll(spec, pageable)
-  }
+  ): Page<FlashSaleActivityModel> = flashSaleActivityRepository.searchActivities(keyword, pageable)
 
   override fun getActivity(id: Long): FlashSaleActivityModel? = flashSaleActivityRepository.findById(id).orElse(null)
 }

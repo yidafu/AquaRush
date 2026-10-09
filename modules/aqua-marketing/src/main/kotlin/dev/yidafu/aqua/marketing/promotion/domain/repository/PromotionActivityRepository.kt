@@ -20,16 +20,29 @@
 package dev.yidafu.aqua.marketing.promotion.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 /**
- * 满减/折扣活动仓库(F-MKT-004)
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [PromotionActivityRepositoryCustom]/[PromotionActivityRepositoryImpl]。
+ * 满减/折扣活动仓库(F-MKT-004)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删;当前生效活动查询见 [PromotionActivityRepositoryCustom]。
  */
-@Repository
-interface PromotionActivityRepository :
-  JpaRepository<PromotionActivityModel, Long>,
-  JpaSpecificationExecutor<PromotionActivityModel>,
-  PromotionActivityRepositoryCustom
+interface PromotionActivityRepository : PromotionActivityRepositoryCustom {
+  /** 存量接口遗留的无界查询(违反规则 10,后台 seed/活动 id 反查存量使用;不新增调用)。 */
+  fun findAll(): List<PromotionActivityModel>
+
+  fun findAllById(ids: List<Long>): List<PromotionActivityModel>
+
+  fun findById(id: Long): Optional<PromotionActivityModel>
+
+  /** 后台活动分页:name 关键词(大小写不敏感);固定 id 升序破平。 */
+  fun searchActivities(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<PromotionActivityModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: PromotionActivityModel): PromotionActivityModel
+}

@@ -21,18 +21,13 @@ package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
- * 商品属性选项字典仓库(F-PRO-009)
- * 注意:@SoftDelete 自动过滤已删行。
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [ProductOptionRepositoryCustom]/[ProductOptionRepositoryImpl]。
+ * 商品属性选项字典仓库(F-PRO-009;JPA→Exposed 迁移 P4:
+ * 剥离 JpaRepository,仅保留实际被调用的方法;@SoftDelete 语义=查询过滤 is_deleted,delete 软删)。
  */
-@Repository
-interface ProductOptionRepository :
-  JpaRepository<ProductOptionModel, Long>,
-  ProductOptionRepositoryCustom {
+interface ProductOptionRepository : ProductOptionRepositoryCustom {
   /**
    * 按类型查询选项(按 sortOrder 升序,同序按创建时间)
    */
@@ -50,4 +45,12 @@ interface ProductOptionRepository :
     type: ProductOptionType,
     value: String,
   ): ProductOptionModel?
+
+  fun findById(id: Long): Optional<ProductOptionModel>
+
+  /** 语义对齐 @SoftDelete 下的 delete:软删。 */
+  fun delete(entity: ProductOptionModel)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: ProductOptionModel): ProductOptionModel
 }

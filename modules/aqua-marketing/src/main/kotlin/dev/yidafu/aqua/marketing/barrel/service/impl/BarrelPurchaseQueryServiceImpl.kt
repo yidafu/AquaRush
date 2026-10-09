@@ -27,8 +27,6 @@ import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepo
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -60,17 +58,7 @@ class BarrelPurchaseQueryServiceImpl(
     page: Int,
     size: Int,
   ): Page<BarrelPurchaseModel> {
-    val spec =
-      Specification<BarrelPurchaseModel> { root, _, cb ->
-        val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-        status?.let { predicates.add(cb.equal(root.get<BarrelPaymentStatus>("paymentStatus"), it)) }
-        dateFrom?.let { predicates.add(cb.greaterThanOrEqualTo(root.get<LocalDateTime>("paidAt"), it)) }
-        dateTo?.let { predicates.add(cb.lessThanOrEqualTo(root.get<LocalDateTime>("paidAt"), it)) }
-        cb.and(*predicates.toTypedArray())
-      }
-    return barrelPurchaseRepository.findAll(
-      spec,
-      PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")),
-    )
+    // 排序由仓储固定(createdAt 降序 + id 破平),pageable 只带页码
+    return barrelPurchaseRepository.searchPurchases(status, dateFrom, dateTo, PageRequest.of(page, size))
   }
 }

@@ -49,7 +49,7 @@ object ReconciliationReportsTable : SoftDeletableTable("reconciliation_reports")
   val reportType = varchar("report_type", 20)
 
   /** 报表数据(JSON,DDL `json`),内容为 `Map<String, Any>`,序列化由仓储层负责。 */
-  val reportData = text("report_data")
+  val reportData = jsonString("report_data")
   val filePath = varchar("file_path", 500).nullable()
   val fileName = varchar("file_name", 255).nullable()
   val fileSize = long("file_size").nullable()
@@ -68,7 +68,7 @@ object ReconciliationDiscrepanciesTable : SoftDeletableTable("reconciliation_dis
   val recordId = varchar("record_id", 100)
 
   /** 差异明细(JSON,DDL `json`),内容为 `Map<String, Any>?`,序列化由仓储层负责。 */
-  val recordDetails = text("record_details").nullable()
+  val recordDetails = jsonString("record_details").nullable()
   val status = varchar("status", 20)
   val resolutionNotes = text("resolution_notes").nullable()
   val resolvedBy = varchar("resolved_by", 100).nullable()

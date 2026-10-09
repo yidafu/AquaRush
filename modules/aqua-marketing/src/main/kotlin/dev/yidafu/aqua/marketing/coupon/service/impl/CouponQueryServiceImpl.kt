@@ -27,7 +27,6 @@ import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateReposito
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -42,20 +41,7 @@ class CouponQueryServiceImpl(
     keyword: String?,
     status: CouponTemplateStatus?,
     pageable: Pageable,
-  ): Page<CouponTemplateModel> {
-    val spec =
-      Specification<CouponTemplateModel> { root, _, cb ->
-        val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-        if (!keyword.isNullOrBlank()) {
-          predicates.add(cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%"))
-        }
-        if (status != null) {
-          predicates.add(cb.equal(root.get<Any>("status"), status))
-        }
-        cb.and(*predicates.toTypedArray())
-      }
-    return couponTemplateRepository.findAll(spec, pageable)
-  }
+  ): Page<CouponTemplateModel> = couponTemplateRepository.searchTemplates(keyword, status, pageable)
 
   override fun getTemplate(id: Long): CouponTemplateModel? = couponTemplateRepository.findById(id).orElse(null)
 

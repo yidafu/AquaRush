@@ -32,7 +32,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
 
 /** 桶水票票种查询服务单元测试(F-MKT-007 列表/详情)。 */
@@ -48,16 +47,16 @@ class TicketTypeQueryServiceImplTest :
     test("listTicketTypes with filters") {
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<TicketTypeModel> = PageImpl(listOf(TicketTypeModel(id = 1L, name = "通兑票")))
-      every { ticketTypeRepository.findAll(any<Specification<TicketTypeModel>>(), any<Pageable>()) } returns page
+      every { ticketTypeRepository.searchTicketTypes(any(), any(), any()) } returns page
 
       val result = service.listTicketTypes("通兑", TicketTypeStatus.ACTIVE, pageable)
 
       result.totalElements shouldBe 1
-      verify { ticketTypeRepository.findAll(any<Specification<TicketTypeModel>>(), any<Pageable>()) }
+      verify { ticketTypeRepository.searchTicketTypes(any(), any(), any()) }
     }
     test("listTicketTypes without filters") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { ticketTypeRepository.findAll(any<Specification<TicketTypeModel>>(), any<Pageable>()) } returns PageImpl(emptyList())
+      every { ticketTypeRepository.searchTicketTypes(any(), any(), any()) } returns PageImpl(emptyList())
 
       val result = service.listTicketTypes(null, null, pageable)
 

@@ -47,16 +47,16 @@ class CustomerGroupQueryServiceImplTest :
     }
     test("listGroups without keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { customerGroupRepository.findAll(pageable) } returns PageImpl(listOf(CustomerGroupModel(id = 1L, name = "熟客")))
+      every { customerGroupRepository.searchGroups(null, pageable) } returns PageImpl(listOf(CustomerGroupModel(id = 1L, name = "熟客")))
 
       val result = service.listGroups(null, pageable)
 
       result.totalElements shouldBe 1
-      verify { customerGroupRepository.findAll(pageable) }
+      verify { customerGroupRepository.searchGroups(null, pageable) }
     }
     test("listGroups with keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { customerGroupRepository.findByNameContainingIgnoreCaseOrderByCreatedAtDesc("客", pageable) } returns PageImpl(emptyList())
+      every { customerGroupRepository.searchGroups("客", pageable) } returns PageImpl(emptyList())
 
       val result = service.listGroups("客", pageable)
 

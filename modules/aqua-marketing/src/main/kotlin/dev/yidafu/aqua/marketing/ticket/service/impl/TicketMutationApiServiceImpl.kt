@@ -32,7 +32,6 @@ import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketTypeNotFoundExcep
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepository
-import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -48,7 +47,6 @@ class TicketMutationApiServiceImpl(
   private val ticketTypeRepository: TicketTypeRepository,
   private val ticketPurchaseRepository: TicketPurchaseRepository,
   private val userTicketRepository: UserTicketRepository,
-  private val entityManager: EntityManager,
   private val bizLogger: BizLogger,
 ) : TicketMutationApiService {
   @Transactional
@@ -120,9 +118,8 @@ class TicketMutationApiServiceImpl(
     // 原子 PENDING→PAID;受影响行数=0 表示并发已入账
     val affected = ticketPurchaseRepository.markPaidAtomically(ticketPurchaseId, transactionId, now)
     if (affected == 0) {
-      // 并发已入账:刷新为最新状态后返回
-      entityManager.refresh(purchase)
-      return purchase
+      // 并发已入账:重读最新状态返回(实体已脱离 JPA 持久化上下文,原 JPA refresh 的等价语义)
+      return ticketPurchaseRepository.findById(ticketPurchaseId).orElse(purchase)
     }
     val ticketType = ticketTypeRepository.findById(purchase.ticketTypeId).orElseThrow { TicketTypeNotFoundException(purchase.ticketTypeId) }
     // 票包入账 totalCount 张(N 张正常 + M 张赠送,同池核销/过期口径一致 R-MKT-08);
@@ -150,9 +147,8 @@ class TicketMutationApiServiceImpl(
         ),
       )
     }
-    // 批量更新后刷新持久化上下文中的实体为最新状态(PAID)
-    entityManager.refresh(purchase)
-    return purchase
+    // 重读入账后的最新状态(PAID)返回
+    return ticketPurchaseRepository.findById(ticketPurchaseId).orElse(purchase)
   }
 
   @Transactional

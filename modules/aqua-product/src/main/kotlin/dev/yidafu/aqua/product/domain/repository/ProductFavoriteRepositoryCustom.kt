@@ -25,7 +25,7 @@ import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 /**
- * Custom repository interface for ProductFavorite with QueryDSL implementations
+ * Custom repository interface for ProductFavorite (JPA→Exposed 迁移 P4)
  */
 interface ProductFavoriteRepositoryCustom {
   /**

@@ -22,7 +22,7 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 import java.time.LocalDateTime
 
 /**
- * 水桶购买单仓储 QueryDSL 自定义查询(BarrelPurchaseRepository 中手写 @Query 迁移至此)。
+ * 水桶购买单仓储自定义查询(BarrelPurchaseRepository 中手写 @Query 迁移至此)。
  */
 interface BarrelPurchaseRepositoryCustom {
   /**
