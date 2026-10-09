@@ -35,6 +35,15 @@ dependencies {
   implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
   implementation("io.github.openfeign.querydsl:querydsl-jpa")
   implementation("io.github.openfeign.querydsl:querydsl-core")
+
+  // ========================================================
+  // Exposed(1.x)：JPA -> Exposed 迁移期的表定义与 Database 基建。
+  // 与 JPA 并存，不注册主事务管理器（见 ExposedAutoConfiguration 的类注释）。
+  // 版本与接入方式见 AquaRush-JPA-to-Exposed-迁移方案.md §5.1
+  // ========================================================
+  implementation(libs.exposed.core)
+  implementation(libs.exposed.jdbc)
+  implementation(libs.exposed.java.time)
   testImplementation(libs.spring.boot.starter.test)
 
   // ========================================================

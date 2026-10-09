@@ -152,8 +152,11 @@ subprojects {
           packages(
             "dev.yidafu.aqua.api.dto",
             "dev.yidafu.aqua.common.graphql.generated",
+            // Exposed 基建（JPA -> Exposed 迁移，方案 §5.1）：自动配置无业务逻辑，
+            // 其行为由 services 层集成测试与 ops 仓储实现测试间接验证
+            "dev.yidafu.aqua.common.infra.exposed",
           )
-          classes("*Mapper*", "*Exception", "*Exceptions", "*Application")
+          classes("*Mapper*", "*Exception", "*Exceptions", "*Application", "*SoftDeletableTable")
           annotatedBy("org.springframework.context.annotation.Configuration")
         }
       }

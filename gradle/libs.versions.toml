@@ -4,6 +4,11 @@ kover = "0.9.9"
 spring-boot = "4.0.0"
 spring-dependency-management = "1.1.4"
 liquibase = "4.33.0"
+# Exposed 1.x 的包名为 org.jetbrains.exposed.v1.*，不要照抄网上 0.x 的示例
+exposed = "1.5.0"
+# liquibase-kotlin 版本号规则 = ${liquibaseVersion}-${自身版本}，
+# 必须与运行时 Liquibase 版本(4.33.0, 见 spring-boot-starter-liquibase 的解析结果)严格对应
+liquibase-kotlin = "4.33.0-0.10.1"
 jackson = "3.0.2"
 wechatpay = "0.2.17"
 jwt = "0.13.0"
@@ -53,6 +58,18 @@ spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
 h2 = { module = "com.h2database:h2", version = "2.2.224" }
+
+# Exposed (1.x: 包名 org.jetbrains.exposed.v1.*)
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
+# Spring Framework 7 / Spring Boot 4 对应 spring7-transaction(不是 spring-transaction)
+exposed-spring-transaction = { module = "org.jetbrains.exposed:spring7-transaction", version.ref = "exposed" }
+
+# Liquibase Kotlin DSL（编译期 changelog）
+liquibase-kotlin-starter-compiled = { module = "io.github.momosetkn:liquibase-kotlin-starter-compiled", version.ref = "liquibase-kotlin" }
+liquibase-kotlin-dsl = { module = "io.github.momosetkn:liquibase-kotlin-dsl", version.ref = "liquibase-kotlin" }
 
 # Jackson (Updated for Jackson 3.x)
 #implementation("tools.jackson.core:jackson-annotations:3.0.0")
@@ -158,6 +175,7 @@ kotlin = ["kotlin-reflect", "kotlin-stdlib"]
 spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "jackson-module-kotlin"]
 spring-boot-data = ["spring-boot-starter-data-jpa", "postgresql"]
 spring-boot-liqiubase = ["spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "postgresql"]
+exposed = ["exposed-core", "exposed-jdbc", "exposed-java-time", "exposed-json", "exposed-spring-transaction"]
 spring-boot-security = ["spring-boot-starter-security"]
 jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 graphql = ["spring-boot-starter-graphql"]

@@ -22,38 +22,30 @@ package dev.yidafu.aqua.ops.notice.service.impl
 import dev.yidafu.aqua.api.dto.NoticeListRequest
 import dev.yidafu.aqua.api.service.ops.NoticeQueryService
 import dev.yidafu.aqua.common.domain.model.NoticeModel
+import dev.yidafu.aqua.ops.notice.domain.repository.NoticeFilter
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeRepository
-import dev.yidafu.aqua.ops.notice.domain.repository.NoticeSpecifications
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
  * 公告查询服务实现(管理后台)
- * 列表按置顶优先、发布时间倒序(草稿无发布时间排最后)、创建时间倒序(AC-OPS-002-02)。
+ * 列表按置顶优先、发布时间倒序(草稿无发布时间排最后)、创建时间倒序(AC-OPS-002-02)，
+ * 排序由仓储层保证(原 `Sort.by(...)` 已随 JPA Specification 一并迁移进 [NoticeRepository.findPage])。
  */
 @Service
 class NoticeQueryServiceImpl(
   private val noticeRepository: NoticeRepository,
 ) : NoticeQueryService {
   override fun listNotices(request: NoticeListRequest): Page<NoticeModel> {
-    var spec: Specification<NoticeModel> = Specification { _, _, cb -> cb.conjunction() }
-    request.keyword?.takeIf { it.isNotBlank() }?.let { spec = spec.and(NoticeSpecifications.keywordContains(it)) }
-    request.type?.let { spec = spec.and(NoticeSpecifications.typeEquals(it)) }
-    request.status?.let { spec = spec.and(NoticeSpecifications.statusEquals(it)) }
-    val pageable =
-      PageRequest.of(
-        request.page,
-        request.size,
-        Sort.by(
-          Sort.Order.desc("pinned"),
-          Sort.Order.desc("publishedAt").nullsLast(),
-          Sort.Order.desc("createdAt"),
-        ),
+    val filter =
+      NoticeFilter(
+        keyword = request.keyword,
+        type = request.type,
+        status = request.status,
       )
-    return noticeRepository.findAll(spec, pageable)
+    val pageable = PageRequest.of(request.page, request.size)
+    return noticeRepository.findPage(filter, pageable)
   }
 
   override fun getNotice(id: Long): NoticeModel? = noticeRepository.findById(id).orElse(null)

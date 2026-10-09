@@ -22,34 +22,37 @@ package dev.yidafu.aqua.ops.feedback.service.impl
 import dev.yidafu.aqua.api.dto.FeedbackListRequest
 import dev.yidafu.aqua.api.service.ops.FeedbackQueryService
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackFilter
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
-import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackSpecifications
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
  * 意见反馈查询服务实现(管理后台)
+ * 列表排序固定为 created_at 倒序，由仓储层保证(原 `Sort.by(DESC, "createdAt")` 已随
+ * JPA Specification 一并迁移进 [FeedbackRepository.findPage])。
  */
 @Service
 class FeedbackQueryServiceImpl(
   private val feedbackRepository: FeedbackRepository,
 ) : FeedbackQueryService {
   override fun listFeedbacks(request: FeedbackListRequest): Page<FeedbackModel> {
-    var spec: Specification<FeedbackModel> = Specification { _, _, cb -> cb.conjunction() }
-    request.feedbackType?.let { spec = spec.and(FeedbackSpecifications.feedbackTypeEquals(it)) }
-    request.status?.let { spec = spec.and(FeedbackSpecifications.statusEquals(it)) }
-    request.userId?.let { spec = spec.and(FeedbackSpecifications.userIdEquals(it)) }
-    request.contactKeyword?.takeIf { it.isNotBlank() }?.let { spec = spec.and(FeedbackSpecifications.contactKeywordContains(it)) }
+    // 与原实现一致：时间范围必须两端同时给才生效
     val dateFrom = request.dateFrom
     val dateTo = request.dateTo
-    if (dateFrom != null && dateTo != null) {
-      spec = spec.and(FeedbackSpecifications.createdAtBetween(dateFrom, dateTo))
-    }
-    val pageable = PageRequest.of(request.page, request.size, Sort.by(Sort.Direction.DESC, "createdAt"))
-    return feedbackRepository.findAll(spec, pageable)
+    val hasDateRange = dateFrom != null && dateTo != null
+    val filter =
+      FeedbackFilter(
+        feedbackType = request.feedbackType,
+        status = request.status,
+        userId = request.userId,
+        contactKeyword = request.contactKeyword,
+        dateFrom = if (hasDateRange) dateFrom else null,
+        dateTo = if (hasDateRange) dateTo else null,
+      )
+    val pageable = PageRequest.of(request.page, request.size)
+    return feedbackRepository.findPage(filter, pageable)
   }
 
   override fun getFeedback(id: Long): FeedbackModel? = feedbackRepository.findById(id).orElse(null)

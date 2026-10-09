@@ -20,17 +20,192 @@
 package dev.yidafu.aqua.ops.notice.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.NoticeModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
+import dev.yidafu.aqua.common.domain.model.enums.NoticeType
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import dev.yidafu.aqua.ops.common.exposed.pageQuery
+import dev.yidafu.aqua.ops.notice.domain.table.NoticeTable
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * 公告仓库
- * 注意:@SoftDelete 自动过滤已删行,派生查询/JPQL 均不含软删数据。
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [NoticeRepositoryCustom]/[NoticeRepositoryImpl]。
+ * 公告列表筛选条件(取代原 `NoticeSpecifications` 的 JPA Criteria)。
+ * 排序固定为 置顶优先、发布时间倒序(草稿无发布时间排最后)、创建时间倒序(AC-OPS-002-02)。
+ */
+data class NoticeFilter(
+  val keyword: String? = null,
+  val type: NoticeType? = null,
+  val status: NoticeStatus? = null,
+)
+
+/**
+ * 公告仓库（Exposed 实现，F-OPS-002）。
+ *
+ * 软删/save/updatedAt 语义与 [dev.yidafu.aqua.ops.banner.domain.repository.BannerRepository] 相同，
+ * 详见其类 KDoc（`@SoftDelete` 显式过滤、`delete` 只翻转 is_deleted、`@PreUpdate` 对齐）。
  */
 @Repository
-interface NoticeRepository :
-  JpaRepository<NoticeModel, Long>,
-  JpaSpecificationExecutor<NoticeModel>,
-  NoticeRepositoryCustom
+class NoticeRepository(
+  private val database: Database,
+) {
+  /** 当前生效公告：已发布且处于时间窗内(空=长期)，置顶优先、发布时间倒序(AC-OPS-002-02)。 */
+  fun findActiveNotices(now: LocalDateTime): List<NoticeModel> =
+    transaction(database) {
+      NoticeTable
+        .selectAll()
+        .where {
+          (NoticeTable.status eq NoticeStatus.PUBLISHED) and
+            (NoticeTable.startAt.isNull() or NoticeTable.startAt.lessEq(now)) and
+            (NoticeTable.endAt.isNull() or NoticeTable.endAt.greaterEq(now)) and
+            (NoticeTable.isDeleted eq false)
+        }.orderBy(
+          NoticeTable.pinned to SortOrder.DESC,
+          NoticeTable.publishedAt to SortOrder.DESC_NULLS_LAST,
+          NoticeTable.createdAt to SortOrder.DESC,
+        ).map(::toModel)
+    }
+
+  fun findById(id: Long): Optional<NoticeModel> =
+    transaction(database) {
+      NoticeTable
+        .selectAll()
+        .where { (NoticeTable.id eq id) and (NoticeTable.isDeleted eq false) }
+        .singleOrNull()
+        ?.let(::toModel)
+    }.let { Optional.ofNullable(it) }
+
+  /** 管理后台列表：分页 + 过滤，排序同 AC-OPS-002-02。 */
+  fun findPage(
+    filter: NoticeFilter,
+    pageable: Pageable,
+  ): Page<NoticeModel> =
+    transaction(database) {
+      pageQuery(
+        buildQuery = {
+          NoticeTable.selectAll().where {
+            buildList {
+              add(NoticeTable.isDeleted eq false)
+              filter.keyword?.takeIf { it.isNotBlank() }?.let { kw ->
+                add(NoticeTable.title.lowerCase() like "%${kw.lowercase()}%")
+              }
+              filter.type?.let { add(NoticeTable.type eq it) }
+              filter.status?.let { add(NoticeTable.status eq it) }
+            }.reduce { a, b -> a and b }
+          }
+        },
+        orderings =
+          listOf(
+            NoticeTable.pinned to SortOrder.DESC,
+            NoticeTable.publishedAt to SortOrder.DESC_NULLS_LAST,
+            NoticeTable.createdAt to SortOrder.DESC,
+          ),
+        pageable = pageable,
+        mapper = ::toModel,
+      )
+    }
+
+  /** 全量(含软删过滤)。管理后台集成测试做种子数据存在性判断用。 */
+  fun findAll(): List<NoticeModel> =
+    transaction(database) {
+      NoticeTable
+        .selectAll()
+        .where { NoticeTable.isDeleted eq false }
+        .orderBy(NoticeTable.createdAt to SortOrder.DESC)
+        .map(::toModel)
+    }
+
+  fun save(notice: NoticeModel): NoticeModel =
+    transaction(database) {
+      val id =
+        notice.id
+          ?: SnowflakeIdGenerator.getInstance().generate().also { notice.id = it }
+      val exists =
+        NoticeTable
+          .selectAll()
+          .where { NoticeTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        val now = LocalDateTime.now()
+        NoticeTable.update({ NoticeTable.id eq id }) {
+          it[title] = notice.title
+          it[content] = notice.content
+          it[type] = notice.type
+          it[pinned] = notice.pinned
+          it[startAt] = notice.startAt
+          it[endAt] = notice.endAt
+          it[status] = notice.status
+          it[publishedAt] = notice.publishedAt
+          it[deletedAt] = notice.deletedAt
+          it[deletedBy] = notice.deletedBy
+          it[updatedAt] = now
+        }
+        notice.updatedAt = now
+      } else {
+        NoticeTable.insert {
+          it[NoticeTable.id] = id
+          it[isDeleted] = false // 显式写入：Exposed 的 default() 不会进 INSERT 语句，而 DDL 的 NOT NULL 无兜底
+          it[title] = notice.title
+          it[content] = notice.content
+          it[type] = notice.type
+          it[pinned] = notice.pinned
+          it[startAt] = notice.startAt
+          it[endAt] = notice.endAt
+          it[status] = notice.status
+          it[publishedAt] = notice.publishedAt
+          it[deletedAt] = notice.deletedAt
+          it[deletedBy] = notice.deletedBy
+          it[createdAt] = notice.createdAt
+          it[updatedAt] = notice.updatedAt
+        }
+      }
+      notice
+    }
+
+  fun saveAll(notices: List<NoticeModel>): List<NoticeModel> = notices.map(::save)
+
+  /** 软删：只翻转 `is_deleted`（与 Hibernate `@SoftDelete` 逐字一致）。 */
+  fun delete(notice: NoticeModel) {
+    val id = notice.id ?: return
+    transaction(database) {
+      NoticeTable.update({ NoticeTable.id eq id }) {
+        it[isDeleted] = true
+      }
+    }
+  }
+
+  private fun toModel(row: ResultRow): NoticeModel =
+    NoticeModel(
+      id = row[NoticeTable.id],
+      title = row[NoticeTable.title],
+      content = row[NoticeTable.content],
+      type = row[NoticeTable.type],
+      pinned = row[NoticeTable.pinned],
+      startAt = row[NoticeTable.startAt],
+      endAt = row[NoticeTable.endAt],
+      status = row[NoticeTable.status],
+      publishedAt = row[NoticeTable.publishedAt],
+      deletedAt = row[NoticeTable.deletedAt],
+      deletedBy = row[NoticeTable.deletedBy],
+      createdAt = row[NoticeTable.createdAt],
+      updatedAt = row[NoticeTable.updatedAt],
+    )
+}
