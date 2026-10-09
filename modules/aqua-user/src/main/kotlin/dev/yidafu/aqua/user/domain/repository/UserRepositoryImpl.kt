@@ -48,7 +48,7 @@ class UserRepositoryImpl : UserRepositoryCustom {
         .where(userModel.id.eq(userId))
         .fetchOne()
 
-    return dev.yidafu.aqua.common.utils.MoneyUtils
+    return dev.yidafu.aqua.common.util.MoneyUtils
       .fromCents(result ?: 0L)
       .toDouble()
   }
@@ -61,7 +61,7 @@ class UserRepositoryImpl : UserRepositoryCustom {
         .where(userModel.id.eq(userId))
         .fetchOne()
 
-    return dev.yidafu.aqua.common.utils.MoneyUtils
+    return dev.yidafu.aqua.common.util.MoneyUtils
       .fromCents(result ?: 0L)
       .toDouble()
   }

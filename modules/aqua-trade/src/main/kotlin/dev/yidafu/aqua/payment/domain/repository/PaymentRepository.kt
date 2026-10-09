@@ -21,7 +21,7 @@ package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.common.util.MoneyUtils
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

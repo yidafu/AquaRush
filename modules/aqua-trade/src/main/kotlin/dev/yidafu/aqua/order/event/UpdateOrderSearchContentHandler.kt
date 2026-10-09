@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
-import dev.yidafu.aqua.common.utils.SearchContentBuilder
+import dev.yidafu.aqua.common.util.SearchContentBuilder
 import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory

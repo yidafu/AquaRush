@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.common.utils
+package dev.yidafu.aqua.common.util
 
 import java.math.BigDecimal
 import java.math.RoundingMode

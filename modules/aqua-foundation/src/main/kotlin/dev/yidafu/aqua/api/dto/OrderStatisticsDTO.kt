@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.api.dto
 
-import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.common.util.MoneyUtils
 import java.math.BigDecimal
 
 /**

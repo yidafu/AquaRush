@@ -50,7 +50,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
-import dev.yidafu.aqua.common.utils.SearchContentBuilder
+import dev.yidafu.aqua.common.util.SearchContentBuilder
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
 import dev.yidafu.aqua.order.domain.repository.OrderItemRepository

@@ -30,7 +30,7 @@ import dev.yidafu.aqua.common.graphql.generated.ReconciliationTask
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
 import dev.yidafu.aqua.common.graphql.generated.SourceSystem
-import dev.yidafu.aqua.common.utils.JsonHelper
+import dev.yidafu.aqua.common.util.JsonHelper
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 

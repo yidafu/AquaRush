@@ -108,7 +108,7 @@ data class AdminModel(
   val earning: BigDecimal?
     get() =
       earningCents?.let {
-        dev.yidafu.aqua.common.utils.MoneyUtils
+        dev.yidafu.aqua.common.util.MoneyUtils
           .fromCents(it)
       }
 }

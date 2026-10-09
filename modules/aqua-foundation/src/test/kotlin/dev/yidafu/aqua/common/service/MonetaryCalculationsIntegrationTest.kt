@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.service
 
-import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.common.util.MoneyUtils
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

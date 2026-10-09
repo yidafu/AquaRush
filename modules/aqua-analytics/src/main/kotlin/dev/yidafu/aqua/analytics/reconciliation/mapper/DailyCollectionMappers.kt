@@ -7,7 +7,7 @@ import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecord
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationStatus
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
-import dev.yidafu.aqua.common.utils.JsonHelper
+import dev.yidafu.aqua.common.util.JsonHelper
 import tech.mappie.api.ObjectMappie
 
 object MyTodayCollectionResultMapper : ObjectMappie<MyTodayCollectionResult, MyTodayCollectionVo>()

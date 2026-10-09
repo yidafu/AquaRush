@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.dto
 
-import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.common.util.MoneyUtils
 import java.math.BigDecimal
 import java.time.LocalDate
 

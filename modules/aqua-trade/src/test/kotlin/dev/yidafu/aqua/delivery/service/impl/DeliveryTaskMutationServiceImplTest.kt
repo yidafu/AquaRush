@@ -35,7 +35,7 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
-import dev.yidafu.aqua.common.utils.JsonHelper
+import dev.yidafu.aqua.common.util.JsonHelper
 import dev.yidafu.aqua.logging.util.BizLogger
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
