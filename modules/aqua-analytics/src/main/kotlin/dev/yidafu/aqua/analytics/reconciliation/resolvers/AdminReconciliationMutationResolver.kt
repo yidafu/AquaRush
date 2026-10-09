@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
-import dev.yidafu.aqua.analytics.reconciliation.mapper.ReconciliationTaskModelMapper
+import dev.yidafu.aqua.analytics.reconciliation.mapper.toGraphQL
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.reconciliation.ReconciliationService
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -97,7 +97,7 @@ class AdminReconciliationMutationResolver(
       username = userDetails.username,
       additionalData = mapOf("taskType" to input.taskType.name, "reconciliationDate" to date.toString()),
     )
-    return ReconciliationTaskModelMapper.map(task)
+    return task.toGraphQL()
   }
 
   /**

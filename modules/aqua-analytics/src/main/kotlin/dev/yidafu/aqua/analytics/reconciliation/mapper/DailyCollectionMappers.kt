@@ -1,43 +1,109 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.yidafu.aqua.analytics.reconciliation.mapper
 
 import dev.yidafu.aqua.analytics.reconciliation.resolvers.MyTodayCollectionResult
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecord
+import dev.yidafu.aqua.common.graphql.generated.DailyCollectionStatus
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationStatus
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
 import dev.yidafu.aqua.common.util.JsonHelper
-import tech.mappie.api.ObjectMappie
 
-object MyTodayCollectionResultMapper : ObjectMappie<MyTodayCollectionResult, MyTodayCollectionVo>()
+/**
+ * 配送员今日收款预计算结果 → GraphQL MyTodayCollectionVo(原 MyTodayCollectionResultMapper)
+ * status 为领域枚举 → 生成枚举同名 valueOf 互转
+ */
+fun MyTodayCollectionResult.toGraphQL(): MyTodayCollectionVo =
+  MyTodayCollectionVo(
+    orderCount = orderCount,
+    orderAmountCents = orderAmountCents,
+    cashAmountCents = cashAmountCents,
+    waterTicketCount = waterTicketCount,
+    qrCodeAmountCents = qrCodeAmountCents,
+    differenceAmountCents = differenceAmountCents,
+    status = status?.let { DailyCollectionStatus.valueOf(it.name) },
+    calculatedCashAmountCents = calculatedCashAmountCents,
+    calculatedOrderAmountCents = calculatedOrderAmountCents,
+    calculatedQrCodeAmountCents = calculatedQrCodeAmountCents,
+    calculatedWaterTicketCount = calculatedWaterTicketCount,
+  )
 
 /**
  * Mapper from JPA entity DailyCollectionRecordModel to GraphQL type DailyCollectionRecord
- * 处理类型转换（LocalDate -> String, Long? -> Long）
+ * 处理类型转换（LocalDate -> String, Long? -> Long, 枚举跨包名）
  */
-object DailyCollectionRecordModelMapper : ObjectMappie<DailyCollectionRecordModel, DailyCollectionRecord>() {
-  override fun map(from: DailyCollectionRecordModel): DailyCollectionRecord =
-    mapping {
-      // 处理 id: Long? -> Long
-      to::id fromValue (from.id ?: 0L)
-      // 处理 collectionDate: LocalDate -> String
-      to::collectionDate fromValue from.collectionDate.toString()
-    }
-}
+fun DailyCollectionRecordModel.toGraphQL(): DailyCollectionRecord =
+  DailyCollectionRecord(
+    // 处理 id: Long? -> Long
+    id = id ?: 0L,
+    deliveryWorkerId = deliveryWorkerId,
+    // 处理 collectionDate: LocalDate -> String
+    collectionDate = collectionDate.toString(),
+    cashAmountCents = cashAmountCents,
+    waterTicketCount = waterTicketCount,
+    qrCodeAmountCents = qrCodeAmountCents,
+    orderCount = orderCount,
+    orderAmountCents = orderAmountCents,
+    differenceAmountCents = differenceAmountCents,
+    calculatedCashAmountCents = calculatedCashAmountCents,
+    calculatedQrCodeAmountCents = calculatedQrCodeAmountCents,
+    calculatedWaterTicketCount = calculatedWaterTicketCount,
+    calculatedOrderAmountCents = calculatedOrderAmountCents,
+    // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
+    status = DailyCollectionStatus.valueOf(status.name),
+    confirmedAt = confirmedAt,
+    confirmedBy = confirmedBy,
+    notes = notes,
+    rejectedAt = rejectedAt,
+    rejectedBy = rejectedBy,
+    rejectReason = rejectReason,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
  * Mapper from JPA entity DailyReconciliationModel to GraphQL type DailyReconciliation
  * 处理类型转换（LocalDate -> String, Long? -> Long, 状态枚举跨包名, reportData Map -> ObjectNode）
  */
-object DailyReconciliationModelMapper : ObjectMappie<DailyReconciliationModel, DailyReconciliation>() {
-  override fun map(from: DailyReconciliationModel): DailyReconciliation {
-    val reportDataNode = from.reportData?.let { JsonHelper().createObjectNode(it) }
-    return mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::reconciliationDate fromValue from.reconciliationDate.toString()
-      to::status fromValue DailyReconciliationStatus.valueOf(from.status.name)
-      to::reportData fromValue reportDataNode
-    }
-  }
-}
+fun DailyReconciliationModel.toGraphQL(): DailyReconciliation =
+  DailyReconciliation(
+    // 处理 id: Long? -> Long
+    id = id ?: 0L,
+    reconciliationDate = reconciliationDate.toString(),
+    totalCashAmountCents = totalCashAmountCents,
+    totalWaterTicketCount = totalWaterTicketCount,
+    totalQrCodeAmountCents = totalQrCodeAmountCents,
+    totalOrderCount = totalOrderCount,
+    totalOrderAmountCents = totalOrderAmountCents,
+    totalCollectionAmountCents = totalCollectionAmountCents,
+    discrepancyAmountCents = discrepancyAmountCents,
+    // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
+    status = DailyReconciliationStatus.valueOf(status.name),
+    // 处理 reportData: Map? -> ObjectNode?
+    reportData = reportData?.let { JsonHelper().createObjectNode(it) },
+    reviewedAt = reviewedAt,
+    reviewedBy = reviewedBy,
+    reviewNotes = reviewNotes,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
