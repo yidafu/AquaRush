@@ -108,9 +108,10 @@ class DirectoryStructureTest :
       d6NoInputInResolverPackage.check(backendClasses)
     }
 
-    test("哨兵: importer 覆盖 foundation 与 client(防空转)") {
+    test("哨兵: importer 覆盖 foundation/client/admin(防空转)") {
       backendClasses.any { it.fullName == "dev.yidafu.aqua.common.domain.model.OrderModel" } shouldBe true
       backendClasses.any { it.packageName.startsWith("dev.yidafu.aqua.client.") } shouldBe true
+      backendClasses.any { it.packageName.startsWith("dev.yidafu.aqua.admin.") } shouldBe true
       (backendClasses.count() > 500) shouldBe true
     }
   })
