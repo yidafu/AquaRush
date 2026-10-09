@@ -26,9 +26,9 @@ import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.mapper.AddressInputMapper
-import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.mapper.merge
+import dev.yidafu.aqua.user.mapper.toDomain
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -71,7 +71,7 @@ class ClientAddressMutationResolver(
         addressService.unsetDefaultAddresses(userPrincipal.id)
       }
 
-      val address = AddressInputMapper.map(input)
+      val address = input.toDomain()
       address.userId = userPrincipal.id
 
       val savedAddress = addressService.save(address)
@@ -83,7 +83,7 @@ class ClientAddressMutationResolver(
       }
 
       // Convert entity to GraphQL type
-      val graphqlAddress = AddressMapper.map(savedAddress)
+      val graphqlAddress = savedAddress.toGraphQL()
       logger.info("Successfully created address for user: ${userPrincipal.id} with ID: ${graphqlAddress.id}")
       return graphqlAddress
     } catch (e: Exception) {
@@ -122,7 +122,7 @@ class ClientAddressMutationResolver(
 
       val updatedAddress = addressService.save(existingAddress)
       logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
-      return AddressMapper.map(updatedAddress)
+      return updatedAddress.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to update user address", e)
       throw BadRequestException("更新地址失败: ${e.message}")
@@ -215,11 +215,11 @@ class ClientAddressMutationResolver(
           isDefault = false,
         )
 
-      val copiedAddress = AddressInputMapper.map(addressInput)
+      val copiedAddress = addressInput.toDomain()
 
       val savedAddress = addressService.save(copiedAddress)
       logger.info("Successfully copied address: $id to new address for user: ${userPrincipal.id}")
-      return AddressMapper.map(savedAddress)
+      return savedAddress.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to copy user address", e)
       throw BadRequestException("复制地址失败: ${e.message}")

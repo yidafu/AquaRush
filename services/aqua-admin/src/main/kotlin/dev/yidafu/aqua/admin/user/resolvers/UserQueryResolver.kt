@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.UserListInput
 import dev.yidafu.aqua.common.graphql.generated.UserVoPage
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.user.mapper.UserMapper
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -117,6 +117,6 @@ class UserQueryResolver(
    */
   private fun mapWithGroupName(model: dev.yidafu.aqua.common.domain.model.UserModel): User {
     val groupName = model.customerGroupId?.let { customerGroupQueryApiService.findById(it)?.name }
-    return UserMapper.map(model).copy(customerGroupName = groupName)
+    return model.toGraphQL().copy(customerGroupName = groupName)
   }
 }

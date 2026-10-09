@@ -45,8 +45,7 @@ import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.order.dto.OrderDTO
 import dev.yidafu.aqua.order.dto.UpdateOrderStatusDTO
-import dev.yidafu.aqua.user.mapper.AddressMapper
-import dev.yidafu.aqua.user.mapper.UserMapper
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -231,11 +230,11 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         OrderModelStatusMapper.map(from.status)
       }
       // Create placeholder objects for required nested fields
-      to::address fromExpression { from.address?.let { AddressMapper.map(it) } }
+      to::address fromExpression { from.address?.let { it.toGraphQL() } }
 
       to::deliveryWorker fromExpression { from.deliveryWorker?.let { DeliveryWorkerMapper.map(it) } }
       to::user fromExpression {
-        from.user?.let { UserMapper.map(it) }
+        from.user?.let { it.toGraphQL() }
       }
       to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
       // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转;null=未指定)

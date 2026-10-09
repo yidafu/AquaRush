@@ -25,9 +25,9 @@ import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.AddressVoPage
 import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
-import dev.yidafu.aqua.user.mapper.AddressInputMapper
-import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.mapper.merge
+import dev.yidafu.aqua.user.mapper.toDomain
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -48,7 +48,7 @@ class AddressResolver(
     @Argument userId: Long,
   ): List<Address> {
     val list = addressService.findByUserId(userId)
-    return AddressMapper.mapList(list)
+    return list.map { it.toGraphQL() }
   }
 
   // Admin-only queries
@@ -60,7 +60,7 @@ class AddressResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
   fun addresses(): List<Address> {
     val allAddresses = addressService.findAllAddresses()
-    return AddressMapper.mapList(allAddresses)
+    return allAddresses.map { it.toGraphQL() }
   }
 
   /**
@@ -78,7 +78,7 @@ class AddressResolver(
         .of(page, size)
     val addresses = addressService.searchAllAddresses(keyword, pageable)
     return AddressVoPage(
-      content = AddressMapper.mapList(addresses.content),
+      content = addresses.content.map { it.toGraphQL() },
       totalElements = addresses.totalElements.toInt(),
       totalPages = addresses.totalPages,
       size = addresses.size,
@@ -97,11 +97,11 @@ class AddressResolver(
     @Argument @Valid input: AddressInput,
   ): Address {
     try {
-      val address = AddressInputMapper.map(input)
+      val address = input.toDomain()
       // userId 保持为 null，由 AddressInput 中的值决定
       val savedAddress = addressService.save(address)
       logger.info("Admin created address with ID: ${savedAddress.id}")
-      return AddressMapper.map(savedAddress)
+      return savedAddress.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to create admin address", e)
       throw RuntimeException("创建地址失败: ${e.message}")
@@ -124,7 +124,7 @@ class AddressResolver(
       existingAddress.merge(input)
       val savedAddress = addressService.save(existingAddress)
       logger.info("Admin updated address with ID: ${savedAddress.id}")
-      return AddressMapper.map(savedAddress)
+      return savedAddress.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to update admin address", e)
       throw RuntimeException("更新地址失败: ${e.message}")
@@ -148,7 +148,7 @@ class AddressResolver(
         input
           .mapIndexed { index, addressInput ->
             try {
-              val address = AddressInputMapper.map(addressInput)
+              val address = addressInput.toDomain()
               // userId 保持为 null
               successCount++
               address

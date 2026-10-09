@@ -19,142 +19,182 @@
 
 package dev.yidafu.aqua.user.mapper
 
-import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus
+import dev.yidafu.aqua.common.graphql.generated.AdminRole
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.graphql.generated.Region
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
+import dev.yidafu.aqua.common.graphql.generated.User
+import java.math.BigDecimal
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.graphql.generated.AdminRole as AdminRoleG
 
 // ============================================================================
-// Domain Model → GraphQL Mappers
+// Domain Model → GraphQL 转换
 // ============================================================================
-
-object AdminRoleMapper : EnumMappie<AdminRoleG, AdminRoleModel>()
 
 /**
- * Mapper for converting UserModel domain entity to GraphQL User type
- * Handles monetary field conversion from cents (Long) to GraphQL cent-based fields
+ * AdminRole(GraphQL) → AdminRoleModel 枚举同名互转
  */
-object UserMapper : ObjectMappie<UserModel, User>() {
-  override fun map(from: UserModel): User =
-    mapping {
-      to::id fromValue (from.id ?: -1L)
-      // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
-      // No conversion needed as both source and target use cent-based Long fields
-      to::balanceCents fromValue from.balanceCents
-      to::totalSpentCents fromValue from.totalSpentCents
-      // 所属客户分组(F-MKT-001):分组名由 resolver 联查填充(默认 null=未分组)
-      to::customerGroupId fromProperty from::customerGroupId
-      to::customerGroupName fromValue null
-    }
-}
+fun AdminRole.toDomain(): AdminRoleModel = AdminRoleModel.valueOf(name)
 
 /**
- * Mapper for converting Admin domain entity to GraphQL Admin type
+ * UserModel → GraphQL User 类型
+ * 金额字段两侧均为分制 Long,直接赋值无需转换
+ */
+fun UserModel.toGraphQL(): User =
+  User(
+    avatarUrl = avatarUrl,
+    balanceCents = balanceCents,
+    createdAt = createdAt,
+    customerGroupId = customerGroupId,
+    // 所属客户分组(F-MKT-001):分组名由 resolver 联查填充(默认 null=未分组)
+    customerGroupName = null,
+    email = email,
+    id = id ?: -1L,
+    nickname = nickname,
+    phone = phone,
+    role = role,
+    status = status,
+    totalSpentCents = totalSpentCents,
+    updatedAt = updatedAt,
+    wechatOpenId = wechatOpenId,
+  )
+
+/**
+ * AdminModel → GraphQL Admin 类型
  *
  * 送水员档案并入 admins 单表后,Admin 类型同时承载配送业务字段(F-USR-021)
  */
-object AdminMapper : ObjectMappie<AdminModel, Admin>() {
-  override fun map(from: AdminModel) =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::username fromProperty from::username
-      to::realName fromProperty from::realName
-      to::phone fromProperty from::phone
-      to::role fromExpression { it.role.name }
-      to::createdAt fromProperty from::createdAt
-      to::updatedAt fromProperty from::updatedAt
-      to::lastLoginAt fromProperty from::lastLoginAt
-      // 账号状态(枚举需显式转换;F-USR-020)
-      to::accountStatus fromExpression {
-        AdminAccountStatus.valueOf(from.accountStatus.name)
-      }
-      // 配送业务字段(与 AdminModel 同名同类型自动映射;枚举需显式转换)
-      to::onlineStatus fromExpression {
-        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
-      }
-      to::isAvailable fromProperty from::isAvailable
-    }
-}
+fun AdminModel.toGraphQL(): Admin =
+  Admin(
+    // 账号状态(枚举需显式转换;F-USR-020)
+    accountStatus = AdminAccountStatus.valueOf(accountStatus.name),
+    avatarUrl = avatarUrl,
+    averageRating = averageRating?.let { BigDecimal.valueOf(it) },
+    completedOrders = completedOrders,
+    coordinates = coordinates,
+    createdAt = createdAt,
+    currentLocation = currentLocation,
+    earningCents = earningCents,
+    id = id ?: 0L,
+    isAvailable = isAvailable,
+    lastLoginAt = lastLoginAt,
+    // 在线状态(枚举需显式转换)
+    onlineStatus = DeliveryWorkerStatus.valueOf(onlineStatus.name),
+    phone = phone,
+    rating = rating?.let { BigDecimal.valueOf(it) },
+    realName = realName,
+    role = role.name,
+    totalOrders = totalOrders,
+    updatedAt = updatedAt,
+    username = username,
+  )
 
 /**
- * Mapper for converting AddressModel domain entity to GraphQL Address type
+ * AddressModel → GraphQL Address 类型
  */
-object AddressMapper : ObjectMappie<AddressModel, Address>() {
-  override fun map(from: AddressModel) =
-    mapping {
-      to::id fromValue (from.id ?: -1L)
-      to::longitude fromValue from.longitude?.toFloat()
-      to::latitude fromValue from.latitude?.toFloat()
-      to::detailAddress fromValue from.detailAddress
-      // Most fields map automatically by name
-      // Note: Mappie automatically handles Double to Float conversion for nullable fields
-    }
-}
+fun AddressModel.toGraphQL(): Address =
+  Address(
+    city = city,
+    cityCode = cityCode,
+    createdAt = createdAt,
+    detailAddress = detailAddress,
+    district = district,
+    districtCode = districtCode,
+    floor = floor,
+    id = id ?: -1L,
+    isDefault = isDefault,
+    // 领域 Double → GraphQL Float(WGS-84 经纬度)
+    latitude = latitude?.toFloat(),
+    longitude = longitude?.toFloat(),
+    phone = phone,
+    province = province,
+    provinceCode = provinceCode,
+    receiverName = receiverName,
+    updatedAt = updatedAt,
+    userId = userId,
+  )
 
 /**
- * Mapper for converting Region domain entity to GraphQL Region type
+ * RegionModel → GraphQL Region 类型
  */
-object RegionMapper : ObjectMappie<RegionModel, Region>() {
-  override fun map(from: RegionModel) =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-    }
-}
+fun RegionModel.toGraphQL(): Region =
+  Region(
+    code = code,
+    createdAt = createdAt,
+    id = id ?: 0L,
+    level = level,
+    name = name,
+    parentCode = parentCode,
+    updatedAt = updatedAt,
+  )
 
 // ============================================================================
-// Request → Domain Model Mappers (with additional parameters)
+// 输入 → Domain Model 转换
 // ============================================================================
 
 /**
- * Mapper for converting CreateAddressRequest with userId to AddressModel domain entity
+ * AddressInput → AddressModel(新建地址)
  */
-object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
-  override fun map(from: AddressInput) =
-    mapping {
-      // id 置空交由 @SnowflakeIdGenerator 在 INSERT 时生成；固定 -1 会导致 save() 走 merge 抛 StaleObjectState
-      to::id fromValue null
-      to::userId fromValue 0L // Will be set after mapping
-      to::createdAt fromValue LocalDateTime.now()
-      to::updatedAt fromValue LocalDateTime.now()
-      // Convert Float to Double for nullable fields
-      to::longitude fromValue from.longitude?.toDouble()
-      to::latitude fromValue from.latitude?.toDouble()
-    }
-}
+fun AddressInput.toDomain(): AddressModel =
+  AddressModel(
+    // id 置空交由 @SnowflakeIdGenerator 在 INSERT 时生成;固定 -1 会导致 save() 走 merge 抛 StaleObjectState
+    id = null,
+    userId = 0L, // Will be set after mapping
+    receiverName = receiverName,
+    phone = phone,
+    province = province,
+    provinceCode = provinceCode,
+    city = city,
+    cityCode = cityCode,
+    district = district,
+    districtCode = districtCode,
+    detailAddress = detailAddress,
+    floor = floor,
+    // GraphQL Float → 领域 Double(WGS-84 经纬度)
+    longitude = longitude?.toDouble(),
+    latitude = latitude?.toDouble(),
+    isDefault = isDefault,
+    createdAt = LocalDateTime.now(),
+    updatedAt = LocalDateTime.now(),
+    deletedAt = null,
+    deletedBy = null,
+  )
 
 /**
- * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
+ * UpdateAddressInput → AddressModel(可空字段回落占位值)
  */
-object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
-  override fun map(from: UpdateAddressInput): AddressModel =
-    mapping {
-      to::id fromValue -1L
-      to::userId fromValue 0L // Will be set after mapping
-
-      to::province fromValue (from.province ?: "")
-      to::receiverName fromValue (from.receiverName ?: "")
-      to::phone fromValue (from.phone ?: "")
-      to::provinceCode fromValue (from.provinceCode ?: "")
-      to::city fromValue (from.city ?: "")
-      to::cityCode fromValue (from.cityCode ?: "")
-      to::district fromValue (from.district ?: "")
-      to::districtCode fromValue (from.districtCode ?: "")
-      to::detailAddress fromValue (from.detailAddress ?: "")
-      to::isDefault fromValue (from.isDefault ?: false)
-
-      to::createdAt fromValue LocalDateTime.now()
-      to::updatedAt fromValue LocalDateTime.now()
-      // Convert Float to Double for nullable fields
-      to::longitude fromValue from.longitude?.toDouble()
-      to::latitude fromValue from.latitude?.toDouble()
-    }
-}
+fun UpdateAddressInput.toDomain(): AddressModel =
+  AddressModel(
+    id = -1L,
+    userId = 0L, // Will be set after mapping
+    receiverName = receiverName ?: "",
+    phone = phone ?: "",
+    province = province ?: "",
+    provinceCode = provinceCode ?: "",
+    city = city ?: "",
+    cityCode = cityCode ?: "",
+    district = district ?: "",
+    districtCode = districtCode ?: "",
+    detailAddress = detailAddress ?: "",
+    floor = floor,
+    // GraphQL Float → 领域 Double(WGS-84 经纬度)
+    longitude = longitude?.toDouble(),
+    latitude = latitude?.toDouble(),
+    isDefault = isDefault ?: false,
+    createdAt = LocalDateTime.now(),
+    updatedAt = LocalDateTime.now(),
+    deletedAt = null,
+    deletedBy = null,
+  )
 
 fun AddressModel.merge(inputInput: UpdateAddressInput) {
   inputInput.receiverName?.let { this.receiverName = it }

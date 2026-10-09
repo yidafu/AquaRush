@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.mapper.AddressMapper
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,7 +46,7 @@ class ClientAddressQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun userAddresses(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<Address> = AddressMapper.mapList(addressService.findByUserId(userPrincipal.id))
+  ): List<Address> = addressService.findByUserId(userPrincipal.id).map { it.toGraphQL() }
 
   /**
    * 根据ID获取用户地址（只能查看自己的地址）
@@ -62,6 +62,6 @@ class ClientAddressQueryResolver(
     if (address != null && address.userId != userPrincipal.id) {
       throw IllegalArgumentException("无权访问此地址")
     }
-    return address?.let { AddressMapper.map(it) }
+    return address?.toGraphQL()
   }
 }

@@ -23,7 +23,7 @@ import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
-import dev.yidafu.aqua.user.mapper.AdminMapper
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -38,7 +38,7 @@ class AdminQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_READ')")
-  fun admins(): List<Admin> = adminRepository.findAllAdmins().map { AdminMapper.map(it) }
+  fun admins(): List<Admin> = adminRepository.findAllAdmins().map { it.toGraphQL() }
 
   /**
    * 获取所有地区数据，用于前端构建树形结构
