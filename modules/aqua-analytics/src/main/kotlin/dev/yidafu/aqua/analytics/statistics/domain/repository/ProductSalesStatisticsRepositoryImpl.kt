@@ -19,180 +19,183 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
-import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QOrderItemModel
-import dev.yidafu.aqua.common.domain.model.QOrderModel
-import dev.yidafu.aqua.common.domain.model.QProductModel
+import dev.yidafu.aqua.analytics.common.exposed.dateTrunc
+import dev.yidafu.aqua.analytics.common.exposed.longOf
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.OrderItemsTable
+import dev.yidafu.aqua.common.domain.table.OrdersTable
+import dev.yidafu.aqua.common.domain.table.ProductsTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.sum
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * 商品销量统计仓储实现(JPA→Exposed 迁移 P3)。
+ * 口径与原 QueryDSL 版一致:销量/营收聚合仅计 COMPLETED 订单明细(P2-7/P1-4),
+ * 商品统计全状态口径(OFFLINE/OUT_OF_STOCK 计入总数,R-PRO-02)。
+ * ResultRow 取值全部在事务闭包内(聚合表达式 hashCode 依赖事务上下文)。
+ */
 @Repository
-class ProductSalesStatisticsRepositoryImpl : ProductSalesStatisticsRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
-
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
-
-  private val orderItemModel = QOrderItemModel.orderItemModel
-  private val orderModel = QOrderModel.orderModel
-  private val productModel = QProductModel.productModel
-
+class ProductSalesStatisticsRepositoryImpl(
+  private val database: Database,
+) : ProductSalesStatisticsRepositoryCustom {
   override fun getProductDailySales(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,
     productId: Long?,
   ): List<ProductDailySalesResult> {
-    // CAST(... AS DATE) 按日分组(H2/PostgreSQL 兼容;Postgres 的 DATE(timestamp) 写法 H2 不支持)
-    val dateExpr = Expressions.dateTemplate(LocalDate::class.java, "CAST({0} AS DATE)", orderItemModel.createdAt)
+    // DATE_TRUNC('day') 按日分组(H2/PostgreSQL 兼容,语义同原 CAST(... AS DATE))
+    val dateExpr = dateTrunc("day", OrderItemsTable.createdAt)
+    val qtySum = OrderItemsTable.quantity.sum()
+    val revenueSum = OrderItemsTable.totalPriceCents.sum()
 
-    val whereClause =
-      com.querydsl.core
-        .BooleanBuilder()
-        .and(orderModel.status.eq(OrderModelStatus.COMPLETED))
-        .and(orderItemModel.createdAt.goe(startDateTime))
-        .and(orderItemModel.createdAt.loe(endDateTime))
-
-    if (productId != null) {
-      whereClause.and(orderItemModel.productId.eq(productId))
-    }
-
-    val results =
-      queryFactory
+    return transaction(database) {
+      OrderItemsTable
+        .join(OrdersTable, JoinType.INNER, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
+        .join(ProductsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.productId eq ProductsTable.id })
         .select(
           dateExpr,
-          orderItemModel.productId,
-          productModel.name.coalesce("未知商品"),
-          orderItemModel.quantity.sumLong(),
-          orderItemModel.totalPriceCents.sumLong(),
-        ).from(orderItemModel)
-        .join(orderModel)
-        .on(orderItemModel.orderId.eq(orderModel.id))
-        .leftJoin(productModel)
-        .on(orderItemModel.productId.eq(productModel.id))
-        .where(whereClause)
-        .groupBy(dateExpr, orderItemModel.productId, productModel.name)
-        .fetch()
-
-    return results.map { row ->
-      val dateValue = row.get(dateExpr)
-      ProductDailySalesResult(
-        date = dateValue?.toString() ?: "",
-        productId = row.get(orderItemModel.productId)!!,
-        productName = row.get(productModel.name.coalesce("未知商品"))!!,
-        salesVolume = row.get(orderItemModel.quantity.sumLong()) ?: 0L,
-        revenue = row.get(orderItemModel.totalPriceCents.sumLong()) ?: 0L,
-      )
+          OrderItemsTable.productId,
+          ProductsTable.name,
+          qtySum,
+          revenueSum,
+        ).where {
+          OrdersTable
+            .activeOnly {
+              (OrdersTable.status eq OrderModelStatus.COMPLETED.name) and
+                (OrderItemsTable.createdAt greaterEq startDateTime) and
+                (OrderItemsTable.createdAt lessEq endDateTime) and
+                (if (productId != null) OrderItemsTable.productId eq productId else org.jetbrains.exposed.v1.core.Op.TRUE)
+            }.and(OrderItemsTable.activeOnly())
+        }.groupBy(dateExpr, OrderItemsTable.productId, ProductsTable.name)
+        .toList()
+        .map { row ->
+          ProductDailySalesResult(
+            date = row[dateExpr]?.toLocalDate()?.toString() ?: "",
+            productId = row[OrderItemsTable.productId],
+            // 商品被软删时名称回退(与原 coalesce(name, '未知商品') 语义一致)
+            productName = row[ProductsTable.name] ?: "未知商品",
+            salesVolume = row.longOf(qtySum),
+            revenue = row.longOf(revenueSum),
+          )
+        }
     }
   }
 
-  override fun getAllProductIdsAndNames(): List<ProductInfo> {
-    val results =
-      queryFactory
-        .select(
-          productModel.id,
-          productModel.name,
-        ).from(productModel)
-        .fetch()
+  override fun getAllProductIdsAndNames(): List<ProductInfo> =
+    transaction(database) {
+      ProductsTable
+        .select(ProductsTable.id, ProductsTable.name)
+        .where { ProductsTable.activeOnly() }
+        .toList()
+        .map { row -> ProductInfo(productId = row[ProductsTable.id], productName = row[ProductsTable.name]) }
+    }
 
-    return results.map { row ->
-      ProductInfo(
-        productId = row.get(productModel.id)!!,
-        productName = row.get(productModel.name)!!,
-      )
+  override fun countProductsByStatus(): Map<ProductModelStatus, Long> {
+    val productCount = ProductsTable.id.count()
+    return transaction(database) {
+      ProductsTable
+        .select(ProductsTable.status, productCount)
+        .where { ProductsTable.activeOnly() }
+        .groupBy(ProductsTable.status)
+        .toList()
+        .associate { row -> ProductModelStatus.valueOf(row[ProductsTable.status]) to row[productCount] }
     }
   }
-
-  override fun countProductsByStatus(): Map<ProductModelStatus, Long> =
-    queryFactory
-      .select(productModel.status, productModel.count())
-      .from(productModel)
-      .groupBy(productModel.status)
-      .fetch()
-      .associate { row ->
-        row.get(productModel.status)!! to (row.get(productModel.count()) ?: 0L)
-      }
 
   override fun aggregateProductValue(): ProductStatisticsAggregate {
-    val countExpr = productModel.count()
-    val totalValueExpr = productModel.price.sumLong().coalesce(0L)
-    val totalSalesExpr = productModel.salesVolume.sumLong().coalesce(0L)
-    val row =
-      queryFactory
-        .select(countExpr, totalValueExpr, totalSalesExpr)
-        .from(productModel)
-        .fetchOne()
-    return ProductStatisticsAggregate(
-      totalProducts = row?.get(countExpr) ?: 0L,
-      totalValueCents = row?.get(totalValueExpr) ?: 0L,
-      totalSales = row?.get(totalSalesExpr) ?: 0L,
-    )
+    val productCount = ProductsTable.id.count()
+    val priceSum = ProductsTable.priceCents.sum()
+    val salesSum = ProductsTable.salesVolume.sum()
+    return transaction(database) {
+      val row =
+        ProductsTable
+          .select(productCount, priceSum, salesSum)
+          .where { ProductsTable.activeOnly() }
+          .first()
+      ProductStatisticsAggregate(
+        totalProducts = row[productCount],
+        totalValueCents = row.longOf(priceSum),
+        totalSales = row.longOf(salesSum),
+      )
+    }
   }
 
   override fun countLowStockProducts(threshold: Long): Long =
-    queryFactory
-      .select(productModel.count())
-      .from(productModel)
-      .where(productModel.stock.loe(threshold.toInt()))
-      .fetchOne() ?: 0L
+    transaction(database) {
+      ProductsTable
+        .select(ProductsTable.id)
+        .where { ProductsTable.activeOnly { ProductsTable.stockQuantity lessEq threshold.toInt() } }
+        .count()
+    }
 
   override fun findLowStockProducts(
     threshold: Long,
     limit: Int,
-  ): List<ProductStockInfo> {
-    val idExpr = productModel.id
-    val nameExpr = productModel.name
-    val specExpr = productModel.specification
-    val stockExpr = productModel.stock
-    return queryFactory
-      .select(idExpr, nameExpr, specExpr, stockExpr)
-      .from(productModel)
-      .where(stockExpr.loe(threshold.toInt()))
-      .orderBy(stockExpr.asc(), idExpr.asc())
-      .limit(limit.toLong())
-      .fetch()
-      .map { row ->
-        ProductStockInfo(
-          productId = row.get(idExpr)!!,
-          productName = row.get(nameExpr)!!,
-          specification = row.get(specExpr)!!,
-          stock = row.get(stockExpr)!!,
-        )
-      }
-  }
+  ): List<ProductStockInfo> =
+    transaction(database) {
+      ProductsTable
+        .select(
+          ProductsTable.id,
+          ProductsTable.name,
+          ProductsTable.specification,
+          ProductsTable.stockQuantity,
+        ).where { ProductsTable.activeOnly { ProductsTable.stockQuantity lessEq threshold.toInt() } }
+        .orderBy(ProductsTable.stockQuantity to SortOrder.ASC, ProductsTable.id to SortOrder.ASC)
+        .limit(limit)
+        .toList()
+        .map { row ->
+          ProductStockInfo(
+            productId = row[ProductsTable.id],
+            productName = row[ProductsTable.name],
+            specification = row[ProductsTable.specification],
+            stock = row[ProductsTable.stockQuantity],
+          )
+        }
+    }
 
   override fun getProductSalesRanking(limit: Int): List<ProductSalesRankingResult> {
     // 已完成订单项聚合:销量 = SUM(quantity)、营收 = SUM(total_price_cents),与「营收=已完成订单金额合计」口径同源(P2-7);
     // 商品当前上下架/售罄状态不影响历史已完成销量(P1-4 排行口径)。
-    val volumeExpr = orderItemModel.quantity.sumLong().coalesce(0L)
-    val revenueExpr = orderItemModel.totalPriceCents.sumLong().coalesce(0L)
-    val nameExpr = productModel.name.coalesce("未知商品")
-    return queryFactory
-      .select(orderItemModel.productId, nameExpr, volumeExpr, revenueExpr)
-      .from(orderItemModel)
-      .join(orderModel)
-      .on(orderItemModel.orderId.eq(orderModel.id))
-      .leftJoin(productModel)
-      .on(orderItemModel.productId.eq(productModel.id))
-      .where(orderModel.status.eq(OrderModelStatus.COMPLETED))
-      .groupBy(orderItemModel.productId, nameExpr)
-      .orderBy(volumeExpr.desc(), revenueExpr.desc())
-      .limit(limit.toLong())
-      .fetch()
-      .map { row ->
-        ProductSalesRankingResult(
-          productId = row.get(orderItemModel.productId)!!,
-          productName = row.get(nameExpr)!!,
-          salesVolume = row.get(volumeExpr)!!,
-          revenueCents = row.get(revenueExpr)!!,
-        )
-      }
+    val volumeExpr = OrderItemsTable.quantity.sum()
+    val revenueExpr = OrderItemsTable.totalPriceCents.sum()
+    return transaction(database) {
+      OrderItemsTable
+        .join(OrdersTable, JoinType.INNER, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
+        .join(ProductsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.productId eq ProductsTable.id })
+        .select(
+          OrderItemsTable.productId,
+          ProductsTable.name,
+          volumeExpr,
+          revenueExpr,
+        ).where {
+          OrdersTable
+            .activeOnly { OrdersTable.status eq OrderModelStatus.COMPLETED.name }
+            .and(OrderItemsTable.activeOnly())
+        }.groupBy(OrderItemsTable.productId, ProductsTable.name)
+        .orderBy(volumeExpr to SortOrder.DESC, revenueExpr to SortOrder.DESC)
+        .limit(limit)
+        .toList()
+        .map { row ->
+          ProductSalesRankingResult(
+            productId = row[OrderItemsTable.productId],
+            productName = row[ProductsTable.name] ?: "未知商品",
+            salesVolume = row.longOf(volumeExpr),
+            revenueCents = row.longOf(revenueExpr),
+          )
+        }
+    }
   }
 }

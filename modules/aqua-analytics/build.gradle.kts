@@ -1,7 +1,8 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
-  id("aqua.kotlin.querydsl")
+  // JPA→Exposed 迁移 P3:仓储全部改写为 Exposed DSL,摘除 QueryDSL/KSP
+  id("aqua.kotlin.exposed")
 }
 
 group = "dev.yidafu.aqua"
@@ -65,6 +66,7 @@ dependencies {
   // ========================================================
   // 测试依赖
   // ========================================================
+  testImplementation(libs.h2)
   testImplementation(libs.spring.boot.starter.test)
   testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
   testImplementation(libs.springmockk)

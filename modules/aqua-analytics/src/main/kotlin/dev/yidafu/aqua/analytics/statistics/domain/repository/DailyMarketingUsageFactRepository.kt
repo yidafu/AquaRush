@@ -20,16 +20,16 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 /**
- * 营销使用日事实仓储(第 3 层历史趋势指标中间表,F-STA-007)
- * 快照任务按日期 delete-then-insert;查询侧按日期范围 + kind 读取后组合明细。
+ * DailyMarketingUsageFactModel 仓储(JPA→Exposed 迁移 P3)。
+ * 原 Spring Data 派生方法收进接口,实现为 DailyMarketingUsageFactsTable 上的 Exposed DSL(ExposedMarketingUsageFactRepositoryImpl);
+ * 快照任务按日期 delete-then-insert,查询侧按日期范围读取后组合口径。
  */
-@Repository
-interface DailyMarketingUsageFactRepository : JpaRepository<DailyMarketingUsageFactModel, Long> {
+interface DailyMarketingUsageFactRepository {
+  fun count(): Long
+
   fun findByStatDateBetween(
     startDate: LocalDate,
     endDate: LocalDate,
@@ -37,5 +37,13 @@ interface DailyMarketingUsageFactRepository : JpaRepository<DailyMarketingUsageF
 
   fun deleteByStatDateIn(dates: Collection<LocalDate>): Long
 
+  fun saveAll(entities: List<DailyMarketingUsageFactModel>): List<DailyMarketingUsageFactModel>
+
+  fun save(entity: DailyMarketingUsageFactModel): DailyMarketingUsageFactModel
+
+  /** 最新快照日期(缺口自愈/回补起点判定)。 */
   fun findFirstByOrderByStatDateDesc(): DailyMarketingUsageFactModel?
+
+  /** 最早快照日期(一次性回补起点判定)。 */
+  fun findFirstByOrderByStatDateAsc(): DailyMarketingUsageFactModel?
 }

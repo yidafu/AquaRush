@@ -20,16 +20,16 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 /**
- * 订单日事实仓储(第 3 层历史趋势指标中间表)
- * 快照任务按日期 delete-then-insert;查询侧按日期范围读取后组合口径。
+ * DailyOrderFactModel 仓储(JPA→Exposed 迁移 P3)。
+ * 原 Spring Data 派生方法收进接口,实现为 DailyOrderFactsTable 上的 Exposed DSL(ExposedOrderFactRepositoryImpl);
+ * 快照任务按日期 delete-then-insert,查询侧按日期范围读取后组合口径。
  */
-@Repository
-interface DailyOrderFactRepository : JpaRepository<DailyOrderFactModel, Long> {
+interface DailyOrderFactRepository {
+  fun count(): Long
+
   fun findByStatDateBetween(
     startDate: LocalDate,
     endDate: LocalDate,
@@ -37,13 +37,13 @@ interface DailyOrderFactRepository : JpaRepository<DailyOrderFactModel, Long> {
 
   fun deleteByStatDateIn(dates: Collection<LocalDate>): Long
 
-  /**
-   * 最新快照日期(用于缺口自愈判定;四表按日同写,以订单事实表为准)
-   */
+  fun saveAll(entities: List<DailyOrderFactModel>): List<DailyOrderFactModel>
+
+  fun save(entity: DailyOrderFactModel): DailyOrderFactModel
+
+  /** 最新快照日期(缺口自愈/回补起点判定)。 */
   fun findFirstByOrderByStatDateDesc(): DailyOrderFactModel?
 
-  /**
-   * 最早快照日期(新营收事实表一次性回补起点判定)
-   */
+  /** 最早快照日期(一次性回补起点判定)。 */
   fun findFirstByOrderByStatDateAsc(): DailyOrderFactModel?
 }

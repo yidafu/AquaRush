@@ -20,36 +20,38 @@
 package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
- * 对账报表仓库接口
+ * 对账报表仓储(JPA→Exposed 迁移 P3)。语义同 [ReconciliationTaskRepository]。
  */
-@Repository
-interface ReconciliationReportRepository :
-  JpaRepository<ReconciliationReportModel, Long>,
-  ReconciliationReportRepositoryCustom {
-  /**
-   * 根据任务ID查找报表
-   */
+interface ReconciliationReportRepository {
   fun findByTaskId(taskId: String): List<ReconciliationReportModel>
 
-  /**
-   * 根据任务ID和报表类型查找报表
-   */
   fun findByTaskIdAndReportType(
     taskId: String,
     reportType: String,
   ): ReconciliationReportModel?
 
-  /**
-   * 根据报表类型查找报表
-   */
   fun findByReportType(reportType: String): List<ReconciliationReportModel>
 
-  /**
-   * 查找最新的报表
-   */
   fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReportModel?
+
+  fun findByGeneratedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationReportModel>
+
+  /** 清理 beforeDate 之前的报表:语义为软删(UPDATE is_deleted=true),返回受影响行数。 */
+  fun deleteReportsBefore(beforeDate: LocalDateTime): Int
+
+  fun countByTaskIdAndReportType(
+    taskId: String,
+    reportType: String,
+  ): Long
+
+  fun save(entity: ReconciliationReportModel): ReconciliationReportModel
+
+  /** 语义对齐 @SoftDelete 下的 JpaRepository.deleteAll:全表软删(UPDATE is_deleted=true)。 */
+  fun deleteAll(): Int
 }
