@@ -19,58 +19,26 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "addresses")
 open class AddressModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "user_id", nullable = false)
   var userId: Long,
-  @Column(name = "receiver_name", nullable = false)
   var receiverName: String,
-  @Column(name = "phone", nullable = false)
   var phone: String,
-  @Column(name = "province", nullable = false)
   var province: String,
-  @Column(name = "province_code")
   var provinceCode: String = "",
-  @Column(name = "city", nullable = false)
   var city: String,
-  @Column(name = "city_code")
   var cityCode: String = "",
-  @Column(name = "district", nullable = false)
   var district: String,
-  @Column(name = "district_code")
   var districtCode: String = "",
-  @Column(name = "detail_address", nullable = false, length = 500)
   var detailAddress: String,
-  @Column(name = "floor")
   var floor: Int? = null,
-  @Column(name = "longitude")
   var longitude: Double? = null,
-  @Column(name = "latitude")
   var latitude: Double? = null,
-  @Column(name = "is_default", nullable = false)
   var isDefault: Boolean = false,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
-) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+) : SoftDeletable

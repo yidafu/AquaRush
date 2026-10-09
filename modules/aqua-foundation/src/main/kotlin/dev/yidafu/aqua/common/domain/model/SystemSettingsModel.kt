@@ -19,10 +19,8 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
-import jakarta.persistence.*
 import java.time.LocalDateTime
 
 /**
@@ -30,45 +28,21 @@ import java.time.LocalDateTime
  * 与 PRD 11-system-settings.md §R-SYS-01 保持一致:平台级「键 + 值 + 类型 + 分组」参数,
  * 仅超级管理员可读写(SYSTEM_CONFIG_READ/WRITE),每次修改留审计日志,不追溯影响已生成业务数据。
  */
-@Entity
-@Table(name = "system_settings")
 data class SystemSettingsModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "setting_key", nullable = false, unique = true)
   val settingKey: String = "",
-  @Column(name = "setting_value")
   var settingValue: String? = null,
-  @Column(name = "setting_type", nullable = false, length = 20)
-  @Enumerated(EnumType.STRING)
   var settingType: SystemSettingType = SystemSettingType.STRING,
-  @Column(name = "setting_group", nullable = false, length = 50)
-  @Enumerated(EnumType.STRING)
   var settingGroup: SystemSettingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
-  @Column(name = "default_value")
   val defaultValue: String? = null,
-  @Column(name = "min_value", length = 64)
   val minValue: String? = null,
-  @Column(name = "max_value", length = 64)
   val maxValue: String? = null,
-  @Column(name = "options", length = 255)
   val options: String? = null,
-  @Column(name = "updated_by", length = 50)
   var updatedBy: String? = null,
-  @Column(name = "description")
   val description: String? = null,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)
 
 /**
  * 系统配置键常量

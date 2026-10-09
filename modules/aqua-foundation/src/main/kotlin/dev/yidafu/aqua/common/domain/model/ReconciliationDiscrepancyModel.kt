@@ -22,72 +22,39 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账差异实体
  */
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
-import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.SoftDelete
-import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "reconciliation_discrepancies")
 class ReconciliationDiscrepancyModel : SoftDeletable {
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null
 
-  @Column(name = "task_id", nullable = false)
   var taskId: String = ""
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "discrepancy_type", nullable = false)
   lateinit var discrepancyType: DiscrepancyType
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "source_system", nullable = false)
   lateinit var sourceSystem: SourceSystem
 
-  @Column(name = "record_id", nullable = false)
   var recordId: String = ""
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "record_details", columnDefinition = "jsonb")
   var recordDetails: Map<String, Any>? = null
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
   var status: DiscrepancyStatus = DiscrepancyStatus.UNRESOLVED // UNRESOLVED, RESOLVED
 
-  @Column(name = "resolution_notes")
   var resolutionNotes: String? = null
 
-  @Column(name = "resolved_by")
   var resolvedBy: String? = null
 
-  @Column(name = "resolved_at")
   var resolvedAt: LocalDateTime? = null
 
-  @Column(name = "created_at", nullable = false)
   var createdAt: LocalDateTime = LocalDateTime.now()
 
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now()
 
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null
-
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
 
   companion object {
     fun createMissingRecord(

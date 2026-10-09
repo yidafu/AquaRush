@@ -19,8 +19,6 @@
 
 package dev.yidafu.aqua.common.converter
 
-import jakarta.persistence.AttributeConverter
-import jakarta.persistence.Converter
 import tools.jackson.databind.ObjectMapper
 
 /**
@@ -29,21 +27,19 @@ import tools.jackson.databind.ObjectMapper
  * This converter is specifically designed for cases where the entity
  * field is a String that needs to be stored in a JSONB column.
  */
-@Converter(autoApply = false)
-class StringJsonConverter : AttributeConverter<String?, String?> {
-  override fun convertToDatabaseColumn(attribute: String?): String? = attribute
+class StringJsonConverter {
+  fun convertToDatabaseColumn(attribute: String?): String? = attribute
 
-  override fun convertToEntityAttribute(dbData: String?): String? = dbData
+  fun convertToEntityAttribute(dbData: String?): String? = dbData
 }
 
 /**
  * List<String> converter for JSON arrays stored in JSONB columns
  */
-@Converter(autoApply = false)
-class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
+class StringListJsonConverter {
   private val objectMapper = ObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: List<String>?): String? =
+  fun convertToDatabaseColumn(attribute: List<String>?): String? =
     try {
       if (attribute == null) {
         null
@@ -54,7 +50,7 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
       throw IllegalArgumentException("Error converting list to JSON string", e)
     }
 
-  override fun convertToEntityAttribute(dbData: String?): List<String>? =
+  fun convertToEntityAttribute(dbData: String?): List<String>? =
     try {
       if (dbData == null) {
         null
@@ -70,11 +66,10 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
 /**
  * Map<String, Any> converter for JSON objects stored in JSONB columns
  */
-@Converter(autoApply = false)
-class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
+class JsonMapConverter {
   private val objectMapper = ObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? =
+  fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? =
     try {
       if (attribute == null) {
         null
@@ -85,7 +80,7 @@ class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
       throw IllegalArgumentException("Error converting map to JSON string", e)
     }
 
-  override fun convertToEntityAttribute(dbData: String?): Map<String, Any>? =
+  fun convertToEntityAttribute(dbData: String?): Map<String, Any>? =
     try {
       if (dbData == null) {
         null

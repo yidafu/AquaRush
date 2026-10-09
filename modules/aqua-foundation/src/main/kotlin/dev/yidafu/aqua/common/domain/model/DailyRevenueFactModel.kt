@@ -19,13 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -38,29 +31,11 @@ import java.time.LocalDateTime
  * - order_count:当日进入「已完成」状态的订单数
  * - amount_cents:当日已完成订单金额合计(仅 COMPLETED 状态,金额按订单只计一次 P1-3)
  */
-@Entity
-@Table(
-  name = "daily_revenue_facts",
-  uniqueConstraints = [UniqueConstraint(columnNames = ["stat_date"])],
-)
 data class DailyRevenueFactModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "stat_date", nullable = false)
   var statDate: LocalDate = LocalDate.now(),
-  @Column(name = "order_count", nullable = false)
   var orderCount: Long = 0,
-  @Column(name = "amount_cents", nullable = false)
   var amountCents: Long = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)

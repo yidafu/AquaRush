@@ -19,12 +19,9 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.CouponScope
 import dev.yidafu.aqua.common.domain.model.enums.CouponType
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
 /**
@@ -33,66 +30,27 @@ import java.time.LocalDateTime
  * 状态机 RECEIVED → USED → RETURNED(订单取消/退款退回,未过期可复用)→ USED ... / EXPIRED;
  * 核销幂等:原子条件 UPDATE(status=RECEIVED 且未过期),防并发重复使用。
  */
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(
-  name = "user_coupons",
-  indexes = [
-    Index(name = "idx_user_coupons_user_status", columnList = "user_id,status"),
-    Index(name = "idx_user_coupons_used_order", columnList = "used_order_id"),
-  ],
-)
 open class UserCouponModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "user_id", nullable = false)
   val userId: Long = 0,
-  @Column(name = "coupon_template_id", nullable = false)
   val couponTemplateId: Long = 0,
-  @Column(name = "status", nullable = false, length = 30)
-  @Enumerated(EnumType.STRING)
   var status: UserCouponStatus = UserCouponStatus.RECEIVED,
   // ===== 模板参数快照 =====
-  @Column(name = "name", nullable = false, length = 100)
   var name: String = "",
-  @Column(name = "coupon_type", nullable = false, length = 30)
-  @Enumerated(EnumType.STRING)
   var couponType: CouponType = CouponType.CASH,
-  @Column(name = "threshold_cents")
   var thresholdCents: Long? = null,
-  @Column(name = "discount_amount_cents")
   var discountAmountCents: Long? = null,
-  @Column(name = "discount_rate_permille")
   var discountRatePermille: Long? = null,
-  @Column(name = "scope", nullable = false, length = 30)
-  @Enumerated(EnumType.STRING)
   var scope: CouponScope = CouponScope.ALL,
-  @Column(name = "product_id")
   var productId: Long? = null,
   // 过期时间(快照计算:固定区间=validTo;领取后N天=claimTime+validDays)
-  @Column(name = "expire_time", nullable = false)
   var expireTime: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "claim_time", nullable = false)
   val claimTime: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "used_order_id")
   var usedOrderId: Long? = null,
-  @Column(name = "used_at")
   var usedAt: LocalDateTime? = null,
-  @Column(name = "returned_at")
   var returnedAt: LocalDateTime? = null,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
-) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+) : SoftDeletable

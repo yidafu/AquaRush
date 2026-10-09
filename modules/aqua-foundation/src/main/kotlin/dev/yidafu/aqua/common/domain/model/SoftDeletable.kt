@@ -28,7 +28,7 @@ import java.time.LocalDateTime
  * - deletedAt: Timestamp when the entity was soft deleted (nullable)
  * - deletedBy: ID of the user who performed the soft deletion (nullable)
  *
- * Note: The isDeleted field is managed by Hibernate's @SoftDelete annotation
+ * Note: The isDeleted field is managed by Hibernate's  annotation
  * and should not be explicitly defined in entity classes.
  */
 interface SoftDeletable {

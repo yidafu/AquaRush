@@ -19,57 +19,25 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(
-  name = "delivery_worker_statistics",
-  uniqueConstraints = [
-    UniqueConstraint(name = "uk_delivery_worker_id", columnNames = ["delivery_worker_id"]),
-  ],
-)
 open class DeliveryWorkerStatisticsModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "delivery_worker_id", nullable = false, unique = true)
   val deliveryWorkerId: Long = -1L,
-  @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
   var averageRating: BigDecimal = BigDecimal.ZERO,
-  @Column(name = "total_reviews", nullable = false)
   var totalReviews: Int = 0,
-  @Column(name = "one_star_reviews", nullable = false)
   var oneStarReviews: Int = 0,
-  @Column(name = "two_star_reviews", nullable = false)
   var twoStarReviews: Int = 0,
-  @Column(name = "three_star_reviews", nullable = false)
   var threeStarReviews: Int = 0,
-  @Column(name = "four_star_reviews", nullable = false)
   var fourStarReviews: Int = 0,
-  @Column(name = "five_star_reviews", nullable = false)
   var fiveStarReviews: Int = 0,
-  @Column(name = "last_updated", nullable = false)
   var lastUpdated: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    lastUpdated = LocalDateTime.now()
-  }
-
   fun updateStatistics(newRating: Int) {
     totalReviews++
 

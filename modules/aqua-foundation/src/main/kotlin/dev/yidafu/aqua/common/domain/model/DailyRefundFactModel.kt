@@ -19,13 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,33 +29,13 @@ import java.time.LocalDateTime
  * - refund_amount_cents:退款金额合计
  * 高阶口径(仅 COMPLETED、排除 DEPOSIT_REFUND)在查询时组合(PRD F-STA-002 / R-PAY-02 G06)。
  */
-@Entity
-@Table(
-  name = "daily_refund_facts",
-  uniqueConstraints = [UniqueConstraint(columnNames = ["stat_date", "status", "refund_type"])],
-)
 data class DailyRefundFactModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "stat_date", nullable = false)
   var statDate: LocalDate = LocalDate.now(),
-  @Column(name = "status", nullable = false)
   var status: String = "",
-  @Column(name = "refund_type", nullable = false)
   var refundType: String = "",
-  @Column(name = "refund_count", nullable = false)
   var refundCount: Long = 0,
-  @Column(name = "refund_amount_cents", nullable = false)
   var refundAmountCents: Long = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)

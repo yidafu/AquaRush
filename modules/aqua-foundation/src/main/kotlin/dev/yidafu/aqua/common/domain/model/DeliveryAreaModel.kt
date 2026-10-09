@@ -19,37 +19,19 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "delivery_areas")
 open class DeliveryAreaModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "name", nullable = false)
   var name: String,
-  @Column(name = "province", nullable = false)
   var province: String,
-  @Column(name = "city", nullable = false)
   var city: String,
-  @Column(name = "district", nullable = false)
   var district: String,
-  // JPA→Exposed 迁移 P4:列名对齐 DDL/线上(is_enabled)——原 @Column(name="enabled")
+  // JPA→Exposed 迁移 P4:列名对齐 DDL/线上(is_enabled)——原
   // 与 changelog v1.0.0 的 is_enabled 漂移,集成测试 ddl-auto 会建错列名导致 Exposed 查询失败。
-  @Column(name = "is_enabled", nullable = false)
   var enabled: Boolean = true,
-  @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable

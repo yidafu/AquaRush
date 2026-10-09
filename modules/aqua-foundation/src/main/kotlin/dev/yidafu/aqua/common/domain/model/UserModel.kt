@@ -19,65 +19,34 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.util.MoneyUtils
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "users")
 open class UserModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "wechat_openid", unique = true, nullable = false)
   val wechatOpenId: String = "",
   // 对齐 DDL users.wechat_unionid(实体历史缺失,Hibernate 建表少列导致 Exposed 读炸)
   var wechatUnionid: String? = null,
-  @Column(name = "nickname")
   var nickname: String? = null,
-  @Column(name = "phone")
   var phone: String? = null,
-  @Column(name = "avatar_url")
   var avatarUrl: String? = null,
-  @Column(name = "email", nullable = false)
   var email: String = "",
   // 后台用户管理可编辑状态(F-USR-022;微信登录创建时为 ACTIVE)
-  @Column(name = "status", nullable = false)
-  @Enumerated(EnumType.STRING)
   var status: UserStatus = UserStatus.INACTIVE,
-  @Column(name = "role", nullable = false)
-  @Enumerated(EnumType.STRING)
   val role: UserRole = UserRole.NONE,
-  @Column(name = "balance_cents", nullable = false)
   val balanceCents: Long = 0L,
-  @Column(name = "total_spent_cents", nullable = false)
   val totalSpentCents: Long = 0L,
   // 所属客户分组(单分组,空=未分组;营销受众维度,PRD 10-marketing.md §F-MKT-001)
-  @Column(name = "customer_group_id")
   var customerGroupId: Long? = null,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "last_login_at", nullable = false)
   var lastLoginAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-
   // Backward compatibility property
   val balance: BigDecimal
     get() = MoneyUtils.fromCents(balanceCents)
