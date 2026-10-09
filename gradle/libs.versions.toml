@@ -29,6 +29,7 @@ ktlint = "12.1.0"
 mappie = "2.3.0-2.3.1"
 artemis = "2.31.2"
 kotest = "6.2.4"
+archunit = "1.5.1"
 
 [libraries]
 # Kotlin
@@ -152,6 +153,9 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-extensions-spring = { module = "io.kotest:kotest-extensions-spring", version.ref = "kotest" }
 kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testcontainers", version.ref = "kotest" }
+
+# ArchUnit（仅核心库；禁止 archunit-junit5 —— 根构建全局排除 org.junit.jupiter）
+archunit-core = { module = "com.tngtech.archunit:archunit", version.ref = "archunit" }
 
 # Retry and Resilience
 spring-retry = { module = "org.springframework.retry:spring-retry", version = "2.0.4" }

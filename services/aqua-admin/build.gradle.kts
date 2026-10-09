@@ -64,6 +64,7 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   // Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-graphql-test
   testImplementation("org.springframework.boot:spring-boot-starter-graphql-test:4.1.0-M4")
+  testImplementation(libs.archunit.core)
 }
 
 // ========================================================
@@ -82,6 +83,13 @@ tasks.withType<Test>().configureEach {
   // "FATAL: sorry, too many clients already" 连锁失败。测试并发极低,收紧连接池。
   environment("SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE", "1")
   environment("SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE", "5")
+  // ArchUnit D5 需要看 client 的 Resolver 类,但不能把 client 放上 classpath
+  // (组件扫描 dev.yidafu.aqua 会把 client Bean 扫进 admin 上下文 → jpaConfig 冲突)。
+  // 改为把 client 主类目录以 system property 传入,由 importer 以路径方式导入。
+  val clientMainClasses = project(":services:aqua-client").layout.buildDirectory.dir("classes/kotlin/main")
+  dependsOn(project(":services:aqua-client").tasks.named("classes"))
+  systemProperty("archunit.clientClassesDir", clientMainClasses.get().asFile.absolutePath)
+  inputs.dir(clientMainClasses).withPropertyName("archunitClientClasses")
 }
 
 kotlin {
