@@ -107,7 +107,7 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 // 统一排除项（均为无业务逻辑或生成代码，避免稀释真实数字）：
 //   - DTO 请求/响应体（dev.yidafu.aqua.api.dto）
 //   - GraphQL 生成代码（dev.yidafu.aqua.common.graphql.generated）
-//   - Mappie 映射类（*Mapper*，编译期生成实现）
+//   - Mapper 映射类（*Mapper*，纯字段转换无业务逻辑）
 //   - 异常工厂（*Exception / *Exceptions）
 //   - 启动类（*Application）
 //   - @Configuration 配置类

@@ -190,7 +190,15 @@ class AdminOrderMutationResolverTest :
             ),
         )
       every { adminService.findByUsername("admin") } returns createSampleAdmin()
-      every { orderMutationService.createDeliveryOrder(1L, any()) } returns orderModel
+      every { orderMutationService.createDeliveryOrder(1L, any()) } answers {
+        val req = secondArg<dev.yidafu.aqua.api.dto.CreateOrderRequest>()
+        req.items.size shouldBe 2
+        req.items[0].productId shouldBe 20L
+        req.items[0].quantity shouldBe 2
+        req.items[1].productId shouldBe 30L
+        req.items[1].quantity shouldBe 1
+        orderModel
+      }
       every { orderQueryService.getOrderById(1L) } returns orderModel
 
       // When

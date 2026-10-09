@@ -24,9 +24,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
 import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.product.mapper.CreateProductOptionInputMapper
-import dev.yidafu.aqua.product.mapper.ProductOptionMapper
-import dev.yidafu.aqua.product.mapper.UpdateProductOptionInputMapper
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -56,9 +54,9 @@ class AdminProductOptionMutationResolver(
       productOptionMutationService.createOption(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateProductOptionInputMapper.map(input),
+        input = input,
       )
-    return ProductOptionMapper.map(option)
+    return option.toGraphQL()
   }
 
   @MutationMapping
@@ -74,9 +72,9 @@ class AdminProductOptionMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateProductOptionInputMapper.map(input),
+        input = input,
       )
-    return ProductOptionMapper.map(option)
+    return option.toGraphQL()
   }
 
   @MutationMapping

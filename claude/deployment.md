@@ -24,7 +24,7 @@ The build enforces per-module line-coverage gates via **Kover** (configured in r
 | C | ≥ 55% | `aqua-admin`, `aqua-client` | Thin GraphQL resolvers; covered mainly by integration tests |
 | Total | ≥ 60% | whole codebase (merged) | Aggregate gate |
 
-The following are **excluded** from measurement (no business logic or generated code): `dev.yidafu.aqua.api.dto` DTOs, `dev.yidafu.aqua.common.graphql.generated` codegen, `*Mapper*` (Mappie), `*Exception`/`*Exceptions`, `*Application` entry classes, and `@Configuration` classes.
+The following are **excluded** from measurement (no business logic or generated code — `*Mapper*` conversions are handwritten, not generated): `dev.yidafu.aqua.api.dto` DTOs, `dev.yidafu.aqua.common.graphql.generated` codegen, `*Mapper*` conversion functions in `*Mapper*.kt` (mechanical translation, covered by integration tests), `*Exception`/`*Exceptions`, `*Application` entry classes, and `@Configuration` classes.
 
 **Commands**: `./gradlew koverVerify` (whole build), `./gradlew :modules:aqua-trade:koverVerify` (one module), `./gradlew koverHtmlReport` (per-module HTML reports under each `build/reports/kover/`), `./gradlew :modules:aqua-trade:koverHtmlReport`.
 
@@ -38,7 +38,7 @@ The following are **excluded** from measurement (no business logic or generated 
 2. **Tier 2 — business orchestration** (all `*MutationServiceImpl` / `*QueryServiceImpl` not yet covered in `aqua-marketing`, `aqua-product`, `aqua-user`, `aqua-platform`, `aqua-analytics`)
 3. **Tier 3 — cheap & valuable**: utils (`JsonHelper`, `SearchContentBuilder`, `PaginationUtils`), domain-model methods with real logic (money fields, status transitions), repository custom impls (H2 integration, see `SoftDeleteRepositoryTest` / `MonetaryFieldsIntegrationTest`)
 
-**No unit tests needed** for: DTOs, Mappie mappers (compile-time safe), GraphQL resolvers/controllers (integration-tested), `@Configuration`/exception classes.
+**No unit tests needed** for: DTOs, conversion functions in `*Mapper*.kt` (mechanical translation, excluded from coverage by class name and covered by integration tests — do not write conversion unit tests), GraphQL resolvers/controllers (integration-tested), `@Configuration`/exception classes.
 
 ## Production Deployment
 

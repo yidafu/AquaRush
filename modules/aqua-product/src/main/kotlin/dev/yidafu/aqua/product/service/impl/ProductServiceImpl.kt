@@ -11,7 +11,7 @@ import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import dev.yidafu.aqua.product.mapper.ProductStatusMapper
+import dev.yidafu.aqua.product.mapper.toDomain
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -42,7 +42,7 @@ class ProductServiceImpl(
         mineralContent = request.mineralContent,
         stock = request.stock,
         salesVolume = request.salesVolume,
-        status = ProductStatusMapper.map(request.status),
+        status = request.status.toDomain(),
         sortOrder = request.sortOrder,
         tags = request.tags,
         detailContent = request.detailContent,
@@ -107,7 +107,7 @@ class ProductServiceImpl(
     tags?.let { product.tags = it }
     detailContent?.let { product.detailContent = it }
     certificateImages?.let { product.certificateImages = it }
-    status?.let { product.status = ProductStatusMapper.map(it) }
+    status?.let { product.status = it.toDomain() }
     val saved = productRepository.save(product)
 
     // 业务日志(F-LOG-003 PRODUCT 域):产品更新
@@ -133,7 +133,7 @@ class ProductServiceImpl(
         .findById(productId)
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
     val before = product.status
-    product.status = ProductStatusMapper.map(status)
+    product.status = status.toDomain()
     val saved = productRepository.save(product)
 
     // 业务日志(F-LOG-003 PRODUCT 域):产品状态变更

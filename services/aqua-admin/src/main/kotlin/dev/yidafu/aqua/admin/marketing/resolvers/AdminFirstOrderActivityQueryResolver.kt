@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
-import dev.yidafu.aqua.marketing.firstorder.mapper.FirstOrderActivityMapper
+import dev.yidafu.aqua.marketing.firstorder.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -80,8 +80,7 @@ class AdminFirstOrderActivityQueryResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return FirstOrderActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       productName = model.productId?.let { productQueryApiService.findById(it)?.name },
     )

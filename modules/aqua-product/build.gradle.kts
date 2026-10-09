@@ -1,6 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   // JPA→Exposed 迁移 P4:仓储全部改写为 Exposed DSL,摘除 QueryDSL/KSP
   id("aqua.kotlin.exposed")
 }
@@ -23,9 +22,6 @@ dependencies {
   // Apache POI for Excel export functionality
   implementation("org.apache.poi:poi:5.2.5")
   implementation("org.apache.poi:poi-ooxml:5.2.5")
-
-  // Mappie
-  implementation(libs.mappie.api)
 
   // 仓储实现 H2 实现级测试(aqua.kotlin.exposed 不带 test 依赖)
   testImplementation(libs.h2)

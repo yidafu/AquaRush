@@ -19,9 +19,7 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
-import dev.yidafu.aqua.analytics.reconciliation.mapper.ReconciliationDiscrepancyModelMapper
-import dev.yidafu.aqua.analytics.reconciliation.mapper.ReconciliationReportModelMapper
-import dev.yidafu.aqua.analytics.reconciliation.mapper.ReconciliationTaskModelMapper
+import dev.yidafu.aqua.analytics.reconciliation.mapper.toGraphQL
 import dev.yidafu.aqua.api.service.reconciliation.ReconciliationService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
@@ -102,7 +100,7 @@ class AdminReconciliationQueryResolver(
         pageable = pageable,
       )
     return ReconciliationTaskPage(
-      content = result.content.map { ReconciliationTaskModelMapper.map(it) },
+      content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,
       size = result.size,
@@ -127,7 +125,7 @@ class AdminReconciliationQueryResolver(
     }
     return reconciliationService
       .getReconciliationTask(taskId)
-      ?.let { ReconciliationTaskModelMapper.map(it) }
+      ?.toGraphQL()
   }
 
   /**
@@ -166,7 +164,7 @@ class AdminReconciliationQueryResolver(
         pageable = pageable,
       )
     return ReconciliationDiscrepancyPage(
-      content = result.content.map { ReconciliationDiscrepancyModelMapper.map(it) },
+      content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,
       size = result.size,
@@ -192,7 +190,7 @@ class AdminReconciliationQueryResolver(
     }
     return reconciliationService
       .getReports(taskId, reportType)
-      .map { ReconciliationReportModelMapper.map(it) }
+      .map { it.toGraphQL() }
   }
 
   private fun parseDate(

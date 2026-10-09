@@ -19,18 +19,19 @@
 
 package dev.yidafu.aqua.ops.banner.service.impl
 
-import dev.yidafu.aqua.api.dto.BannerCreateRequest
-import dev.yidafu.aqua.api.dto.BannerUpdateRequest
 import dev.yidafu.aqua.api.dto.ReorderDirection
 import dev.yidafu.aqua.api.service.ops.BannerMutationService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
+import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.banner.domain.exception.BannerNotFoundException
 import dev.yidafu.aqua.ops.banner.domain.exception.DuplicateSortOrderException
 import dev.yidafu.aqua.ops.banner.domain.exception.InvalidTimeWindowException
 import dev.yidafu.aqua.ops.banner.domain.repository.BannerRepository
+import dev.yidafu.aqua.ops.banner.mapper.toDomain
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -49,24 +50,25 @@ class BannerMutationServiceImpl(
   override fun createBanner(
     adminId: Long,
     adminName: String,
-    request: BannerCreateRequest,
+    input: CreateBannerInput,
   ): BannerModel {
-    validateTimeWindow(request.startAt, request.endAt)
-    validateLinkTarget(request.linkType, request.linkTarget)
-    val sortOrder = request.sortOrder ?: (bannerRepository.findMaxSortOrder() ?: 0).plus(1)
+    val newLinkType = input.linkType.toDomain()
+    validateTimeWindow(input.startAt, input.endAt)
+    validateLinkTarget(newLinkType, input.linkTarget)
+    val sortOrder = input.sortOrder ?: (bannerRepository.findMaxSortOrder() ?: 0).plus(1)
     validateSortOrderUnique(sortOrder, excludeId = null)
 
     val banner =
       BannerModel(
-        imageUrl = request.imageUrl,
-        title = request.title,
-        subtitle = request.subtitle,
-        linkType = request.linkType,
-        linkTarget = request.linkTarget,
+        imageUrl = input.imageUrl,
+        title = input.title,
+        subtitle = input.subtitle,
+        linkType = newLinkType,
+        linkTarget = input.linkTarget,
         sortOrder = sortOrder,
-        enabled = request.enabled,
-        startAt = request.startAt,
-        endAt = request.endAt,
+        enabled = input.enabled ?: false,
+        startAt = input.startAt,
+        endAt = input.endAt,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
@@ -87,25 +89,26 @@ class BannerMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: BannerUpdateRequest,
+    input: UpdateBannerInput,
   ): BannerModel {
+    val newLinkType = input.linkType.toDomain()
     val existing = bannerRepository.findById(id).orElseThrow { BannerNotFoundException(id) }
-    validateTimeWindow(request.startAt, request.endAt)
-    validateLinkTarget(request.linkType, request.linkTarget)
-    val sortOrder = request.sortOrder ?: existing.sortOrder
+    validateTimeWindow(input.startAt, input.endAt)
+    validateLinkTarget(newLinkType, input.linkTarget)
+    val sortOrder = input.sortOrder ?: existing.sortOrder
     validateSortOrderUnique(sortOrder, excludeId = id)
 
     val before = bannerSnapshot(existing)
     existing.apply {
-      imageUrl = request.imageUrl
-      title = request.title
-      subtitle = request.subtitle
-      linkType = request.linkType
-      linkTarget = request.linkTarget
+      imageUrl = input.imageUrl
+      title = input.title
+      subtitle = input.subtitle
+      linkType = newLinkType
+      linkTarget = input.linkTarget
       this.sortOrder = sortOrder
-      enabled = request.enabled
-      startAt = request.startAt
-      endAt = request.endAt
+      enabled = input.enabled ?: false
+      startAt = input.startAt
+      endAt = input.endAt
     }
     val saved = bannerRepository.save(existing)
     opsConfigAuditService.record(

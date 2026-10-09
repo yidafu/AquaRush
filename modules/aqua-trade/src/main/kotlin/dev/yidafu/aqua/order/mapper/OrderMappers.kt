@@ -30,7 +30,6 @@ import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DailyStat
@@ -42,15 +41,10 @@ import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
-import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-import dev.yidafu.aqua.order.dto.OrderDTO
-import dev.yidafu.aqua.order.dto.UpdateOrderStatusDTO
-import dev.yidafu.aqua.user.mapper.AddressMapper
-import dev.yidafu.aqua.user.mapper.UserMapper
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.time.LocalDateTime
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DomainDeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus as DeliveryPhotoReviewStatusG
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot as DeliveryTimeSlotG
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
@@ -58,292 +52,195 @@ import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
 
 // ============================================================================
-// OrderModel ↔ OrderDTO Mappers
+// 枚举同名 valueOf 互转(领域 ↔ GraphQL)
 // ============================================================================
 
 /**
- * Enum mapper for converting domain PaymentType to GraphQL PaymentType
+ * 领域订单状态 → GraphQL OrderStatus(同名 valueOf 互转)
  */
-object PaymentTypeMapper : EnumMappie<PaymentType, PaymentTypeG>()
+fun OrderModelStatus.toGraphQL(): OrderStatusG = OrderStatusG.valueOf(name)
 
 /**
- * Enum mapper for converting domain PriceSource to GraphQL PriceSource(R-MKT-01 成交单价来源)
+ * GraphQL OrderStatus → 领域订单状态(列表筛选入参,原 OrderStatusMapper)
  */
-object PriceSourceMapper : EnumMappie<PriceSource, PriceSourceG>()
+fun OrderStatusG.toDomain(): OrderModelStatus = OrderModelStatus.valueOf(name)
 
 /**
- * Mapper for converting OrderModel to OrderDTO
+ * 领域收款方式 → GraphQL PaymentType(R-MKT 收款方式快照)
  */
-object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
-  override fun map(from: OrderModel) =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      // Fields with same name and type - auto-mapped by Mappie
-      to::amount fromProperty from::amountCents
-      to::deliveryPhotos fromExpression {
-        from.deliveryPhotos?.let { photos ->
-          try {
-            jacksonObjectMapper().readValue(photos, Array<String>::class.java).toList()
-          } catch (e: Exception) {
-            emptyList()
-          }
-        }
-      }
-      to::totalAmount fromProperty from::amountCents
-      // Nested objects are set to null and should be populated by the service layer
-      to::user fromValue null
-      to::address fromValue null
-      to::deliveryWorker fromValue null
-    }
-}
-
-/**
- * Mapper for applying UpdateOrderStatusDTO to OrderModel
- */
-object UpdateOrderStatusMapper : ObjectMappie<UpdateOrderStatusDTO, OrderModel>() {
-  override fun map(from: UpdateOrderStatusDTO) =
-    mapping {
-      to::id fromValue -1L // This needs to be set by the calling code
-      to::orderNo fromValue "" // This needs to be set by the calling code
-      to::userId fromValue -1L // This needs to be set by the calling code
-      to::amountCents fromValue 0L // This needs to be set by the calling code
-      to::addressId fromValue -1L // This needs to be set by the calling code
-      to::status fromExpression { from.status }
-      to::deliveryPhotos fromExpression {
-        from.deliveryPhotos?.let { photos ->
-          jacksonObjectMapper().writeValueAsString(photos)
-        }
-      }
-      to::createdAt fromValue LocalDateTime.now()
-      to::updatedAt fromValue LocalDateTime.now()
-      to::deliveryStartedAt fromValue null
-      to::deliveryConfirmedAt fromValue null
-      to::isSelfCollect fromValue false
-      to::paymentType fromValue null
-    }
-}
+fun PaymentType.toGraphQL(): PaymentTypeG = PaymentTypeG.valueOf(name)
 
 // ============================================================================
-// OrderDTO ↔ GraphQL Order Mappers
+// OrderModel → GraphQL Order
 // ============================================================================
 
 /**
- * Mapper for converting OrderDTO to GraphQL Order type
+ * OrderModel → GraphQL Order 直映(权威链路,原 OrderMapper)。
+ *
+ * - [items] 商品明细(F-ORD-004)由调用方经 OrderItemRepository 填充(见 [OrderItemModel.toOrderItemVo]);
+ * - giftItems 由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单);
+ * - 配送备注 deliveryRemark 为完成配送时配送员填写,随 completeDelivery 落库(R-ORD-07)。
  */
-object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
-  override fun map(from: OrderDTO) =
-    mapping {
-      // Note: GraphQL Order requires non-null nested objects (address, product, user)
-      // This mapper should only be used when nested objects are properly populated
-      to::amountCents fromProperty from::amount
-      to::deliveryPhotos fromExpression { from.deliveryPhotos }
-      // DTO 链路不承载配送备注(权威值由 OrderModel 直映 OrderMapper 提供 —— R-ORD-07)
-      to::deliveryRemark fromValue null
-      to::paymentMethod fromExpression { from.paymentMethod?.name }
-      to::status fromExpression { OrderStatusG.valueOf(from.status.name) }
-      // These are required by GraphQL Order constructor - use requireNotNull
-      to::address fromExpression { requireNotNull(from.address) { "address must not be null" } }
-      to::user fromExpression { requireNotNull(from.user) { "user must not be null" } }
-      // 商品明细(F-ORD-004)由 OrderMapper 直映 OrderModel 提供,DTO 链路不承载
-      to::items fromValue emptyList()
-      // DTO 链路不承载配送时段(AC-ORD-001-05,由 OrderModel 直映提供)
-      to::deliveryTimeSlot fromValue null
-      // DTO 无首单立减/赠品快照(由 OrderModel 直映或字段级 Resolver 提供 —— R-MKT-09/10)
-      to::firstOrderDiscountCents fromValue 0L
-      to::giftItems fromValue null
-      to::promotionDiscountCents fromValue 0L
-      to::couponDiscountCents fromValue 0L
-      // 营销快照/核验/押金字段:DTO 链路不承载,统一兜底默认值(权威值由 OrderModel 直映提供)
-      to::couponName fromValue null
-      to::promotionActivityName fromValue null
-      to::firstOrderActivityName fromValue null
-      to::ticketDiscountCents fromValue 0L
-      to::ticketRedeemCount fromValue 0
-      to::depositCents fromValue 0L
-      to::deliveryPhotoReviewStatus fromValue null
-      to::deliveryPhotoReviewedAt fromValue null
-      to::deliveryPhotoReviewedBy fromValue null
-      to::deliveryPhotoReviewRemark fromValue null
-    }
-}
+fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): Order =
+  Order(
+    id = id ?: 0L,
+    orderNo = orderNo,
+    amountCents = amountCents,
+    // 配送费(下单时按配送费规则快照 —— R-MON-02)
+    deliveryFeeCents = deliveryFeeCents,
+    // 应付合计(分)= 商品金额 + 配送费 + 桶押金(计算属性直取)
+    payAmountCents = payAmountCents,
+    // 领域枚举 → GraphQL 枚举同名互转
+    status = status.toGraphQL(),
+    paymentMethod = paymentMethod?.name,
+    paymentTransactionId = paymentTransactionId,
+    paymentTime = paymentTime,
+    isSelfCollect = isSelfCollect,
+    paymentType = paymentType?.toGraphQL(),
+    deliveryStartedAt = deliveryStartedAt,
+    deliveryConfirmedAt = deliveryConfirmedAt,
+    completedAt = completedAt,
+    remark = remark,
+    // 配送备注(完成配送时配送员填写,随 completeDelivery 落库 —— R-ORD-07)
+    deliveryRemark = deliveryRemark,
+    // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转;null=未指定)
+    deliveryTimeSlot = deliveryTimeSlot?.let { DeliveryTimeSlotG.valueOf(it.name) },
+    // deliveryPhotos 为 JSON 字符串,GraphQL 为 List<String>;解析失败兜底空列表
+    deliveryPhotos =
+      deliveryPhotos?.let { photos ->
+        runCatching {
+          jacksonObjectMapper().readValue(photos, Array<String>::class.java).toList()
+        }.getOrElse { emptyList() }
+      },
+    // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转)
+    deliveryPhotoReviewStatus = deliveryPhotoReviewStatus?.let { DeliveryPhotoReviewStatusG.valueOf(it.name) },
+    deliveryPhotoReviewedAt = deliveryPhotoReviewedAt,
+    deliveryPhotoReviewedBy = deliveryPhotoReviewedBy,
+    deliveryPhotoReviewRemark = deliveryPhotoReviewRemark,
+    // 营销计价快照(R-MKT-01/02/07/08/10:订单快照直映,配置变更不影响已生成订单)
+    promotionDiscountCents = promotionDiscountCents,
+    couponDiscountCents = couponDiscountCents,
+    couponName = couponName,
+    promotionActivityName = promotionActivityName,
+    firstOrderDiscountCents = firstOrderDiscountCents,
+    firstOrderActivityName = firstOrderActivityName,
+    ticketRedeemCount = ticketRedeemCount,
+    ticketDiscountCents = ticketDiscountCents,
+    // 桶押金快照(R-MON-03/G06)
+    depositCents = depositCents,
+    // 商品明细(F-ORD-004)由调用方注入
+    items = items,
+    // 赠品行由字段级 Resolver 提供(R-MKT-09,配置变更不影响已生成订单)
+    giftItems = null,
+    address = address?.toGraphQL(),
+    user = user?.toGraphQL(),
+    deliveryWorker = deliveryWorker?.toDeliveryWorker(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
- * Mapper for converting GraphQL Order type to OrderDTO
- */
-object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
-  override fun map(from: Order) =
-    mapping {
-      to::userId fromExpression { from.user?.id ?: 0L }
-      to::user fromValue from.user
-      to::amount fromProperty from::amountCents
-      to::addressId fromExpression { from.address?.id ?: 0L }
-      to::address fromValue from.address
-      to::status fromExpression {
-        GenerateOrderStatusMapper.map(from.status)
-      }
-      to::paymentMethod fromExpression {
-        when (from.paymentMethod) {
-          "WECHAT_PAY" -> dev.yidafu.aqua.common.domain.model.PaymentMethod.WECHAT_PAY
-          else -> null
-        }
-      }
-      to::deliveryWorkerId fromExpression { from.deliveryWorker?.id }
-      to::deliveryWorker fromValue from.deliveryWorker
-      to::deliveryPhotos fromExpression { from.deliveryPhotos?.toList() }
-      to::totalAmount fromProperty from::amountCents
-    }
-}
-
-// ============================================================================
-// OrderModel → GraphQL Order Direct Mapper (with placeholders)
-// ============================================================================
-object OrderModelStatusMapper : EnumMappie<OrderModelStatus, OrderStatusG>()
-
-object OrderStatusMapper : EnumMappie<OrderStatusG, OrderModelStatus>()
-
-object GenerateOrderStatusMapper : EnumMappie<OrderStatusG, OrderModelStatus>()
-
-/**
- * Simple OrderMapper that converts OrderModel to GraphQL Order
- * Note: This mapper creates placeholder objects for required nested fields
- * In a complete implementation, these should be loaded from their respective services
- */
-object OrderMapper : ObjectMappie<OrderModel, Order>() {
-  override fun map(from: OrderModel) =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      // Create placeholder objects for required nested fields
-      // In a real implementation, these should be loaded from their respective services
-      to::amountCents fromProperty from::amountCents
-      // 配送备注(完成配送时配送员填写,随 completeDelivery 落库 —— R-ORD-07)
-      to::deliveryRemark fromProperty from::deliveryRemark
-      to::deliveryPhotos fromExpression {
-        from.deliveryPhotos?.let { photos ->
-          try {
-            jacksonObjectMapper().readValue(photos, Array<String>::class.java).toList()
-          } catch (e: Exception) {
-            emptyList()
-          }
-        }
-      }
-      to::paymentMethod fromExpression { from.paymentMethod?.name }
-      to::status fromExpression {
-        OrderModelStatusMapper.map(from.status)
-      }
-      // Create placeholder objects for required nested fields
-      to::address fromExpression { from.address?.let { AddressMapper.map(it) } }
-
-      to::deliveryWorker fromExpression { from.deliveryWorker?.let { DeliveryWorkerMapper.map(it) } }
-      to::user fromExpression {
-        from.user?.let { UserMapper.map(it) }
-      }
-      to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
-      // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转;null=未指定)
-      to::deliveryTimeSlot fromExpression { from.deliveryTimeSlot?.let { DeliveryTimeSlotG.valueOf(it.name) } }
-      // 商品明细(F-ORD-004)由调用方经 OrderItemRepository 填充(见 OrderItemModel.toOrderItemVo)
-      to::items fromValue emptyList()
-      // 赠品行由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单)
-      to::giftItems fromValue null
-      // 营销快照(R-MKT-01/02/07/08/10:订单快照直映,配置变更不影响已生成订单)
-      to::couponName fromProperty from::couponName
-      to::promotionActivityName fromProperty from::promotionActivityName
-      to::firstOrderActivityName fromProperty from::firstOrderActivityName
-      to::ticketRedeemCount fromProperty from::ticketRedeemCount
-      to::ticketDiscountCents fromProperty from::ticketDiscountCents
-      // 桶押金快照(R-MON-03/G06)
-      to::depositCents fromProperty from::depositCents
-      // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转)
-      to::deliveryPhotoReviewStatus fromExpression {
-        from.deliveryPhotoReviewStatus?.let { DeliveryPhotoReviewStatusG.valueOf(it.name) }
-      }
-      to::deliveryPhotoReviewedAt fromProperty from::deliveryPhotoReviewedAt
-      to::deliveryPhotoReviewedBy fromProperty from::deliveryPhotoReviewedBy
-      to::deliveryPhotoReviewRemark fromProperty from::deliveryPhotoReviewRemark
-    }
-}
-
-/**
- * Mapper for converting DeliveryAddressModel domain entity to GraphQL DeliveryAddress type
- */
-object DeliveryAddressMapper : ObjectMappie<DeliveryAddressModel, DeliveryAddress>() {
-  override fun map(from: DeliveryAddressModel) =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::latitude fromValue from.latitude?.toFloat()
-      to::longitude fromValue from.longitude?.toFloat()
-      // Most fields map automatically by name
-      // Note: Mappie automatically handles Double to Float conversion for nullable fields
-    }
-}
-
-object CreateDeliveryOrderInputMapper : ObjectMappie<CreateDeliveryOrderInput, CreateOrderRequest>() {
-  override fun map(from: CreateDeliveryOrderInput): CreateOrderRequest =
-    mapping {
-      to::userId fromValue 0L
-      to::isSelfCollect fromProperty from::isSelfCollect
-      // 代客下单(F-ORD-012)多商品:items 直传(F-ORD-004 多商品唯一口径;单商品=单元素)
-      to::items fromExpression {
-        from.items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) }
-      }
-    }
-}
-
-/**
- * 送水端订单页地址信息修改输入映射(F-ORD-024)
+ * DeliveryAddressModel → GraphQL DeliveryAddress(原 DeliveryAddressMapper)。
  * GraphQL 经纬度为 Float,领域模型/存储统一 Double(WGS-84)。
  */
-object UpdateOrderAddressInputMapper : ObjectMappie<UpdateOrderAddressInput, UpdateOrderAddressRequest>() {
-  override fun map(from: UpdateOrderAddressInput): UpdateOrderAddressRequest =
-    mapping {
-      to::receiverName fromProperty from::receiverName
-      to::phone fromProperty from::phone
-      to::detailAddress fromProperty from::detailAddress
-      to::floor fromProperty from::floor
-      to::longitude fromValue from.longitude?.toDouble()
-      to::latitude fromValue from.latitude?.toDouble()
-    }
-}
+fun DeliveryAddressModel.toGraphQL(): DeliveryAddress =
+  DeliveryAddress(
+    id = id ?: 0L,
+    userId = userId,
+    receiverName = receiverName,
+    receiverPhone = receiverPhone,
+    province = province,
+    city = city,
+    district = district,
+    detailAddress = detailAddress,
+    longitude = longitude?.toFloat(),
+    latitude = latitude?.toFloat(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
-object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderRequest>() {
-  override fun map(from: CreateOrderInput): CreateOrderRequest =
-    mapping {
-      to::userId fromValue 0L
-      // 商品明细(F-ORD-004 多商品下单;单商品=单元素)
-      to::items fromExpression {
-        from.items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) }
-      }
-      // 服务端下单幂等键(R-ORD-06)
-      to::clientRequestId fromProperty from::clientRequestId
-      // 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE;GraphQL 枚举 → 领域枚举同名互转)
-      to::deliveryTimeSlot fromExpression {
-        from.deliveryTime?.let {
-          dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
-            .valueOf(it.name)
-        }
-      }
-      // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
-      to::preferredCouponId fromProperty from::preferredCouponId
-      // 水票核销张数(一票抵一桶 R-MKT-08)
-      to::ticketRedeemCount fromValue (from.ticketRedeemCount ?: 0)
-    }
-}
+// ============================================================================
+// GraphQL Input → Request(保留中间 DTO 场景)
+// ============================================================================
 
-object TodayStatisticsMapper : ObjectMappie<TodayStatisticsDTO, TodayStatistics>()
+/**
+ * 用户下单输入 → CreateOrderRequest(原 CreateOrderInputMapper)。
+ *
+ * - userId 占位 0,resolver 以登录 principal 复制注入(防越权);
+ * - deliveryTime → deliveryTimeSlot 改名 + 领域枚举同名互转(AC-ORD-001-05,缺省=立即配送);
+ * - ticketRedeemCount 缺省回填 0(R-MKT-08);
+ * - isSelfCollect 无源字段,保持默认 false(代客下单才为 true)。
+ */
+fun CreateOrderInput.toRequest(): CreateOrderRequest =
+  CreateOrderRequest(
+    userId = 0L,
+    addressId = addressId,
+    remark = remark,
+    // 商品明细(F-ORD-004 多商品下单;单商品=单元素)
+    items = items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) },
+    // 服务端下单幂等键(R-ORD-06)
+    clientRequestId = clientRequestId,
+    // 配送时段(AC-ORD-001-05,GraphQL 枚举 → 领域枚举同名互转)
+    deliveryTimeSlot = deliveryTime?.let { DomainDeliveryTimeSlot.valueOf(it.name) },
+    // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
+    preferredCouponId = preferredCouponId,
+    // 水票核销张数(一票抵一桶 R-MKT-08)
+    ticketRedeemCount = ticketRedeemCount ?: 0,
+  )
 
-object WeekStatisticsMapper : ObjectMappie<WeekStatisticsDTO, WeekStatistics>() {
-  override fun map(from: WeekStatisticsDTO): WeekStatistics =
-    mapping {
-      to::dailyStats fromExpression { DailyStatMapper.mapList(from.dailyStats) }
-      to::totalEarningCents fromValue from.totalEarningCents
-    }
-}
+/**
+ * 代客下单输入 → CreateOrderRequest(原 CreateDeliveryOrderInputMapper)。
+ * 代客下单(F-ORD-012)多商品:items 直传(F-ORD-004 多商品唯一口径;单商品=单元素);
+ * clientRequestId/deliveryTimeSlot/preferredCouponId/ticketRedeemCount 无源字段,保持默认。
+ */
+fun CreateDeliveryOrderInput.toRequest(): CreateOrderRequest =
+  CreateOrderRequest(
+    userId = 0L,
+    addressId = addressId,
+    remark = remark,
+    isSelfCollect = isSelfCollect,
+    items = items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) },
+  )
 
-object DailyStatMapper : ObjectMappie<DailyStatDTO, DailyStat>() {
-  override fun map(from: DailyStatDTO): DailyStat =
-    mapping {
-      to::earningCents fromValue from.earningCents
-    }
-}
+/**
+ * 送水端订单页地址信息修改输入 → UpdateOrderAddressRequest(F-ORD-024)。
+ * GraphQL 经纬度为 Float,领域模型/存储统一 Double(WGS-84)。
+ */
+fun UpdateOrderAddressInput.toRequest(): UpdateOrderAddressRequest =
+  UpdateOrderAddressRequest(
+    receiverName = receiverName,
+    phone = phone,
+    detailAddress = detailAddress,
+    floor = floor,
+    longitude = longitude?.toDouble(),
+    latitude = latitude?.toDouble(),
+  )
+
+// ============================================================================
+// 统计 DTO → GraphQL(统计 DTO 属 S2 保留类)
+// ============================================================================
+
+fun TodayStatisticsDTO.toGraphQL(): TodayStatistics =
+  TodayStatistics(
+    completedOrders = completedOrders,
+    earningCents = earningCents,
+    totalOrders = totalOrders,
+    unfinishedOrders = unfinishedOrders,
+  )
+
+fun WeekStatisticsDTO.toGraphQL(): WeekStatistics =
+  WeekStatistics(
+    dailyStats = dailyStats.map { it.toGraphQL() },
+    totalEarningCents = totalEarningCents,
+    totalOrders = totalOrders,
+  )
+
+fun DailyStatDTO.toGraphQL(): DailyStat =
+  DailyStat(
+    date = date,
+    earningCents = earningCents,
+    orderCount = orderCount,
+  )
 
 /**
  * 订单商品明细 → GraphQL OrderItemVO(F-ORD-004):
@@ -368,7 +265,7 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
         detailContent = null,
         effectivePriceCents = unitPriceCents,
         hasGroupPrice = false,
-        priceSource = dev.yidafu.aqua.common.graphql.generated.PriceSource.CATALOG_PRICE,
+        priceSource = PriceSourceG.CATALOG_PRICE,
         id = productIdValue,
         imageGallery = null,
         mineralContent = null,

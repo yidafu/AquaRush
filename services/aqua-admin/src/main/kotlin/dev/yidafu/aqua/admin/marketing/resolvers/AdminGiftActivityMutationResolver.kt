@@ -28,9 +28,7 @@ import dev.yidafu.aqua.common.graphql.generated.GiftActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.gift.mapper.CreateGiftActivityInputMapper
-import dev.yidafu.aqua.marketing.gift.mapper.GiftActivityMapper
-import dev.yidafu.aqua.marketing.gift.mapper.UpdateGiftActivityInputMapper
+import dev.yidafu.aqua.marketing.gift.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -58,7 +56,7 @@ class AdminGiftActivityMutationResolver(
       giftActivityMutationService.createActivity(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateGiftActivityInputMapper.map(input),
+        input = input,
       )
     return toGiftActivity(activity)
   }
@@ -76,7 +74,7 @@ class AdminGiftActivityMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateGiftActivityInputMapper.map(input),
+        input = input,
       )
     return toGiftActivity(activity)
   }
@@ -102,8 +100,7 @@ class AdminGiftActivityMutationResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return GiftActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       giftProductName = productQueryApiService.findById(model.giftProductId)?.name,
     )

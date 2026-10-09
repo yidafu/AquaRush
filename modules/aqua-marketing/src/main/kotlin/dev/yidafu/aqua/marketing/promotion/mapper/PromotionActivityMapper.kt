@@ -19,22 +19,14 @@
 
 package dev.yidafu.aqua.marketing.promotion.mapper
 
-import dev.yidafu.aqua.api.dto.PromotionActivityCreateRequest
-import dev.yidafu.aqua.api.dto.PromotionActivityUpdateRequest
-import dev.yidafu.aqua.api.dto.PromotionTierItem
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
-import dev.yidafu.aqua.common.graphql.generated.CreatePromotionActivityInput
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityTier
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityType
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
-import dev.yidafu.aqua.common.graphql.generated.PromotionTierInput
-import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType as DomainPromotionActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromotionScope
@@ -42,74 +34,52 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 /**
  * 满减/折扣活动映射器:域实体 → GraphQL 类型(档位与展示态由服务/Resolver 计算后传入,PRD 10-marketing.md §F-MKT-004)
  */
-object PromotionActivityMapper {
-  fun toGraphQL(
-    model: PromotionActivityModel,
-    tiers: List<PromotionActivityTierModel>,
-    currentStatus: PromotionActivityDisplayStatus,
-  ): PromotionActivity =
-    PromotionActivity(
-      id = model.id ?: 0L,
-      name = model.name,
-      activityType = PromotionActivityTypeMapper.map(model.activityType),
-      scope = PromotionScopeMapper.map(model.scope),
-      productId = model.productId,
-      customerGroupId = model.customerGroupId,
-      validFrom = model.validFrom,
-      validTo = model.validTo,
-      status = PromotionActivityStatusMapper.map(model.status),
-      currentStatus = currentStatus,
-      tiers = tiers.map { PromotionTierMapper.map(it) },
-      createdAt = model.createdAt,
-      updatedAt = model.updatedAt,
-    )
-}
+fun PromotionActivityModel.toGraphQL(
+  tiers: List<PromotionActivityTierModel>,
+  currentStatus: PromotionActivityDisplayStatus,
+): PromotionActivity =
+  PromotionActivity(
+    id = id ?: 0L,
+    name = name,
+    activityType = activityType.toGraphQL(),
+    scope = scope.toGraphQL(),
+    productId = productId,
+    customerGroupId = customerGroupId,
+    validFrom = validFrom,
+    validTo = validTo,
+    status = status.toGraphQL(),
+    currentStatus = currentStatus,
+    tiers = tiers.map { it.toGraphQL() },
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
  * 活动档位映射器:域实体 → GraphQL 类型
  */
-object PromotionTierMapper : ObjectMappie<PromotionActivityTierModel, PromotionActivityTier>() {
-  override fun map(from: PromotionActivityTierModel): PromotionActivityTier =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-    }
-}
-
-object PromotionActivityTypeMapper : EnumMappie<DomainPromotionActivityType, PromotionActivityType>()
-
-object PromotionScopeMapper : EnumMappie<DomainPromotionScope, PromotionScope>()
-
-object PromotionActivityStatusMapper : EnumMappie<DomainPromotionActivityStatus, PromotionActivityStatus>()
-
-object PromotionActivityTypeInputMapper : EnumMappie<PromotionActivityType, DomainPromotionActivityType>()
-
-object PromotionScopeInputMapper : EnumMappie<PromotionScope, DomainPromotionScope>()
+fun PromotionActivityTierModel.toGraphQL(): PromotionActivityTier =
+  PromotionActivityTier(
+    id = id ?: 0L,
+    thresholdCents = thresholdCents,
+    discountAmountCents = discountAmountCents,
+    discountRatePermille = discountRatePermille,
+  )
 
 /**
- * 活动档位输入映射器:GraphQL 输入 → 服务请求
+ * 活动类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object PromotionTierInputMapper : ObjectMappie<PromotionTierInput, PromotionTierItem>()
+fun DomainPromotionActivityType.toGraphQL(): PromotionActivityType = PromotionActivityType.valueOf(name)
+
+fun PromotionActivityType.toDomain(): DomainPromotionActivityType = DomainPromotionActivityType.valueOf(name)
 
 /**
- * 新建活动输入映射器
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object CreatePromotionActivityInputMapper : ObjectMappie<CreatePromotionActivityInput, PromotionActivityCreateRequest>() {
-  override fun map(from: CreatePromotionActivityInput): PromotionActivityCreateRequest =
-    mapping {
-      to::activityType fromExpression { PromotionActivityTypeInputMapper.map(from.activityType) }
-      to::scope fromExpression { PromotionScopeInputMapper.map(from.scope) }
-      to::tiers fromExpression { from.tiers.map { PromotionTierInputMapper.map(it) } }
-    }
-}
+fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
+
+fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
 
 /**
- * 编辑活动输入映射器(全量覆盖,含档位)
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object UpdatePromotionActivityInputMapper : ObjectMappie<UpdatePromotionActivityInput, PromotionActivityUpdateRequest>() {
-  override fun map(from: UpdatePromotionActivityInput): PromotionActivityUpdateRequest =
-    mapping {
-      to::activityType fromExpression { PromotionActivityTypeInputMapper.map(from.activityType) }
-      to::scope fromExpression { PromotionScopeInputMapper.map(from.scope) }
-      to::tiers fromExpression { from.tiers.map { PromotionTierInputMapper.map(it) } }
-    }
-}
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)

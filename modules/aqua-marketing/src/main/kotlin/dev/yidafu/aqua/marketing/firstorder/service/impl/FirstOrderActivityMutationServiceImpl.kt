@@ -19,18 +19,19 @@
 
 package dev.yidafu.aqua.marketing.firstorder.service.impl
 
-import dev.yidafu.aqua.api.dto.FirstOrderActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FirstOrderActivityUpdateRequest
 import dev.yidafu.aqua.api.service.marketing.FirstOrderActivityMutationService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreateFirstOrderActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.firstorder.domain.exception.FirstOrderActivityNotFoundException
 import dev.yidafu.aqua.marketing.firstorder.domain.exception.InvalidFirstOrderActivityException
 import dev.yidafu.aqua.marketing.firstorder.domain.repository.FirstOrderActivityRepository
+import dev.yidafu.aqua.marketing.firstorder.mapper.toDomain
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -53,32 +54,35 @@ class FirstOrderActivityMutationServiceImpl(
   override fun createActivity(
     adminId: Long,
     adminName: String,
-    request: FirstOrderActivityCreateRequest,
+    input: CreateFirstOrderActivityInput,
   ): FirstOrderActivityModel {
+    // GraphQL 枚举 → 领域枚举
+    val activityType = input.activityType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      activityType = request.activityType,
-      thresholdCents = request.thresholdCents,
-      discountAmountCents = request.discountAmountCents,
-      discountRatePermille = request.discountRatePermille,
-      scope = request.scope,
-      productId = request.productId,
-      newcomerPriceCents = request.newcomerPriceCents,
-      validFrom = request.validFrom,
-      validTo = request.validTo,
+      activityType = activityType,
+      thresholdCents = input.thresholdCents,
+      discountAmountCents = input.discountAmountCents,
+      discountRatePermille = input.discountRatePermille,
+      scope = scope,
+      productId = input.productId,
+      newcomerPriceCents = input.newcomerPriceCents,
+      validFrom = input.validFrom,
+      validTo = input.validTo,
       excludeId = null,
     )
     val activity =
       FirstOrderActivityModel(
-        name = request.name,
-        activityType = request.activityType,
-        thresholdCents = request.thresholdCents,
-        discountAmountCents = request.discountAmountCents,
-        discountRatePermille = request.discountRatePermille,
-        scope = request.scope,
-        productId = request.productId,
-        newcomerPriceCents = request.newcomerPriceCents,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
+        name = input.name,
+        activityType = activityType,
+        thresholdCents = input.thresholdCents,
+        discountAmountCents = input.discountAmountCents,
+        discountRatePermille = input.discountRatePermille,
+        scope = scope,
+        productId = input.productId,
+        newcomerPriceCents = input.newcomerPriceCents,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
         status = PromotionActivityStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -103,34 +107,37 @@ class FirstOrderActivityMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FirstOrderActivityUpdateRequest,
+    input: UpdateFirstOrderActivityInput,
   ): FirstOrderActivityModel {
     val activity =
       firstOrderActivityRepository
         .findById(id)
         .orElseThrow { FirstOrderActivityNotFoundException(id) }
+    // GraphQL 枚举 → 领域枚举
+    val activityType = input.activityType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      activityType = request.activityType,
-      thresholdCents = request.thresholdCents,
-      discountAmountCents = request.discountAmountCents,
-      discountRatePermille = request.discountRatePermille,
-      scope = request.scope,
-      productId = request.productId,
-      newcomerPriceCents = request.newcomerPriceCents,
-      validFrom = request.validFrom,
-      validTo = request.validTo,
+      activityType = activityType,
+      thresholdCents = input.thresholdCents,
+      discountAmountCents = input.discountAmountCents,
+      discountRatePermille = input.discountRatePermille,
+      scope = scope,
+      productId = input.productId,
+      newcomerPriceCents = input.newcomerPriceCents,
+      validFrom = input.validFrom,
+      validTo = input.validTo,
       excludeId = id,
     )
-    activity.name = request.name
-    activity.activityType = request.activityType
-    activity.thresholdCents = request.thresholdCents
-    activity.discountAmountCents = request.discountAmountCents
-    activity.discountRatePermille = request.discountRatePermille
-    activity.scope = request.scope
-    activity.productId = request.productId
-    activity.newcomerPriceCents = request.newcomerPriceCents
-    activity.validFrom = request.validFrom
-    activity.validTo = request.validTo
+    activity.name = input.name
+    activity.activityType = activityType
+    activity.thresholdCents = input.thresholdCents
+    activity.discountAmountCents = input.discountAmountCents
+    activity.discountRatePermille = input.discountRatePermille
+    activity.scope = scope
+    activity.productId = input.productId
+    activity.newcomerPriceCents = input.newcomerPriceCents
+    activity.validFrom = input.validFrom
+    activity.validTo = input.validTo
     val saved = firstOrderActivityRepository.save(activity)
     logger.info("Admin {} updated first order activity {}", adminId, id)
 

@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.StoreProfileQueryService
 import dev.yidafu.aqua.common.graphql.generated.StoreProfile
-import dev.yidafu.aqua.ops.storeprofile.mapper.StoreProfileMapper
+import dev.yidafu.aqua.ops.storeprofile.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -39,5 +39,5 @@ class AdminStoreProfileQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
-  fun storeProfile(): StoreProfile? = storeProfileQueryService.getStoreProfile()?.let { StoreProfileMapper.map(it) }
+  fun storeProfile(): StoreProfile? = storeProfileQueryService.getStoreProfile()?.let { it.toGraphQL() }
 }

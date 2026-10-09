@@ -19,14 +19,14 @@
 
 package dev.yidafu.aqua.marketing.promotion.service.impl
 
-import dev.yidafu.aqua.api.dto.PromotionActivityCreateRequest
-import dev.yidafu.aqua.api.dto.PromotionActivityUpdateRequest
-import dev.yidafu.aqua.api.dto.PromotionTierItem
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType
-import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreatePromotionActivityInput
+import dev.yidafu.aqua.common.graphql.generated.PromotionActivityType
+import dev.yidafu.aqua.common.graphql.generated.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.PromotionTierInput
+import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.promotion.domain.exception.InvalidTierException
 import dev.yidafu.aqua.marketing.promotion.domain.exception.PromotionActivityNotFoundException
@@ -41,6 +41,7 @@ import io.mockk.slot
 import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
+import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType as DomainPromotionActivityType
 
 /** 满减/折扣活动变更服务单元测试(F-MKT-004):档位递增互斥校验、全量替换档位。 */
 class PromotionActivityMutationServiceImplTest :
@@ -56,13 +57,13 @@ class PromotionActivityMutationServiceImplTest :
       scope: PromotionScope = PromotionScope.ALL,
       productId: Long? = null,
       customerGroupId: Long? = null,
-      tiers: List<PromotionTierItem> =
+      tiers: List<PromotionTierInput> =
         listOf(
-          PromotionTierItem(thresholdCents = 10000, discountAmountCents = 1000),
-          PromotionTierItem(thresholdCents = 20000, discountAmountCents = 2500),
+          PromotionTierInput(thresholdCents = 10000, discountAmountCents = 1000),
+          PromotionTierInput(thresholdCents = 20000, discountAmountCents = 2500),
         ),
-    ): PromotionActivityCreateRequest =
-      PromotionActivityCreateRequest(
+    ): CreatePromotionActivityInput =
+      CreatePromotionActivityInput(
         name = "满减活动",
         activityType = activityType,
         scope = scope,
@@ -73,8 +74,8 @@ class PromotionActivityMutationServiceImplTest :
         tiers = tiers,
       )
 
-    fun updateRequest(name: String = "满减活动"): PromotionActivityUpdateRequest =
-      PromotionActivityUpdateRequest(
+    fun updateRequest(name: String = "满减活动"): UpdatePromotionActivityInput =
+      UpdatePromotionActivityInput(
         name = name,
         activityType = PromotionActivityType.FULL_REDUCE,
         scope = PromotionScope.ALL,
@@ -82,8 +83,8 @@ class PromotionActivityMutationServiceImplTest :
         validTo = now.plusDays(30),
         tiers =
           listOf(
-            PromotionTierItem(thresholdCents = 10000, discountAmountCents = 1000),
-            PromotionTierItem(thresholdCents = 20000, discountAmountCents = 2500),
+            PromotionTierInput(thresholdCents = 10000, discountAmountCents = 1000),
+            PromotionTierInput(thresholdCents = 20000, discountAmountCents = 2500),
           ),
       )
 
@@ -128,8 +129,8 @@ class PromotionActivityMutationServiceImplTest :
           createRequest(
             tiers =
               listOf(
-                PromotionTierItem(thresholdCents = 20000, discountAmountCents = 1000),
-                PromotionTierItem(thresholdCents = 10000, discountAmountCents = 500),
+                PromotionTierInput(thresholdCents = 20000, discountAmountCents = 1000),
+                PromotionTierInput(thresholdCents = 10000, discountAmountCents = 500),
               ),
           ),
         )
@@ -137,7 +138,7 @@ class PromotionActivityMutationServiceImplTest :
     }
     test("createActivity full reduce tier without amount throws") {
       shouldThrow<IllegalArgumentException> {
-        service.createActivity(1L, "admin", createRequest(tiers = listOf(PromotionTierItem(thresholdCents = 10000))))
+        service.createActivity(1L, "admin", createRequest(tiers = listOf(PromotionTierInput(thresholdCents = 10000))))
       }
     }
     test("createActivity full discount tier without rate throws") {
@@ -147,7 +148,7 @@ class PromotionActivityMutationServiceImplTest :
           "admin",
           createRequest(
             activityType = PromotionActivityType.FULL_DISCOUNT,
-            tiers = listOf(PromotionTierItem(thresholdCents = 10000, discountAmountCents = 1000)),
+            tiers = listOf(PromotionTierInput(thresholdCents = 10000, discountAmountCents = 1000)),
           ),
         )
       }
@@ -163,7 +164,7 @@ class PromotionActivityMutationServiceImplTest :
       }
     }
     test("updateActivity replaces tiers") {
-      val existing = PromotionActivityModel(id = 1L, name = "旧活动", activityType = PromotionActivityType.FULL_REDUCE)
+      val existing = PromotionActivityModel(id = 1L, name = "旧活动", activityType = DomainPromotionActivityType.FULL_REDUCE)
       every { promotionActivityRepository.findById(1L) } returns Optional.of(existing)
       every { promotionActivityRepository.save(any()) } answers { firstArg() }
       every { promotionActivityTierRepository.findByActivityId(1L) } returns

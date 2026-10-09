@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.product
 
-import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
-import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
+import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 
 /**
  * 商品属性选项字典写操作服务(管理后台,PERMISSION_PRODUCT_WRITE)
@@ -34,7 +34,7 @@ interface ProductOptionMutationService {
   fun createOption(
     adminId: Long,
     adminName: String,
-    request: ProductOptionCreateRequest,
+    input: CreateProductOptionInput,
   ): ProductOptionModel
 
   /**
@@ -44,7 +44,7 @@ interface ProductOptionMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: ProductOptionUpdateRequest,
+    input: UpdateProductOptionInput,
   ): ProductOptionModel
 
   /**

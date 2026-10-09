@@ -7,8 +7,6 @@ plugins {
   id("aqua.spring.boot.library")
   // aqua-logging 需要 kotlinx.serialization
   alias(libs.plugins.kotlin.serialization)
-  // 域实体 → GraphQL 类型映射(BusinessLogMapper 等,与 aqua-ops/aqua-marketing 一致)
-  alias(libs.plugins.mappie)
 }
 
 dependencies {
@@ -31,7 +29,6 @@ dependencies {
   implementation(libs.bundles.jwt)
   implementation(libs.mapdb)
   implementation(libs.wechat.miniapp)
-  implementation(libs.mappie.api)
   implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
   implementation("io.github.openfeign.querydsl:querydsl-jpa")
   implementation("io.github.openfeign.querydsl:querydsl-core")

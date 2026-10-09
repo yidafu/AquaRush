@@ -12,9 +12,8 @@ import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
 import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.order.mapper.OrderStatusMapper
-import dev.yidafu.aqua.order.mapper.TodayStatisticsMapper
-import dev.yidafu.aqua.order.mapper.WeekStatisticsMapper
+import dev.yidafu.aqua.order.mapper.toDomain
+import dev.yidafu.aqua.order.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -72,7 +71,7 @@ class WeappOrderQueryResolver(
   ): TodayStatistics {
     // 送水员档案并入 admins 单表后,账号 id 即送水员 id(迁移 v1.2.1)
     val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
-    return TodayStatisticsMapper.map(deliveryTaskQueryService.getTodayStatistics(actualWorkerId))
+    return deliveryTaskQueryService.getTodayStatistics(actualWorkerId).toGraphQL()
   }
 
   /**
@@ -84,7 +83,7 @@ class WeappOrderQueryResolver(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): WeekStatistics {
     val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
-    return WeekStatisticsMapper.map(deliveryTaskQueryService.getWeekStatistics(actualWorkerId))
+    return deliveryTaskQueryService.getWeekStatistics(actualWorkerId).toGraphQL()
   }
 
   /**
@@ -107,7 +106,7 @@ class WeappOrderQueryResolver(
     val ordersPage =
       orderQueryService.getDeliveryWorkerHistoryOrders(
         workerId = workerId,
-        status = status?.let { OrderStatusMapper.map(it) },
+        status = status?.toDomain(),
         keyword = keyword,
         page = page,
         size = size,

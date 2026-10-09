@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.marketing.flashsale.service.impl
 
-import dev.yidafu.aqua.api.dto.FlashSaleActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FlashSaleActivityUpdateRequest
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
+import dev.yidafu.aqua.common.graphql.generated.CreateFlashSaleActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.flashsale.domain.exception.FlashSaleActivityNotFoundException
 import dev.yidafu.aqua.marketing.flashsale.domain.exception.InvalidFlashSaleActivityException
@@ -47,8 +47,8 @@ class FlashSaleActivityMutationServiceImplTest :
     var service: FlashSaleActivityMutationServiceImpl = mockk()
     val now: LocalDateTime = LocalDateTime.of(2026, 8, 14, 10, 0)
 
-    fun request(salePriceCents: Long = 1500): FlashSaleActivityCreateRequest =
-      FlashSaleActivityCreateRequest(
+    fun request(salePriceCents: Long = 1500): CreateFlashSaleActivityInput =
+      CreateFlashSaleActivityInput(
         name = "限时特价",
         productId = 1L,
         salePriceCents = salePriceCents,
@@ -122,7 +122,7 @@ class FlashSaleActivityMutationServiceImplTest :
           1L,
           "admin",
           1L,
-          FlashSaleActivityUpdateRequest(
+          UpdateFlashSaleActivityInput(
             name = "新特价",
             productId = 1L,
             salePriceCents = 1200,
@@ -152,7 +152,7 @@ class FlashSaleActivityMutationServiceImplTest :
           1L,
           "admin",
           99L,
-          FlashSaleActivityUpdateRequest(
+          UpdateFlashSaleActivityInput(
             name = "x",
             productId = 1L,
             salePriceCents = 1000,

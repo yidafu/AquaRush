@@ -20,10 +20,10 @@
 package dev.yidafu.aqua.admin.system.resolvers
 
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryService
-import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigGroup
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigVo
-import dev.yidafu.aqua.ops.systemconfig.mapper.SystemConfigMapper
+import dev.yidafu.aqua.ops.systemconfig.mapper.toDomain
+import dev.yidafu.aqua.ops.systemconfig.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -45,7 +45,7 @@ class AdminSystemConfigQueryResolver(
   fun systemConfigs(
     @Argument group: SystemConfigGroup,
   ): List<SystemConfigVo> {
-    val domainGroup = SystemSettingGroup.valueOf(group.name)
-    return systemConfigQueryService.listByGroup(domainGroup).map { SystemConfigMapper.map(it) }
+    val domainGroup = group.toDomain()
+    return systemConfigQueryService.listByGroup(domainGroup).map { it.toGraphQL() }
   }
 }

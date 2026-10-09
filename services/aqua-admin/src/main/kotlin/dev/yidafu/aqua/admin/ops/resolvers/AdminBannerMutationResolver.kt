@@ -25,9 +25,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
 import dev.yidafu.aqua.common.graphql.generated.ReorderDirection
 import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.banner.mapper.BannerMapper
-import dev.yidafu.aqua.ops.banner.mapper.CreateBannerInputMapper
-import dev.yidafu.aqua.ops.banner.mapper.UpdateBannerInputMapper
+import dev.yidafu.aqua.ops.banner.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -57,9 +55,9 @@ class AdminBannerMutationResolver(
       bannerMutationService.createBanner(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateBannerInputMapper.map(input),
+        input = input,
       )
-    return BannerMapper.map(banner)
+    return banner.toGraphQL()
   }
 
   @MutationMapping
@@ -75,9 +73,9 @@ class AdminBannerMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateBannerInputMapper.map(input),
+        input = input,
       )
-    return BannerMapper.map(banner)
+    return banner.toGraphQL()
   }
 
   @MutationMapping
@@ -106,6 +104,6 @@ class AdminBannerMutationResolver(
         .valueOf(direction.name)
     return bannerMutationService
       .reorderBanner(principal.id, principal.username, id, directionEnum)
-      .map { BannerMapper.map(it) }
+      .map { it.toGraphQL() }
   }
 }

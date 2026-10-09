@@ -23,8 +23,7 @@ import dev.yidafu.aqua.api.service.ops.BannerQueryService
 import dev.yidafu.aqua.common.graphql.generated.Banner
 import dev.yidafu.aqua.common.graphql.generated.BannerListInput
 import dev.yidafu.aqua.common.graphql.generated.BannerVoPage
-import dev.yidafu.aqua.ops.banner.mapper.BannerListInputMapper
-import dev.yidafu.aqua.ops.banner.mapper.BannerMapper
+import dev.yidafu.aqua.ops.banner.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,12 +45,9 @@ class AdminBannerQueryResolver(
   fun banners(
     @Argument input: BannerListInput?,
   ): BannerVoPage {
-    val request =
-      input?.let { BannerListInputMapper.map(it) } ?: dev.yidafu.aqua.api.dto
-        .BannerListRequest()
-    val page = bannerQueryService.listBanners(request)
+    val page = bannerQueryService.listBanners(input ?: BannerListInput())
     return BannerVoPage(
-      content = page.content.map { BannerMapper.map(it) },
+      content = page.content.map { it.toGraphQL() },
       totalElements = page.totalElements.toInt(),
       totalPages = page.totalPages,
       size = page.size,
@@ -66,5 +62,5 @@ class AdminBannerQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
   fun banner(
     @Argument id: Long,
-  ): Banner? = bannerQueryService.getBanner(id)?.let { BannerMapper.map(it) }
+  ): Banner? = bannerQueryService.getBanner(id)?.let { it.toGraphQL() }
 }

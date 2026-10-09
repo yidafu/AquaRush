@@ -19,14 +19,15 @@
 
 package dev.yidafu.aqua.ops.feedback.service.impl
 
-import dev.yidafu.aqua.api.dto.FeedbackReviewRequest
 import dev.yidafu.aqua.api.service.ops.FeedbackMutationService
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
+import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.feedback.domain.exception.FeedbackNotFoundException
 import dev.yidafu.aqua.ops.feedback.domain.exception.InvalidFeedbackStatusTransitionException
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
+import dev.yidafu.aqua.ops.feedback.mapper.toDomain
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -45,17 +46,18 @@ class FeedbackMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FeedbackReviewRequest,
+    input: FeedbackReviewInput,
   ): FeedbackModel {
+    val targetStatus = input.status.toDomain()
     val feedback = feedbackRepository.findById(id).orElseThrow { FeedbackNotFoundException(id) }
-    validateStatusTransition(feedback.status, request.status)
+    validateStatusTransition(feedback.status, targetStatus)
 
     val before = feedbackSnapshot(feedback)
-    feedback.status = request.status
-    if (request.handleResult != null) {
-      feedback.handleResult = request.handleResult
+    feedback.status = targetStatus
+    if (input.handleResult != null) {
+      feedback.handleResult = input.handleResult
     }
-    if (request.status == FeedbackStatus.RESOLVED) {
+    if (targetStatus == FeedbackStatus.RESOLVED) {
       feedback.handledById = adminId
       feedback.handledByName = adminName
       feedback.handledAt = LocalDateTime.now()

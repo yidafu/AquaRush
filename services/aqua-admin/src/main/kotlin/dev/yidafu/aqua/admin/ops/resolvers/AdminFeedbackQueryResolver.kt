@@ -23,8 +23,7 @@ import dev.yidafu.aqua.api.service.ops.FeedbackQueryService
 import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
 import dev.yidafu.aqua.common.graphql.generated.FeedbackVoPage
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackListInputMapper
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackMapper
+import dev.yidafu.aqua.ops.feedback.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -46,12 +45,9 @@ class AdminFeedbackQueryResolver(
   fun feedbacks(
     @Argument input: FeedbackListInput?,
   ): FeedbackVoPage {
-    val request =
-      input?.let { FeedbackListInputMapper.map(it) } ?: dev.yidafu.aqua.api.dto
-        .FeedbackListRequest()
-    val page = feedbackQueryService.listFeedbacks(request)
+    val page = feedbackQueryService.listFeedbacks(input ?: FeedbackListInput())
     return FeedbackVoPage(
-      content = page.content.map { FeedbackMapper.map(it) },
+      content = page.content.map { it.toGraphQL() },
       totalElements = page.totalElements.toInt(),
       totalPages = page.totalPages,
       size = page.size,
@@ -66,5 +62,5 @@ class AdminFeedbackQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_FEEDBACK_READ')")
   fun feedback(
     @Argument id: Long,
-  ): Feedback? = feedbackQueryService.getFeedback(id)?.let { FeedbackMapper.map(it) }
+  ): Feedback? = feedbackQueryService.getFeedback(id)?.let { it.toGraphQL() }
 }

@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.TicketTypeCreateRequest
-import dev.yidafu.aqua.api.dto.TicketTypeUpdateRequest
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
+import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 
 /**
  * 桶水票票种变更服务(管理后台,PRD 10-marketing.md §F-MKT-007)
@@ -31,14 +31,14 @@ interface TicketTypeMutationService {
   fun createTicketType(
     adminId: Long,
     adminName: String,
-    request: TicketTypeCreateRequest,
+    input: CreateTicketTypeInput,
   ): TicketTypeModel
 
   fun updateTicketType(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: TicketTypeUpdateRequest,
+    input: UpdateTicketTypeInput,
   ): TicketTypeModel
 
   /**

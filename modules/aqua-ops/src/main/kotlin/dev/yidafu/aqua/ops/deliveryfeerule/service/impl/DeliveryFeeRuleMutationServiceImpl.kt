@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.ops.deliveryfeerule.service.impl
 
-import dev.yidafu.aqua.api.dto.SaveDeliveryFeeRuleRequest
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.repository.DeliveryFeeRuleRepository
 import org.springframework.stereotype.Service
@@ -43,20 +43,20 @@ class DeliveryFeeRuleMutationServiceImpl(
   override fun saveDeliveryFeeRule(
     adminId: Long,
     adminName: String,
-    request: SaveDeliveryFeeRuleRequest,
+    input: SaveDeliveryFeeRuleInput,
   ): DeliveryFeeRuleModel {
-    validateFee(request)
+    validateFee(input)
     val existing = deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).orElse(null)
     val before = existing?.let { ruleSnapshot(it) }
 
     val rule =
       existing?.apply {
-        freeFloorLimit = request.freeFloorLimit
-        surchargeCents = request.surchargeCents
+        freeFloorLimit = input.freeFloorLimit
+        surchargeCents = input.surchargeCents
       } ?: DeliveryFeeRuleModel(
         id = DeliveryFeeRuleRepository.SINGLETON_ID,
-        freeFloorLimit = request.freeFloorLimit,
-        surchargeCents = request.surchargeCents,
+        freeFloorLimit = input.freeFloorLimit,
+        surchargeCents = input.surchargeCents,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
@@ -77,11 +77,11 @@ class DeliveryFeeRuleMutationServiceImpl(
   /**
    * 运费金额校验(R-MON-01 以分存储计算):免费楼层 ≥ 0、加价 0-999 元(≤2 位小数,前端以分提交)
    */
-  private fun validateFee(request: SaveDeliveryFeeRuleRequest) {
-    if (request.freeFloorLimit < 0) {
+  private fun validateFee(input: SaveDeliveryFeeRuleInput) {
+    if (input.freeFloorLimit < 0) {
       throw IllegalArgumentException("免费楼层不能小于0")
     }
-    if (request.surchargeCents < 0 || request.surchargeCents > 99_900) {
+    if (input.surchargeCents < 0 || input.surchargeCents > 99_900) {
       throw IllegalArgumentException("运费金额无效")
     }
   }

@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.FlashSaleActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FlashSaleActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
+import dev.yidafu.aqua.common.graphql.generated.CreateFlashSaleActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
 
 /**
  * 限时特价活动变更服务(管理后台,PRD 10-marketing.md §F-MKT-005/R-MKT-05)
@@ -34,7 +34,7 @@ interface FlashSaleActivityMutationService {
   fun createActivity(
     adminId: Long,
     adminName: String,
-    request: FlashSaleActivityCreateRequest,
+    input: CreateFlashSaleActivityInput,
   ): FlashSaleActivityModel
 
   /**
@@ -44,7 +44,7 @@ interface FlashSaleActivityMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FlashSaleActivityUpdateRequest,
+    input: UpdateFlashSaleActivityInput,
   ): FlashSaleActivityModel
 
   /**

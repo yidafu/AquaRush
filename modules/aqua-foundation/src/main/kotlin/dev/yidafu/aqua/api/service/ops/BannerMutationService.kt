@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.BannerCreateRequest
-import dev.yidafu.aqua.api.dto.BannerUpdateRequest
 import dev.yidafu.aqua.api.dto.ReorderDirection
 import dev.yidafu.aqua.common.domain.model.BannerModel
+import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
 
 /**
  * 轮播图变更服务接口(管理后台)
@@ -35,7 +35,7 @@ interface BannerMutationService {
   fun createBanner(
     adminId: Long,
     adminName: String,
-    request: BannerCreateRequest,
+    input: CreateBannerInput,
   ): BannerModel
 
   /**
@@ -45,7 +45,7 @@ interface BannerMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: BannerUpdateRequest,
+    input: UpdateBannerInput,
   ): BannerModel
 
   /**

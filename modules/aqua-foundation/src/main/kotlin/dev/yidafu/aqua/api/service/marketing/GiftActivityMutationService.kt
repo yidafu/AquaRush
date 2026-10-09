@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.GiftActivityCreateRequest
-import dev.yidafu.aqua.api.dto.GiftActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
+import dev.yidafu.aqua.common.graphql.generated.CreateGiftActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 
 /**
  * 买赠/满赠活动变更服务(管理后台,PRD 10-marketing.md §F-MKT-008/R-MKT-09)
@@ -35,7 +35,7 @@ interface GiftActivityMutationService {
   fun createActivity(
     adminId: Long,
     adminName: String,
-    request: GiftActivityCreateRequest,
+    input: CreateGiftActivityInput,
   ): GiftActivityModel
 
   /**
@@ -45,7 +45,7 @@ interface GiftActivityMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: GiftActivityUpdateRequest,
+    input: UpdateGiftActivityInput,
   ): GiftActivityModel
 
   /**

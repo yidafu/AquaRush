@@ -30,7 +30,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
-import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -86,7 +86,7 @@ class AdminDeliveryWorkerMutationResolver(
         )
 
       logger.info("Successfully created delivery worker: ${admin.id} - ${admin.username}")
-      return DeliveryWorkerMapper.map(admin)
+      return admin.toDeliveryWorker()
     } catch (e: Exception) {
       logger.error("Failed to create delivery worker", e)
       throw BadRequestException("创建送水工失败: ${e.message}")
@@ -128,7 +128,7 @@ class AdminDeliveryWorkerMutationResolver(
           accountStatus = input.accountStatus,
         )
       logger.info("Successfully updated delivery worker: ${updated.id} - ${updated.username}")
-      return DeliveryWorkerMapper.map(updated)
+      return updated.toDeliveryWorker()
     } catch (e: Exception) {
       logger.error("Failed to update delivery worker", e)
       throw BadRequestException("更新送水工失败: ${e.message}")

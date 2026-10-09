@@ -25,9 +25,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
 import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.customer.mapper.CreateCustomerGroupInputMapper
-import dev.yidafu.aqua.marketing.customer.mapper.CustomerGroupMapper
-import dev.yidafu.aqua.marketing.customer.mapper.UpdateCustomerGroupInputMapper
+import dev.yidafu.aqua.marketing.customer.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -58,9 +56,9 @@ class AdminCustomerGroupMutationResolver(
       customerGroupMutationService.createGroup(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateCustomerGroupInputMapper.map(input),
+        input = input,
       )
-    return CustomerGroupMapper.toGraphQL(group, customerGroupQueryService.memberCount(group.id ?: 0L))
+    return group.toGraphQL(customerGroupQueryService.memberCount(group.id ?: 0L))
   }
 
   @MutationMapping
@@ -76,9 +74,9 @@ class AdminCustomerGroupMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateCustomerGroupInputMapper.map(input),
+        input = input,
       )
-    return CustomerGroupMapper.toGraphQL(group, customerGroupQueryService.memberCount(id))
+    return group.toGraphQL(customerGroupQueryService.memberCount(id))
   }
 
   @MutationMapping

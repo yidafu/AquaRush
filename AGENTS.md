@@ -81,7 +81,6 @@ Angular convention, `<type>(<scope>): <description>` (history uses Chinese descr
 
 - `claude/architecture.md` — module structure, directory conventions, DB tables, GraphQL schema config, security
 - `claude/resolvers.md` — GraphQL resolver patterns, UserPrincipal, BaseGraphQLResolver
-- `claude/mappie.md` — compile-time type-safe object mapping (Mappie)
 - `claude/frontend.md` — frontend architecture, Taro/React page patterns, UI guidelines
 - `claude/deployment.md` — testing strategy & coverage tiers, production deploy, env vars, timezone
 - `claude/messaging-cache-wechat.md` — Artemis events, cache, WeChat integration

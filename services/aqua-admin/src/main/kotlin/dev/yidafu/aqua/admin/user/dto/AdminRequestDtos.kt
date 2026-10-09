@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.CreateAdminInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateAdminInput
-import dev.yidafu.aqua.user.mapper.AdminRoleMapper
+import dev.yidafu.aqua.user.mapper.toDomain
 import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus as AdminAccountStatusG
 
 /**
@@ -52,7 +52,7 @@ data class CreateAdminRequest(
         password = input.password,
         realName = input.realName,
         phone = input.phone,
-        role = AdminRoleMapper.map(input.role),
+        role = input.role.toDomain(),
         avatarUrl = input.avatarUrl,
         onlineStatus = input.status?.let { mapStatus(it) } ?: DeliverWorkerModelStatus.OFFLINE,
         isAvailable = input.isAvailable ?: true,
@@ -90,7 +90,7 @@ data class UpdateAdminRequest(
       UpdateAdminRequest(
         realName = input.realName,
         phone = input.phone,
-        role = input.role?.let { AdminRoleMapper.map(it) },
+        role = input.role?.toDomain(),
         avatarUrl = input.avatarUrl,
         onlineStatus = input.status?.let { mapStatus(it) },
         isAvailable = input.isAvailable,

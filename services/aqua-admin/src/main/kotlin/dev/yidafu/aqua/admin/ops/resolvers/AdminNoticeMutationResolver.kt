@@ -24,9 +24,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
 import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.notice.mapper.CreateNoticeInputMapper
-import dev.yidafu.aqua.ops.notice.mapper.NoticeMapper
-import dev.yidafu.aqua.ops.notice.mapper.UpdateNoticeInputMapper
+import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -57,9 +55,9 @@ class AdminNoticeMutationResolver(
       noticeMutationService.createNotice(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateNoticeInputMapper.map(input),
+        input = input,
       )
-    return NoticeMapper.map(notice)
+    return notice.toGraphQL()
   }
 
   @MutationMapping
@@ -75,9 +73,9 @@ class AdminNoticeMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateNoticeInputMapper.map(input),
+        input = input,
       )
-    return NoticeMapper.map(notice)
+    return notice.toGraphQL()
   }
 
   @MutationMapping
@@ -87,7 +85,7 @@ class AdminNoticeMutationResolver(
     @AuthenticationPrincipal principal: UserPrincipal,
   ): Notice {
     logger.info("Admin {} publishing notice {}", principal.username, id)
-    return NoticeMapper.map(noticeMutationService.publishNotice(principal.id, principal.username, id))
+    return noticeMutationService.publishNotice(principal.id, principal.username, id).toGraphQL()
   }
 
   @MutationMapping
@@ -97,7 +95,7 @@ class AdminNoticeMutationResolver(
     @AuthenticationPrincipal principal: UserPrincipal,
   ): Notice {
     logger.info("Admin {} stopping notice {}", principal.username, id)
-    return NoticeMapper.map(noticeMutationService.stopNotice(principal.id, principal.username, id))
+    return noticeMutationService.stopNotice(principal.id, principal.username, id).toGraphQL()
   }
 
   @MutationMapping
@@ -108,7 +106,7 @@ class AdminNoticeMutationResolver(
     @AuthenticationPrincipal principal: UserPrincipal,
   ): Notice {
     logger.info("Admin {} setting notice {} pinned={}", principal.username, id, pinned)
-    return NoticeMapper.map(noticeMutationService.setNoticePinned(principal.id, principal.username, id, pinned))
+    return noticeMutationService.setNoticePinned(principal.id, principal.username, id, pinned).toGraphQL()
   }
 
   @MutationMapping

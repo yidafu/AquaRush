@@ -19,88 +19,60 @@
 
 package dev.yidafu.aqua.ops.feedback.mapper
 
-import dev.yidafu.aqua.api.dto.FeedbackListRequest
-import dev.yidafu.aqua.api.dto.FeedbackReviewRequest
-import dev.yidafu.aqua.api.dto.FeedbackSubmitRequest
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.graphql.generated.Feedback
-import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
 import dev.yidafu.aqua.common.graphql.generated.FeedbackRecordVo
-import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 import dev.yidafu.aqua.common.graphql.generated.FeedbackStatus
-import dev.yidafu.aqua.common.graphql.generated.FeedbackSubmitInput
 import dev.yidafu.aqua.common.graphql.generated.FeedbackType
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus as DomainFeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType as DomainFeedbackType
 
 /**
  * 意见反馈映射器:域实体 → GraphQL 类型
  */
-object FeedbackMapper : ObjectMappie<FeedbackModel, Feedback>() {
-  override fun map(from: FeedbackModel): Feedback =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::feedbackType fromExpression { FeedbackTypeMapper.map(from.feedbackType) }
-      to::status fromExpression { FeedbackStatusMapper.map(from.status) }
-      to::images fromExpression { from.getImagesAsList() }
-    }
-}
-
-object FeedbackTypeMapper : EnumMappie<DomainFeedbackType, FeedbackType>()
-
-object FeedbackStatusMapper : EnumMappie<DomainFeedbackStatus, FeedbackStatus>()
+fun FeedbackModel.toGraphQL(): Feedback =
+  Feedback(
+    contactInfo = contactInfo,
+    content = content,
+    createdAt = createdAt,
+    feedbackType = feedbackType.toGraphQL(),
+    handleResult = handleResult,
+    handledAt = handledAt,
+    handledById = handledById,
+    handledByName = handledByName,
+    id = id ?: 0L,
+    images = getImagesAsList(),
+    status = status.toGraphQL(),
+    userId = userId,
+  )
 
 /**
  * 我的-反馈记录映射器:域实体 → 用户端 GraphQL 类型(F-USR-005 处理结果回传)
- * 不含联系方式(用户端展示本人反馈,联系方式仅后台管理侧可见)。
+ * 不含联系方式与 userId(用户端展示本人反馈,联系方式仅后台管理侧可见)。
  */
-object FeedbackRecordVoMapper : ObjectMappie<FeedbackModel, FeedbackRecordVo>() {
-  override fun map(from: FeedbackModel): FeedbackRecordVo =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::feedbackType fromExpression { FeedbackTypeMapper.map(from.feedbackType) }
-      to::status fromExpression { FeedbackStatusMapper.map(from.status) }
-      to::images fromExpression { from.getImagesAsList() }
-    }
-}
+fun FeedbackModel.toRecordVo(): FeedbackRecordVo =
+  FeedbackRecordVo(
+    content = content,
+    createdAt = createdAt,
+    feedbackType = feedbackType.toGraphQL(),
+    handleResult = handleResult,
+    handledAt = handledAt,
+    handledByName = handledByName,
+    id = id ?: 0L,
+    images = getImagesAsList(),
+    status = status.toGraphQL(),
+  )
 
 /**
- * 反馈提交输入映射器:GraphQL 输入 → 服务请求
+ * 反馈类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object FeedbackSubmitInputMapper : ObjectMappie<FeedbackSubmitInput, FeedbackSubmitRequest>() {
-  override fun map(from: FeedbackSubmitInput): FeedbackSubmitRequest =
-    mapping {
-      to::feedbackType fromExpression { FeedbackTypeInputMapper.map(from.feedbackType) }
-      to::images fromExpression { from.images?.toList() ?: emptyList() }
-    }
-}
+fun DomainFeedbackType.toGraphQL(): FeedbackType = FeedbackType.valueOf(name)
+
+fun FeedbackType.toDomain(): DomainFeedbackType = DomainFeedbackType.valueOf(name)
 
 /**
- * 反馈处理输入映射器
+ * 反馈状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object FeedbackReviewInputMapper : ObjectMappie<FeedbackReviewInput, FeedbackReviewRequest>() {
-  override fun map(from: FeedbackReviewInput): FeedbackReviewRequest =
-    mapping {
-      to::status fromExpression { FeedbackStatusInputMapper.map(from.status) }
-    }
-}
+fun DomainFeedbackStatus.toGraphQL(): FeedbackStatus = FeedbackStatus.valueOf(name)
 
-/**
- * 反馈列表查询输入映射器
- */
-object FeedbackListInputMapper : ObjectMappie<FeedbackListInput, FeedbackListRequest>() {
-  override fun map(from: FeedbackListInput): FeedbackListRequest =
-    mapping {
-      to::page fromValue (from.page ?: 0)
-      to::size fromValue (from.size ?: 20)
-      to::userId fromProperty from::userId
-      to::feedbackType fromExpression { from.feedbackType?.let { FeedbackTypeInputMapper.map(it) } }
-      to::status fromExpression { from.status?.let { FeedbackStatusInputMapper.map(it) } }
-    }
-}
-
-object FeedbackTypeInputMapper : EnumMappie<FeedbackType, DomainFeedbackType>()
-
-object FeedbackStatusInputMapper : EnumMappie<FeedbackStatus, DomainFeedbackStatus>()
+fun FeedbackStatus.toDomain(): DomainFeedbackStatus = DomainFeedbackStatus.valueOf(name)

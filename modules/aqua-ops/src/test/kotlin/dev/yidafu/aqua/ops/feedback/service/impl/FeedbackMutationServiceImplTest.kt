@@ -19,10 +19,11 @@
 
 package dev.yidafu.aqua.ops.feedback.service.impl
 
-import dev.yidafu.aqua.api.dto.FeedbackReviewRequest
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
+import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
+import dev.yidafu.aqua.common.graphql.generated.FeedbackSubmitInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.feedback.domain.exception.InvalidFeedbackStatusTransitionException
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
@@ -34,6 +35,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.util.Optional
+import dev.yidafu.aqua.common.graphql.generated.FeedbackStatus as GqlFeedbackStatus
+import dev.yidafu.aqua.common.graphql.generated.FeedbackType as GqlFeedbackType
 
 /**
  * 意见反馈处理服务单元测试(F-OPS-003 核心规则:状态前进流转、处理人/时间留痕、审计)
@@ -66,7 +69,13 @@ class FeedbackMutationServiceImplTest :
       every { feedbackRepository.findById(1L) } returns Optional.of(existing)
       every { feedbackRepository.save(any()) } answers { firstArg() }
 
-      val result = service.reviewFeedback(1L, "admin", 1L, FeedbackReviewRequest("已联系用户上门检测", FeedbackStatus.RESOLVED))
+      val result =
+        service.reviewFeedback(
+          1L,
+          "admin",
+          1L,
+          FeedbackReviewInput(handleResult = "已联系用户上门检测", status = GqlFeedbackStatus.RESOLVED),
+        )
 
       result.status shouldBe FeedbackStatus.RESOLVED
       result.handleResult shouldBe "已联系用户上门检测"
@@ -79,7 +88,7 @@ class FeedbackMutationServiceImplTest :
       every { feedbackRepository.findById(1L) } returns Optional.of(existing)
 
       shouldThrow<InvalidFeedbackStatusTransitionException> {
-        service.reviewFeedback(1L, "admin", 1L, FeedbackReviewRequest(null, FeedbackStatus.PENDING))
+        service.reviewFeedback(1L, "admin", 1L, FeedbackReviewInput(handleResult = null, status = GqlFeedbackStatus.PENDING))
       }
     }
     test("reviewFeedback allows same status") {
@@ -87,7 +96,13 @@ class FeedbackMutationServiceImplTest :
       every { feedbackRepository.findById(1L) } returns Optional.of(existing)
       every { feedbackRepository.save(any()) } answers { firstArg() }
 
-      val result = service.reviewFeedback(1L, "admin", 1L, FeedbackReviewRequest("补充处理说明", FeedbackStatus.PROCESSING))
+      val result =
+        service.reviewFeedback(
+          1L,
+          "admin",
+          1L,
+          FeedbackReviewInput(handleResult = "补充处理说明", status = GqlFeedbackStatus.PROCESSING),
+        )
 
       result.status shouldBe FeedbackStatus.PROCESSING
       result.handleResult shouldBe "补充处理说明"
@@ -97,7 +112,7 @@ class FeedbackMutationServiceImplTest :
       every { feedbackRepository.findById(1L) } returns Optional.of(existing)
       every { feedbackRepository.save(any()) } answers { firstArg() }
 
-      service.reviewFeedback(1L, "admin", 1L, FeedbackReviewRequest("已处理", FeedbackStatus.RESOLVED))
+      service.reviewFeedback(1L, "admin", 1L, FeedbackReviewInput(handleResult = "已处理", status = GqlFeedbackStatus.RESOLVED))
 
       verify {
         opsConfigAuditService.record(
@@ -116,7 +131,7 @@ class FeedbackMutationServiceImplTest :
       every { feedbackRepository.findById(1L) } returns Optional.empty()
 
       shouldThrow<RuntimeException> {
-        service.reviewFeedback(1L, "admin", 1L, FeedbackReviewRequest(null, FeedbackStatus.PROCESSING))
+        service.reviewFeedback(1L, "admin", 1L, FeedbackReviewInput(handleResult = null, status = GqlFeedbackStatus.PROCESSING))
       }
     }
     test("submitFeedback stores images") {
@@ -126,11 +141,11 @@ class FeedbackMutationServiceImplTest :
       val created =
         apiService.submitFeedback(
           100L,
-          dev.yidafu.aqua.api.dto.FeedbackSubmitRequest(
-            FeedbackType.SUGGESTION,
-            "希望增加小程序夜间模式",
-            listOf("http://x/1.png", "http://x/2.png"),
-            "13800138000",
+          FeedbackSubmitInput(
+            feedbackType = GqlFeedbackType.SUGGESTION,
+            content = "希望增加小程序夜间模式",
+            images = listOf("http://x/1.png", "http://x/2.png"),
+            contactInfo = "13800138000",
           ),
         )
 

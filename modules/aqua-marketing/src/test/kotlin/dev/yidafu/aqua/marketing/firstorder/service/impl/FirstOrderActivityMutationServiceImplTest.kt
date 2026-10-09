@@ -19,14 +19,14 @@
 
 package dev.yidafu.aqua.marketing.firstorder.service.impl
 
-import dev.yidafu.aqua.api.dto.FirstOrderActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FirstOrderActivityUpdateRequest
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreateFirstOrderActivityInput
+import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityType
+import dev.yidafu.aqua.common.graphql.generated.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.firstorder.domain.exception.FirstOrderActivityNotFoundException
 import dev.yidafu.aqua.marketing.firstorder.domain.exception.InvalidFirstOrderActivityException
@@ -39,6 +39,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
+import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType as DomainFirstOrderActivityType
 
 /** 首单立减/新人专享价活动变更服务单元测试(F-MKT-009)。 */
 class FirstOrderActivityMutationServiceImplTest :
@@ -65,8 +66,8 @@ class FirstOrderActivityMutationServiceImplTest :
       scope: PromotionScope = PromotionScope.ALL,
       productId: Long? = null,
       newcomerPriceCents: Long? = null,
-    ): FirstOrderActivityCreateRequest =
-      FirstOrderActivityCreateRequest(
+    ): CreateFirstOrderActivityInput =
+      CreateFirstOrderActivityInput(
         name = "首单活动",
         activityType = activityType,
         thresholdCents = thresholdCents,
@@ -79,8 +80,8 @@ class FirstOrderActivityMutationServiceImplTest :
         validTo = now.plusDays(30),
       )
 
-    fun updateRequest(name: String = "首单活动"): FirstOrderActivityUpdateRequest =
-      FirstOrderActivityUpdateRequest(
+    fun updateRequest(name: String = "首单活动"): UpdateFirstOrderActivityInput =
+      UpdateFirstOrderActivityInput(
         name = name,
         activityType = FirstOrderActivityType.FIRST_ORDER_REDUCE,
         thresholdCents = 5000,
@@ -103,7 +104,7 @@ class FirstOrderActivityMutationServiceImplTest :
 
       saved.id shouldBe 1L
       saved.status shouldBe PromotionActivityStatus.ACTIVE
-      saved.activityType shouldBe FirstOrderActivityType.FIRST_ORDER_REDUCE
+      saved.activityType shouldBe DomainFirstOrderActivityType.FIRST_ORDER_REDUCE
       verify {
         bizLogger.logMarketingOperation(
           targetId = 1L,
@@ -156,7 +157,7 @@ class FirstOrderActivityMutationServiceImplTest :
       every {
         firstOrderActivityRepository.existsOverlap(
           1L,
-          FirstOrderActivityType.NEWCOMER_PRICE,
+          DomainFirstOrderActivityType.NEWCOMER_PRICE,
           PromotionActivityStatus.ACTIVE,
           any(),
           any(),
@@ -234,7 +235,7 @@ class FirstOrderActivityMutationServiceImplTest :
       every {
         firstOrderActivityRepository.existsOverlap(
           1L,
-          FirstOrderActivityType.NEWCOMER_PRICE,
+          DomainFirstOrderActivityType.NEWCOMER_PRICE,
           PromotionActivityStatus.ACTIVE,
           any(),
           any(),
@@ -256,7 +257,7 @@ class FirstOrderActivityMutationServiceImplTest :
       }
     }
     test("updateActivity updates fields") {
-      val existing = FirstOrderActivityModel(id = 1L, name = "旧名", activityType = FirstOrderActivityType.FIRST_ORDER_REDUCE)
+      val existing = FirstOrderActivityModel(id = 1L, name = "旧名", activityType = DomainFirstOrderActivityType.FIRST_ORDER_REDUCE)
       every { firstOrderActivityRepository.findById(1L) } returns Optional.of(existing)
       every { firstOrderActivityRepository.save(any()) } answers { (firstArg() as FirstOrderActivityModel).apply { id = 1L } }
 

@@ -23,8 +23,7 @@ import dev.yidafu.aqua.api.service.ops.SystemConfigMutationService
 import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigVo
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.systemconfig.mapper.SaveSystemConfigItemMapper
-import dev.yidafu.aqua.ops.systemconfig.mapper.SystemConfigMapper
+import dev.yidafu.aqua.ops.systemconfig.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -58,9 +57,9 @@ class AdminSystemConfigMutationResolver(
       systemConfigMutationService.saveSystemConfigs(
         adminId = principal.id,
         adminName = principal.username,
-        items = input.map { SaveSystemConfigItemMapper.map(it) },
+        items = input,
       )
-    return saved.map { SystemConfigMapper.map(it) }
+    return saved.map { it.toGraphQL() }
   }
 
   /**
@@ -79,6 +78,6 @@ class AdminSystemConfigMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
       )
-    return SystemConfigMapper.map(setting)
+    return setting.toGraphQL()
   }
 }

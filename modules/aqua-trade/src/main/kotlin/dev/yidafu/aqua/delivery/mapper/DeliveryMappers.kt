@@ -20,54 +20,45 @@
 package dev.yidafu.aqua.delivery.mapper
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus
-import dev.yidafu.aqua.common.graphql.generated.DeliveryArea
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
+import java.math.BigDecimal
 
 /**
- * Mapper for converting AdminModel (送水员账号行) to GraphQL DeliveryWorker type
+ * 领域在线状态 → GraphQL DeliveryWorkerStatus(同名 valueOf 互转)
+ */
+fun DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus = DeliveryWorkerStatus.valueOf(name)
+
+/**
+ * AdminModel(送水员账号行)→ GraphQL DeliveryWorker(原 DeliveryWorkerMapper)。
  *
  * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021 目标架构),DeliveryWorker
  * 为兼容投影类型:id 即账号 id;wechatOpenId 不再落库,投影为空串。
  */
-object DeliveryWorkerMapper : ObjectMappie<AdminModel, DeliveryWorker>() {
-  override fun map(from: AdminModel): DeliveryWorker =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::userId fromValue (from.userId ?: 0L)
-      to::wechatOpenId fromValue ""
-      to::name fromExpression { from.realName ?: from.username }
-      to::phone fromExpression { from.phone ?: "" }
-      to::role fromExpression { from.role.name }
-      // Fields with same name and type - auto-mapped by Mappie
-      to::earningCents fromProperty from::earningCents
-      to::onlineStatus fromExpression {
-        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
-      }
-      // 账号状态(枚举需显式转换;F-USR-021)
-      to::accountStatus fromExpression {
-        AdminAccountStatus.valueOf(from.accountStatus.name)
-      }
-      to::currentTaskCount fromValue 0
-    }
-}
-
-/**
- * Mapper for converting DeliveryAreaModel domain entity to GraphQL DeliveryArea type
- */
-object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
-  override fun map(from: DeliveryAreaModel): DeliveryArea =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      // All fields have same name and type - auto-mapped by Mappie
-    }
-}
-
-/**
- * Enum mapper for WorkerStatus domain enum to GraphQL WorkerStatus enum
- */
-object DeliveryWorkerStatusMapper : EnumMappie<dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus, DeliveryWorkerStatus>()
+fun AdminModel.toDeliveryWorker(): DeliveryWorker =
+  DeliveryWorker(
+    id = id ?: 0L,
+    userId = userId ?: 0L,
+    wechatOpenId = "",
+    name = realName ?: username,
+    phone = phone ?: "",
+    role = role.name,
+    earningCents = earningCents,
+    onlineStatus = onlineStatus.toGraphQL(),
+    // 账号状态(枚举需显式转换;F-USR-021)
+    accountStatus = AdminAccountStatus.valueOf(accountStatus.name),
+    // 任务数由调用方联查填充,直映恒为 0
+    currentTaskCount = 0,
+    avatarUrl = avatarUrl,
+    averageRating = averageRating?.let { BigDecimal.valueOf(it) },
+    completedOrders = completedOrders,
+    coordinates = coordinates,
+    createdAt = createdAt,
+    currentLocation = currentLocation,
+    isAvailable = isAvailable,
+    rating = rating?.let { BigDecimal.valueOf(it) },
+    totalOrders = totalOrders,
+    updatedAt = updatedAt,
+  )

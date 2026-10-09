@@ -29,7 +29,7 @@ import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseVo
 
 /**
  * 购桶单实体 → GraphQL BarrelPurchase(管理端)/BarrelPurchaseVO(用户端);
- * 明细来自 barrel_purchase_items,由调用方注入(状态枚举同名值由 Mappie 自动互转)。
+ * 明细来自 barrel_purchase_items,由调用方注入(状态枚举同名 valueOf 互转)。
  */
 object BarrelPurchaseModelMapper {
   fun map(

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
+import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 
 /**
  * 系统参数变更服务接口(管理后台)
@@ -34,7 +34,7 @@ interface SystemConfigMutationService {
   fun saveSystemConfigs(
     adminId: Long,
     adminName: String,
-    items: List<SaveSystemConfigItemRequest>,
+    items: List<SaveSystemConfigInput>,
   ): List<SystemSettingsModel>
 
   /**

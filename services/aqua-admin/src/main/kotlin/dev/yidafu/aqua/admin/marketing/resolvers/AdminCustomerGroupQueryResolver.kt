@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryService
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroupListInput
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroupVoPage
-import dev.yidafu.aqua.marketing.customer.mapper.CustomerGroupMapper
+import dev.yidafu.aqua.marketing.customer.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -54,7 +54,7 @@ class AdminCustomerGroupQueryResolver(
     return CustomerGroupVoPage(
       content =
         page.content.map { group ->
-          CustomerGroupMapper.toGraphQL(group, customerGroupQueryService.memberCount(group.id ?: 0L))
+          group.toGraphQL(customerGroupQueryService.memberCount(group.id ?: 0L))
         },
       number = page.number,
       size = page.size,
@@ -73,6 +73,6 @@ class AdminCustomerGroupQueryResolver(
   ): CustomerGroup? {
     val group =
       customerGroupQueryService.getGroup(id) ?: throw IllegalArgumentException("客户分组不存在")
-    return CustomerGroupMapper.toGraphQL(group, customerGroupQueryService.memberCount(id))
+    return group.toGraphQL(customerGroupQueryService.memberCount(id))
   }
 }

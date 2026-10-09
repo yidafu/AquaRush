@@ -26,7 +26,6 @@ spring-for-kafka = "3.2.1"
 reactor-core = "3.6.2"
 micrometer-tracing = "1.2.1"
 ktlint = "12.1.0"
-mappie = "2.3.0-2.3.1"
 artemis = "2.31.2"
 kotest = "6.2.4"
 archunit = "1.5.1"
@@ -118,10 +117,6 @@ spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", ve
 mockk-core = { module = "io.mockk:mockk", version.ref = "mockk" }
 ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
 
-# Mappie
-mappie-api = { module = "tech.mappie:mappie-api", version.ref = "mappie" }
-mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
-
 # MapDB
 mapdb = { module = "org.mapdb:mapdb", version.ref = "mapdb" }
 
@@ -210,7 +205,6 @@ spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-mappie = { id = "tech.mappie.plugin", version.ref = "mappie" }
 # Database & Migration
 liquibase = { id = "org.liquibase.gradle", version.ref = "liquibase" }
 # Code Quality

@@ -32,8 +32,7 @@ import dev.yidafu.aqua.common.graphql.generated.UpdateAdminInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateUserInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
-import dev.yidafu.aqua.user.mapper.AdminMapper
-import dev.yidafu.aqua.user.mapper.UserMapper
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -86,7 +85,7 @@ class AdminUserMutationResolver(
         )
 
       logger.info("Successfully created admin user through resolver: ${createdAdmin.id}")
-      return AdminMapper.map(createdAdmin)
+      return createdAdmin.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to create admin user", e)
       throw BadRequestException("创建管理员失败: ${e.message}")
@@ -120,7 +119,7 @@ class AdminUserMutationResolver(
         )
 
       logger.info("Successfully updated admin user through resolver: ${updatedAdmin.id}")
-      return AdminMapper.map(updatedAdmin)
+      return updatedAdmin.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to update admin user", e)
       throw BadRequestException("更新管理员失败: ${e.message}")
@@ -200,7 +199,7 @@ class AdminUserMutationResolver(
           phone = input.phone,
           avatarUrl = input.avatarUrl,
         )
-      return UserMapper.map(created)
+      return created.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to create user", e)
       throw BadRequestException("创建用户失败: ${e.message}")
@@ -225,7 +224,7 @@ class AdminUserMutationResolver(
           avatarUrl = input.avatarUrl,
           status = input.status,
         )
-      return UserMapper.map(updated)
+      return updated.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to update user", e)
       throw BadRequestException("更新用户失败: ${e.message}")

@@ -19,24 +19,16 @@
 
 package dev.yidafu.aqua.ops.deliveryfeerule.mapper
 
-import dev.yidafu.aqua.api.dto.SaveDeliveryFeeRuleRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
-import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
-import tech.mappie.api.ObjectMappie
 
 /**
  * 配送费规则映射器:域实体 → GraphQL 类型
+ * 金额字段两侧均为分制 Long,直接赋值无需转换。
  */
-object DeliveryFeeRuleMapper : ObjectMappie<DeliveryFeeRuleModel, DeliveryFeeRule>() {
-  override fun map(from: DeliveryFeeRuleModel): DeliveryFeeRule =
-    mapping {
-      to::freeFloorLimit fromValue from.freeFloorLimit
-      to::surchargeCents fromValue from.surchargeCents
-    }
-}
-
-/**
- * 保存配送费规则输入映射器:GraphQL 输入 → 服务请求
- */
-object SaveDeliveryFeeRuleInputMapper : ObjectMappie<SaveDeliveryFeeRuleInput, SaveDeliveryFeeRuleRequest>()
+fun DeliveryFeeRuleModel.toGraphQL(): DeliveryFeeRule =
+  DeliveryFeeRule(
+    freeFloorLimit = freeFloorLimit,
+    surchargeCents = surchargeCents,
+    updatedAt = updatedAt,
+  )

@@ -19,8 +19,6 @@
 
 package dev.yidafu.aqua.admin.product.resolvers
 
-import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
-import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.api.service.product.ProductOptionMutationService
 import dev.yidafu.aqua.api.service.product.ProductOptionQueryService
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
@@ -28,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
 import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.product.mapper.toDomain
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -102,13 +101,13 @@ class AdminProductOptionResolverTest :
       every {
         mutationService.createOption(1L, "admin", any())
       } answers {
-        val request = arg<ProductOptionCreateRequest>(2)
+        val input = arg<CreateProductOptionInput>(2)
         ProductOptionModel(
           id = 9L,
-          optionType = request.optionType,
-          value = request.value,
-          sortOrder = request.sortOrder ?: 1,
-          enabled = request.enabled,
+          optionType = input.optionType.toDomain(),
+          value = input.value,
+          sortOrder = input.sortOrder ?: 1,
+          enabled = input.enabled ?: true,
         )
       }
 
@@ -132,13 +131,13 @@ class AdminProductOptionResolverTest :
       every {
         mutationService.updateOption(1L, "admin", 3L, any())
       } answers {
-        val request = arg<ProductOptionUpdateRequest>(3)
+        val input = arg<UpdateProductOptionInput>(3)
         ProductOptionModel(
           id = 3L,
           optionType = ProductOptionType.WATER_SOURCE,
-          value = request.value,
-          sortOrder = request.sortOrder ?: 1,
-          enabled = request.enabled,
+          value = input.value,
+          sortOrder = input.sortOrder ?: 1,
+          enabled = input.enabled ?: true,
         )
       }
 

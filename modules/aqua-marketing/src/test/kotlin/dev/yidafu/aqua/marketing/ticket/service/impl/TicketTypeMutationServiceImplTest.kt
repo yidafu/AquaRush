@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.marketing.ticket.service.impl
 
-import dev.yidafu.aqua.api.dto.TicketTypeCreateRequest
-import dev.yidafu.aqua.api.dto.TicketTypeUpdateRequest
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
-import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
-import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
+import dev.yidafu.aqua.common.graphql.generated.TicketTypeKind
+import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
+import dev.yidafu.aqua.common.graphql.generated.ValidityType
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketTypeNotFoundException
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
@@ -36,6 +36,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
+import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind as DomainTicketTypeKind
 
 /** 桶水票票种变更服务单元测试(F-MKT-007):类型/有效期校验、停用。 */
 class TicketTypeMutationServiceImplTest :
@@ -49,8 +50,8 @@ class TicketTypeMutationServiceImplTest :
       ticketType: TicketTypeKind = TicketTypeKind.UNIVERSAL,
       productId: Long? = null,
       specification: String? = "19L",
-    ): TicketTypeCreateRequest =
-      TicketTypeCreateRequest(
+    ): CreateTicketTypeInput =
+      CreateTicketTypeInput(
         name = "通兑票",
         ticketType = ticketType,
         productId = productId,
@@ -64,8 +65,8 @@ class TicketTypeMutationServiceImplTest :
         perUserLimit = 0,
       )
 
-    fun updateRequest(name: String = "通兑票"): TicketTypeUpdateRequest =
-      TicketTypeUpdateRequest(
+    fun updateRequest(name: String = "通兑票"): UpdateTicketTypeInput =
+      UpdateTicketTypeInput(
         name = name,
         ticketType = TicketTypeKind.UNIVERSAL,
         specification = "19L",
@@ -90,7 +91,7 @@ class TicketTypeMutationServiceImplTest :
 
       saved.id shouldBe 1L
       saved.status shouldBe TicketTypeStatus.ACTIVE
-      saved.ticketType shouldBe TicketTypeKind.UNIVERSAL
+      saved.ticketType shouldBe DomainTicketTypeKind.UNIVERSAL
       verify {
         bizLogger.logMarketingOperation(
           targetId = 1L,
@@ -139,7 +140,7 @@ class TicketTypeMutationServiceImplTest :
       }
     }
     test("updateTicketType updates fields") {
-      val existing = TicketTypeModel(id = 1L, name = "旧票", ticketType = TicketTypeKind.UNIVERSAL, specification = "19L")
+      val existing = TicketTypeModel(id = 1L, name = "旧票", ticketType = DomainTicketTypeKind.UNIVERSAL, specification = "19L")
       every { ticketTypeRepository.findById(1L) } returns Optional.of(existing)
       every { ticketTypeRepository.save(any()) } answers { firstArg() }
 

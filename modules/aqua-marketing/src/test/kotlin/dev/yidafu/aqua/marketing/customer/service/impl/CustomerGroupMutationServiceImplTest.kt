@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.marketing.customer.service.impl
 
-import dev.yidafu.aqua.api.dto.CustomerGroupCreateRequest
-import dev.yidafu.aqua.api.dto.CustomerGroupUpdateRequest
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.customer.domain.exception.CustomerGroupNotFoundException
 import dev.yidafu.aqua.marketing.customer.domain.exception.DuplicateGroupNameException
@@ -78,7 +78,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.existsByName("熟客") } returns false
       every { customerGroupRepository.save(any()) } answers { (firstArg() as CustomerGroupModel).apply { id = 1L } }
 
-      val saved = service.createGroup(1L, "admin", CustomerGroupCreateRequest(name = "熟客", memberIds = listOf(10L, 10L, 11L)))
+      val saved = service.createGroup(1L, "admin", CreateCustomerGroupInput(name = "熟客", memberIds = listOf(10L, 10L, 11L)))
 
       saved.id shouldBe 1L
       saved.name shouldBe "熟客"
@@ -100,7 +100,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.existsByName("新组") } returns false
       every { customerGroupRepository.save(any()) } answers { (firstArg() as CustomerGroupModel).apply { id = 2L } }
 
-      val saved = service.createGroup(1L, "admin", CustomerGroupCreateRequest(name = "新组"))
+      val saved = service.createGroup(1L, "admin", CreateCustomerGroupInput(name = "新组"))
 
       saved.id shouldBe 2L
       verify(exactly = 0) { userService.setCustomerGroup(any(), any()) }
@@ -109,7 +109,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.existsByName("熟客") } returns true
 
       shouldThrow<DuplicateGroupNameException> {
-        service.createGroup(1L, "admin", CustomerGroupCreateRequest(name = "熟客"))
+        service.createGroup(1L, "admin", CreateCustomerGroupInput(name = "熟客"))
       }
     }
     test("updateGroup syncs members") {
@@ -118,7 +118,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.save(any()) } answers { firstArg() }
       every { userQueryApiService.findByCustomerGroupId(1L) } returns listOf(user(10L, 1L), user(20L, 1L))
 
-      val saved = service.updateGroup(1L, "admin", 1L, CustomerGroupUpdateRequest(name = "新名", memberIds = listOf(10L, 30L)))
+      val saved = service.updateGroup(1L, "admin", 1L, UpdateCustomerGroupInput(name = "新名", memberIds = listOf(10L, 30L)))
 
       saved.name shouldBe "新名"
       verify { userService.setCustomerGroup(30L, 1L) }
@@ -130,7 +130,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.findByName("新名") } returns null
       every { customerGroupRepository.save(any()) } answers { firstArg() }
 
-      service.updateGroup(1L, "admin", 1L, CustomerGroupUpdateRequest(name = "新名"))
+      service.updateGroup(1L, "admin", 1L, UpdateCustomerGroupInput(name = "新名"))
 
       verify(exactly = 0) { userQueryApiService.findByCustomerGroupId(any()) }
       verify(exactly = 0) { userService.setCustomerGroup(any(), any()) }
@@ -141,7 +141,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.save(any()) } answers { firstArg() }
       every { userQueryApiService.findByCustomerGroupId(1L) } returns listOf(user(10L, 1L))
 
-      service.updateGroup(1L, "admin", 1L, CustomerGroupUpdateRequest(name = "新名", memberIds = emptyList()))
+      service.updateGroup(1L, "admin", 1L, UpdateCustomerGroupInput(name = "新名", memberIds = emptyList()))
 
       verify { userService.setCustomerGroup(10L, null) }
     }
@@ -150,7 +150,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.findByName("熟客") } returns group(id = 2L, name = "熟客")
 
       shouldThrow<DuplicateGroupNameException> {
-        service.updateGroup(1L, "admin", 1L, CustomerGroupUpdateRequest(name = "熟客"))
+        service.updateGroup(1L, "admin", 1L, UpdateCustomerGroupInput(name = "熟客"))
       }
     }
     test("updateGroup same name on self ok") {
@@ -158,7 +158,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.findByName("熟客") } returns group(id = 1L, name = "熟客")
       every { customerGroupRepository.save(any()) } answers { firstArg() }
 
-      val saved = service.updateGroup(1L, "admin", 1L, CustomerGroupUpdateRequest(name = "熟客"))
+      val saved = service.updateGroup(1L, "admin", 1L, UpdateCustomerGroupInput(name = "熟客"))
 
       saved.name shouldBe "熟客"
     }
@@ -166,7 +166,7 @@ class CustomerGroupMutationServiceImplTest :
       every { customerGroupRepository.findById(99L) } returns Optional.empty()
 
       shouldThrow<CustomerGroupNotFoundException> {
-        service.updateGroup(1L, "admin", 99L, CustomerGroupUpdateRequest(name = "x"))
+        service.updateGroup(1L, "admin", 99L, UpdateCustomerGroupInput(name = "x"))
       }
     }
     test("deleteGroup resets members") {

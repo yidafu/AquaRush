@@ -28,9 +28,7 @@ import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.firstorder.mapper.CreateFirstOrderActivityInputMapper
-import dev.yidafu.aqua.marketing.firstorder.mapper.FirstOrderActivityMapper
-import dev.yidafu.aqua.marketing.firstorder.mapper.UpdateFirstOrderActivityInputMapper
+import dev.yidafu.aqua.marketing.firstorder.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -58,7 +56,7 @@ class AdminFirstOrderActivityMutationResolver(
       firstOrderActivityMutationService.createActivity(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateFirstOrderActivityInputMapper.map(input),
+        input = input,
       )
     return toFirstOrderActivity(activity)
   }
@@ -76,7 +74,7 @@ class AdminFirstOrderActivityMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateFirstOrderActivityInputMapper.map(input),
+        input = input,
       )
     return toFirstOrderActivity(activity)
   }
@@ -102,8 +100,7 @@ class AdminFirstOrderActivityMutationResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return FirstOrderActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       productName = model.productId?.let { productQueryApiService.findById(it)?.name },
     )

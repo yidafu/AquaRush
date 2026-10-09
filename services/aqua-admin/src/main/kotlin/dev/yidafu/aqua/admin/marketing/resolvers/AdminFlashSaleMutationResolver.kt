@@ -28,9 +28,7 @@ import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.flashsale.mapper.CreateFlashSaleActivityInputMapper
-import dev.yidafu.aqua.marketing.flashsale.mapper.FlashSaleActivityMapper
-import dev.yidafu.aqua.marketing.flashsale.mapper.UpdateFlashSaleActivityInputMapper
+import dev.yidafu.aqua.marketing.flashsale.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -58,7 +56,7 @@ class AdminFlashSaleMutationResolver(
       flashSaleActivityMutationService.createActivity(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateFlashSaleActivityInputMapper.map(input),
+        input = input,
       )
     return toFlashSaleActivity(activity)
   }
@@ -76,7 +74,7 @@ class AdminFlashSaleMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateFlashSaleActivityInputMapper.map(input),
+        input = input,
       )
     return toFlashSaleActivity(activity)
   }
@@ -103,8 +101,7 @@ class AdminFlashSaleMutationResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return FlashSaleActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       productName = product?.name,
       catalogPriceCents = product?.price,

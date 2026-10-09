@@ -19,16 +19,17 @@
 
 package dev.yidafu.aqua.ops.notice.service.impl
 
-import dev.yidafu.aqua.api.dto.CreateNoticeRequest
-import dev.yidafu.aqua.api.dto.UpdateNoticeRequest
 import dev.yidafu.aqua.api.service.ops.NoticeMutationService
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
+import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeStateTransitionException
 import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeTimeWindowException
 import dev.yidafu.aqua.ops.notice.domain.exception.NoticeNotFoundException
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeRepository
+import dev.yidafu.aqua.ops.notice.mapper.toDomain
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -48,17 +49,17 @@ class NoticeMutationServiceImpl(
   override fun createNotice(
     adminId: Long,
     adminName: String,
-    request: CreateNoticeRequest,
+    input: CreateNoticeInput,
   ): NoticeModel {
-    validateTimeWindow(request.startAt, request.endAt)
+    validateTimeWindow(input.startAt, input.endAt)
     val notice =
       NoticeModel(
-        title = request.title,
-        content = request.content,
-        type = request.type,
+        title = input.title,
+        content = input.content,
+        type = input.type.toDomain(),
         pinned = false,
-        startAt = request.startAt,
-        endAt = request.endAt,
+        startAt = input.startAt,
+        endAt = input.endAt,
         status = NoticeStatus.DRAFT,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -80,22 +81,22 @@ class NoticeMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: UpdateNoticeRequest,
+    input: UpdateNoticeInput,
   ): NoticeModel {
     val existing = noticeRepository.findById(id).orElseThrow { NoticeNotFoundException(id) }
     if (existing.status == NoticeStatus.STOPPED) {
       throw InvalidNoticeStateTransitionException(id, existing.status, NoticeStatus.DRAFT.name)
     }
-    validateTimeWindow(request.startAt, request.endAt)
+    validateTimeWindow(input.startAt, input.endAt)
 
     val before = noticeSnapshot(existing)
     existing.apply {
-      title = request.title
-      content = request.content
-      this.type = request.type
-      pinned = request.pinned
-      startAt = request.startAt
-      endAt = request.endAt
+      title = input.title
+      content = input.content
+      this.type = input.type.toDomain()
+      pinned = input.pinned ?: false
+      startAt = input.startAt
+      endAt = input.endAt
     }
     val saved = noticeRepository.save(existing)
     opsConfigAuditService.record(

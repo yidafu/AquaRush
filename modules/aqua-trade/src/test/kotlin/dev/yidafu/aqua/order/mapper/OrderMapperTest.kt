@@ -26,12 +26,12 @@ import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
 /**
- * OrderMapper(OrderModel → GraphQL Order)单元测试。
+ * OrderModel.toGraphQL 单元测试。
  * 覆盖配送备注(deliveryRemark)与下单备注(remark)映射 —— 完成配送后「配送信息」卡回显依据。
  */
 class OrderMapperTest :
   FunSpec({
-    test("OrderMapper exposes delivery remark and order remark") {
+    test("OrderModel.toGraphQL exposes delivery remark and order remark") {
       val model =
         OrderModel(
           id = 1L,
@@ -47,13 +47,13 @@ class OrderMapperTest :
           updatedAt = LocalDateTime.of(2025, 1, 1, 10, 0),
         )
 
-      val graphql = OrderMapper.map(model)
+      val graphql = model.toGraphQL()
 
       graphql.remark shouldBe "下单备注"
       graphql.deliveryRemark shouldBe "放门口"
     }
 
-    test("OrderMapper keeps delivery remark null when unset") {
+    test("OrderModel.toGraphQL keeps delivery remark null when unset") {
       val model =
         OrderModel(
           id = 2L,
@@ -67,7 +67,7 @@ class OrderMapperTest :
           updatedAt = LocalDateTime.of(2025, 1, 1, 10, 0),
         )
 
-      val graphql = OrderMapper.map(model)
+      val graphql = model.toGraphQL()
 
       (graphql.deliveryRemark == null) shouldBe true
     }

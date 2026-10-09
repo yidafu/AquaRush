@@ -23,33 +23,40 @@ import dev.yidafu.aqua.api.dto.SaveStoreProfileRequest
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import dev.yidafu.aqua.common.graphql.generated.SaveStoreProfileInput
 import dev.yidafu.aqua.common.graphql.generated.StoreProfile
-import tech.mappie.api.ObjectMappie
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
+private val HH_MM_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
  * 店铺信息映射器:域实体 → GraphQL 类型
  * 营业时间跨 GraphQL 边界以 "HH:mm" 字符串传输(无 LocalTime scalar)。
  */
-object StoreProfileMapper : ObjectMappie<StoreProfileModel, StoreProfile>() {
-  private val HH_MM_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
-
-  override fun map(from: StoreProfileModel): StoreProfile =
-    mapping {
-      to::businessHoursStart fromExpression { from.businessHoursStart?.format(HH_MM_FORMATTER) }
-      to::businessHoursEnd fromExpression { from.businessHoursEnd?.format(HH_MM_FORMATTER) }
-    }
-}
+fun StoreProfileModel.toGraphQL(): StoreProfile =
+  StoreProfile(
+    aboutUs = aboutUs,
+    businessHoursEnd = businessHoursEnd?.format(HH_MM_FORMATTER),
+    businessHoursStart = businessHoursStart?.format(HH_MM_FORMATTER),
+    logoUrl = logoUrl,
+    serviceHotline = serviceHotline,
+    shopIntro = shopIntro,
+    shopName = shopName,
+    updatedAt = updatedAt,
+  )
 
 /**
  * 保存店铺信息输入映射器:GraphQL 输入 → 服务请求
+ *
+ * 保留该中间 DTO 的原因:businessHoursStart/End 跨边界类型不同
+ * (GraphQL "HH:mm" 字符串 ↔ 领域 LocalTime),超出「仅枚举换型 + 默认值回填」的删除规则。
  */
-object SaveStoreProfileInputMapper : ObjectMappie<SaveStoreProfileInput, SaveStoreProfileRequest>() {
-  private val HH_MM_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
-
-  override fun map(from: SaveStoreProfileInput): SaveStoreProfileRequest =
-    mapping {
-      to::businessHoursStart fromExpression { from.businessHoursStart?.let { LocalTime.parse(it, HH_MM_FORMATTER) } }
-      to::businessHoursEnd fromExpression { from.businessHoursEnd?.let { LocalTime.parse(it, HH_MM_FORMATTER) } }
-    }
-}
+fun SaveStoreProfileInput.toRequest(): SaveStoreProfileRequest =
+  SaveStoreProfileRequest(
+    aboutUs = aboutUs,
+    businessHoursEnd = businessHoursEnd?.let { LocalTime.parse(it, HH_MM_FORMATTER) },
+    businessHoursStart = businessHoursStart?.let { LocalTime.parse(it, HH_MM_FORMATTER) },
+    logoUrl = logoUrl,
+    serviceHotline = serviceHotline,
+    shopIntro = shopIntro,
+    shopName = shopName,
+  )

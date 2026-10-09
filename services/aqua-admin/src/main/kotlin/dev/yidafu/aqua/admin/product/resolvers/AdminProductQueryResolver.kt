@@ -28,8 +28,8 @@ import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
 import dev.yidafu.aqua.common.graphql.generated.StockWarningThresholds
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.product.mapper.ProductMapper
-import dev.yidafu.aqua.product.mapper.ProductQueryMapper
+import dev.yidafu.aqua.product.mapper.toGraphQL
+import dev.yidafu.aqua.product.mapper.toRequest
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -69,10 +69,10 @@ class AdminProductQueryResolver(
     val actualPage = input.page ?: 0
     val actualSize = input.size ?: 20
     val pageable: Pageable = PageRequest.of(actualPage, actualSize)
-    val query = ProductQueryMapper.map(input)
+    val query = input.toRequest()
     val productsPage = productService.productsPaginated(query, pageable)
 
-    val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
+    val (productList, pageInfo) = productsPage.toPageInfo { it.toGraphQL() }
     return ProductVoPage(
       list = productList,
       pageInfo = pageInfo,
@@ -87,7 +87,7 @@ class AdminProductQueryResolver(
   @QueryMapping
   fun product(
     @Argument id: Long,
-  ): Product? = productService.findById(id)?.let { ProductMapper.map(it) }
+  ): Product? = productService.findById(id)?.toGraphQL()
 
   /**
    * 查询在售商品列表(R-PRO-03:仅返回在售且库存>0 的商品,供用户端/预览使用)
@@ -109,7 +109,7 @@ class AdminProductQueryResolver(
         ),
         pageable,
       )
-    val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
+    val (productList, pageInfo) = productsPage.toPageInfo { it.toGraphQL() }
     return ProductVoPage(
       list = productList,
       pageInfo = pageInfo,

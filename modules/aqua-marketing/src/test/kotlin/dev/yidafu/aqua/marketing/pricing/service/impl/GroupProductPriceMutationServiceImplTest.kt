@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.marketing.pricing.service.impl
 
-import dev.yidafu.aqua.api.dto.GroupProductPriceItem
-import dev.yidafu.aqua.api.dto.SaveGroupProductPricesRequest
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
+import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceItemInput
+import dev.yidafu.aqua.common.graphql.generated.SaveGroupProductPricesInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
 import io.kotest.assertions.throwables.shouldThrow
@@ -66,7 +66,7 @@ class GroupProductPriceMutationServiceImplTest :
         service.savePrices(
           1L,
           "admin",
-          SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1500))),
+          SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 1500))),
         )
 
       result shouldBe true
@@ -92,7 +92,7 @@ class GroupProductPriceMutationServiceImplTest :
       service.savePrices(
         1L,
         "admin",
-        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1800))),
+        SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 1800))),
       )
 
       existing.priceCents shouldBe 1800
@@ -106,7 +106,7 @@ class GroupProductPriceMutationServiceImplTest :
       service.savePrices(
         1L,
         "admin",
-        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = null))),
+        SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = null))),
       )
 
       verify { groupProductPriceRepository.delete(existing) }
@@ -117,7 +117,7 @@ class GroupProductPriceMutationServiceImplTest :
       service.savePrices(
         1L,
         "admin",
-        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = null))),
+        SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = null))),
       )
 
       verify(exactly = 0) { groupProductPriceRepository.delete(any<GroupProductPriceModel>()) }
@@ -134,9 +134,9 @@ class GroupProductPriceMutationServiceImplTest :
       service.savePrices(
         1L,
         "admin",
-        SaveGroupProductPricesRequest(
+        SaveGroupProductPricesInput(
           customerGroupId = 5L,
-          items = listOf(GroupProductPriceItem(productId = 2L, priceCents = 1100)),
+          items = listOf(GroupProductPriceItemInput(productId = 2L, priceCents = 1100)),
           clearUnlisted = true,
         ),
       )
@@ -151,7 +151,7 @@ class GroupProductPriceMutationServiceImplTest :
       service.savePrices(
         1L,
         "admin",
-        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1500))),
+        SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 1500))),
       )
 
       verify(exactly = 0) { groupProductPriceRepository.findByCustomerGroupId(5L) }
@@ -163,7 +163,7 @@ class GroupProductPriceMutationServiceImplTest :
         service.savePrices(
           1L,
           "admin",
-          SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 0))),
+          SaveGroupProductPricesInput(customerGroupId = 5L, items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 0))),
         )
       }
 
@@ -171,7 +171,10 @@ class GroupProductPriceMutationServiceImplTest :
         service.savePrices(
           1L,
           "admin",
-          SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 9999901))),
+          SaveGroupProductPricesInput(
+            customerGroupId = 5L,
+            items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 9999901)),
+          ),
         )
       }
     }

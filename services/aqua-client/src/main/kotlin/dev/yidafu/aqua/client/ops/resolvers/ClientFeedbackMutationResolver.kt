@@ -23,7 +23,6 @@ import dev.yidafu.aqua.api.service.ops.FeedbackMutationApiService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.FeedbackSubmitInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackSubmitInputMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -55,7 +54,7 @@ class ClientFeedbackMutationResolver(
     logger.info("User {} submitting feedback type {}", userPrincipal.id, input.feedbackType)
     feedbackMutationApiService.submitFeedback(
       userId = userPrincipal.id,
-      request = FeedbackSubmitInputMapper.map(input),
+      input = input,
     )
     return true
   }

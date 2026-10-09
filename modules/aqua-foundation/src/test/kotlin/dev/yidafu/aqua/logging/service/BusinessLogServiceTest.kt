@@ -20,6 +20,9 @@
 package dev.yidafu.aqua.logging.service
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
+import dev.yidafu.aqua.common.graphql.generated.BizLogDomain
+import dev.yidafu.aqua.common.graphql.generated.BizLogLevel
+import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
 import dev.yidafu.aqua.logging.config.DatabaseLogProperties
 import dev.yidafu.aqua.logging.config.LoggingProperties
 import dev.yidafu.aqua.logging.repository.BusinessLogRepository
@@ -30,6 +33,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 
 class BusinessLogServiceTest :
   FunSpec({
@@ -75,12 +79,22 @@ class BusinessLogServiceTest :
       result.totalElements shouldBe 1
     }
     test("queryBusinessLogs graphql variant should pass operation filter") {
-      val pageable = PageRequest.of(0, 10)
+      val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
       val page = PageImpl(listOf(BusinessLogModel(operation = "CREATE")), pageable, 1)
       every {
         businessLogRepository.findByFilters("INFO", "ORDER", "CREATE", 1L, null, null, pageable)
       } returns page
-      val result = service.queryBusinessLogs("INFO", "ORDER", "CREATE", 1L, null, null, pageable)
+      val result =
+        service.queryBusinessLogs(
+          BusinessLogListInput(
+            domain = BizLogDomain.ORDER,
+            level = BizLogLevel.INFO,
+            operationType = "CREATE",
+            userId = 1L,
+            page = 0,
+            size = 10,
+          ),
+        )
       result.totalElements shouldBe 1
     }
     test("findByCorrelationId should delegate to repository") {

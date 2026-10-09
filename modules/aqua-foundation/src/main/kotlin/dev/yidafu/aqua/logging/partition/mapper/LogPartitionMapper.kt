@@ -26,7 +26,6 @@ import dev.yidafu.aqua.common.graphql.generated.LogPartitionVo
 import dev.yidafu.aqua.common.graphql.generated.LogTableType
 import dev.yidafu.aqua.logging.partition.domain.LogPartitionRules
 import dev.yidafu.aqua.logging.partition.domain.model.LogPartitionInfo
-import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 
 /**
@@ -56,14 +55,22 @@ object LogPartitionVoMapper {
 }
 
 /**
- * 离线备份记录映射器:实体 → GraphQL 类型
+ * 离线备份记录 → GraphQL 类型
  */
-object LogBackupRecordMapper : ObjectMappie<LogBackupRecordModel, LogBackupRecord>() {
-  override fun map(from: LogBackupRecordModel): LogBackupRecord =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::logTable fromExpression { LogTableType.valueOf(from.logTable.name) }
-      to::checksum fromProperty LogBackupRecordModel::fileChecksum
-      to::status fromExpression { LogBackupStatus.valueOf(from.status.name) }
-    }
-}
+fun LogBackupRecordModel.toGraphQL(): LogBackupRecord =
+  LogBackupRecord(
+    checksum = fileChecksum,
+    coldTableName = coldTableName,
+    errorMessage = errorMessage,
+    filePath = filePath,
+    fileSizeBytes = fileSizeBytes,
+    finishedAt = finishedAt,
+    id = id ?: 0L,
+    logTable = LogTableType.valueOf(logTable.name),
+    operatorName = operatorName,
+    partitionMonth = partitionMonth,
+    partitionName = partitionName,
+    rowCount = rowCount,
+    startedAt = startedAt,
+    status = LogBackupStatus.valueOf(status.name),
+  )

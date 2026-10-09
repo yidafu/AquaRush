@@ -21,9 +21,7 @@ package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
 import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
-import dev.yidafu.aqua.analytics.reconciliation.mapper.DailyCollectionRecordModelMapper
-import dev.yidafu.aqua.analytics.reconciliation.mapper.DailyReconciliationModelMapper
-import dev.yidafu.aqua.analytics.reconciliation.mapper.MyTodayCollectionResultMapper
+import dev.yidafu.aqua.analytics.reconciliation.mapper.toGraphQL
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -105,7 +103,7 @@ class AdminDailyCollectionQueryResolver(
       )
 
     return DailyCollectionPage(
-      list = page.content.map { DailyCollectionRecordModelMapper.map(it) },
+      list = page.content.map { it.toGraphQL() },
       pageInfo = pageInfoOf(page),
     )
   }
@@ -131,7 +129,7 @@ class AdminDailyCollectionQueryResolver(
       )
 
     return DailyReconciliationPage(
-      list = page.content.map { DailyReconciliationModelMapper.map(it) },
+      list = page.content.map { it.toGraphQL() },
       pageInfo = pageInfoOf(page),
     )
   }
@@ -274,7 +272,7 @@ class AdminDailyCollectionQueryResolver(
         )
       }
     // 4. 构建返回对象
-    return MyTodayCollectionResultMapper.map(result)
+    return result.toGraphQL()
   }
 }
 

@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.marketing.pricing.service.impl
 
-import dev.yidafu.aqua.api.dto.SaveGroupProductPricesRequest
 import dev.yidafu.aqua.api.service.marketing.GroupProductPriceMutationService
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
+import dev.yidafu.aqua.common.graphql.generated.SaveGroupProductPricesInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
 import org.slf4j.LoggerFactory
@@ -45,24 +45,26 @@ class GroupProductPriceMutationServiceImpl(
   override fun savePrices(
     adminId: Long,
     adminName: String,
-    request: SaveGroupProductPricesRequest,
+    input: SaveGroupProductPricesInput,
   ): Boolean {
     val now = LocalDateTime.now()
-    val submittedProductIds = request.items.map { it.productId }.toSet()
+    // clearUnlisted 缺省回填 false(原 Request 中转行为)
+    val clearUnlisted = input.clearUnlisted ?: false
+    val submittedProductIds = input.items.map { it.productId }.toSet()
 
     // 清空本批未包含的已配置价格(整组清空/批量覆盖语义)
-    if (request.clearUnlisted) {
+    if (clearUnlisted) {
       groupProductPriceRepository
-        .findByCustomerGroupId(request.customerGroupId)
+        .findByCustomerGroupId(input.customerGroupId)
         .filter { it.productId !in submittedProductIds }
         .forEach { groupProductPriceRepository.delete(it) }
     }
 
-    request.items.forEach { item ->
+    input.items.forEach { item ->
       val priceCents = item.priceCents
       // 服务端兜底校验(嵌套输入校验不级联,金额 0.01-99999 元 R-MON-01)
       require(priceCents == null || (priceCents in 1..9999900)) { "分组价格无效(0.01-99999元)" }
-      val existing = groupProductPriceRepository.findByCustomerGroupIdAndProductId(request.customerGroupId, item.productId)
+      val existing = groupProductPriceRepository.findByCustomerGroupIdAndProductId(input.customerGroupId, item.productId)
       when {
         priceCents == null -> {
           // 清空该项 → 回退目录价
@@ -76,7 +78,7 @@ class GroupProductPriceMutationServiceImpl(
         else -> {
           groupProductPriceRepository.save(
             GroupProductPriceModel(
-              customerGroupId = request.customerGroupId,
+              customerGroupId = input.customerGroupId,
               productId = item.productId,
               priceCents = priceCents,
               createdAt = now,
@@ -86,16 +88,16 @@ class GroupProductPriceMutationServiceImpl(
         }
       }
     }
-    logger.info("Admin {} saved {} group prices for group {}", adminId, request.items.size, request.customerGroupId)
+    logger.info("Admin {} saved {} group prices for group {}", adminId, input.items.size, input.customerGroupId)
 
     // 业务日志(F-LOG-003 MARKETING 域):分组定价保存
     bizLogger.logMarketingOperation(
-      targetId = request.customerGroupId,
+      targetId = input.customerGroupId,
       operation = "GROUP_PRICE_SAVED",
       result = "SUCCESS",
       userId = adminId,
       username = adminName,
-      additionalData = mapOf("itemCount" to request.items.size, "clearUnlisted" to request.clearUnlisted),
+      additionalData = mapOf("itemCount" to input.items.size, "clearUnlisted" to clearUnlisted),
     )
     return true
   }

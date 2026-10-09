@@ -1,6 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  alias(libs.plugins.mappie)
   // JPA→Exposed 迁移 P4:两插件暂共存 —— order/payment/review 的 QueryDSL Impl
   // 全量迁到 Exposed 后摘除 querydsl(与 marketing/product 迁移节奏一致)。
   id("aqua.kotlin.querydsl")
@@ -52,11 +51,6 @@ dependencies {
   // aqua-review: Redis
   implementation(libs.bundles.redis)
   implementation(libs.bundles.cache)
-
-  // ========================================================
-  // Mappie
-  // ========================================================
-  implementation(libs.mappie.api)
 
   // ========================================================
   // 测试依赖

@@ -24,7 +24,7 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.BarrelFeeListInput
 import dev.yidafu.aqua.common.graphql.generated.BarrelFeePage
-import dev.yidafu.aqua.marketing.barrel.mapper.BarrelFeeModelMapper
+import dev.yidafu.aqua.marketing.barrel.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -57,7 +57,7 @@ class AdminBarrelFeeQueryResolver(
         size = input?.size ?: 20,
       )
     return BarrelFeePage(
-      content = result.content.map { BarrelFeeModelMapper.map(it) },
+      content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,
       size = result.size,

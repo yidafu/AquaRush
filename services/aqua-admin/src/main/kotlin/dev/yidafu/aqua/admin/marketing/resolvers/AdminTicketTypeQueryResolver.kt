@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.TicketTypeQueryService
 import dev.yidafu.aqua.common.graphql.generated.TicketType
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeListInput
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeVoPage
-import dev.yidafu.aqua.marketing.ticket.mapper.TicketTypeMapper
-import dev.yidafu.aqua.marketing.ticket.mapper.TicketTypeStatusInputMapper
+import dev.yidafu.aqua.marketing.ticket.mapper.toDomain
+import dev.yidafu.aqua.marketing.ticket.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -48,7 +48,7 @@ class AdminTicketTypeQueryResolver(
     @Argument input: TicketTypeListInput?,
   ): TicketTypeVoPage {
     val status =
-      input?.status?.let { TicketTypeStatusInputMapper.map(it) }
+      input?.status?.let { it.toDomain() }
     val page =
       ticketTypeQueryService.listTicketTypes(
         keyword = input?.keyword,
@@ -56,7 +56,7 @@ class AdminTicketTypeQueryResolver(
         pageable = PageRequest.of(input?.page ?: 0, input?.size ?: 20),
       )
     return TicketTypeVoPage(
-      content = page.content.map { TicketTypeMapper.map(it) },
+      content = page.content.map { it.toGraphQL() },
       number = page.number,
       size = page.size,
       totalElements = page.totalElements.toInt(),
@@ -71,5 +71,5 @@ class AdminTicketTypeQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun ticketType(
     @Argument id: Long,
-  ): TicketType? = ticketTypeQueryService.getTicketType(id)?.let { TicketTypeMapper.map(it) }
+  ): TicketType? = ticketTypeQueryService.getTicketType(id)?.let { it.toGraphQL() }
 }

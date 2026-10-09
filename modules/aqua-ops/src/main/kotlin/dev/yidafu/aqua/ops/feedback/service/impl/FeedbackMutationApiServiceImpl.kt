@@ -19,11 +19,12 @@
 
 package dev.yidafu.aqua.ops.feedback.service.impl
 
-import dev.yidafu.aqua.api.dto.FeedbackSubmitRequest
 import dev.yidafu.aqua.api.service.ops.FeedbackMutationApiService
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
+import dev.yidafu.aqua.common.graphql.generated.FeedbackSubmitInput
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
+import dev.yidafu.aqua.ops.feedback.mapper.toDomain
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -39,19 +40,19 @@ class FeedbackMutationApiServiceImpl(
   @Transactional
   override fun submitFeedback(
     userId: Long,
-    request: FeedbackSubmitRequest,
+    input: FeedbackSubmitInput,
   ): FeedbackModel {
     val feedback =
       FeedbackModel(
         userId = userId,
-        feedbackType = request.feedbackType,
-        content = request.content,
-        contactInfo = request.contactInfo,
+        feedbackType = input.feedbackType.toDomain(),
+        content = input.content,
+        contactInfo = input.contactInfo,
         status = FeedbackStatus.PENDING,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
-    feedback.setImagesFromList(request.images)
+    feedback.setImagesFromList(input.images ?: emptyList())
     return feedbackRepository.save(feedback)
   }
 }

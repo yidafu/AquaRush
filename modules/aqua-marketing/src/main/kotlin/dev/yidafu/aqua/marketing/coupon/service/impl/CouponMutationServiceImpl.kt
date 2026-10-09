@@ -19,9 +19,6 @@
 
 package dev.yidafu.aqua.marketing.coupon.service.impl
 
-import dev.yidafu.aqua.api.dto.CouponTemplateCreateRequest
-import dev.yidafu.aqua.api.dto.CouponTemplateUpdateRequest
-import dev.yidafu.aqua.api.dto.IssueCouponsRequest
 import dev.yidafu.aqua.api.dto.IssueTargetType
 import dev.yidafu.aqua.api.service.marketing.CouponMutationService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
@@ -30,11 +27,15 @@ import dev.yidafu.aqua.common.domain.model.enums.CouponScope
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.model.enums.CouponType
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.common.graphql.generated.CreateCouponTemplateInput
+import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponNotClaimableException
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponTemplateNotFoundException
 import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
+import dev.yidafu.aqua.marketing.coupon.mapper.toDomain
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -57,25 +58,30 @@ class CouponMutationServiceImpl(
   override fun createTemplate(
     adminId: Long,
     adminName: String,
-    request: CouponTemplateCreateRequest,
+    input: CreateCouponTemplateInput,
   ): CouponTemplateModel {
-    validateTemplateFields(request.couponType, request.discountAmountCents, request.discountRatePermille, request.scope, request.productId)
-    validateValidity(request.validityType, request.validFrom, request.validTo, request.validDays)
+    // GraphQL 枚举 → 领域枚举
+    val couponType = input.couponType.toDomain()
+    val scope = input.scope.toDomain()
+    val validityType = input.validityType.toDomain()
+    val issuanceType = input.issuanceType.toDomain()
+    validateTemplateFields(couponType, input.discountAmountCents, input.discountRatePermille, scope, input.productId)
+    validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
     val template =
       CouponTemplateModel(
-        name = request.name,
-        couponType = request.couponType,
-        thresholdCents = request.thresholdCents,
-        discountAmountCents = request.discountAmountCents,
-        discountRatePermille = request.discountRatePermille,
-        scope = request.scope,
-        productId = request.productId,
-        validityType = request.validityType,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
-        validDays = request.validDays,
-        issuanceType = request.issuanceType,
-        perUserLimit = request.perUserLimit,
+        name = input.name,
+        couponType = couponType,
+        thresholdCents = input.thresholdCents,
+        discountAmountCents = input.discountAmountCents,
+        discountRatePermille = input.discountRatePermille,
+        scope = scope,
+        productId = input.productId,
+        validityType = validityType,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
+        validDays = input.validDays,
+        issuanceType = issuanceType,
+        perUserLimit = input.perUserLimit,
         status = CouponTemplateStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -100,23 +106,27 @@ class CouponMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: CouponTemplateUpdateRequest,
+    input: UpdateCouponTemplateInput,
   ): CouponTemplateModel {
     val template = couponTemplateRepository.findById(id).orElseThrow { CouponTemplateNotFoundException(id) }
-    validateTemplateFields(request.couponType, request.discountAmountCents, request.discountRatePermille, request.scope, request.productId)
-    validateValidity(request.validityType, request.validFrom, request.validTo, request.validDays)
-    template.name = request.name
-    template.couponType = request.couponType
-    template.thresholdCents = request.thresholdCents
-    template.discountAmountCents = request.discountAmountCents
-    template.discountRatePermille = request.discountRatePermille
-    template.scope = request.scope
-    template.productId = request.productId
-    template.validityType = request.validityType
-    template.validFrom = request.validFrom
-    template.validTo = request.validTo
-    template.validDays = request.validDays
-    template.perUserLimit = request.perUserLimit
+    // GraphQL 枚举 → 领域枚举
+    val couponType = input.couponType.toDomain()
+    val scope = input.scope.toDomain()
+    val validityType = input.validityType.toDomain()
+    validateTemplateFields(couponType, input.discountAmountCents, input.discountRatePermille, scope, input.productId)
+    validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
+    template.name = input.name
+    template.couponType = couponType
+    template.thresholdCents = input.thresholdCents
+    template.discountAmountCents = input.discountAmountCents
+    template.discountRatePermille = input.discountRatePermille
+    template.scope = scope
+    template.productId = input.productId
+    template.validityType = validityType
+    template.validFrom = input.validFrom
+    template.validTo = input.validTo
+    template.validDays = input.validDays
+    template.perUserLimit = input.perUserLimit
     val saved = couponTemplateRepository.save(template)
     logger.info("Admin {} updated coupon template {}", adminId, id)
 
@@ -159,20 +169,23 @@ class CouponMutationServiceImpl(
   override fun issueCoupons(
     adminId: Long,
     adminName: String,
-    request: IssueCouponsRequest,
+    input: IssueCouponsInput,
   ): Int {
     val template =
-      couponTemplateRepository.findById(request.couponTemplateId).orElseThrow {
-        CouponTemplateNotFoundException(request.couponTemplateId)
+      couponTemplateRepository.findById(input.couponTemplateId).orElseThrow {
+        CouponTemplateNotFoundException(input.couponTemplateId)
       }
     if (template.status != CouponTemplateStatus.ACTIVE) {
       throw CouponNotClaimableException("券模板已停用,不可发放")
     }
+    // GraphQL 枚举 → 领域枚举;userIds 缺省回填空列表(原 Request 中转行为)
+    val targetType = input.targetType.toDomain()
+    val userIds = input.userIds ?: emptyList()
     val targetUserIds =
-      when (request.targetType) {
-        IssueTargetType.USER -> request.userIds
+      when (targetType) {
+        IssueTargetType.USER -> userIds
         IssueTargetType.GROUP -> {
-          val groupId = request.customerGroupId ?: throw IllegalArgumentException("分组发放必须指定客户分组")
+          val groupId = input.customerGroupId ?: throw IllegalArgumentException("分组发放必须指定客户分组")
           userQueryApiService.findByCustomerGroupId(groupId).mapNotNull { it.id }
         }
       }
@@ -187,7 +200,7 @@ class CouponMutationServiceImpl(
       userCouponRepository.save(CouponSnapshotSupport.buildUserCoupon(userId, template, now))
       issued++
     }
-    logger.info("Admin {} issued {} coupons from template {} (target={})", adminId, issued, template.id, request.targetType)
+    logger.info("Admin {} issued {} coupons from template {} (target={})", adminId, issued, template.id, targetType)
 
     // 业务日志(F-LOG-003 MARKETING 域):优惠券发放
     bizLogger.logMarketingOperation(
@@ -196,7 +209,7 @@ class CouponMutationServiceImpl(
       result = "SUCCESS",
       userId = adminId,
       username = adminName,
-      additionalData = mapOf("issuedCount" to issued, "targetType" to request.targetType.name, "templateName" to template.name),
+      additionalData = mapOf("issuedCount" to issued, "targetType" to targetType.name, "templateName" to template.name),
     )
     return issued
   }

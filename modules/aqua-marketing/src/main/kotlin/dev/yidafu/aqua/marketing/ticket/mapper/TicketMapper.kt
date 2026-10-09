@@ -19,17 +19,11 @@
 
 package dev.yidafu.aqua.marketing.ticket.mapper
 
-import dev.yidafu.aqua.api.dto.TicketTypeCreateRequest
-import dev.yidafu.aqua.api.dto.TicketTypeUpdateRequest
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
-import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
 import dev.yidafu.aqua.common.graphql.generated.TicketType
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeKind
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeStatus
-import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 import dev.yidafu.aqua.common.graphql.generated.ValidityType
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind as DomainTicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus as DomainTicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType as DomainValidityType
@@ -37,46 +31,43 @@ import dev.yidafu.aqua.common.domain.model.enums.ValidityType as DomainValidityT
 /**
  * 桶水票票种映射器:域实体 → GraphQL 类型(PRD 10-marketing.md §F-MKT-007)
  */
-object TicketTypeMapper : ObjectMappie<TicketTypeModel, TicketType>() {
-  override fun map(from: TicketTypeModel): TicketType =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::ticketType fromExpression { TicketTypeKindMapper.map(from.ticketType) }
-      to::status fromExpression { TicketTypeStatusMapper.map(from.status) }
-      to::validityType fromExpression { ValidityTypeMapper.map(from.validityType) }
-    }
-}
-
-object TicketTypeKindMapper : EnumMappie<DomainTicketTypeKind, TicketTypeKind>()
-
-object TicketTypeStatusMapper : EnumMappie<DomainTicketTypeStatus, TicketTypeStatus>()
-
-object ValidityTypeMapper : EnumMappie<DomainValidityType, ValidityType>()
-
-object TicketTypeKindInputMapper : EnumMappie<TicketTypeKind, DomainTicketTypeKind>()
-
-object TicketTypeStatusInputMapper : EnumMappie<TicketTypeStatus, DomainTicketTypeStatus>()
-
-object ValidityTypeInputMapper : EnumMappie<ValidityType, DomainValidityType>()
+fun TicketTypeModel.toGraphQL(): TicketType =
+  TicketType(
+    id = id ?: 0L,
+    name = name,
+    ticketType = ticketType.toGraphQL(),
+    productId = productId,
+    specification = specification,
+    packageCount = packageCount,
+    packagePriceCents = packagePriceCents,
+    giftCount = giftCount,
+    validityType = validityType.toGraphQL(),
+    validFrom = validFrom,
+    validTo = validTo,
+    validDays = validDays,
+    perUserLimit = perUserLimit,
+    status = status.toGraphQL(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
- * 新建票种输入映射器:GraphQL 输入 → 服务请求
+ * 票种类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object CreateTicketTypeInputMapper : ObjectMappie<CreateTicketTypeInput, TicketTypeCreateRequest>() {
-  override fun map(from: CreateTicketTypeInput): TicketTypeCreateRequest =
-    mapping {
-      to::ticketType fromExpression { TicketTypeKindInputMapper.map(from.ticketType) }
-      to::validityType fromExpression { ValidityTypeInputMapper.map(from.validityType) }
-    }
-}
+fun DomainTicketTypeKind.toGraphQL(): TicketTypeKind = TicketTypeKind.valueOf(name)
+
+fun TicketTypeKind.toDomain(): DomainTicketTypeKind = DomainTicketTypeKind.valueOf(name)
 
 /**
- * 编辑票种输入映射器
+ * 票种状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object UpdateTicketTypeInputMapper : ObjectMappie<UpdateTicketTypeInput, TicketTypeUpdateRequest>() {
-  override fun map(from: UpdateTicketTypeInput): TicketTypeUpdateRequest =
-    mapping {
-      to::ticketType fromExpression { TicketTypeKindInputMapper.map(from.ticketType) }
-      to::validityType fromExpression { ValidityTypeInputMapper.map(from.validityType) }
-    }
-}
+fun DomainTicketTypeStatus.toGraphQL(): TicketTypeStatus = TicketTypeStatus.valueOf(name)
+
+fun TicketTypeStatus.toDomain(): DomainTicketTypeStatus = DomainTicketTypeStatus.valueOf(name)
+
+/**
+ * 有效期类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainValidityType.toGraphQL(): ValidityType = ValidityType.valueOf(name)
+
+fun ValidityType.toDomain(): DomainValidityType = DomainValidityType.valueOf(name)

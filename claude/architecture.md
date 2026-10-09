@@ -34,7 +34,7 @@ dev/yidafu/aqua/<domain>/
 │   └── exception/    # domain exceptions
 ├── dto/              # module-private DTOs
 ├── event/            # domain events and handlers
-├── mapper/           # Mappie mappers
+├── mapper/           # 手写扩展函数转换（toGraphQL/toDomain/toRequest，valueOf 枚举互转）
 ├── resolvers/        # GraphQL resolvers that are thin module adapters
 └── service/
     └── impl/         # implementations (interfaces live in aqua-foundation api/service)

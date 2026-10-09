@@ -23,8 +23,7 @@ import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.deliveryfeerule.mapper.DeliveryFeeRuleMapper
-import dev.yidafu.aqua.ops.deliveryfeerule.mapper.SaveDeliveryFeeRuleInputMapper
+import dev.yidafu.aqua.ops.deliveryfeerule.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -57,8 +56,8 @@ class AdminDeliveryFeeRuleMutationResolver(
       deliveryFeeRuleMutationService.saveDeliveryFeeRule(
         adminId = principal.id,
         adminName = principal.username,
-        request = SaveDeliveryFeeRuleInputMapper.map(input),
+        input = input,
       )
-    return DeliveryFeeRuleMapper.map(rule)
+    return rule.toGraphQL()
   }
 }

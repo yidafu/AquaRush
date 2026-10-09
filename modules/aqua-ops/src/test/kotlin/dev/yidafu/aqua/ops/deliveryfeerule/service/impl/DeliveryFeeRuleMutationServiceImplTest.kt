@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.ops.deliveryfeerule.service.impl
 
-import dev.yidafu.aqua.api.dto.SaveDeliveryFeeRuleRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.repository.DeliveryFeeRuleRepository
 import io.kotest.assertions.throwables.shouldThrow
@@ -48,7 +48,7 @@ class DeliveryFeeRuleMutationServiceImplTest :
       every { deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID) } returns java.util.Optional.empty()
       every { deliveryFeeRuleRepository.save(any()) } answers { firstArg() }
 
-      val saved = service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleRequest(freeFloorLimit = 6, surchargeCents = 500))
+      val saved = service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleInput(freeFloorLimit = 6, surchargeCents = 500))
 
       saved.id shouldBe DeliveryFeeRuleRepository.SINGLETON_ID
       saved.freeFloorLimit shouldBe 6
@@ -59,7 +59,7 @@ class DeliveryFeeRuleMutationServiceImplTest :
       every { deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID) } returns java.util.Optional.of(existing)
       every { deliveryFeeRuleRepository.save(any()) } answers { firstArg() }
 
-      val saved = service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleRequest(freeFloorLimit = 6, surchargeCents = 500))
+      val saved = service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleInput(freeFloorLimit = 6, surchargeCents = 500))
 
       saved.freeFloorLimit shouldBe 6
       verify {
@@ -77,17 +77,17 @@ class DeliveryFeeRuleMutationServiceImplTest :
     }
     test("surcharge over limit rejected") {
       shouldThrow<IllegalArgumentException> {
-        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleRequest(freeFloorLimit = 4, surchargeCents = 99_901))
+        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleInput(freeFloorLimit = 4, surchargeCents = 99_901))
       }
     }
     test("negative surcharge rejected") {
       shouldThrow<IllegalArgumentException> {
-        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleRequest(freeFloorLimit = 4, surchargeCents = -1))
+        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleInput(freeFloorLimit = 4, surchargeCents = -1))
       }
     }
     test("negative free floor rejected") {
       shouldThrow<IllegalArgumentException> {
-        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleRequest(freeFloorLimit = -1, surchargeCents = 200))
+        service.saveDeliveryFeeRule(1L, "admin", SaveDeliveryFeeRuleInput(freeFloorLimit = -1, surchargeCents = 200))
       }
     }
   })

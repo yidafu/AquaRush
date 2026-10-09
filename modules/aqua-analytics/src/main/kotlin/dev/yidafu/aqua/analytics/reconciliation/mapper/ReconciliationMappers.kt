@@ -31,56 +31,67 @@ import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
 import dev.yidafu.aqua.common.graphql.generated.SourceSystem
 import dev.yidafu.aqua.common.util.JsonHelper
-import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 
 /**
- * 微信资金对账实体 → GraphQL 类型映射(与 DailyCollectionMappers 同风格):
- * 处理 id Long? -> Long、枚举跨包名(域枚举 → 生成枚举)、recordDetails/reportData Map -> ObjectNode。
+ * 微信资金对账实体 → GraphQL 类型映射(原 ReconciliationTaskModelMapper):
+ * 处理 id Long? -> Long、枚举跨包名(域枚举 → 生成枚举)、taskDate LocalDateTime? -> LocalDateTime。
  */
-object ReconciliationTaskModelMapper : ObjectMappie<ReconciliationTaskModel, ReconciliationTask>() {
-  override fun map(from: ReconciliationTaskModel): ReconciliationTask =
-    mapping {
-      // 处理 id: Long? -> Long
-      to::id fromValue (from.id ?: 0L)
-      // 处理枚举跨包名:域枚举 → GraphQL 生成枚举(同名常量)
-      to::taskType fromValue ReconciliationTaskType.valueOf(from.taskType.name)
-      to::status fromValue ReconciliationTaskStatus.valueOf(from.status.name)
-      // 处理 taskDate: LocalDateTime? -> LocalDateTime
-      to::taskDate fromValue (from.taskDate ?: LocalDateTime.now())
-    }
-}
+fun ReconciliationTaskModel.toGraphQL(): ReconciliationTask =
+  ReconciliationTask(
+    // 处理 id: Long? -> Long
+    id = id ?: 0L,
+    taskId = taskId,
+    // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
+    taskType = ReconciliationTaskType.valueOf(taskType.name),
+    status = ReconciliationTaskStatus.valueOf(status.name),
+    // 处理 taskDate: LocalDateTime? -> LocalDateTime
+    taskDate = taskDate ?: LocalDateTime.now(),
+    startTime = startTime,
+    endTime = endTime,
+    totalRecords = totalRecords,
+    matchedRecords = matchedRecords,
+    unmatchedRecords = unmatchedRecords,
+    errorMessage = errorMessage,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
- * 对账差异实体 → GraphQL 类型映射
+ * 对账差异实体 → GraphQL 类型映射(原 ReconciliationDiscrepancyModelMapper)
  */
-object ReconciliationDiscrepancyModelMapper : ObjectMappie<ReconciliationDiscrepancyModel, ReconciliationDiscrepancy>() {
-  override fun map(from: ReconciliationDiscrepancyModel): ReconciliationDiscrepancy {
-    val recordDetailsNode = from.recordDetails?.let { JsonHelper().createObjectNode(it) }
-    return mapping {
-      // 处理 id: Long? -> Long
-      to::id fromValue (from.id ?: 0L)
-      // 处理枚举跨包名:域枚举 → GraphQL 生成枚举(同名常量)
-      to::discrepancyType fromValue DiscrepancyType.valueOf(from.discrepancyType.name)
-      to::sourceSystem fromValue SourceSystem.valueOf(from.sourceSystem.name)
-      to::status fromValue DiscrepancyStatus.valueOf(from.status.name)
-      // 处理 recordDetails: Map? -> ObjectNode?
-      to::recordDetails fromValue recordDetailsNode
-    }
-  }
-}
+fun ReconciliationDiscrepancyModel.toGraphQL(): ReconciliationDiscrepancy =
+  ReconciliationDiscrepancy(
+    // 处理 id: Long? -> Long
+    id = id ?: 0L,
+    taskId = taskId,
+    // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
+    discrepancyType = DiscrepancyType.valueOf(discrepancyType.name),
+    sourceSystem = SourceSystem.valueOf(sourceSystem.name),
+    recordId = recordId,
+    // 处理 recordDetails: Map? -> ObjectNode?
+    recordDetails = recordDetails?.let { JsonHelper().createObjectNode(it) },
+    status = DiscrepancyStatus.valueOf(status.name),
+    resolutionNotes = resolutionNotes,
+    resolvedBy = resolvedBy,
+    resolvedAt = resolvedAt,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
 /**
- * 对账报表实体 → GraphQL 类型映射
+ * 对账报表实体 → GraphQL 类型映射(原 ReconciliationReportModelMapper)
  */
-object ReconciliationReportModelMapper : ObjectMappie<ReconciliationReportModel, ReconciliationReport>() {
-  override fun map(from: ReconciliationReportModel): ReconciliationReport {
-    val reportDataNode = JsonHelper().createObjectNode(from.reportData)
-    return mapping {
-      // 处理 id: Long? -> Long
-      to::id fromValue (from.id ?: 0L)
-      // 处理 reportData: Map -> ObjectNode
-      to::reportData fromValue reportDataNode
-    }
-  }
-}
+fun ReconciliationReportModel.toGraphQL(): ReconciliationReport =
+  ReconciliationReport(
+    // 处理 id: Long? -> Long
+    id = id ?: 0L,
+    taskId = taskId,
+    reportType = reportType,
+    // 处理 reportData: Map -> ObjectNode
+    reportData = JsonHelper().createObjectNode(reportData),
+    filePath = filePath,
+    fileName = fileName,
+    fileSize = fileSize,
+    generatedAt = generatedAt,
+  )

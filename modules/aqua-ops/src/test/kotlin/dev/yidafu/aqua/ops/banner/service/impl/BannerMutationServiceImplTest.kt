@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.ops.banner.service.impl
 
-import dev.yidafu.aqua.api.dto.BannerCreateRequest
-import dev.yidafu.aqua.api.dto.BannerUpdateRequest
 import dev.yidafu.aqua.api.dto.ReorderDirection
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
+import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.banner.domain.exception.DuplicateSortOrderException
 import dev.yidafu.aqua.ops.banner.domain.exception.InvalidTimeWindowException
@@ -36,6 +36,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.graphql.generated.BannerLinkType as GqlBannerLinkType
 
 /**
  * 轮播图变更服务单元测试(F-OPS-001 核心规则:排序号唯一、时间窗合法、跳转校验、审计留痕)
@@ -50,12 +51,12 @@ class BannerMutationServiceImplTest :
     fun request(
       title: String = "测试轮播",
       sortOrder: Int? = null,
-      linkType: BannerLinkType = BannerLinkType.CUSTOM_PAGE,
+      linkType: GqlBannerLinkType = GqlBannerLinkType.CUSTOM_PAGE,
       linkTarget: String = "/pages/home/index",
       startAt: LocalDateTime? = null,
       endAt: LocalDateTime? = null,
-    ): BannerCreateRequest =
-      BannerCreateRequest(
+    ): CreateBannerInput =
+      CreateBannerInput(
         imageUrl = "http://localhost:9090/api/v1/storage/files/x.png",
         title = title,
         linkType = linkType,
@@ -110,7 +111,7 @@ class BannerMutationServiceImplTest :
       every { productQueryApiService.existsById(999L) } returns false
 
       shouldThrow<IllegalArgumentException> {
-        service.createBanner(1L, "admin", request(linkType = BannerLinkType.PRODUCT, linkTarget = "999"))
+        service.createBanner(1L, "admin", request(linkType = GqlBannerLinkType.PRODUCT, linkTarget = "999"))
       }
     }
     test("createBanner writes audit") {
@@ -145,7 +146,15 @@ class BannerMutationServiceImplTest :
           1L,
           "admin",
           1L,
-          BannerUpdateRequest("http://x/1.png", "新标题", null, BannerLinkType.CUSTOM_PAGE, "/pages/about/index", 2, true),
+          UpdateBannerInput(
+            imageUrl = "http://x/1.png",
+            title = "新标题",
+            subtitle = null,
+            linkType = GqlBannerLinkType.CUSTOM_PAGE,
+            linkTarget = "/pages/about/index",
+            sortOrder = 2,
+            enabled = true,
+          ),
         )
 
       updated.title shouldBe "新标题"

@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.ops.notice.service.impl
 
-import dev.yidafu.aqua.api.dto.CreateNoticeRequest
-import dev.yidafu.aqua.api.dto.UpdateNoticeRequest
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType
+import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeStateTransitionException
 import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeTimeWindowException
@@ -37,6 +37,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.graphql.generated.NoticeType as GqlNoticeType
 
 /**
  * 公告变更服务单元测试(F-OPS-002 核心规则:状态机 草稿→发布→停用、置顶仅限已发布、时间窗合法、审计留痕)
@@ -49,11 +50,11 @@ class NoticeMutationServiceImplTest :
 
     fun createRequest(
       title: String = "测试公告",
-      type: NoticeType = NoticeType.PLATFORM_NOTICE,
+      type: GqlNoticeType = GqlNoticeType.PLATFORM_NOTICE,
       startAt: LocalDateTime? = null,
       endAt: LocalDateTime? = null,
-    ): CreateNoticeRequest =
-      CreateNoticeRequest(
+    ): CreateNoticeInput =
+      CreateNoticeInput(
         title = title,
         content = "公告内容",
         type = type,
@@ -137,7 +138,7 @@ class NoticeMutationServiceImplTest :
       every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
 
       shouldThrow<InvalidNoticeStateTransitionException> {
-        service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
+        service.updateNotice(1L, "admin", 1L, UpdateNoticeInput(title = "新标题", content = "新内容", type = GqlNoticeType.WATER_OUTAGE))
       }
     }
     test("updateNotice updates PUBLISHED with audit") {
@@ -146,7 +147,7 @@ class NoticeMutationServiceImplTest :
       every { noticeRepository.save(any()) } answers { firstArg() }
 
       val updated =
-        service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
+        service.updateNotice(1L, "admin", 1L, UpdateNoticeInput(title = "新标题", content = "新内容", type = GqlNoticeType.WATER_OUTAGE))
 
       updated.title shouldBe "新标题"
       updated.type shouldBe NoticeType.WATER_OUTAGE

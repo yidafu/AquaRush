@@ -32,8 +32,7 @@ import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
-import dev.yidafu.aqua.order.mapper.UpdateOrderAddressInputMapper
+import dev.yidafu.aqua.order.mapper.toRequest
 import dev.yidafu.aqua.order.service.DeliveryPhotoReviewService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -134,7 +133,7 @@ class AdminOrderMutationResolver(
       )}, addressId=${input.addressId}, isSelfCollect=${input.isSelfCollect}",
     )
     val adminId = getAdminId(userDetail.username)
-    val request = CreateDeliveryOrderInputMapper.map(input)
+    val request = input.toRequest()
     val order =
       orderMutationService.createDeliveryOrder(
         adminId,
@@ -205,7 +204,7 @@ class AdminOrderMutationResolver(
         "receiverName=${input.receiverName}, floor=${input.floor}, " +
         "longitude=${input.longitude}, latitude=${input.latitude}",
     )
-    val request = UpdateOrderAddressInputMapper.map(input)
+    val request = input.toRequest()
     return adminOrderMapper.map(deliveryTaskMutationService.updateOrderAddress(principal.id, orderId, request))
   }
 

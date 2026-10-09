@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.ops.systemconfig.service.impl
 
-import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
 import dev.yidafu.aqua.api.service.ops.SystemConfigMutationService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
+import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.systemconfig.domain.exception.InvalidSettingValueException
 import dev.yidafu.aqua.ops.systemconfig.domain.exception.SettingKeyNotFoundException
@@ -47,7 +47,7 @@ class SystemConfigMutationServiceImpl(
   override fun saveSystemConfigs(
     adminId: Long,
     adminName: String,
-    items: List<SaveSystemConfigItemRequest>,
+    items: List<SaveSystemConfigInput>,
   ): List<SystemSettingsModel> {
     val settings =
       items.map { item ->

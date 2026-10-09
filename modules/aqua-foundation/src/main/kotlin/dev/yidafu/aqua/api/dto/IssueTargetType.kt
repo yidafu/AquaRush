@@ -19,26 +19,9 @@
 
 package dev.yidafu.aqua.api.dto
 
-import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
-
 /**
- * 定向发放优惠券请求(PRD 10-marketing.md §F-MKT-003):
- * targetType=USER 按 userIds 发放;GROUP 按 customerGroupId 发放给分组全部成员;
- * 每人发放一张,已领数量达到限领数的用户跳过。
- */
-data class IssueCouponsRequest(
-  @field:NotNull(message = "优惠券模板不能为空")
-  val couponTemplateId: Long,
-  @field:NotNull(message = "发放目标类型不能为空")
-  val targetType: IssueTargetType,
-  @field:NotEmpty(message = "目标用户不能为空")
-  val userIds: List<Long> = emptyList(),
-  val customerGroupId: Long? = null,
-)
-
-/**
- * 定向发放目标类型
+ * 定向发放目标类型(PRD 10-marketing.md §F-MKT-003):
+ * targetType=USER 按 userIds 发放;GROUP 按 customerGroupId 发放给分组全部成员。
  */
 enum class IssueTargetType {
   /** 按用户列表发放 */
