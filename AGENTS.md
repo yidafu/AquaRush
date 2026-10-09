@@ -10,7 +10,7 @@ Instructions for AI coding agents (OpenCode, Claude Code, …) working in this r
 
 AquaRush — WeChat Mini Program bottled-water ordering & delivery system. Kotlin Spring Boot 4 backend, React frontends.
 
-- **Backend modules** (`modules/`): `aqua-foundation` (shared infra: entities, cross-module DTOs/services, GraphQL config, messaging, security), `aqua-user`, `aqua-product`, `aqua-trade` (order/delivery/payment/review), `aqua-analytics`, `aqua-platform`, `aqua-ops` (运营配置), `aqua-marketing` (营销 + `barrel/` 水桶费 — merged from former `aqua-deposit`)
+- **Backend modules** (`modules/`): `aqua-foundation` (shared infra: domain models, Exposed table mappings, cross-module DTOs/services, GraphQL config, messaging, security), `aqua-user`, `aqua-product`, `aqua-trade` (order/delivery/payment/review), `aqua-analytics`, `aqua-platform`, `aqua-ops` (运营配置), `aqua-marketing` (营销 + `barrel/` 水桶费 — merged from former `aqua-deposit`)
 - **Services** (the only two deployable entrypoints): `services/aqua-admin` (admin dashboard backend), `services/aqua-client` (Mini Program backend)
 - **Frontends** (pnpm workspace): `frontend/user-weapp` (Taro 4 Mini Program; npm package name `user-miniapp`), `frontend/delivery-app` (Expo SDK 57 React Native), `frontend/admin-client` (React + Vite + Ant Design), `frontend/common` (`@aquarush/common` — shared money/status utils, tracking SDK)
 - Root `package.json` scripts: `pnpm dev:admin` / `pnpm dev:client` (Gradle bootRun), `pnpm dev:weapp`, `pnpm dev:pc`.
@@ -37,7 +37,10 @@ The `PRD/` directory holds numbered requirements docs (`01-overview.md`, `04-ord
 - `koverVerify` is wired into `check`: per-module coverage gates (`koverModuleBounds` in root `build.gradle.kts` — aqua-trade/aqua-marketing ≥ 80%, whole repo ≥ 60%). `./gradlew build` fails when a module is under its bound; new business code in a module needs tests to keep the gate green. Standard: `claude/deployment.md` §Testing Strategy.
 - There is **no `./gradlew …:update` Liquibase task** (plugin declared in the version catalog but never applied). Migrations run automatically at application startup.
 - `services/aqua-client/.env` is auto-loaded by aqua-client bootRun if present (WeChat creds, `WECHAT_PAY_MOCK_ENABLED`, etc. — see `claude/deployment.md` §Environment Variables). `aqua-admin` has no dotenv loading.
-- Integration tests boot Spring + embedded Artemis + H2 with `maxHeapSize = 1g` and are slow — iterate with module-scoped `--tests`, run the full `./gradlew check` before considering work done (required for any API change).
+- Integration tests boot Spring and are slow — iterate with module-scoped `--tests`, run the full `./gradlew check` before considering work done (required for any API change).
+- **Integration tests need two local PostgreSQL databases**, both created with UTF8 (the default locale on some machines yields `EUC_CN`, on which Liquibase fails inserting Chinese seed data):
+  `createdb -E UTF8 -T template0 --locale=zh_CN.UTF-8 aqua_rush_test` (admin service tests; profile `test` runs Liquibase `drop-first` on it) and `createdb -E UTF8 -T template0 --locale=zh_CN.UTF-8 aqua_rush` (dev/client tests).
+  Repository-level tests use in-memory H2 (`*ExposedH2TestSupport`) or Testcontainers PostgreSQL (aqua-trade) and need neither database.
 - Statistics/aggregation timezone is pinned to **Asia/Shanghai** in three places (app `main()`, JDBC URL, systemd `-Duser.timezone`). Keep any new deployment path consistent — `claude/deployment.md` §Timezone.
 
 ### Frontend (pnpm workspace)
@@ -61,7 +64,7 @@ pnpm codegen                              # regenerate GraphQL types after editi
 These invariants must always hold — see `claude/architecture.md` for rationale:
 
 1. All entity IDs are `Long` Snowflake; **all monetary values are `Long` cents (分)** — format only at the presentation layer.
-2. JPA entities are centralized in `modules/aqua-foundation/.../common/domain/model/`; cross-module DTOs live in `aqua-foundation` `api/dto` (one class per file).
+2. Domain models (plain Kotlin data classes, no JPA annotations) are centralized in `modules/aqua-foundation/.../common/domain/model/`; Exposed table mappings in `modules/aqua-foundation/.../common/domain/table/`; cross-module DTOs live in `aqua-foundation` `api/dto` (one class per file).
 3. Domain modules MUST NOT call other modules' repositories directly — cross-module data access goes through `aqua-foundation` `api/service/**`.
 4. Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages; module-root `exception/`; `.imports` files outside `META-INF/spring/`.
 5. Admin resolvers annotate each method with `@PreAuthorize("hasAuthority('PERMISSION_<CODE>')")` using codes from `AdminPermission`; client resolvers use `isAuthenticated()`. Keep `AdminPermission` / `RolePermissionMapping` in sync with `PRD/01-overview.md`.
