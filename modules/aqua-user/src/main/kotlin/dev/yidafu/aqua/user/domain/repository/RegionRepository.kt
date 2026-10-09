@@ -20,13 +20,9 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.RegionModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
-@Repository
-interface RegionRepository :
-  JpaRepository<RegionModel, Long>,
-  RegionRepositoryCustom {
+/** 行政区划仓储(JPA→Exposed 迁移 P3 收尾)。 */
+interface RegionRepository : RegionRepositoryCustom {
   fun findByCode(code: String): RegionModel?
 
   fun findByParentCodeAndLevel(
@@ -53,4 +49,14 @@ interface RegionRepository :
   fun findByParentCodeOrderByCode(parentCode: String): List<RegionModel>
 
   fun findByLevelOrderByCode(level: Int): List<RegionModel>
+
+  // ===== 基础操作(JpaRepository 显式化)=====
+  fun findAll(): List<RegionModel>
+
+  fun findById(id: Long): RegionModel?
+
+  fun save(entity: RegionModel): RegionModel
+
+  /** 语义对齐 @SoftDelete 下的 delete:软删。 */
+  fun delete(entity: RegionModel)
 }
