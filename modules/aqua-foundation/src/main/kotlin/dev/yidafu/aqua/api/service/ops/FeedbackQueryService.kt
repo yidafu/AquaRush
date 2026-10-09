@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.FeedbackListRequest
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
 import org.springframework.data.domain.Page
 
 /**
@@ -31,7 +31,7 @@ interface FeedbackQueryService {
   /**
    * 分页查询反馈列表(支持类型/状态/联系方式关键字/时间范围筛选)
    */
-  fun listFeedbacks(request: FeedbackListRequest): Page<FeedbackModel>
+  fun listFeedbacks(input: FeedbackListInput): Page<FeedbackModel>
 
   /**
    * 根据 ID 查询反馈详情

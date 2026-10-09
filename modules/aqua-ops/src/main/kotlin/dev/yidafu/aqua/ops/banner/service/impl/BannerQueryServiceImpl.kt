@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.ops.banner.service.impl
 
-import dev.yidafu.aqua.api.dto.BannerListRequest
 import dev.yidafu.aqua.api.service.ops.BannerQueryService
 import dev.yidafu.aqua.common.domain.model.BannerModel
+import dev.yidafu.aqua.common.graphql.generated.BannerListInput
 import dev.yidafu.aqua.ops.banner.domain.repository.BannerFilter
 import dev.yidafu.aqua.ops.banner.domain.repository.BannerRepository
 import org.springframework.data.domain.Page
@@ -37,13 +37,13 @@ import org.springframework.stereotype.Service
 class BannerQueryServiceImpl(
   private val bannerRepository: BannerRepository,
 ) : BannerQueryService {
-  override fun listBanners(request: BannerListRequest): Page<BannerModel> {
+  override fun listBanners(input: BannerListInput): Page<BannerModel> {
     val filter =
       BannerFilter(
-        keyword = request.keyword,
-        enabled = request.enabled,
+        keyword = input.keyword,
+        enabled = input.enabled,
       )
-    val pageable = PageRequest.of(request.page, request.size)
+    val pageable = PageRequest.of(input.page ?: 0, input.size ?: 20)
     return bannerRepository.findPage(filter, pageable)
   }
 

@@ -19,11 +19,12 @@
 
 package dev.yidafu.aqua.ops.feedback.service.impl
 
-import dev.yidafu.aqua.api.dto.FeedbackListRequest
 import dev.yidafu.aqua.api.service.ops.FeedbackQueryService
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackFilter
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
+import dev.yidafu.aqua.ops.feedback.mapper.toDomain
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -37,21 +38,21 @@ import org.springframework.stereotype.Service
 class FeedbackQueryServiceImpl(
   private val feedbackRepository: FeedbackRepository,
 ) : FeedbackQueryService {
-  override fun listFeedbacks(request: FeedbackListRequest): Page<FeedbackModel> {
+  override fun listFeedbacks(input: FeedbackListInput): Page<FeedbackModel> {
     // 与原实现一致：时间范围必须两端同时给才生效
-    val dateFrom = request.dateFrom
-    val dateTo = request.dateTo
+    val dateFrom = input.dateFrom
+    val dateTo = input.dateTo
     val hasDateRange = dateFrom != null && dateTo != null
     val filter =
       FeedbackFilter(
-        feedbackType = request.feedbackType,
-        status = request.status,
-        userId = request.userId,
-        contactKeyword = request.contactKeyword,
+        feedbackType = input.feedbackType?.toDomain(),
+        status = input.status?.toDomain(),
+        userId = input.userId,
+        contactKeyword = input.contactKeyword,
         dateFrom = if (hasDateRange) dateFrom else null,
         dateTo = if (hasDateRange) dateTo else null,
       )
-    val pageable = PageRequest.of(request.page, request.size)
+    val pageable = PageRequest.of(input.page ?: 0, input.size ?: 20)
     return feedbackRepository.findPage(filter, pageable)
   }
 

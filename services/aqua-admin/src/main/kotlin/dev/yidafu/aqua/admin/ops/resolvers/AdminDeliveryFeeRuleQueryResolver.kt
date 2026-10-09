@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
-import dev.yidafu.aqua.ops.deliveryfeerule.mapper.DeliveryFeeRuleMapper
+import dev.yidafu.aqua.ops.deliveryfeerule.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -39,5 +39,5 @@ class AdminDeliveryFeeRuleQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
-  fun deliveryFeeRule(): DeliveryFeeRule = DeliveryFeeRuleMapper.map(deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule())
+  fun deliveryFeeRule(): DeliveryFeeRule = deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule().toGraphQL()
 }

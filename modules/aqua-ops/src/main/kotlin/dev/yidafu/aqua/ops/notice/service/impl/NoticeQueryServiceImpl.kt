@@ -19,11 +19,12 @@
 
 package dev.yidafu.aqua.ops.notice.service.impl
 
-import dev.yidafu.aqua.api.dto.NoticeListRequest
 import dev.yidafu.aqua.api.service.ops.NoticeQueryService
 import dev.yidafu.aqua.common.domain.model.NoticeModel
+import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeFilter
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeRepository
+import dev.yidafu.aqua.ops.notice.mapper.toDomain
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -37,14 +38,14 @@ import org.springframework.stereotype.Service
 class NoticeQueryServiceImpl(
   private val noticeRepository: NoticeRepository,
 ) : NoticeQueryService {
-  override fun listNotices(request: NoticeListRequest): Page<NoticeModel> {
+  override fun listNotices(input: NoticeListInput): Page<NoticeModel> {
     val filter =
       NoticeFilter(
-        keyword = request.keyword,
-        type = request.type,
-        status = request.status,
+        keyword = input.keyword,
+        type = input.type?.toDomain(),
+        status = input.status?.toDomain(),
       )
-    val pageable = PageRequest.of(request.page, request.size)
+    val pageable = PageRequest.of(input.page ?: 0, input.size ?: 20)
     return noticeRepository.findPage(filter, pageable)
   }
 

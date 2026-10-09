@@ -19,72 +19,41 @@
 
 package dev.yidafu.aqua.ops.notice.mapper
 
-import dev.yidafu.aqua.api.dto.CreateNoticeRequest
-import dev.yidafu.aqua.api.dto.NoticeListRequest
-import dev.yidafu.aqua.api.dto.UpdateNoticeRequest
 import dev.yidafu.aqua.common.domain.model.NoticeModel
-import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
 import dev.yidafu.aqua.common.graphql.generated.Notice
-import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
 import dev.yidafu.aqua.common.graphql.generated.NoticeStatus
 import dev.yidafu.aqua.common.graphql.generated.NoticeType
-import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus as DomainNoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType as DomainNoticeType
 
 /**
  * 公告映射器:域实体 → GraphQL 类型
  */
-object NoticeMapper : ObjectMappie<NoticeModel, Notice>() {
-  override fun map(from: NoticeModel): Notice =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::type fromExpression { NoticeTypeMapper.map(from.type) }
-      to::status fromExpression { NoticeStatusMapper.map(from.status) }
-    }
-}
-
-object NoticeTypeMapper : EnumMappie<DomainNoticeType, NoticeType>()
-
-object NoticeStatusMapper : EnumMappie<DomainNoticeStatus, NoticeStatus>()
-
-/**
- * 新建公告输入映射器:GraphQL 输入 → 服务请求
- */
-object CreateNoticeInputMapper : ObjectMappie<CreateNoticeInput, CreateNoticeRequest>() {
-  override fun map(from: CreateNoticeInput): CreateNoticeRequest =
-    mapping {
-      to::type fromExpression { NoticeTypeInputMapper.map(from.type) }
-      to::pinned fromValue (from.pinned ?: false)
-    }
-}
+fun NoticeModel.toGraphQL(): Notice =
+  Notice(
+    content = content,
+    createdAt = createdAt,
+    endAt = endAt,
+    id = id ?: 0L,
+    pinned = pinned,
+    publishedAt = publishedAt,
+    startAt = startAt,
+    status = status.toGraphQL(),
+    title = title,
+    type = type.toGraphQL(),
+    updatedAt = updatedAt,
+  )
 
 /**
- * 编辑公告输入映射器
+ * 公告类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object UpdateNoticeInputMapper : ObjectMappie<UpdateNoticeInput, UpdateNoticeRequest>() {
-  override fun map(from: UpdateNoticeInput): UpdateNoticeRequest =
-    mapping {
-      to::type fromExpression { NoticeTypeInputMapper.map(from.type) }
-      to::pinned fromValue (from.pinned ?: false)
-    }
-}
+fun DomainNoticeType.toGraphQL(): NoticeType = NoticeType.valueOf(name)
 
-object NoticeTypeInputMapper : EnumMappie<NoticeType, DomainNoticeType>()
+fun NoticeType.toDomain(): DomainNoticeType = DomainNoticeType.valueOf(name)
 
 /**
- * 公告列表查询输入映射器
+ * 公告状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object NoticeListInputMapper : ObjectMappie<NoticeListInput, NoticeListRequest>() {
-  override fun map(from: NoticeListInput): NoticeListRequest =
-    mapping {
-      to::page fromValue (from.page ?: 0)
-      to::size fromValue (from.size ?: 20)
-      to::type fromExpression { from.type?.let { NoticeTypeInputMapper.map(it) } }
-      to::status fromExpression { from.status?.let { NoticeStatusInputMapper.map(it) } }
-    }
-}
+fun DomainNoticeStatus.toGraphQL(): NoticeStatus = NoticeStatus.valueOf(name)
 
-object NoticeStatusInputMapper : EnumMappie<NoticeStatus, DomainNoticeStatus>()
+fun NoticeStatus.toDomain(): DomainNoticeStatus = DomainNoticeStatus.valueOf(name)

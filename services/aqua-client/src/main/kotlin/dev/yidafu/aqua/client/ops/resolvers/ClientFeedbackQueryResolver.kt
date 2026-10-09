@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.ops.FeedbackQueryApiService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.FeedbackRecordVoPage
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackRecordVoMapper
+import dev.yidafu.aqua.ops.feedback.mapper.toRecordVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -56,7 +56,7 @@ class ClientFeedbackQueryResolver(
         size = size,
       )
     return FeedbackRecordVoPage(
-      content = result.content.map { FeedbackRecordVoMapper.map(it) },
+      content = result.content.map { it.toRecordVo() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,
       size = result.size,

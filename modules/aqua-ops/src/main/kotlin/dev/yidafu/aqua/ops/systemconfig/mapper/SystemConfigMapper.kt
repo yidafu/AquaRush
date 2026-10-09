@@ -19,14 +19,10 @@
 
 package dev.yidafu.aqua.ops.systemconfig.mapper
 
-import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
-import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigGroup
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigVo
 import dev.yidafu.aqua.common.graphql.generated.SystemSettingType
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup as DomainSystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType as DomainSystemSettingType
 
@@ -34,18 +30,32 @@ import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType as DomainSyst
  * 系统参数映射器:域实体 → GraphQL 类型
  * 与 PRD 11-system-settings.md §F-SYS-001 保持一致(键/值/类型/分组/默认值/说明)。
  */
-object SystemConfigMapper : ObjectMappie<SystemSettingsModel, SystemConfigVo>() {
-  override fun map(from: SystemSettingsModel): SystemConfigVo =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-    }
-}
-
-object SystemSettingTypeMapper : EnumMappie<DomainSystemSettingType, SystemSettingType>()
-
-object SystemSettingGroupMapper : EnumMappie<DomainSystemSettingGroup, SystemConfigGroup>()
+fun SystemSettingsModel.toGraphQL(): SystemConfigVo =
+  SystemConfigVo(
+    defaultValue = defaultValue,
+    description = description,
+    id = id ?: 0L,
+    maxValue = maxValue,
+    minValue = minValue,
+    options = options,
+    settingGroup = settingGroup.toGraphQL(),
+    settingKey = settingKey,
+    settingType = settingType.toGraphQL(),
+    settingValue = settingValue,
+    updatedAt = updatedAt,
+    updatedBy = updatedBy,
+  )
 
 /**
- * 保存系统参数输入映射器:GraphQL 输入 → 服务请求
+ * 参数类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object SaveSystemConfigItemMapper : ObjectMappie<SaveSystemConfigInput, SaveSystemConfigItemRequest>()
+fun DomainSystemSettingType.toGraphQL(): SystemSettingType = SystemSettingType.valueOf(name)
+
+fun SystemSettingType.toDomain(): DomainSystemSettingType = DomainSystemSettingType.valueOf(name)
+
+/**
+ * 参数分组:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainSystemSettingGroup.toGraphQL(): SystemConfigGroup = SystemConfigGroup.valueOf(name)
+
+fun SystemConfigGroup.toDomain(): DomainSystemSettingGroup = DomainSystemSettingGroup.valueOf(name)

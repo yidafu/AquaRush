@@ -30,7 +30,7 @@ import dev.yidafu.aqua.common.graphql.generated.LogTableType
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import dev.yidafu.aqua.logging.partition.mapper.LogPartitionVoMapper
 import dev.yidafu.aqua.logging.partition.mapper.toGraphQL
-import dev.yidafu.aqua.ops.systemconfig.mapper.SystemConfigMapper
+import dev.yidafu.aqua.ops.systemconfig.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -77,7 +77,7 @@ class AdminDataMaintenanceQueryResolver(
       )
 
     return DataMaintenanceOverviewVo(
-      settings = settings.map { SystemConfigMapper.map(it) },
+      settings = settings.map { it.toGraphQL() },
       partitions = partitions,
       backupRecords =
         LogBackupRecordPage(

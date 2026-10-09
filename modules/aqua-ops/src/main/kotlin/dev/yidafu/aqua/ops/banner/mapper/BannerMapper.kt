@@ -19,63 +19,33 @@
 
 package dev.yidafu.aqua.ops.banner.mapper
 
-import dev.yidafu.aqua.api.dto.BannerCreateRequest
-import dev.yidafu.aqua.api.dto.BannerListRequest
-import dev.yidafu.aqua.api.dto.BannerUpdateRequest
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.graphql.generated.Banner
 import dev.yidafu.aqua.common.graphql.generated.BannerLinkType
-import dev.yidafu.aqua.common.graphql.generated.BannerListInput
-import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
-import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType as DomainBannerLinkType
 
 /**
  * 轮播图映射器:域实体 → GraphQL 类型
  */
-object BannerMapper : ObjectMappie<BannerModel, Banner>() {
-  override fun map(from: BannerModel): Banner =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::linkType fromExpression { BannerLinkTypeMapper.map(from.linkType) }
-    }
-}
-
-object BannerLinkTypeMapper : EnumMappie<DomainBannerLinkType, BannerLinkType>()
-
-/**
- * 新建轮播图输入映射器:GraphQL 输入 → 服务请求
- */
-object CreateBannerInputMapper : ObjectMappie<CreateBannerInput, BannerCreateRequest>() {
-  override fun map(from: CreateBannerInput): BannerCreateRequest =
-    mapping {
-      to::linkType fromExpression { BannerLinkTypeInputMapper.map(from.linkType) }
-      to::enabled fromValue (from.enabled ?: false)
-    }
-}
+fun BannerModel.toGraphQL(): Banner =
+  Banner(
+    createdAt = createdAt,
+    enabled = enabled,
+    endAt = endAt,
+    id = id ?: 0L,
+    imageUrl = imageUrl,
+    linkTarget = linkTarget,
+    linkType = linkType.toGraphQL(),
+    sortOrder = sortOrder,
+    startAt = startAt,
+    subtitle = subtitle,
+    title = title,
+    updatedAt = updatedAt,
+  )
 
 /**
- * 编辑轮播图输入映射器
+ * 轮播图跳转类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
  */
-object UpdateBannerInputMapper : ObjectMappie<UpdateBannerInput, BannerUpdateRequest>() {
-  override fun map(from: UpdateBannerInput): BannerUpdateRequest =
-    mapping {
-      to::linkType fromExpression { BannerLinkTypeInputMapper.map(from.linkType) }
-      to::enabled fromValue (from.enabled ?: false)
-    }
-}
+fun DomainBannerLinkType.toGraphQL(): BannerLinkType = BannerLinkType.valueOf(name)
 
-object BannerLinkTypeInputMapper : EnumMappie<BannerLinkType, DomainBannerLinkType>()
-
-/**
- * 轮播图列表查询输入映射器
- */
-object BannerListInputMapper : ObjectMappie<BannerListInput, BannerListRequest>() {
-  override fun map(from: BannerListInput): BannerListRequest =
-    mapping {
-      to::page fromValue (from.page ?: 0)
-      to::size fromValue (from.size ?: 20)
-    }
-}
+fun BannerLinkType.toDomain(): DomainBannerLinkType = DomainBannerLinkType.valueOf(name)

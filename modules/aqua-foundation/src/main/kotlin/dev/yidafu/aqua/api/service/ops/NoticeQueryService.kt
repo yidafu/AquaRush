@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.NoticeListRequest
 import dev.yidafu.aqua.common.domain.model.NoticeModel
+import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
 import org.springframework.data.domain.Page
 
 /**
@@ -31,7 +31,7 @@ interface NoticeQueryService {
   /**
    * 分页查询公告列表(置顶优先,再按发布时间倒序,草稿排最后)
    */
-  fun listNotices(request: NoticeListRequest): Page<NoticeModel>
+  fun listNotices(input: NoticeListInput): Page<NoticeModel>
 
   /**
    * 根据 ID 查询公告

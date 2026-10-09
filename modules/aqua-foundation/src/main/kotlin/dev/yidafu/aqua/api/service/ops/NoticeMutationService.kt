@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.CreateNoticeRequest
-import dev.yidafu.aqua.api.dto.UpdateNoticeRequest
 import dev.yidafu.aqua.common.domain.model.NoticeModel
+import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 
 /**
  * 公告变更服务接口(管理后台)
@@ -35,7 +35,7 @@ interface NoticeMutationService {
   fun createNotice(
     adminId: Long,
     adminName: String,
-    request: CreateNoticeRequest,
+    input: CreateNoticeInput,
   ): NoticeModel
 
   /**
@@ -45,7 +45,7 @@ interface NoticeMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: UpdateNoticeRequest,
+    input: UpdateNoticeInput,
   ): NoticeModel
 
   /**

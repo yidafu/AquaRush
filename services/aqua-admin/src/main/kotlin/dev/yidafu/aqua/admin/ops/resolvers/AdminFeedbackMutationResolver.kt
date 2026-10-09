@@ -23,8 +23,7 @@ import dev.yidafu.aqua.api.service.ops.FeedbackMutationService
 import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackMapper
-import dev.yidafu.aqua.ops.feedback.mapper.FeedbackReviewInputMapper
+import dev.yidafu.aqua.ops.feedback.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -59,8 +58,8 @@ class AdminFeedbackMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = FeedbackReviewInputMapper.map(input),
+        input = input,
       )
-    return FeedbackMapper.map(feedback)
+    return feedback.toGraphQL()
   }
 }

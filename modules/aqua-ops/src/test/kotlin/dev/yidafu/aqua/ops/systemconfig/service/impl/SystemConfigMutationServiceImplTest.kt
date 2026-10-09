@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.ops.systemconfig.service.impl
 
-import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
+import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.systemconfig.domain.exception.InvalidSettingValueException
 import dev.yidafu.aqua.ops.systemconfig.domain.exception.SettingKeyNotFoundException
@@ -117,8 +117,8 @@ class SystemConfigMutationServiceImplTest :
           adminName = "admin",
           items =
             listOf(
-              SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
-              SaveSystemConfigItemRequest(SystemSettingKeys.STOCK_WARNING_TIER_MID, "80"),
+              SaveSystemConfigInput(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
+              SaveSystemConfigInput(SystemSettingKeys.STOCK_WARNING_TIER_MID, "80"),
             ),
         )
 
@@ -144,7 +144,7 @@ class SystemConfigMutationServiceImplTest :
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
-          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "100000")))
+          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigInput(SystemSettingKeys.LOW_STOCK_THRESHOLD, "100000")))
         }
       ex.message shouldBe "参数值超出范围"
     }
@@ -153,7 +153,7 @@ class SystemConfigMutationServiceImplTest :
       every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting
 
       shouldThrow<InvalidSettingValueException> {
-        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc")))
+        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigInput(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc")))
       }
     }
     test("boolean invalid value rejected") {
@@ -165,7 +165,7 @@ class SystemConfigMutationServiceImplTest :
           service.saveSystemConfigs(
             1L,
             "admin",
-            listOf(SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "yes")),
+            listOf(SaveSystemConfigInput(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "yes")),
           )
         }
       ex.message shouldBe "参数值格式不正确"
@@ -175,7 +175,7 @@ class SystemConfigMutationServiceImplTest :
       every { systemSettingsRepository.findBySettingKey("some_enum") } returns setting
 
       shouldThrow<InvalidSettingValueException> {
-        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest("some_enum", "D")))
+        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigInput("some_enum", "D")))
       }
     }
     test("stock tiers must increase") {
@@ -190,8 +190,8 @@ class SystemConfigMutationServiceImplTest :
             1L,
             "admin",
             listOf(
-              SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
-              SaveSystemConfigItemRequest(SystemSettingKeys.STOCK_WARNING_TIER_MID, "10"),
+              SaveSystemConfigInput(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
+              SaveSystemConfigInput(SystemSettingKeys.STOCK_WARNING_TIER_MID, "10"),
             ),
           )
         }
@@ -209,8 +209,8 @@ class SystemConfigMutationServiceImplTest :
             1L,
             "admin",
             listOf(
-              SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_START, "12:00"),
-              SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_END, "09:00"),
+              SaveSystemConfigInput(SystemSettingKeys.DELIVERY_SLOT_MORNING_START, "12:00"),
+              SaveSystemConfigInput(SystemSettingKeys.DELIVERY_SLOT_MORNING_END, "09:00"),
             ),
           )
         }
@@ -220,7 +220,7 @@ class SystemConfigMutationServiceImplTest :
       every { systemSettingsRepository.findBySettingKey("not_exist_key") } returns null as SystemSettingsModel?
 
       shouldThrow<SettingKeyNotFoundException> {
-        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest("not_exist_key", "1")))
+        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigInput("not_exist_key", "1")))
       }
     }
     test("restore resets to default with audit") {

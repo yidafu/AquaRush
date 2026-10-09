@@ -19,13 +19,11 @@
 
 package dev.yidafu.aqua.admin.ops.resolvers
 
-import dev.yidafu.aqua.api.dto.NoticeListRequest
 import dev.yidafu.aqua.api.service.ops.NoticeQueryService
 import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
 import dev.yidafu.aqua.common.graphql.generated.NoticeVoPage
-import dev.yidafu.aqua.ops.notice.mapper.NoticeListInputMapper
-import dev.yidafu.aqua.ops.notice.mapper.NoticeMapper
+import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -47,10 +45,9 @@ class AdminNoticeQueryResolver(
   fun notices(
     @Argument input: NoticeListInput?,
   ): NoticeVoPage {
-    val request = input?.let { NoticeListInputMapper.map(it) } ?: NoticeListRequest()
-    val page = noticeQueryService.listNotices(request)
+    val page = noticeQueryService.listNotices(input ?: NoticeListInput())
     return NoticeVoPage(
-      content = page.content.map { NoticeMapper.map(it) },
+      content = page.content.map { it.toGraphQL() },
       totalElements = page.totalElements.toInt(),
       totalPages = page.totalPages,
       size = page.size,
@@ -65,5 +62,5 @@ class AdminNoticeQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
   fun notice(
     @Argument id: Long,
-  ): Notice? = noticeQueryService.getNotice(id)?.let { NoticeMapper.map(it) }
+  ): Notice? = noticeQueryService.getNotice(id)?.let { it.toGraphQL() }
 }

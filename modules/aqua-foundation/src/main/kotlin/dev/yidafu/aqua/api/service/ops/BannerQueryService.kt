@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.BannerListRequest
 import dev.yidafu.aqua.common.domain.model.BannerModel
+import dev.yidafu.aqua.common.graphql.generated.BannerListInput
 import org.springframework.data.domain.Page
 
 /**
@@ -31,7 +31,7 @@ interface BannerQueryService {
   /**
    * 分页查询轮播图列表
    */
-  fun listBanners(request: BannerListRequest): Page<BannerModel>
+  fun listBanners(input: BannerListInput): Page<BannerModel>
 
   /**
    * 根据 ID 查询轮播图

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.SaveDeliveryFeeRuleRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 
 /**
  * 配送费规则变更服务接口(管理后台)
@@ -33,6 +33,6 @@ interface DeliveryFeeRuleMutationService {
   fun saveDeliveryFeeRule(
     adminId: Long,
     adminName: String,
-    request: SaveDeliveryFeeRuleRequest,
+    input: SaveDeliveryFeeRuleInput,
   ): DeliveryFeeRuleModel
 }

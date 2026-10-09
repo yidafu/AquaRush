@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.api.dto.FeedbackReviewRequest
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 
 /**
  * 意见反馈处理服务接口(管理后台)
@@ -34,6 +34,6 @@ interface FeedbackMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FeedbackReviewRequest,
+    input: FeedbackReviewInput,
   ): FeedbackModel
 }

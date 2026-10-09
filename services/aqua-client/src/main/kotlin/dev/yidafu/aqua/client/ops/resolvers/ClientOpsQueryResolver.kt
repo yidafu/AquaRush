@@ -32,10 +32,10 @@ import dev.yidafu.aqua.common.graphql.generated.DeliverySlotVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.StoreProfile
-import dev.yidafu.aqua.ops.banner.mapper.BannerMapper
-import dev.yidafu.aqua.ops.deliveryfeerule.mapper.DeliveryFeeRuleMapper
-import dev.yidafu.aqua.ops.notice.mapper.NoticeMapper
-import dev.yidafu.aqua.ops.storeprofile.mapper.StoreProfileMapper
+import dev.yidafu.aqua.ops.banner.mapper.toGraphQL
+import dev.yidafu.aqua.ops.deliveryfeerule.mapper.toGraphQL
+import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
+import dev.yidafu.aqua.ops.storeprofile.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -59,28 +59,28 @@ class ClientOpsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun activeBanners(): List<Banner> = bannerQueryApiService.getActiveBanners().map { BannerMapper.map(it) }
+  fun activeBanners(): List<Banner> = bannerQueryApiService.getActiveBanners().map { it.toGraphQL() }
 
   /**
    * 当前生效公告列表(已发布且在时间窗内,置顶优先、发布时间倒序;无公告返回空列表,用户端隐藏公告栏)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun activeNotices(): List<Notice> = noticeQueryApiService.getActiveNotices().map { NoticeMapper.map(it) }
+  fun activeNotices(): List<Notice> = noticeQueryApiService.getActiveNotices().map { it.toGraphQL() }
 
   /**
    * 店铺信息(未配置返回 null,用户端按默认值兜底展示)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun storeProfile(): StoreProfile? = storeProfileQueryApiService.getStoreProfile()?.let { StoreProfileMapper.map(it) }
+  fun storeProfile(): StoreProfile? = storeProfileQueryApiService.getStoreProfile()?.let { it.toGraphQL() }
 
   /**
    * 配送费规则(未配置返回默认规则 免费4楼/加价2元,确认订单页据此展示运费)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun deliveryFeeRule(): DeliveryFeeRule = DeliveryFeeRuleMapper.map(deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule())
+  fun deliveryFeeRule(): DeliveryFeeRule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().toGraphQL()
 
   /**
    * 配送时段配置(F-SYS-002,AC-SYS-002-01/03):

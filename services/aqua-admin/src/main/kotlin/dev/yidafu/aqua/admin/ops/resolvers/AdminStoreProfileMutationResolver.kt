@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.ops.StoreProfileMutationService
 import dev.yidafu.aqua.common.graphql.generated.SaveStoreProfileInput
 import dev.yidafu.aqua.common.graphql.generated.StoreProfile
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.ops.storeprofile.mapper.SaveStoreProfileInputMapper
-import dev.yidafu.aqua.ops.storeprofile.mapper.StoreProfileMapper
+import dev.yidafu.aqua.ops.storeprofile.mapper.toGraphQL
+import dev.yidafu.aqua.ops.storeprofile.mapper.toRequest
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -57,8 +57,8 @@ class AdminStoreProfileMutationResolver(
       storeProfileMutationService.saveStoreProfile(
         adminId = principal.id,
         adminName = principal.username,
-        request = SaveStoreProfileInputMapper.map(input),
+        request = input.toRequest(),
       )
-    return StoreProfileMapper.map(profile)
+    return profile.toGraphQL()
   }
 }

@@ -54,7 +54,7 @@ class ClientFeedbackMutationResolverTest :
     }
     test("submitFeedback passes userId and input") {
       every { feedbackMutationApiService.submitFeedback(any(), any()) } returns FeedbackModel()
-      val requestSlot = slot<dev.yidafu.aqua.api.dto.FeedbackSubmitRequest>()
+      val requestSlot = slot<FeedbackSubmitInput>()
 
       val input =
         FeedbackSubmitInput(
@@ -70,22 +70,24 @@ class ClientFeedbackMutationResolverTest :
       verify {
         feedbackMutationApiService.submitFeedback(
           userId = 100L,
-          request = capture(requestSlot),
+          input = capture(requestSlot),
         )
       }
-      requestSlot.captured.feedbackType shouldBe dev.yidafu.aqua.common.domain.model.enums.FeedbackType.SUGGESTION
+      requestSlot.captured.feedbackType shouldBe FeedbackType.SUGGESTION
       requestSlot.captured.images shouldBe listOf("http://x/1.png")
       requestSlot.captured.contactInfo shouldBe "13800138000"
     }
     test("submitFeedback handles empty images") {
       every { feedbackMutationApiService.submitFeedback(any(), any()) } returns FeedbackModel()
-      val requestSlot = slot<dev.yidafu.aqua.api.dto.FeedbackSubmitRequest>()
+      val requestSlot = slot<FeedbackSubmitInput>()
 
       val input = FeedbackSubmitInput(feedbackType = FeedbackType.COMPLAINT, content = "配送服务问题反馈内容")
 
       resolver.submitFeedback(input, userPrincipal)
 
       verify { feedbackMutationApiService.submitFeedback(100L, capture(requestSlot)) }
-      requestSlot.captured.images.isEmpty() shouldBe true
+      requestSlot.captured.images
+        .orEmpty()
+        .isEmpty() shouldBe true
     }
   })
