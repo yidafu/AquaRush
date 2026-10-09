@@ -58,4 +58,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V280AddDailyRevenueFacts", logicalFilePath = "db/changelog/changes/v2.8.0-add-daily-revenue-facts.xml")
     // G23/F-ORD-008/F-ORD-024:chk_operation_type_valid 对齐域枚举(照片核验/催单/改址操作类型)
     include(file = "db/changelog/changes/V290FixOrderOperationTypeCheck", logicalFilePath = "db/changelog/changes/v2.9.0-fix-order-operation-type-check.xml")
+    // JPA→Exposed P4:orders.status 加宽到 varchar(30),容纳枚举 AWAITING_CONFIRMATION(21 字符)
+    include(file = "db/changelog/changes/V300WidenOrdersStatus", logicalFilePath = "db/changelog/changes/v3.0.0-widen-orders-status.xml")
   })
