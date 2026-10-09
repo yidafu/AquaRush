@@ -23,14 +23,20 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.util.Optional
 
-@Repository
-interface OrderRepository :
-  JpaRepository<OrderModel, Long>,
-  OrderRepositoryCustom {
+/**
+ * 订单仓储(orders,trade 域)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法
+ * (含原 JPA 继承方法 findById/findAll/findAllById/save 的显式声明);
+ * 查询过滤 is_deleted(软删可见性与原 @SoftDelete 一致);
+ * 复杂聚合/分页/原子更新见 [OrderRepositoryCustom]。
+ *
+ * 注意:原 JPA EAGER 关联字段(user/address/deliveryWorker)由 Exposed 实现装载为 null
+ * (列值经 userId/addressId/deliveryWorkerId 提供,由服务层/Resolver 联查补全)。
+ */
+interface OrderRepository : OrderRepositoryCustom {
   fun findByOrderNo(orderNo: String): OrderModel?
 
   /**
@@ -60,6 +66,8 @@ interface OrderRepository :
 
   /**
    * 分页查询指定状态且开始配送时间早于截止时刻的订单(配送超时扫描用,分页游标,规则 13)。
+   * 排序取 pageable.sort(支持 id/createdAt/updatedAt/amountCents,未知属性忽略);
+   * 无排序时按 id 升序破平 —— 原 JPA derived 无序,取稳定游标。
    */
   fun findByStatusAndDeliveryStartedAtBefore(
     status: OrderModelStatus,
@@ -71,6 +79,7 @@ interface OrderRepository :
    * 分页查询已送达且送达时间早于截止时刻的待确认收货订单(R-ORD-11 自动签收扫描用,
    * 分页游标,禁止全表,CLAUDE.md 规则 13):status=AWAITING_CONFIRMATION 且
    * delivery_confirmed_at < 截止时刻(送达 N 天未确认)。
+   * 排序口径同 [findByStatusAndDeliveryStartedAtBefore](调用方传 Sort by id ASC)。
    */
   fun findByStatusAndDeliveryConfirmedAtBefore(
     status: OrderModelStatus,
@@ -83,4 +92,17 @@ interface OrderRepository :
   fun findByAddressId(addressId: Long): List<OrderModel>
 
   fun countByStatus(status: OrderModelStatus): Long
+
+  fun findById(id: Long): Optional<OrderModel>
+
+  /** 全量读取(调用方:findAllOrders 展示;原 JPA 无序,按 id 升序破平)。 */
+  fun findAll(): List<OrderModel>
+
+  fun findAllById(ids: Iterable<Long>): List<OrderModel>
+
+  /**
+   * upsert 语义:无 id 或 id 不存在时插入(雪花 id,与原 @SnowflakeIdGenerator 预分配一致),
+   * 否则按 id 更新业务列(updatedAt=now,等价原 @PreUpdate);createdAt 不可变(updatable=false)。
+   */
+  fun save(entity: OrderModel): OrderModel
 }
