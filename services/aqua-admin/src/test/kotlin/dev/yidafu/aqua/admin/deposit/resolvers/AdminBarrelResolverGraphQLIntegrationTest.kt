@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
@@ -32,6 +33,7 @@ import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -69,6 +71,7 @@ class AdminBarrelResolverGraphQLIntegrationTest(
   @Autowired private val barrelFeeRepository: BarrelFeeRepository,
   @Autowired private val barrelPurchaseRepository: BarrelPurchaseRepository,
   @Autowired private val barrelPurchaseItemRepository: BarrelPurchaseItemRepository,
+  @Autowired private val userRepository: UserRepository,
 ) : FunSpec({
     var mockMvc: MockMvc = mockk()
 
@@ -138,6 +141,15 @@ class AdminBarrelResolverGraphQLIntegrationTest(
           ),
         )
       }
+
+      // barrel_purchases.user_id 有外键 fk_barrel_purchases_user,本类用例引用固定用户 id 100
+      userRepository.save(
+        UserModel(
+          id = 100L,
+          wechatOpenId = "barrel-user-100",
+          email = "barrel-user-100@test.local",
+        ),
+      )
     }
 
     test("createBarrelFee creates enabled fee") {

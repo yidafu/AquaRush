@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.admin.statistics
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.admin.testutil.StatisticsTestSeeds
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsSnapshotAggregationRepository
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
@@ -37,6 +38,7 @@ import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
+import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.core.extensions.ApplyExtension
@@ -74,10 +76,14 @@ class StatisticsSnapshotAggregationIntegrationTest(
   private val paymentRefundRepository: PaymentRefundRepository,
   private val userActionLogRepository: UserActionLogRepository,
   private val snapshotAggregationRepository: StatisticsSnapshotAggregationRepository,
+  private val productRepository: ProductRepository,
 ) : FunSpec({
     var userId = 1L
     var addressId = 0L
     beforeTest {
+      // order_items.product_id 有外键 fk_order_items_product,而用例以固定商品 id 1/2/3
+      // 断言聚合口径 → 按 id 显式种子(Exposed save 带 id 为幂等 upsert)。
+      StatisticsTestSeeds.seedProducts(productRepository)
       userId =
         userRepository
           .save(

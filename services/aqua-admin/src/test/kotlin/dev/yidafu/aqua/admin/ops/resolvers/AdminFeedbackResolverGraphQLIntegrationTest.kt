@@ -99,15 +99,17 @@ class AdminFeedbackResolverGraphQLIntegrationTest(
 
       // 幂等种子 4 条反馈(不同类型/状态/联系方式)
       // 注意:reviewFeedback 测试会把「水质发黄」(PENDING)流转为 RESOLVED,故 PENDING 状态断言依赖「订单重复扣款」种子
-      if (feedbackRepository.count() == 0L) {
-        feedbackRepository.saveAll(
-          listOf(
-            seedFeedback("水质发黄,请尽快处理", FeedbackType.PRODUCT_QUALITY, FeedbackStatus.PENDING, "13800138001"),
-            seedFeedback("订单重复扣款问题", FeedbackType.COMPLAINT, FeedbackStatus.PENDING, "13800138004"),
-            seedFeedback("配送迟到半小时", FeedbackType.DELIVERY_SERVICE, FeedbackStatus.PROCESSING, "13800138002"),
-            seedFeedback("希望增加小程序夜间模式", FeedbackType.SUGGESTION, FeedbackStatus.RESOLVED, "13800138003"),
-          ),
-        )
+      // 按 content 逐条判存在:Liquibase 演示数据已含 feedbacks 行,count()==0 守卫会被演示数据挡住,
+      // 导致依赖这些内容的用例(详情/流转)找不到行而 NPE。
+      listOf(
+        seedFeedback("水质发黄,请尽快处理", FeedbackType.PRODUCT_QUALITY, FeedbackStatus.PENDING, "13800138001"),
+        seedFeedback("订单重复扣款问题", FeedbackType.COMPLAINT, FeedbackStatus.PENDING, "13800138004"),
+        seedFeedback("配送迟到半小时", FeedbackType.DELIVERY_SERVICE, FeedbackStatus.PROCESSING, "13800138002"),
+        seedFeedback("希望增加小程序夜间模式", FeedbackType.SUGGESTION, FeedbackStatus.RESOLVED, "13800138003"),
+      ).forEach { seed ->
+        if (feedbackRepository.findFirstByContentContaining(seed.content) == null) {
+          feedbackRepository.save(seed)
+        }
       }
     }
     test("feedbacks query returns list") {

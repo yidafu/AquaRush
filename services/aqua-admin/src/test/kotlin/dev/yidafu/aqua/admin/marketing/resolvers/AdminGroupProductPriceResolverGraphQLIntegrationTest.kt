@@ -28,6 +28,7 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.marketing.customer.domain.repository.CustomerGroupRepository
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension
@@ -172,14 +173,20 @@ class AdminGroupProductPriceResolverGraphQLIntegrationTest(
       val gid = groupId()
       val p1 = product1()
       val p2 = product2()
-      postGraphql(
-        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
-      )
-      postGraphql(
-        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: null}]}) }""",
-      )
-      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!) == null) shouldBe true
-      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L) shouldBe true
+      val seedJson =
+        postGraphql(
+          """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
+        )
+      val clearJson =
+        postGraphql(
+          """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: null}]}) }""",
+        )
+      withClue("seed=$seedJson clear=$clearJson") {
+        (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!) == null) shouldBe true
+      }
+      withClue("seed=$seedJson clear=$clearJson") {
+        (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L) shouldBe true
+      }
     }
     test("groupProductPrices query filters by group") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_READ", "PERMISSION_MKT_WRITE"))

@@ -63,6 +63,9 @@ application-*.yml
 application-*.yaml
 !application.yml
 !application.yaml
+# 测试 profile 配置属于集成测试的一部分(独立测试库/建表策略),必须入库
+!**/src/test/resources/application-*.yml
+!**/src/test/resources/application-*.yaml
 
 # Environment & Secrets
 .env
