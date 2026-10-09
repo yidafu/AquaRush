@@ -76,6 +76,8 @@ dependencies {
 // 3) notification.** — 并发进行中的通知模块测试(未跟踪,在途工作,与本任务无关)。
 // ========================================================
 tasks.withType<Test>().configureEach {
+  // ArchUnit 全 classpath 扫描 + 全部 Spring 上下文同 JVM,1g 会 OOM(Java heap space)
+  maxHeapSize = "2g"
   exclude("**/db/AddressCoordinateMigrationTest.class")
   exclude("**/delivery/resolvers/DeliveryTrajectoryResolverGraphQLIntegrationTest.class")
   // 同 JVM 缓存的多个 Spring 上下文各持 Hikari 池(main 配置 min-idle=10/max=30),
