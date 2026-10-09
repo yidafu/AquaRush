@@ -40,7 +40,9 @@ open class DeliveryAreaModel(
   var city: String,
   @Column(name = "district", nullable = false)
   var district: String,
-  @Column(name = "enabled", nullable = false)
+  // JPA→Exposed 迁移 P4:列名对齐 DDL/线上(is_enabled)——原 @Column(name="enabled")
+  // 与 changelog v1.0.0 的 is_enabled 漂移,集成测试 ddl-auto 会建错列名导致 Exposed 查询失败。
+  @Column(name = "is_enabled", nullable = false)
   var enabled: Boolean = true,
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
