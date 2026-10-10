@@ -80,9 +80,9 @@ class AdminGroupProductPriceResolverGraphQLIntegrationTest(
 
     fun groupId(): Long = customerGroupRepository.findByName("价组")!!.id!!
 
-    fun product1(): ProductModel = productRepository.findAll().first { it.name == "山泉19L" }
+    fun product1(): ProductModel = productRepository.findByName("山泉19L")!!
 
-    fun product2(): ProductModel = productRepository.findAll().first { it.name == "桶装19L" }
+    fun product2(): ProductModel = productRepository.findByName("桶装19L")!!
 
     beforeTest {
       mockMvc =
@@ -95,7 +95,7 @@ class AdminGroupProductPriceResolverGraphQLIntegrationTest(
       if (customerGroupRepository.findByName("价组") == null) {
         customerGroupRepository.save(CustomerGroupModel(name = "价组", description = "专属价分组(种子)"))
       }
-      if (productRepository.findAll().none { it.name == "山泉19L" }) {
+      if (productRepository.findByName("山泉19L") == null) {
         productRepository.save(
           ProductModel(
             name = "山泉19L",
@@ -107,7 +107,7 @@ class AdminGroupProductPriceResolverGraphQLIntegrationTest(
           ),
         )
       }
-      if (productRepository.findAll().none { it.name == "桶装19L" }) {
+      if (productRepository.findByName("桶装19L") == null) {
         productRepository.save(
           ProductModel(
             name = "桶装19L",

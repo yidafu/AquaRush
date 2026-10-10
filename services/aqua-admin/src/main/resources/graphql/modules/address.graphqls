@@ -12,7 +12,7 @@ type AddressVOPage {
 extend type Query {
   # Address queries
   userAddresses(userId: PrimaryId): [Address!]!
-  addresses: [Address!]!
+  # 管理端地址列表统一走分页搜索(AGENTS.md 规则 10:不允许无界全量返回)
   searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
 }
 

@@ -151,6 +151,14 @@ enum class AdminRole(val label: String) {
   }
 }
 
+data class AdminVoPage(
+    val content: kotlin.collections.List<Admin>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class AllProductsFavoriteStats(
     val averageFavoritesPerProduct: kotlin.Float,
     val totalFavorites: kotlin.Long,
@@ -1621,6 +1629,14 @@ enum class DeliveryWorkerStatus(val label: String) {
     }
   }
 }
+
+data class DeliveryWorkerVoPage(
+    val content: kotlin.collections.List<DeliveryWorker>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
 
 enum class DiscrepancyStatus(val label: String) {
       RESOLVED("RESOLVED"),
@@ -4381,6 +4397,26 @@ data class QueryAddressArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryAdminArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryAdminsArgs(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val role: kotlin.String? = null,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["role"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
 data class QueryBannerArgs(
     val id: kotlin.Long
 ) {
@@ -4564,6 +4600,19 @@ data class QueryDeliveryWorkerRatingStatisticsArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["deliveryWorkerId"] as kotlin.Long
+  )
+}
+data class QueryDeliveryWorkersArgs(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val role: kotlin.String? = null,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["role"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20
   )
 }
 data class QueryFavoriteProductsArgs(
@@ -5130,9 +5179,8 @@ data class Query(
     val activeNotices: kotlin.collections.List<Notice>,
     val activeProducts: ProductVoPage,
     val address: Address?,
-    val addresses: kotlin.collections.List<Address>,
-    val admins: kotlin.collections.List<Admin>,
-    val allRegions: kotlin.collections.List<Region>,
+    val admin: Admin?,
+    val admins: AdminVoPage,
     val assignedOrders: kotlin.collections.List<Order>,
     val banner: Banner?,
     val banners: BannerVoPage?,
@@ -5162,7 +5210,7 @@ data class Query(
     val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItem>,
     val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse,
     val deliveryWorkerStatistics: DeliveryWorkerOverview,
-    val deliveryWorkers: kotlin.collections.List<DeliveryWorker>,
+    val deliveryWorkers: DeliveryWorkerVoPage,
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
     val feedback: Feedback?,

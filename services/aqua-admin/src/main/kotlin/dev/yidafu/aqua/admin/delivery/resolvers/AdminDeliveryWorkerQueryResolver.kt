@@ -25,7 +25,9 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVoPage
 import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
+import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -48,11 +50,32 @@ class AdminDeliveryWorkerQueryResolver(
   private val deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService,
 ) {
   /**
-   * 查询所有配送员（管理员功能）
+   * 分页查询配送员(管理员功能)。keyword 模糊匹配 username/realName/phone;
+   * size 上限 100,防止绕过规则 10 一次拉全表。
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
-  fun deliveryWorkers(): List<DeliveryWorker> = adminService.findAllDeliveryCapable().map { it.toDeliveryWorker() }
+  fun deliveryWorkers(
+    @Argument keyword: String?,
+    @Argument role: String?,
+    @Argument page: Int = 0,
+    @Argument size: Int = 20,
+  ): DeliveryWorkerVoPage {
+    val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, MAX_PAGE_SIZE))
+    val result =
+      adminService.findDeliveryWorkers(
+        keyword = keyword,
+        role = role?.let { runCatching { AdminRoleModel.valueOf(it) }.getOrNull() },
+        pageable = pageable,
+      )
+    return DeliveryWorkerVoPage(
+      content = result.content.map { it.toDeliveryWorker() },
+      totalElements = result.totalElements.toInt(),
+      totalPages = result.totalPages,
+      size = result.size,
+      number = result.number,
+    )
+  }
 
   /**
    * 查询在线配送员（管理员功能）
@@ -124,5 +147,10 @@ class AdminDeliveryWorkerQueryResolver(
         ),
       lastUpdated = stats.lastUpdated,
     )
+  }
+
+  private companion object {
+    /** 单页上限:防止调用方用超大 size 绕过规则 10 */
+    const val MAX_PAGE_SIZE = 100
   }
 }

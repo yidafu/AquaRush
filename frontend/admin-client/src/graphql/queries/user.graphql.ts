@@ -153,9 +153,48 @@ export const USER_FAVORITES_QUERY = gql`
   }
 `;
 
+/**
+ * 账号分页列表(超管视图)。
+ *
+ * AGENTS.md 规则 10:后端 admins 已改为分页 + keyword/role 过滤,这里必须传分页参数,
+ * 返回 `{ content, totalElements, ... }`(原先是一次性全量列表)。
+ */
 export const GET_ADMINS_QUERY = gql`
-  query GetAdmins {
-    admins {
+  query GetAdmins($keyword: String, $role: String, $page: Int, $size: Int) {
+    admins(keyword: $keyword, role: $role, page: $page, size: $size) {
+      content {
+      id
+      username
+      realName
+      phone
+      role
+      accountStatus
+      lastLoginAt
+      createdAt
+      updatedAt
+      avatarUrl
+      onlineStatus
+      isAvailable
+      coordinates
+      currentLocation
+      rating
+      totalOrders
+      completedOrders
+      averageRating
+      earningCents
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
+  }
+`;
+
+/** 账号详情(超管视图):按 id 查询,替代原先「拉全量 admins 再前端 find」 */
+export const GET_ADMIN_QUERY = gql`
+  query GetAdmin($id: PrimaryId!) {
+    admin(id: $id) {
       id
       username
       realName
@@ -179,24 +218,33 @@ export const GET_ADMINS_QUERY = gql`
   }
 `;
 
+/**
+ * 配送员分页列表(普通管理员视图)。规则 10:后端改为分页 + keyword/role 过滤。
+ */
 export const GET_DELIVERY_WORKERS_QUERY = gql`
-  query GetDeliveryWorkers {
-    deliveryWorkers {
-      id
-      userId
-      wechatOpenId
-      name
-      phone
-      avatarUrl
-      onlineStatus
-      role
-      rating
-      totalOrders
-      completedOrders
-      averageRating
-      isAvailable
-      createdAt
-      updatedAt
+  query GetDeliveryWorkers($keyword: String, $role: String, $page: Int, $size: Int) {
+    deliveryWorkers(keyword: $keyword, role: $role, page: $page, size: $size) {
+      content {
+        id
+        userId
+        wechatOpenId
+        name
+        phone
+        avatarUrl
+        onlineStatus
+        role
+        rating
+        totalOrders
+        completedOrders
+        averageRating
+        isAvailable
+        createdAt
+        updatedAt
+      }
+      totalElements
+      totalPages
+      size
+      number
     }
   }
 `;

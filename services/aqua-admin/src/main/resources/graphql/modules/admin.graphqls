@@ -1,8 +1,20 @@
 # Admin User Management - Admin only
 
+# 账号分页(参照 AddressVOPage/BannerVOPage 的新式分页)
+type AdminVOPage {
+  content: [Admin!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
 extend type Query {
   # Admin queries
-  admins: [Admin!]!
+  # 账号列表:分页 + keyword(username/realName/phone 模糊)。AGENTS.md 规则 10 禁止无界全量返回
+  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVOPage!
+  # 账号详情(超管视图按 id 查,替代原「全量 admins 前端 find」)
+  admin(id: PrimaryId!): Admin
 }
 
 extend type Mutation {

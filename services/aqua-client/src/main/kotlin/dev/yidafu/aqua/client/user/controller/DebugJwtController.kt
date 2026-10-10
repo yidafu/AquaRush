@@ -8,6 +8,7 @@ import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.*
@@ -113,13 +114,17 @@ class DebugJwtController(
   }
 
   /**
-   * List all users (for debugging)
+   * 分页列出用户(调试用;AGENTS.md 规则 10:禁止无界全量返回,size 上限 100)
    */
   @GetMapping("/users")
-  fun listUsers(): ResponseEntity<ApiResponse<List<UserDebugInfo>>> {
+  fun listUsers(
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "20") size: Int,
+  ): ResponseEntity<ApiResponse<List<UserDebugInfo>>> {
     try {
+      val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, MAX_DEBUG_PAGE_SIZE))
       val users =
-        userRepository.findAll().map { user ->
+        userRepository.findAll(pageable).content.map { user ->
           UserDebugInfo(
             id = user.id!!,
             wechatOpenId = user.wechatOpenId,
@@ -139,5 +144,10 @@ class DebugJwtController(
     } catch (e: Exception) {
       return ResponseEntity.ok(ApiResponse.Companion.error<List<UserDebugInfo>>("Failed to list users"))
     }
+  }
+
+  private companion object {
+    /** 调试列表单页上限 */
+    const val MAX_DEBUG_PAGE_SIZE = 100
   }
 }

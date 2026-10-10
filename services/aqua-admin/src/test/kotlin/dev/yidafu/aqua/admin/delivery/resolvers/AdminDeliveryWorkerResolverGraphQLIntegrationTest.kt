@@ -98,11 +98,16 @@ class AdminDeliveryWorkerResolverGraphQLIntegrationTest(
         )
       }
     }
-    test("deliveryWorkers query returns workers") {
+    test("deliveryWorkers query returns paged workers(规则 10)") {
       setMockUser(authorities = listOf("PERMISSION_DELIVERY_WORKER_READ"))
-      val json = postGraphql("{ deliveryWorkers { id name phone onlineStatus isAvailable currentTaskCount earningCents } }")
+      val json =
+        postGraphql(
+          "{ deliveryWorkers(page: 0, size: 20) { content { id name phone onlineStatus isAvailable currentTaskCount earningCents } totalElements totalPages size number } }",
+        )
 
-      json.contains("\"deliveryWorkers\"") && !json.contains("\"errors\"") shouldBe true
+      json.contains("\"deliveryWorkers\"") &&
+        json.contains("\"totalElements\"") &&
+        !json.contains("\"errors\"") shouldBe true
     }
     test("onlineDeliveryWorkers query returns online workers") {
       setMockUser(authorities = listOf("PERMISSION_DELIVERY_WORKER_READ"))

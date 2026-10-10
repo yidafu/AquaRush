@@ -87,7 +87,7 @@ class AdminTicketTypeResolverGraphQLIntegrationTest(
           """mutation { createTicketType(input: {name: "$name", ticketType: UNIVERSAL, specification: "19L", packageCount: 10, packagePriceCents: 10000, giftCount: 0, validityType: FIXED_RANGE, validFrom: "${futureFrom()}", validTo: "${futureTo()}", perUserLimit: 0}) { id name } }""",
         )
       withClue("createTicketType should succeed: $json") { !json.contains("\"errors\"") shouldBe true }
-      return ticketTypeRepository.findAll().first { it.name == name }.id!!
+      return ticketTypeRepository.findByName(name)!!.id!!
     }
 
     /**
@@ -102,7 +102,7 @@ class AdminTicketTypeResolverGraphQLIntegrationTest(
           .build()
 
       // 幂等种子 1 商品(按名称去重,避免共享 H2 遗留数据重复)
-      if (productRepository.findAll().none { it.name == "桶装水19L" }) {
+      if (productRepository.findByName("桶装水19L") == null) {
         productRepository.save(
           ProductModel(
             name = "桶装水19L",
@@ -129,7 +129,7 @@ class AdminTicketTypeResolverGraphQLIntegrationTest(
         json.contains("\"packagePriceCents\" : \"10000\"") &&
         json.contains("\"status\" : \"ACTIVE\"") &&
         !json.contains("\"errors\"") shouldBe true
-      val ticketType = ticketTypeRepository.findAll().first { it.name == name }
+      val ticketType = ticketTypeRepository.findByName(name)!!
       (ticketType.packageCount == 10 && ticketType.packagePriceCents == 10000L) shouldBe true
       (ticketType.specification == "19L" && ticketType.status == TicketTypeStatus.ACTIVE) shouldBe true
     }

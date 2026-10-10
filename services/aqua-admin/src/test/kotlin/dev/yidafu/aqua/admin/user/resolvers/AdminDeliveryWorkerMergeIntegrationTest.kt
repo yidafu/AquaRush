@@ -174,7 +174,7 @@ class AdminDeliveryWorkerMergeIntegrationTest(
 
       val body =
         graphqlBody(
-          "query { deliveryWorkers { id name phone } }",
+          "query { deliveryWorkers(page: 0, size: 50) { content { id name phone } totalElements } }",
           "{}",
         )
 
@@ -189,8 +189,8 @@ class AdminDeliveryWorkerMergeIntegrationTest(
           .response
           .contentAsString
 
-      withClue("DELIVERY_WORKER 账号应在 deliveryWorkers 中") { result.contains("送水员丙") shouldBe true }
-      withClue("ADMIN 账号(兼送水)应在 deliveryWorkers 中") { result.contains("兼送水管理员") shouldBe true }
+      withClue("DELIVERY_WORKER 账号应在 deliveryWorkers 中: $result") { result.contains("送水员丙") shouldBe true }
+      withClue("ADMIN 账号(兼送水)应在 deliveryWorkers 中: $result") { result.contains("兼送水管理员") shouldBe true }
       !result.contains("\"errors\"") shouldBe true
     }
   })

@@ -27,8 +27,6 @@ import java.time.LocalDateTime
  * 由 aqua-user 模块实现，供其他模块使用
  */
 interface UserQueryApiService {
-  fun findAll(): List<UserModel>
-
   /**
    * 用户总数(委托 JpaRepository.count(),统计场景避免全表加载)
    */

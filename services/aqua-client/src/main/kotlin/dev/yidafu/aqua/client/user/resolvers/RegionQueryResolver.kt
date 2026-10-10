@@ -46,7 +46,9 @@ class RegionQueryResolver(
           }
 
           else -> {
-            regionRepository.findAll() ?: emptyList()
+            // 无过滤条件时只返回省级(34 条),避免整表进内存(AGENTS.md 规则 10);
+            // 客户端实际都按 level/parentCode 逐级查询
+            regionRepository.findRootRegions(1)
           }
         }
       result

@@ -20,6 +20,13 @@ export interface AccountTableProps {
   onEdit: (record: AccountRow) => void;
   onDelete: (record: AccountRow) => void;
   onReset: (record: AccountRow) => void;
+  /** 服务端分页(规则 10:列表接口分页,表格不再自行切页) */
+  pagination: {
+    total: number;
+    page: number;
+    size: number;
+    onChange: (page: number, size: number) => void;
+  };
 }
 
 /** 账号列表表格(users/accounts/index.tsx 拆分):列定义 + 行操作 */
@@ -31,6 +38,7 @@ const AccountTable: React.FC<AccountTableProps> = ({
   onEdit,
   onDelete,
   onReset,
+  pagination,
 }) => {
   const columns: ColumnsType<AccountRow> = [
     {
@@ -144,7 +152,14 @@ const AccountTable: React.FC<AccountTableProps> = ({
       loading={loading}
       rowKey="id"
       scroll={{ x: 1200 }}
-      pagination={{ pageSize: 20, showSizeChanger: true }}
+      pagination={{
+        current: pagination.page + 1,
+        pageSize: pagination.size,
+        total: pagination.total,
+        showSizeChanger: true,
+        showTotal: (total) => `共 ${total} 条`,
+        onChange: (page, size) => pagination.onChange(page - 1, size),
+      }}
     />
   );
 };

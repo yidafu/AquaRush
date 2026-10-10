@@ -30,6 +30,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -110,23 +112,23 @@ class DebugJwtControllerTest :
     }
     test("listUsers should return all users") {
       // Given
-      every { userRepository.findAll() } returns listOf(user())
+      every { userRepository.findAll(any<Pageable>()) } returns PageImpl(listOf(user()))
 
       // When
-      val result = controller.listUsers()
+      val result = controller.listUsers(page = 0, size = 20)
 
       // Then
       result.body!!.success shouldBe true
       result.body!!.data!!.size shouldBe 1
       result.body!!.data!![0].wechatOpenId shouldBe "openid-1"
-      verify { userRepository.findAll() }
+      verify { userRepository.findAll(any<Pageable>()) }
     }
     test("listUsers should return error on failure") {
       // Given
-      every { userRepository.findAll() } throws IllegalStateException("db down")
+      every { userRepository.findAll(any<Pageable>()) } throws IllegalStateException("db down")
 
       // When
-      val result = controller.listUsers()
+      val result = controller.listUsers(page = 0, size = 20)
 
       // Then
       result.body!!.success shouldBe false

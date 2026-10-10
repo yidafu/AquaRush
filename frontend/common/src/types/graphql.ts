@@ -111,6 +111,14 @@ export enum AdminRole {
   SUPER_ADMIN = 'SUPER_ADMIN'
 }
 
+export type AdminVoPage = {
+  readonly content: ReadonlyArray<Admin>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type AllProductsFavoriteStats = {
   readonly averageFavoritesPerProduct: Scalars['Float']['output'];
   readonly totalFavorites: Scalars['Long']['output'];
@@ -985,6 +993,14 @@ export enum DeliveryWorkerStatus {
   OFFLINE = 'OFFLINE',
   ONLINE = 'ONLINE'
 }
+
+export type DeliveryWorkerVoPage = {
+  readonly content: ReadonlyArray<DeliveryWorker>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
 
 export enum DiscrepancyStatus {
   RESOLVED = 'RESOLVED',
@@ -2876,9 +2892,8 @@ export type Query = {
   readonly activeNotices: ReadonlyArray<Notice>;
   readonly activeProducts: ProductVoPage;
   readonly address?: Maybe<Address>;
-  readonly addresses: ReadonlyArray<Address>;
-  readonly admins: ReadonlyArray<Admin>;
-  readonly allRegions: ReadonlyArray<Region>;
+  readonly admin?: Maybe<Admin>;
+  readonly admins: AdminVoPage;
   readonly assignedOrders: ReadonlyArray<Order>;
   readonly banner?: Maybe<Banner>;
   readonly banners?: Maybe<BannerVoPage>;
@@ -2908,7 +2923,7 @@ export type Query = {
   readonly deliveryWorkerRanking: ReadonlyArray<DeliveryWorkerRankingItem>;
   readonly deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse;
   readonly deliveryWorkerStatistics: DeliveryWorkerOverview;
-  readonly deliveryWorkers: ReadonlyArray<DeliveryWorker>;
+  readonly deliveryWorkers: DeliveryWorkerVoPage;
   readonly favoriteProducts: FavoriteProductVoPage;
   readonly favoritesCount: Scalars['Long']['output'];
   readonly feedback?: Maybe<Feedback>;
@@ -3003,6 +3018,19 @@ export type QueryActiveProductsArgs = {
 
 export type QueryAddressArgs = {
   id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryAdminArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryAdminsArgs = {
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -3123,6 +3151,14 @@ export type QueryDeliveryWorkerRankingArgs = {
 
 export type QueryDeliveryWorkerRatingStatisticsArgs = {
   deliveryWorkerId: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryDeliveryWorkersArgs = {
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
