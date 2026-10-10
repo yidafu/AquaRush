@@ -20,7 +20,11 @@
 package dev.yidafu.aqua.logging.repository
 
 import dev.yidafu.aqua.common.domain.model.UserActionLogModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * 用户操作日志仓储(`user_action_logs`,logging 域)。
@@ -28,10 +32,9 @@ import org.springframework.stereotype.Repository
  * JPA→Exposed 迁移 P5:剥离 `JpaRepository`,仅声明实际被调用的方法
  * (原 `save`/`count`/`deleteAll` 继承自 JpaRepository);日志表**无软删列**,
  * `deleteAll` 是硬删(与实体无 `@SoftDelete` 一致),测试用它做用例间清理。
- * 复杂过滤/聚合见 [UserActionLogRepositoryCustom]。
  */
 @Repository
-interface UserActionLogRepository : UserActionLogRepositoryCustom {
+interface UserActionLogRepository {
   /** upsert 语义(对齐 JPA `save`):无 id 或 id 不存在时插入雪花 id,否则按 id 覆盖业务列。 */
   fun save(entity: UserActionLogModel): UserActionLogModel
 
@@ -46,4 +49,34 @@ interface UserActionLogRepository : UserActionLogRepositoryCustom {
 
   /** 按行为类型查询(审计断言:登录/点击等)。 */
   fun findByActionType(actionType: String): List<UserActionLogModel>
+
+  /**
+   * 根据多个条件分页查询用户操作日志
+   */
+  fun findByFilters(
+    userId: String?,
+    actionType: String?,
+    username: String?,
+    target: String?,
+    startTime: LocalDateTime?,
+    endTime: LocalDateTime?,
+    pageable: Pageable,
+  ): Page<UserActionLogModel>
+
+  /**
+   * 统计指定时间范围内指定操作类型的唯一用户数
+   */
+  fun countDistinctUsersByActionTypeAndDateRange(
+    actionType: String,
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Long
+
+  /**
+   * 统计每日登录用户数（按日期分组）
+   */
+  fun countDailyLoginsByDateRange(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Map<LocalDate, Long>
 }

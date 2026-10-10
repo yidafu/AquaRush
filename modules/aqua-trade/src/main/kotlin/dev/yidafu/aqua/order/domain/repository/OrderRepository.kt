@@ -19,8 +19,11 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
@@ -30,13 +33,12 @@ import java.util.Optional
  * 订单仓储(orders,trade 域)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法
  * (含原 JPA 继承方法 findById/findAll/findAllById/save 的显式声明);
- * 查询过滤 is_deleted(软删可见性与原 @SoftDelete 一致);
- * 复杂聚合/分页/原子更新见 [OrderRepositoryCustom]。
+ * 查询过滤 is_deleted(软删可见性与原 @SoftDelete 一致);含复杂聚合/分页/原子更新。
  *
  * 注意:原 JPA EAGER 关联字段(user/address/deliveryWorker)由 Exposed 实现装载为 null
  * (列值经 userId/addressId/deliveryWorkerId 提供,由服务层/Resolver 联查补全)。
  */
-interface OrderRepository : OrderRepositoryCustom {
+interface OrderRepository {
   fun findByOrderNo(orderNo: String): OrderModel?
 
   /**
@@ -102,4 +104,247 @@ interface OrderRepository : OrderRepositoryCustom {
    * 否则按 id 更新业务列(updatedAt=now,等价原 @PreUpdate);createdAt 不可变(updatable=false)。
    */
   fun save(entity: OrderModel): OrderModel
+
+  /**
+   * 分页查询订单(后台管理列表):keyword 对 orderNo 大小写不敏感包含;
+   * 排序字段白名单 totalAmount/updatedAt/createdAt(未知字段回退 createdAt),+ id 破平。
+   */
+  fun findOrdersPaginated(
+    keyword: String? = null,
+    status: OrderModelStatus? = null,
+    userId: Long? = null,
+    deliveryWorkerId: Long? = null,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    minAmount: Long? = null,
+    maxAmount: Long? = null,
+    page: Int = 0,
+    size: Int = 20,
+    sortField: String = "createdAt",
+    sortDirection: String = "desc",
+  ): Page<OrderModel>
+
+  /**
+   * 分页查询配送员历史订单(按多个状态)。
+   * 原实现的关键字过滤在 QueryDSL 版即为注释掉的死代码,此处保留参数但不参与过滤(行为不变);
+   * createdAt 降序 + id 破平;statuses 为空列表=不匹配任何行。
+   */
+  fun findByDeliveryWorkerIdAndStatusIn(
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>,
+    keyword: String? = null,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
+   * 用户订单分页查询(F-ORD-002 用户端订单列表,G02):
+   * statuses 为空=全部状态;按下单时间倒序 + id 破平;userId 由调用方强制为登录用户(防越权)。
+   */
+  fun findUserOrdersPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
+   * 统计指定日期范围内的订单数量(可按配送员筛选,可按状态筛选):
+   * createdAt ∈ [startOfDay, endOfDay)(goe/lt 半开区间,与原实现一致)。
+   */
+  fun countOrdersByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>? = null,
+  ): Long
+
+  /**
+   * 统计指定日期范围内指定状态订单的金额总和(可按配送员筛选):
+   * createdAt ∈ [startOfDay, endOfDay)(goe/lt 半开区间,与原实现一致)。
+   */
+  fun sumAmountCentsByStatusAndDateRange(
+    statuses: List<OrderModelStatus>,
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  // ========================================================================
+  // 「已送达」口径聚合(R-ORD-11 确认收货与营收确认):送水工业绩/收款日报/对账专用,
+  // 含 待确认收货(AWAITING_CONFIRMATION)与 已完成(COMPLETED),时间锚点 = 送达时间
+  // (deliveryConfirmedAt,历史数据为 null 时回退 completedAt)——业绩按送达即时计入,
+  // 不受用户确认延迟影响;与营收口径(仅 COMPLETED 按 completedAt,见 08-statistics.md)区分。
+  // ========================================================================
+
+  /**
+   * 统计日期窗口内「已送达」订单数(送水工业绩口径,含待确认收货与已完成):
+   * COALESCE(delivery_confirmed_at, completed_at) ∈ [startOfDay, endOfDay)。
+   */
+  fun countDeliveredByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 统计日期窗口内「已送达」订单金额合计(分,送水工业绩口径):窗口口径同 [countDeliveredByDateRange]。
+   */
+  fun sumDeliveredAmountCentsByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径,含待确认收货与已完成):
+   * 返回 [订单数, 金额合计(分)];窗口口径同 [countDeliveredByDateRange]。
+   */
+  fun countAndSumDeliveredByPaymentType(
+    deliveryWorkerId: Long,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long>
+
+  /**
+   * 分页查询日期窗口内「已送达」订单明细(对账逐单明细,含待确认收货与已完成):
+   * 按送达时间(deliveryConfirmedAt,回退 completedAt)过滤,可指定送水工;
+   * 排序 = 送达时间升序、id 降序(与原实现一致);count 与 content 同一事务。
+   * 供 G29 对账详情逐单差异明细使用,禁止全量拉取(CLAUDE.md 规则 13)。
+   */
+  fun findDeliveredOrdersByDateRange(
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
+
+  /**
+   * 按订单状态分组统计指定用户的订单数(F-USR-002,G31 我的页订单角标):
+   * 仅本人订单(软删除自动过滤);缺失状态不计入(调用方补 0)。
+   */
+  fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long>
+
+  /**
+   * 统计日期窗口内订单数(后台首页 orderStatistics 口径):
+   * createdAt 严格开区间 (startDate, endDate),与原内存过滤 isAfter/isBefore 逐位等价;
+   * statuses 为 null=全部状态;deliveryWorkerId 为 null=不限配送员;软删除自动过滤。
+   */
+  fun countByStatusAndCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long
+
+  /**
+   * 统计日期窗口内已完成订单数(orderStatistics 已完成口径,按完成时间归属):
+   * completedAt 严格开区间 (startDate, endDate);statuses 为 null=全部状态;软删除自动过滤。
+   * 与 countByStatusAndCreatedAtBetween 的差异:窗口按 completed_at 而非 created_at ——
+   * 跨日完成订单(下单日 ≠ 完成日)计入完成日,与营收口径一致(PRD 01-overview §日完成订单数)。
+   */
+  fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long
+
+  /**
+   * 统计日期窗口内指定状态订单金额合计(分,amountCents 快照列,后台首页 orderStatistics 口径):
+   * createdAt 严格开区间 (startDate, endDate),与原内存过滤 isAfter/isBefore 逐位等价;
+   * deliveryWorkerId 为 null=不限配送员;软删除自动过滤。
+   */
+  fun sumAmountCentsByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 统计日期窗口内已完成订单金额合计(orderStatistics 营收口径,按完成时间归属):
+   * completedAt 严格开区间 (startDate, endDate);软删除自动过滤。
+   * 窗口按 completed_at 而非 created_at —— 跨日完成订单营收计入完成日,不随下单日丢失,
+   * 与 dailyStatistics/weeklyStatistics/monthlyStatistics 营收口径统一(PRD F-STA-002)。
+   */
+  fun sumAmountCentsByStatusAndCompletedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 查询日期窗口内订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤;
+   * 原 JPA 无序,按 id 升序破平)
+   */
+  fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel>
+
+  /**
+   * 查询日期窗口内指定状态订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;
+   * 软删除自动过滤;原 JPA 无序,按 id 升序破平)
+   */
+  fun findByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel>
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  /**
+   * 按营销追溯条件分页查询相关订单(按下单时间倒序 + id 破平),匹配语义见 MarketingUsageKind;
+   * count 与 content 同一事务。
+   */
+  fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
+   * 营销使用订单数(与 findOrdersByMarketingUsage 同口径)。
+   */
+  fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销优惠金额合计(分):券/满减/首单立减按订单快照列求和,其余类型返回 0。
+   */
+  fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销使用商品聚合行:限时特价/新人价按 order_items (product_id, unit_price_cents) 分组;
+   * 买赠/满赠按 order_gifts product_id 分组。
+   */
+  fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow>
+
+  /**
+   * 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
+   * 单条条件 UPDATE:仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
+   * (1=认领成功,0=已被并发取消/支付超时/状态已流转);WHERE 同带 activeOnly
+   * (JPA 侧 bulk update 不过滤软删为已知差异,业务上不存在软删订单)。
+   */
+  fun cancelAtomically(
+    id: Long,
+    statuses: Collection<OrderModelStatus>,
+    now: LocalDateTime,
+  ): Int
+
+  /**
+   * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
+   * 单条条件 UPDATE:仅「待确认收货」状态可置「已完成」并写入完成时间
+   * (completedAt=确认时间,营收按此归属,updatedAt 同步),返回受影响行数
+   * (1=认领成功,0=已被用户/系统并发确认或状态已流转);WHERE 同带 activeOnly(口径同 [cancelAtomically])。
+   */
+  fun confirmReceiptAtomically(
+    id: Long,
+    completedAt: LocalDateTime,
+  ): Int
 }

@@ -312,8 +312,6 @@ class UserRepositoryImpl(
         .count()
     }
 
-  // ===== UserRepositoryCustom =====
-
   override fun getUserTotalSpent(userId: Long): Double =
     transaction(database) {
       UsersTable

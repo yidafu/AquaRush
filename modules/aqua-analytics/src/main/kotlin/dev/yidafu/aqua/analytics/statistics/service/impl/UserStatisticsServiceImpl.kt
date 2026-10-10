@@ -21,8 +21,8 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.StatisticsTime
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepository
 import dev.yidafu.aqua.analytics.statistics.dto.DailyLoginStatisticDTO
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
@@ -40,8 +40,8 @@ import java.time.LocalTime
 @Service
 class UserStatisticsServiceImpl(
   private val userQueryApiService: UserQueryApiService,
-  private val statisticsUserRepository: StatisticsUserRepositoryCustom,
-  private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+  private val statisticsUserRepository: StatisticsUserRepository,
+  private val statisticsOrderRepository: StatisticsOrderRepository,
   private val userActionLogRepository: UserActionLogRepository,
   private val dailyUserFactRepository: DailyUserFactRepository,
   private val snapshotCoverageService: StatisticsSnapshotCoverageService,

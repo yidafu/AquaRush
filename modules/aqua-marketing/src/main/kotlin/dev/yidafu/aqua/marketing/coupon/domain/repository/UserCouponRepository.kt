@@ -30,9 +30,9 @@ import java.util.Optional
  * 用户优惠券实例仓库(F-MKT-003):
  * 核销/退回用原子条件 UPDATE(防并发重复使用,核销幂等 R-MKT-03)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
- * 查询过滤 is_deleted;原子条件 UPDATE 见 [UserCouponRepositoryCustom]。
+ * 查询过滤 is_deleted;核销/退回为原子条件 UPDATE。
  */
-interface UserCouponRepository : UserCouponRepositoryCustom {
+interface UserCouponRepository {
   fun findByUserId(userId: Long): List<UserCouponModel>
 
   fun findByUserIdAndStatus(
@@ -70,4 +70,24 @@ interface UserCouponRepository : UserCouponRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: UserCouponModel): UserCouponModel
+
+  /**
+   * 原子核销:仅 RECEIVED 且未过期可核销;受影响行数=1 成功,=0 表示已被并发核销/过期(核销幂等)。
+   */
+  fun redeemAtomically(
+    id: Long,
+    userId: Long,
+    orderId: Long,
+    from: UserCouponStatus,
+    to: UserCouponStatus,
+    now: LocalDateTime,
+  ): Int
+
+  /**
+   * 订单取消/退款退回(幂等):该订单已核销券,未过期→RETURNED 可复用,过期→EXPIRED。
+   */
+  fun returnByOrder(
+    orderId: Long,
+    now: LocalDateTime,
+  ): Int
 }

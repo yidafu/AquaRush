@@ -184,8 +184,6 @@ class BarrelPurchaseRepositoryImpl(
       entity
     }
 
-  // ===== BarrelPurchaseRepositoryCustom =====
-
   override fun markPaidAtomically(
     id: Long,
     transactionId: String,

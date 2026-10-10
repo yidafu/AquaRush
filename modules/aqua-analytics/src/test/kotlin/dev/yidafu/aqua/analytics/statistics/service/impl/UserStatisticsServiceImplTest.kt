@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepository
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
@@ -39,8 +39,8 @@ import java.time.LocalDate
 class UserStatisticsServiceImplTest :
   FunSpec({
     var userQueryApiService: UserQueryApiService = mockk()
-    var statisticsUserRepository: StatisticsUserRepositoryCustom = mockk()
-    var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
+    var statisticsUserRepository: StatisticsUserRepository = mockk()
+    var statisticsOrderRepository: StatisticsOrderRepository = mockk()
     var userActionLogRepository: UserActionLogRepository = mockk()
     var dailyUserFactRepository: DailyUserFactRepository = mockk()
     var snapshotCoverageService: StatisticsSnapshotCoverageService = mockk()

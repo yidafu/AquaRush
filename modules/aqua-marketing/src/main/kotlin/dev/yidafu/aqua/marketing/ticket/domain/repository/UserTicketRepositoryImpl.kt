@@ -83,7 +83,7 @@ class UserTicketRepositoryImpl(
     private val redeemedCount: Long,
     private val returnedCount: Long,
     private val expiredCount: Long,
-  ) : UserTicketRepositoryCustom.TicketUsageDay {
+  ) : UserTicketRepository.TicketUsageDay {
     override fun getDay(): LocalDate = day
 
     override fun getRedeemedCount(): Long = redeemedCount
@@ -220,13 +220,11 @@ class UserTicketRepositoryImpl(
         .single()[TicketNoSequencesTable.lastSeq]
     }
 
-  // ===== UserTicketRepositoryCustom =====
-
   override fun findUsageGroupedByDay(
     ticketTypeId: Long,
     from: LocalDateTime,
     to: LocalDateTime,
-  ): List<UserTicketRepositoryCustom.TicketUsageDay> {
+  ): List<UserTicketRepository.TicketUsageDay> {
     // 时间戳 = coalesce(used_at, returned_at, updated_at),与状态对应;[from, to) 左闭右开;
     // 按日聚合走原生 SQL(对齐原 QueryDSL coalesce/cast/sum-case,AddressRepositoryImpl 同款 exec 模式)
     val statuses = listOf("USED", "RETURNED", "EXPIRED").joinToString(",") { "'$it'" }
@@ -253,7 +251,7 @@ class UserTicketRepositoryImpl(
       )
     return transaction(database) {
       exec(sql, args) { rs ->
-        val result = mutableListOf<UserTicketRepositoryCustom.TicketUsageDay>()
+        val result = mutableListOf<UserTicketRepository.TicketUsageDay>()
         while (rs.next()) {
           result +=
             TicketUsageDayRow(

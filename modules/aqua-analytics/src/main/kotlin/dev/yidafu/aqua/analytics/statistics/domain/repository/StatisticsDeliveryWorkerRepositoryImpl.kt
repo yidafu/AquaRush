@@ -49,7 +49,7 @@ import java.time.LocalDateTime
 @Repository
 class StatisticsDeliveryWorkerRepositoryImpl(
   private val database: Database,
-) : StatisticsDeliveryWorkerRepositoryCustom {
+) : StatisticsDeliveryWorkerRepository {
   companion object {
     /** 送水工业绩「已送达」状态集合(待确认收货 + 已完成,R-ORD-11) */
     private val DELIVERED_STATUSES =

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.domain.repository.CompletedOrderTiming
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepository
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import io.kotest.core.spec.style.FunSpec
@@ -35,7 +35,7 @@ class DeliveryWorkerStatisticsServiceImplTest :
   FunSpec({
     var adminService: AdminService = mockk()
     var deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService = mockk()
-    var statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom = mockk()
+    var statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepository = mockk()
     var service: DeliveryWorkerStatisticsServiceImpl = mockk()
 
     beforeTest {

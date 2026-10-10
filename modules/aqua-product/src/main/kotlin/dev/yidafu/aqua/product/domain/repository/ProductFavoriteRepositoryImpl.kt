@@ -149,8 +149,6 @@ class ProductFavoriteRepositoryImpl(
       entity
     }
 
-  // ===== ProductFavoriteRepositoryCustom =====
-
   override fun findFavoriteProductIdsByUserId(userId: Long): List<Long> =
     transaction(database) {
       ProductFavoritesTable
@@ -256,8 +254,8 @@ class ProductFavoriteRepositoryImpl(
         ProductFavoritesTable.createdAt.max(),
       ).groupBy(ProductFavoritesTable.productId)
 
-  private fun toFavoriteCount(row: ResultRow): ProductFavoriteRepositoryCustom.ProductFavoriteCount =
-    ProductFavoriteRepositoryCustom.ProductFavoriteCount(
+  private fun toFavoriteCount(row: ResultRow): ProductFavoriteRepository.ProductFavoriteCount =
+    ProductFavoriteRepository.ProductFavoriteCount(
       productId = row[ProductFavoritesTable.productId],
       favoriteCount = row[ProductFavoritesTable.productId.count()],
       lastFavoritedAt = row[ProductFavoritesTable.createdAt.max()],
@@ -266,7 +264,7 @@ class ProductFavoriteRepositoryImpl(
   override fun findMostFavoritedProducts(
     pageable: Pageable,
     minFavorites: Long?,
-  ): Page<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
+  ): Page<ProductFavoriteRepository.ProductFavoriteCount> {
     val favoriteCount = ProductFavoritesTable.productId.count()
     val (content, total) =
       transaction(database) {
@@ -289,7 +287,7 @@ class ProductFavoriteRepositoryImpl(
     return PageImpl(content, pageable, total)
   }
 
-  override fun findTopFavoritedProducts(limit: Int): List<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
+  override fun findTopFavoritedProducts(limit: Int): List<ProductFavoriteRepository.ProductFavoriteCount> {
     val favoriteCount = ProductFavoritesTable.productId.count()
     return transaction(database) {
       favoriteCountQuery()

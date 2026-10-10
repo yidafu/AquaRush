@@ -20,10 +20,12 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.Optional
 
 /** 收货地址仓储(JPA→Exposed 迁移 P3 收尾;Specification 已内联为显式条件)。 */
-interface AddressRepository : AddressRepositoryCustom {
+interface AddressRepository {
   fun findByUserId(userId: Long): List<AddressModel>
 
   fun findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId: Long): List<AddressModel>
@@ -59,4 +61,59 @@ interface AddressRepository : AddressRepositoryCustom {
   fun save(entity: AddressModel): AddressModel
 
   fun saveAll(entities: List<AddressModel>): List<AddressModel>
+
+  /**
+   * Clear default addresses for a user
+   * @param userId the user ID
+   * @return number of updated records
+   */
+  fun clearDefaultAddresses(userId: Long): Int
+
+  /**
+   * Find nearby addresses within a given radius
+   * @param longitude the longitude coordinate
+   * @param latitude the latitude coordinate
+   * @param radiusKm the search radius in kilometers
+   * @return list of nearby addresses ordered by distance
+   */
+  fun findNearby(
+    longitude: Double,
+    latitude: Double,
+    radiusKm: Double,
+  ): List<AddressModel>
+
+  /**
+   * Search addresses by user ID and keyword
+   * @param userId the user ID
+   * @param keyword the search keyword
+   * @return list of matching addresses
+   */
+  fun searchByUserIdAndKeyword(
+    userId: Long,
+    keyword: String,
+  ): List<AddressModel>
+
+  /**
+   * Search addresses by user ID and keyword with pagination
+   * @param userId the user ID
+   * @param keyword the search keyword
+   * @param pageable pagination parameters
+   * @return page of matching addresses
+   */
+  fun searchByUserIdAndKeyword(
+    userId: Long,
+    keyword: String,
+    pageable: Pageable,
+  ): Page<AddressModel>
+
+  /**
+   * Search all addresses with optional keyword filter (admin function)
+   * @param keyword the search keyword
+   * @param pageable pagination parameters
+   * @return page of matching addresses
+   */
+  fun searchAllAddresses(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<AddressModel>
 }

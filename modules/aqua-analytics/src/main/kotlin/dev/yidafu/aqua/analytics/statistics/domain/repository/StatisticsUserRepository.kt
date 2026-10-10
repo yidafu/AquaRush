@@ -17,21 +17,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.marketing.gift.domain.repository
+package dev.yidafu.aqua.analytics.statistics.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.GiftActivityModel
-import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import java.time.LocalDateTime
 
 /**
- * 买赠/满赠活动仓库 自定义查询(GiftActivityRepository 中手写 @Query 迁移至此)。
+ * 用户统计 Repository(新增/活跃用户统计口径)。
  */
-interface GiftActivityRepositoryCustom {
+interface StatisticsUserRepository {
   /**
-   * 当前生效活动(ACTIVE 且时间窗内;到期自动失效,供营销引擎取候选后内存过滤 scope)
+   * 统计指定日期范围内每日新增用户数
    */
-  fun findActiveActivities(
-    status: PromotionActivityStatus,
-    now: LocalDateTime,
-  ): List<GiftActivityModel>
+  fun countDailyNewUsers(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): Map<java.time.LocalDate, Long>
+
+  /**
+   * 统计指定日期之后创建的用户总数
+   */
+  fun countUsersCreatedAfter(dateTime: LocalDateTime): Long
+
+  /**
+   * 统计指定时间范围内有订单的用户数
+   */
+  fun countActiveUsersSince(dateTime: LocalDateTime): Long
 }

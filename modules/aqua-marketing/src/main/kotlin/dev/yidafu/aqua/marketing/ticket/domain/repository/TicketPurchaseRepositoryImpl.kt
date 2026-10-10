@@ -74,7 +74,7 @@ class TicketPurchaseRepositoryImpl(
     private val purchaseCount: Long,
     private val ticketCount: Long,
     private val revenueCents: Long,
-  ) : TicketPurchaseRepositoryCustom.TicketPaidSalesDay {
+  ) : TicketPurchaseRepository.TicketPaidSalesDay {
     override fun getDay(): LocalDate = day
 
     override fun getPurchaseCount(): Long = purchaseCount
@@ -163,13 +163,11 @@ class TicketPurchaseRepositoryImpl(
       entity
     }
 
-  // ===== TicketPurchaseRepositoryCustom =====
-
   override fun findPaidSalesGroupedByDay(
     ticketTypeId: Long,
     from: LocalDateTime,
     to: LocalDateTime,
-  ): List<TicketPurchaseRepositoryCustom.TicketPaidSalesDay> {
+  ): List<TicketPurchaseRepository.TicketPaidSalesDay> {
     // 时间戳 = coalesce(paid_at, created_at),与原 JPQL 一致;[from, to) 左闭右开
     val sql =
       """
@@ -194,7 +192,7 @@ class TicketPurchaseRepositoryImpl(
       )
     return transaction(database) {
       exec(sql, args) { rs ->
-        val result = mutableListOf<TicketPurchaseRepositoryCustom.TicketPaidSalesDay>()
+        val result = mutableListOf<TicketPurchaseRepository.TicketPaidSalesDay>()
         while (rs.next()) {
           result +=
             TicketPaidSalesDayRow(

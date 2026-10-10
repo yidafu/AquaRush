@@ -25,10 +25,9 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import java.time.LocalDateTime
 
 /**
- * 订单统计 Repository 自定义接口
- * 提供按日期、周、月聚合的订单统计查询
+ * 订单统计 Repository:提供按日期、周、月聚合的订单统计查询。
  */
-interface StatisticsOrderRepositoryCustom {
+interface StatisticsOrderRepository {
   /**
    * 按日期分组统计订单数量和金额
    */

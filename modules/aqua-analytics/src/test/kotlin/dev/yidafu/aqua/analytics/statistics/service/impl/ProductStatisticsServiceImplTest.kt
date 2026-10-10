@@ -24,7 +24,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepos
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductDailySalesResult
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesRankingResult
-import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductStatisticsAggregate
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductStockInfo
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
@@ -52,7 +52,7 @@ class ProductStatisticsServiceImplTest :
   FunSpec({
     var productQueryApiService: ProductQueryApiService = mockk()
     var productFavoriteService: ProductFavoriteService = mockk()
-    var productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom = mockk()
+    var productSalesStatisticsRepository: ProductSalesStatisticsRepository = mockk()
     var systemConfigQueryApiService: SystemConfigQueryApiService = mockk()
     var dailyProductFactRepository: DailyProductFactRepository = mockk()
     var dailyUserFactRepository: DailyUserFactRepository = mockk()

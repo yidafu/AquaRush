@@ -19,15 +19,18 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.util.Optional
 
 /**
  * 商品仓储(JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,
  * 仅保留实际被调用的方法;查询过滤 is_deleted,deleteById 软删)。
  */
-interface ProductRepository : ProductRepositoryCustom {
+interface ProductRepository {
   // 参数须用域枚举 ProductModelStatus(实体字段类型)
   fun findByStatus(status: ProductModelStatus): List<ProductModel>
 
@@ -45,4 +48,16 @@ interface ProductRepository : ProductRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: ProductModel): ProductModel
+
+  /**
+   * Search products with optional keyword and status filters
+   * @param keyword Search keyword for product name (uses LIKE query)
+   * @param status Optional status filter
+   * @param pageable Pagination parameters
+   * @return Page of matching products
+   */
+  fun searchProducts(
+    query: ProductSearchRequest,
+    pageable: Pageable,
+  ): Page<ProductModel>
 }

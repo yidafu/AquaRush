@@ -32,9 +32,9 @@ data class CompletedOrderTiming(
 )
 
 /**
- * 送水员统计 Repository 自定义接口
+ * 送水员统计 Repository(在岗/完成量与履约时长口径)。
  */
-interface StatisticsDeliveryWorkerRepositoryCustom {
+interface StatisticsDeliveryWorkerRepository {
   /**
    * 统计今日有活跃订单的送水员数
    */

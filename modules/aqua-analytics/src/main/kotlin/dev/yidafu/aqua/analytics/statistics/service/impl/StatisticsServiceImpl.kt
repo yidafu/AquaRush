@@ -23,7 +23,7 @@ import dev.yidafu.aqua.analytics.statistics.StatisticsTime
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepository
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatusDistributionItemDTO
@@ -47,7 +47,7 @@ import java.time.temporal.WeekFields
 class StatisticsServiceImpl(
   private val orderQueryApiService: OrderQueryApiService,
   private val paymentQueryService: PaymentQueryService,
-  private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+  private val statisticsOrderRepository: StatisticsOrderRepository,
   private val dailyOrderFactRepository: DailyOrderFactRepository,
   private val dailyRefundFactRepository: DailyRefundFactRepository,
   private val dailyRevenueFactRepository: DailyRevenueFactRepository,

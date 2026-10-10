@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.statistics
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.admin.testutil.StatisticsTestSeeds
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepository
 import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.AddressModel
@@ -74,7 +74,7 @@ class StatisticsOrderRepositoryIntegrationTest(
   private val orderItemRepository: OrderItemRepository,
   private val addressRepository: AddressRepository,
   private val userRepository: UserRepository,
-  private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+  private val statisticsOrderRepository: StatisticsOrderRepository,
   private val statisticsService: StatisticsService,
   private val paymentRepository: PaymentRepository,
   private val paymentRefundRepository: PaymentRefundRepository,

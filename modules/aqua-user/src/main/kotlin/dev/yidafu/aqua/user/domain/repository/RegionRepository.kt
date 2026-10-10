@@ -22,7 +22,7 @@ package dev.yidafu.aqua.user.domain.repository
 import dev.yidafu.aqua.common.domain.model.RegionModel
 
 /** 行政区划仓储(JPA→Exposed 迁移 P3 收尾)。 */
-interface RegionRepository : RegionRepositoryCustom {
+interface RegionRepository {
   fun findByCode(code: String): RegionModel?
 
   fun findByParentCodeAndLevel(
@@ -56,4 +56,24 @@ interface RegionRepository : RegionRepositoryCustom {
 
   /** 语义对齐 @SoftDelete 下的 delete:软删。 */
   fun delete(entity: RegionModel)
+
+  /**
+   * Find root regions (parentCode = '0') at a specific level
+   * @param level the region level
+   * @return list of root regions
+   */
+  fun findRootRegions(level: Int): List<RegionModel>
+
+  /**
+   * Check if a region exists with given name, level, and parent code
+   * @param name the region name
+   * @param level the region level
+   * @param parentCode the parent region code
+   * @return true if region exists, false otherwise
+   */
+  fun existsByNameAndLevelAndParentCode(
+    name: String,
+    level: Int,
+    parentCode: String,
+  ): Boolean
 }

@@ -172,8 +172,6 @@ class FirstOrderActivityRepositoryImpl(
       entity
     }
 
-  // ===== FirstOrderActivityRepositoryCustom =====
-
   override fun findActiveActivities(
     status: PromotionActivityStatus,
     now: LocalDateTime,

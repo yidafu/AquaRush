@@ -151,8 +151,6 @@ class ProductOptionRepositoryImpl(
         .firstOrNull()
     }?.let(::toModel)
 
-  // ===== ProductOptionRepositoryCustom =====
-
   override fun findMaxSortOrder(type: ProductOptionType): Int? =
     transaction(database) {
       val maxExpr = ProductOptionsTable.sortOrder.max()

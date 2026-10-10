@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepository
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerRankingItemDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
@@ -33,7 +33,7 @@ import java.time.LocalDate
 class DeliveryWorkerStatisticsServiceImpl(
   private val adminService: AdminService,
   private val deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService,
-  private val statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom,
+  private val statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepository,
 ) : DeliveryWorkerStatisticsService {
   override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
     // 送水员总数(账号单表,配送能力角色条件 count,避免全表加载)

@@ -227,8 +227,6 @@ class AddressRepositoryImpl(
     clearDefaultAddresses(userId)
   }
 
-  // ===== AddressRepositoryCustom =====
-
   override fun clearDefaultAddresses(userId: Long): Int =
     transaction(database) {
       AddressesTable.update(

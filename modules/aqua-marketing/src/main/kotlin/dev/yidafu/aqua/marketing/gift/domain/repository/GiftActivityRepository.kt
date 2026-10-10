@@ -20,16 +20,18 @@
 package dev.yidafu.aqua.marketing.gift.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
+import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.Optional
 
 /**
  * 买赠/满赠活动仓库(F-MKT-008)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
- * 查询过滤 is_deleted,delete 软删;当前生效活动见 [GiftActivityRepositoryCustom]。
+ * 查询过滤 is_deleted,delete 软删;含当前生效活动查询。
  */
-interface GiftActivityRepository : GiftActivityRepositoryCustom {
+interface GiftActivityRepository {
   fun findAllById(ids: List<Long>): List<GiftActivityModel>
 
   fun findById(id: Long): Optional<GiftActivityModel>
@@ -42,4 +44,12 @@ interface GiftActivityRepository : GiftActivityRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: GiftActivityModel): GiftActivityModel
+
+  /**
+   * 当前生效活动(ACTIVE 且时间窗内;到期自动失效,供营销引擎取候选后内存过滤 scope)
+   */
+  fun findActiveActivities(
+    status: PromotionActivityStatus,
+    now: LocalDateTime,
+  ): List<GiftActivityModel>
 }

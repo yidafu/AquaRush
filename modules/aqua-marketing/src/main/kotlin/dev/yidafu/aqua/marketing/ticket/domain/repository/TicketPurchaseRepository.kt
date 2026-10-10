@@ -21,14 +21,16 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Optional
 
 /**
  * 购票单仓库(F-MKT-007):orderNo 作为微信支付 out_trade_no;支付入账原子流转(PENDING→PAID,幂等)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法;
- * 查询过滤 is_deleted,delete 软删;销售统计/原子流转见 [TicketPurchaseRepositoryCustom]。
+ * 查询过滤 is_deleted,delete 软删;销售统计按日聚合、支付入账为原子条件 UPDATE。
  */
-interface TicketPurchaseRepository : TicketPurchaseRepositoryCustom {
+interface TicketPurchaseRepository {
   fun findByOrderNo(orderNo: String): TicketPurchaseModel?
 
   fun countByUserIdAndTicketTypeIdAndPaymentStatus(
@@ -41,4 +43,35 @@ interface TicketPurchaseRepository : TicketPurchaseRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: TicketPurchaseModel): TicketPurchaseModel
+
+  /**
+   * 销售统计投影(按日):购票单数/入账张数(totalCount = N+M)/销售金额(分)。
+   */
+  interface TicketPaidSalesDay {
+    fun getDay(): LocalDate
+
+    fun getPurchaseCount(): Long
+
+    fun getTicketCount(): Long
+
+    fun getRevenueCents(): Long
+  }
+
+  /**
+   * 按日汇总已支付购票(后台水票统计):[from, to) 左闭右开,paidAt 为空回退 createdAt;空数据日由服务层补零。
+   */
+  fun findPaidSalesGroupedByDay(
+    ticketTypeId: Long,
+    from: LocalDateTime,
+    to: LocalDateTime,
+  ): List<TicketPaidSalesDay>
+
+  /**
+   * 支付入账原子流转(PENDING→PAID,幂等):返回受影响行数(1=成功,0=已被处理/不存在)。
+   */
+  fun markPaidAtomically(
+    id: Long,
+    transactionId: String,
+    now: LocalDateTime,
+  ): Int
 }

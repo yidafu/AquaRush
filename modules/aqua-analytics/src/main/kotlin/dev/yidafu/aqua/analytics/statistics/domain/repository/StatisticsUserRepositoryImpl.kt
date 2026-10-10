@@ -42,7 +42,7 @@ import java.time.LocalDateTime
 @Repository
 class StatisticsUserRepositoryImpl(
   private val database: Database,
-) : StatisticsUserRepositoryCustom {
+) : StatisticsUserRepository {
   override fun countDailyNewUsers(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,

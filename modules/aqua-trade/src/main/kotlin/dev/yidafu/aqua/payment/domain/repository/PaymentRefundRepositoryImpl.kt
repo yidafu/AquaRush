@@ -156,8 +156,6 @@ class PaymentRefundRepositoryImpl(
       entity
     }
 
-  // ===== PaymentRefundRepositoryCustom =====
-
   override fun sumRefundedAmountByProcessedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,

@@ -199,8 +199,6 @@ class ProductRepositoryImpl(
         .toList()
     }.map(::toModel)
 
-  // ===== ProductRepositoryCustom =====
-
   override fun searchProducts(
     query: ProductSearchRequest,
     pageable: Pageable,

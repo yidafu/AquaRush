@@ -23,9 +23,9 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import java.time.LocalDateTime
 
 /**
- * 商品销量统计 Repository 自定义接口
+ * 商品销量统计 Repository(按日聚合销量/营收、库存与排行口径)。
  */
-interface ProductSalesStatisticsRepositoryCustom {
+interface ProductSalesStatisticsRepository {
   /**
    * 按日期分组统计商品销量
    * @param startDateTime 开始时间
