@@ -36,6 +36,7 @@ import dev.yidafu.aqua.common.domain.table.TicketPurchasesTable
 import dev.yidafu.aqua.common.domain.table.TicketTypesTable
 import dev.yidafu.aqua.common.domain.table.UserCouponsTable
 import dev.yidafu.aqua.common.domain.table.UserTicketsTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -45,19 +46,13 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 
 /**
- * marketing 仓储实现测试的 H2 内存库支撑(JPA→Exposed 迁移 P4 覆盖率门禁配套),
- * 模式与 product 的 ProductExposedH2TestSupport 一致。
+ * marketing 仓储实现测试的 Testcontainers 真实 PG 支撑(JPA→Exposed 迁移 P4 覆盖率门禁配套),
+ * 模式与 product 的 ProductPgTestSupport 一致。
  * 建表覆盖 MarketingTables 14 张 + SourceTables 的 user_coupons/ticket_purchases/user_tickets;
  * 所有表均无跨表 FK reference,可直接 insert。种子行 NOT NULL 列全给值。
  */
-object MarketingExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquamarketingrepo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object MarketingPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquamarketingrepo")
 
   private val allTables: Array<Table> =
     arrayOf(
@@ -86,7 +81,7 @@ object MarketingExposedH2TestSupport {
   private var schemaCreated = false
 
   fun reset() {
-    transaction(MarketingExposedH2TestSupport.database) {
+    transaction(MarketingPgTestSupport.database) {
       if (schemaCreated) {
         allTables.forEach { it.deleteAll() }
       } else {

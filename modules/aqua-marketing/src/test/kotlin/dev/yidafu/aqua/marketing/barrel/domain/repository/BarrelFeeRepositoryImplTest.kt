@@ -22,8 +22,8 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.table.BarrelFeesTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -36,11 +36,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 水桶费价目仓储 Exposed 实现测试(H2):save 双分支/软删可见性/派生查询/分页。
+ * 水桶费价目仓储 Exposed 实现测试(Testcontainers 真实 PG):save 双分支/软删可见性/派生查询/分页。
  */
 class BarrelFeeRepositoryImplTest :
   FunSpec({
-    val repo = BarrelFeeRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = BarrelFeeRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -55,7 +55,7 @@ class BarrelFeeRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.barrelFee(specification = "12L/桶", priceCents = 2000L)
+      val id = MarketingPgTestSupport.barrelFee(specification = "12L/桶", priceCents = 2000L)
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.priceCents = 2500L
       loaded.status = BarrelFeeStatus.DISABLED
@@ -66,8 +66,8 @@ class BarrelFeeRepositoryImplTest :
     }
 
     test("软删价目不可见:findById/findBySpecification/查询均过滤") {
-      val keep = MarketingExposedH2TestSupport.barrelFee(specification = "存活")
-      val removed = MarketingExposedH2TestSupport.barrelFee(specification = "已删", deleted = true)
+      val keep = MarketingPgTestSupport.barrelFee(specification = "存活")
+      val removed = MarketingPgTestSupport.barrelFee(specification = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findById(removed).isPresent shouldBe false
@@ -77,15 +77,15 @@ class BarrelFeeRepositoryImplTest :
     }
 
     test("findBySpecification 命中唯一行") {
-      MarketingExposedH2TestSupport.barrelFee(specification = "19L/桶")
+      MarketingPgTestSupport.barrelFee(specification = "19L/桶")
       repo.findBySpecification("19L/桶").shouldNotBeNull().specification shouldBe "19L/桶"
       repo.findBySpecification("不存在") shouldBe null
     }
 
     test("findAllByStatusOrderBySortOrderAscIdAsc:状态过滤 + sortOrder 升序 + id 破平") {
-      MarketingExposedH2TestSupport.barrelFee(specification = "A", status = "ENABLED", sortOrder = 2)
-      MarketingExposedH2TestSupport.barrelFee(specification = "B", status = "ENABLED", sortOrder = 1)
-      MarketingExposedH2TestSupport.barrelFee(specification = "C", status = "DISABLED", sortOrder = 0)
+      MarketingPgTestSupport.barrelFee(specification = "A", status = "ENABLED", sortOrder = 2)
+      MarketingPgTestSupport.barrelFee(specification = "B", status = "ENABLED", sortOrder = 1)
+      MarketingPgTestSupport.barrelFee(specification = "C", status = "DISABLED", sortOrder = 0)
 
       repo
         .findAllByStatusOrderBySortOrderAscIdAsc(BarrelFeeStatus.ENABLED)
@@ -94,9 +94,9 @@ class BarrelFeeRepositoryImplTest :
     }
 
     test("searchFees:关键词+状态过滤,软删不进结果,空关键词不过滤") {
-      MarketingExposedH2TestSupport.barrelFee(specification = "19L/桶", status = "ENABLED")
-      MarketingExposedH2TestSupport.barrelFee(specification = "12L/桶", status = "DISABLED")
-      MarketingExposedH2TestSupport.barrelFee(specification = "已删19L", status = "ENABLED", deleted = true)
+      MarketingPgTestSupport.barrelFee(specification = "19L/桶", status = "ENABLED")
+      MarketingPgTestSupport.barrelFee(specification = "12L/桶", status = "DISABLED")
+      MarketingPgTestSupport.barrelFee(specification = "已删19L", status = "ENABLED", deleted = true)
 
       repo
         .searchFees(null, "19L", PageRequest.of(0, 10))
@@ -114,9 +114,9 @@ class BarrelFeeRepositoryImplTest :
 
     test("searchFees:固定 sortOrder 升序 + 同值 id 破平,跨页不重不漏") {
       val tieSort = 5
-      val a = MarketingExposedH2TestSupport.barrelFee(specification = "A", sortOrder = tieSort)
-      val b = MarketingExposedH2TestSupport.barrelFee(specification = "B", sortOrder = tieSort)
-      val c = MarketingExposedH2TestSupport.barrelFee(specification = "C", sortOrder = tieSort)
+      val a = MarketingPgTestSupport.barrelFee(specification = "A", sortOrder = tieSort)
+      val b = MarketingPgTestSupport.barrelFee(specification = "B", sortOrder = tieSort)
+      val c = MarketingPgTestSupport.barrelFee(specification = "C", sortOrder = tieSort)
 
       val page0 = repo.searchFees(null, null, PageRequest.of(0, 2))
       val page1 = repo.searchFees(null, null, PageRequest.of(1, 2))
@@ -127,13 +127,13 @@ class BarrelFeeRepositoryImplTest :
 
     test("save 更新不重写 createdAt,行内 updated_at 刷新") {
       val created = LocalDateTime.of(2026, 1, 1, 10, 0)
-      val id = MarketingExposedH2TestSupport.barrelFee(specification = "时间", createdAt = created)
+      val id = MarketingPgTestSupport.barrelFee(specification = "时间", createdAt = created)
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.priceCents = 1L
       repo.save(loaded)
 
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           BarrelFeesTable.selectAll().where { BarrelFeesTable.id eq id }.single()
         }
       row[BarrelFeesTable.createdAt] shouldBe created
@@ -141,7 +141,7 @@ class BarrelFeeRepositoryImplTest :
     }
 
     test("save 对已软删行仍可更新(存在判定用非 activeOnly)") {
-      val id = MarketingExposedH2TestSupport.barrelFee(specification = "已删", deleted = true)
+      val id = MarketingPgTestSupport.barrelFee(specification = "已删", deleted = true)
       val loaded = repo.findById(id).orElse(null)
       // findById 过滤软删 → 不可见;直接构造实体按 id 更新
       loaded shouldBe null
@@ -149,7 +149,7 @@ class BarrelFeeRepositoryImplTest :
       repo.save(entity)
       // 行仍软删,更新分支命中(不会插入重复行)
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           BarrelFeesTable.selectAll().where { BarrelFeesTable.id eq id }.single()
         }
       row[BarrelFeesTable.isDeleted] shouldBe true

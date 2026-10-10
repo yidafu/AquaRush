@@ -91,7 +91,7 @@ class AdminGroupProductPriceResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子 1 分组 + 2 商品(按名称去重,避免共享 H2 遗留数据重复)
+      // 幂等种子 1 分组 + 2 商品(按名称去重,避免共享测试库遗留数据重复)
       if (customerGroupRepository.findByName("价组") == null) {
         customerGroupRepository.save(CustomerGroupModel(name = "价组", description = "专属价分组(种子)"))
       }

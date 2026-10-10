@@ -89,7 +89,7 @@ class AdminFirstOrderActivityResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子 1 商品(按名称去重,避免共享 H2 遗留数据重复)
+      // 幂等种子 1 商品(按名称去重,避免共享测试库遗留数据重复)
       if (productRepository.findByName("新人专享商品") == null) {
         productRepository.save(
           ProductModel(

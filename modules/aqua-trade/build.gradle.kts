@@ -1,6 +1,8 @@
 plugins {
   id("aqua.spring.boot.library")
   id("aqua.kotlin.exposed")
+  // Testcontainers 真实 PG 测试(容器运行时接线见 build-logic/aqua.testcontainers.gradle.kts)
+  id("aqua.testcontainers")
 }
 
 dependencies {
@@ -54,22 +56,7 @@ dependencies {
   // ========================================================
   testImplementation(libs.spring.boot.starter.test)
   // 仓储实现测试用 Testcontainers 真实 PG(aqua.kotlin.exposed 不带 test 依赖;
-  // 不用 H2 —— ON CONFLICT/jsonString/类型绑定等 PG 方言差异 H2 测不出)
-  testImplementation(libs.testcontainers.core)
-  testImplementation(libs.testcontainers.postgresql)
-}
-
-tasks.withType<Test>().configureEach {
-  // Testcontainers 连 podman(本机无 Docker Desktop):未显式设置 DOCKER_HOST 且
-  // podman machine socket 存在时回退到它;CI/其他机器用 Docker 时不受影响。
-  val podmanSocket =
-    file("${System.getProperty("user.home")}/.local/share/containers/podman/machine/podman.sock")
-  if (System.getenv("DOCKER_HOST").isNullOrBlank() && podmanSocket.exists()) {
-    val host = "unix://${podmanSocket.absolutePath}"
-    environment("DOCKER_HOST", host)
-    systemProperty("docker.host", host)
-    // ryuk 要把宿主 socket 挂进清理容器,macOS 宿主路径在 podman VM 内 statfs 不支持
-    // (operation not supported)→ podman 环境禁用 ryuk,容器由 JVM shutdown hook 清理。
-    environment("TESTCONTAINERS_RYUK_DISABLED", "true")
-  }
+  // 不用 H2 —— ON CONFLICT/jsonString/类型绑定等 PG 方言差异 H2 测不出)。
+  // 容器运行时接线与共享 PG 基建见 aqua.testcontainers 插件 + foundation testFixtures。
+  testImplementation(testFixtures(project(":modules:aqua-foundation")))
 }

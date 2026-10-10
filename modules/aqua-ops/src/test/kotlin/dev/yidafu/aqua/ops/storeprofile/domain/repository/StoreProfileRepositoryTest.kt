@@ -20,22 +20,22 @@
 package dev.yidafu.aqua.ops.storeprofile.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 import java.time.LocalTime
 
 /**
- * 店铺信息仓储实现测试（H2 + Exposed，F-OPS-004 单行配置）。
+ * 店铺信息仓储实现测试（Testcontainers 真实 PG + Exposed，F-OPS-004 单行配置）。
  * 重点覆盖 `time` 类型列（营业时间）的读写回环。
  */
 class StoreProfileRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = StoreProfileRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun profile(
       shopName: String = "南山送水站",
@@ -56,7 +56,7 @@ class StoreProfileRepositoryTest :
       )
 
     test("save 新建 + findById 回读（含营业时间 time 列回环）") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(profile())
 
       val loaded = repository.findById(StoreProfileRepository.SINGLETON_ID).orElseThrow()
@@ -67,7 +67,7 @@ class StoreProfileRepositoryTest :
     }
 
     test("save 覆盖更新：名称与营业时间变更") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(profile())
       repository.save(profile(shopName = "改名的店", start = LocalTime.of(9, 15), end = LocalTime.of(18, 0)))
 
@@ -78,7 +78,7 @@ class StoreProfileRepositoryTest :
     }
 
     test("findById 不存在返回 empty，hardDeleteAll 物理删除") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.findById(StoreProfileRepository.SINGLETON_ID).isPresent shouldBe false
 
       repository.save(profile())

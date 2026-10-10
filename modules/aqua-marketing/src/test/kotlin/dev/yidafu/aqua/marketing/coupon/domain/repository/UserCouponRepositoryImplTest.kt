@@ -23,8 +23,8 @@ import dev.yidafu.aqua.common.domain.model.UserCouponModel
 import dev.yidafu.aqua.common.domain.model.enums.CouponScope
 import dev.yidafu.aqua.common.domain.model.enums.CouponType
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -34,11 +34,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 用户优惠券实例仓储 Exposed 实现测试(H2):save/软删/派生查询/分页/核销与退回原子更新。
+ * 用户优惠券实例仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/分页/核销与退回原子更新。
  */
 class UserCouponRepositoryImplTest :
   FunSpec({
-    val repo = UserCouponRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = UserCouponRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -57,7 +57,7 @@ class UserCouponRepositoryImplTest :
 
     test("save 更新已有实体走 update 分支") {
       val id =
-        MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
+        MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.status = UserCouponStatus.USED
       loaded.usedOrderId = 555L
@@ -70,9 +70,9 @@ class UserCouponRepositoryImplTest :
     }
 
     test("软删券不可见:各派生查询均过滤") {
-      MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
-      MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED", deleted = true)
-      MarketingExposedH2TestSupport.userCoupon(userId = 101L, couponTemplateId = 1L, status = "USED", usedOrderId = 9L)
+      MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
+      MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED", deleted = true)
+      MarketingPgTestSupport.userCoupon(userId = 101L, couponTemplateId = 1L, status = "USED", usedOrderId = 9L)
 
       repo.findByUserId(100L) shouldHaveSize 1
       repo.findByUserIdAndStatus(100L, UserCouponStatus.RECEIVED) shouldHaveSize 1
@@ -89,24 +89,24 @@ class UserCouponRepositoryImplTest :
 
     test("findByStatusAndExpireTimeBetween:[from,to) 分页 + id 破平") {
       val base = LocalDateTime.of(2026, 4, 10, 0, 0)
-      val in1 = MarketingExposedH2TestSupport.userCoupon(userId = 1L, couponTemplateId = 1L, status = "RECEIVED", expireTime = base)
-      val in2 = MarketingExposedH2TestSupport.userCoupon(userId = 2L, couponTemplateId = 1L, status = "RECEIVED", expireTime = base)
+      val in1 = MarketingPgTestSupport.userCoupon(userId = 1L, couponTemplateId = 1L, status = "RECEIVED", expireTime = base)
+      val in2 = MarketingPgTestSupport.userCoupon(userId = 2L, couponTemplateId = 1L, status = "RECEIVED", expireTime = base)
       // 边界:等于 to 不含;等于 from 含
-      MarketingExposedH2TestSupport.userCoupon(
+      MarketingPgTestSupport.userCoupon(
         userId = 3L,
         couponTemplateId = 1L,
         status = "RECEIVED",
         expireTime = LocalDateTime.of(2026, 4, 20, 0, 0),
       )
       val bFrom =
-        MarketingExposedH2TestSupport.userCoupon(
+        MarketingPgTestSupport.userCoupon(
           userId = 4L,
           couponTemplateId = 1L,
           status = "RECEIVED",
           expireTime = LocalDateTime.of(2026, 4, 1, 0, 0),
         )
       // 其他状态不进
-      MarketingExposedH2TestSupport.userCoupon(userId = 5L, couponTemplateId = 1L, status = "USED", expireTime = base, usedOrderId = 1L)
+      MarketingPgTestSupport.userCoupon(userId = 5L, couponTemplateId = 1L, status = "USED", expireTime = base, usedOrderId = 1L)
 
       val from = LocalDateTime.of(2026, 4, 1, 0, 0)
       val to = LocalDateTime.of(2026, 4, 20, 0, 0)
@@ -128,7 +128,7 @@ class UserCouponRepositoryImplTest :
     }
 
     test("redeemAtomically:命中条件才核销,二次核销/条件不符返回 0") {
-      val id = MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
+      val id = MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, status = "RECEIVED")
       val now = LocalDateTime.now()
 
       repo.redeemAtomically(id, 100L, 777L, UserCouponStatus.RECEIVED, UserCouponStatus.USED, now) shouldBe 1
@@ -140,13 +140,13 @@ class UserCouponRepositoryImplTest :
       // 已是 USED → from 不匹配
       repo.redeemAtomically(id, 100L, 778L, UserCouponStatus.RECEIVED, UserCouponStatus.USED, now) shouldBe 0
       // 用户不匹配
-      val id2 = MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L)
+      val id2 = MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L)
       repo.redeemAtomically(id2, 999L, 779L, UserCouponStatus.RECEIVED, UserCouponStatus.USED, now) shouldBe 0
     }
 
     test("redeemAtomically:已过期券不可核销") {
       val id =
-        MarketingExposedH2TestSupport.userCoupon(
+        MarketingPgTestSupport.userCoupon(
           userId = 100L,
           couponTemplateId = 1L,
           expireTime = LocalDateTime.now().minusMinutes(1),
@@ -155,14 +155,14 @@ class UserCouponRepositoryImplTest :
     }
 
     test("redeemAtomically:软删券不可核销") {
-      val id = MarketingExposedH2TestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, deleted = true)
+      val id = MarketingPgTestSupport.userCoupon(userId = 100L, couponTemplateId = 1L, deleted = true)
       repo.redeemAtomically(id, 100L, 1L, UserCouponStatus.RECEIVED, UserCouponStatus.USED, LocalDateTime.now()) shouldBe 0
     }
 
     test("returnByOrder:未过期→RETURNED,已过期→EXPIRED,清 used 字段") {
       val now = LocalDateTime.now()
       val unexpired =
-        MarketingExposedH2TestSupport.userCoupon(
+        MarketingPgTestSupport.userCoupon(
           userId = 1L,
           couponTemplateId = 1L,
           status = "USED",
@@ -171,7 +171,7 @@ class UserCouponRepositoryImplTest :
           expireTime = now.plusDays(3),
         )
       val expired =
-        MarketingExposedH2TestSupport.userCoupon(
+        MarketingPgTestSupport.userCoupon(
           userId = 2L,
           couponTemplateId = 1L,
           status = "USED",
@@ -181,7 +181,7 @@ class UserCouponRepositoryImplTest :
         )
       // 非本订单不动
       val other =
-        MarketingExposedH2TestSupport.userCoupon(
+        MarketingPgTestSupport.userCoupon(
           userId = 3L,
           couponTemplateId = 1L,
           status = "USED",
@@ -213,8 +213,8 @@ class UserCouponRepositoryImplTest :
     }
 
     test("countByCouponTemplateIdAndStatus 对软删行不计数") {
-      MarketingExposedH2TestSupport.userCoupon(userId = 1L, couponTemplateId = 1L, status = "RECEIVED")
-      MarketingExposedH2TestSupport.userCoupon(userId = 2L, couponTemplateId = 1L, status = "RECEIVED", deleted = true)
+      MarketingPgTestSupport.userCoupon(userId = 1L, couponTemplateId = 1L, status = "RECEIVED")
+      MarketingPgTestSupport.userCoupon(userId = 2L, couponTemplateId = 1L, status = "RECEIVED", deleted = true)
       repo.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RECEIVED) shouldBe 1L
     }
 

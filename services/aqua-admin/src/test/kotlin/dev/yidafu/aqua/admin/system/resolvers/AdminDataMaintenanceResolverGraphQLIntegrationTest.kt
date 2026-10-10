@@ -64,7 +64,7 @@ import java.time.LocalDateTime
 /**
  * Admin 数据维护 Resolver GraphQL 集成测试(F-SYS-006, AC-SYS-006-01~08)
  * 权限:查询 PERMISSION_SYSTEM_CONFIG_READ,备份 PERMISSION_SYSTEM_CONFIG_WRITE(仅超级管理员,R-SYS-03)。
- * 日志分区/备份服务为 PostgreSQL 专属,测试环境(H2)经 @TestConfiguration @Primary mock 替换;
+ * 日志分区/备份服务为 PostgreSQL 专属,测试环境(Testcontainers PG)经 @TestConfiguration @Primary mock 替换;
  * 保留策略参数经仓库播种(生产由 Liquibase v1.2.4 提供)。
  */
 @SpringBootTest(
@@ -241,7 +241,7 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
   })
 
 /**
- * 测试配置:以 mock 替换 PostgreSQL 专属的日志分区服务(测试环境 H2 无法执行分区 SQL)
+ * 测试配置:以 mock 替换 PostgreSQL 专属的日志分区服务(分区 SQL 由 PostgreSQL 专属服务执行,测试中整体 mock)
  */
 @TestConfiguration
 class DataMaintenanceTestConfiguration {

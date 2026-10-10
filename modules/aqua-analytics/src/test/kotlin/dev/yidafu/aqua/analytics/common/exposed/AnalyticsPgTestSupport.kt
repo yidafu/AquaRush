@@ -41,6 +41,7 @@ import dev.yidafu.aqua.common.domain.table.UserActionLogsTable
 import dev.yidafu.aqua.common.domain.table.UserCouponsTable
 import dev.yidafu.aqua.common.domain.table.UserTicketsTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -50,17 +51,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 
 /**
- * analytics 仓储实现测试的 H2 内存库支撑(JPA→Exposed 迁移 P3 覆盖率门禁配套),
- * 模式与 ops 的 ExposedH2TestSupport 一致。
+ * analytics 仓储实现测试的 Testcontainers 真实 PG 支撑(JPA→Exposed 迁移 P3 覆盖率门禁配套),
+ * 模式与 ops 的 OpsPgTestSupport 一致。
  */
-object AnalyticsExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquaanalyticsrepo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object AnalyticsPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquaanalyticsrepo")
 
   private val allTables: Array<Table> =
     arrayOf(
@@ -92,7 +87,7 @@ object AnalyticsExposedH2TestSupport {
   private var schemaCreated = false
 
   fun reset() {
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       if (schemaCreated) {
         allTables.forEach { it.deleteAll() }
       } else {
@@ -125,7 +120,7 @@ object Seed {
     firstOrderActivityId: Long? = null,
     deleted: Boolean = false,
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val oid =
         if (id != 0L) id else id()
       OrdersTable.insert {
@@ -162,7 +157,7 @@ object Seed {
     totalPriceCents: Long = 5000L,
     createdAt: LocalDateTime = LocalDateTime.now(),
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val itemId = id()
       OrderItemsTable.insert {
         it[OrderItemsTable.id] = itemId
@@ -184,7 +179,7 @@ object Seed {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val uid = if (id != 0L) id else id()
       UsersTable.insert {
         it[UsersTable.id] = uid
@@ -207,7 +202,7 @@ object Seed {
     actionType: String = "USER_LOGIN",
     createdAt: LocalDateTime = LocalDateTime.now(),
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val logId = id()
       UserActionLogsTable.insert {
         it[UserActionLogsTable.id] = logId
@@ -226,7 +221,7 @@ object Seed {
     sales: Int = 10,
     priceCents: Long = 1200L,
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val pid = if (id != 0L) id else id()
       ProductsTable.insert {
         it[ProductsTable.id] = pid
@@ -251,7 +246,7 @@ object Seed {
     role: String = "DELIVERY_WORKER",
     realName: String? = "师傅$id",
   ): Long =
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       val aid = if (id != 0L) id else id()
       AdminsTable.insert {
         it[AdminsTable.id] = aid

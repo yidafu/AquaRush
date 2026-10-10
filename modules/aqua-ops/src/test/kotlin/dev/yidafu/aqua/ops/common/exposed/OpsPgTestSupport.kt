@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.ops.common.exposed
 
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import dev.yidafu.aqua.ops.banner.domain.table.BannerTable
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.table.DeliveryFeeRuleTable
 import dev.yidafu.aqua.ops.feedback.domain.table.FeedbackTable
@@ -32,19 +33,13 @@ import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
- * ops 仓储实现测试的 H2 内存库支撑（JPA -> Exposed 迁移，P1 覆盖率门禁配套）。
+ * ops 仓储实现测试的 Testcontainers 真实 PG 支撑（JPA -> Exposed 迁移，P1 覆盖率门禁配套）。
  *
  * 表结构由 Exposed 的 `SchemaUtils.create` 生成（与 Liquibase DDL 逐列对齐），
  * 每个测试类 `beforeSpec` 调用 [reset] 清空全部表，保证用例互不串数据。
  */
-object ExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquaopsrepo;DB_CLOSE_DELAY=-1",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object OpsPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquaopsrepo")
 
   private val allTables: Array<Table> =
     arrayOf(

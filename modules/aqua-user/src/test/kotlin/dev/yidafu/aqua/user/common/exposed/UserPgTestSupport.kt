@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.table.AdminsTable
 import dev.yidafu.aqua.common.domain.table.NotificationSettingsTable
 import dev.yidafu.aqua.common.domain.table.RegionsTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -33,17 +34,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 
 /**
- * user 仓储实现测试的 H2 内存库支撑(JPA→Exposed 迁移 P3 收尾,覆盖率门禁配套),
- * 模式与 analytics 的 AnalyticsExposedH2TestSupport 一致。
+ * user 仓储实现测试的 Testcontainers 真实 PG 支撑(JPA→Exposed 迁移 P3 收尾,覆盖率门禁配套),
+ * 模式与 analytics 的 AnalyticsPgTestSupport 一致。
  */
-object UserExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquauserrepo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object UserPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquauserrepo")
 
   private val allTables: Array<Table> =
     arrayOf(UsersTable, AddressesTable, AdminsTable, RegionsTable, NotificationSettingsTable)
@@ -52,7 +47,7 @@ object UserExposedH2TestSupport {
   private var schemaCreated = false
 
   fun reset() {
-    transaction(UserExposedH2TestSupport.database) {
+    transaction(UserPgTestSupport.database) {
       if (schemaCreated) {
         allTables.forEach { it.deleteAll() }
       } else {
@@ -79,7 +74,7 @@ object UserExposedH2TestSupport {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(UserExposedH2TestSupport.database) {
+    transaction(UserPgTestSupport.database) {
       UsersTable.insert {
         it[UsersTable.id] = id
         it[wechatOpenid] = openId
@@ -108,7 +103,7 @@ object UserExposedH2TestSupport {
     onlineStatus: String = "OFFLINE",
     deleted: Boolean = false,
   ): Long =
-    transaction(UserExposedH2TestSupport.database) {
+    transaction(UserPgTestSupport.database) {
       AdminsTable.insert {
         it[AdminsTable.id] = id
         it[AdminsTable.username] = username
@@ -139,7 +134,7 @@ object UserExposedH2TestSupport {
     latitude: Double? = null,
     deleted: Boolean = false,
   ): Long =
-    transaction(UserExposedH2TestSupport.database) {
+    transaction(UserPgTestSupport.database) {
       AddressesTable.insert {
         it[AddressesTable.id] = id
         it[AddressesTable.userId] = userId
@@ -169,7 +164,7 @@ object UserExposedH2TestSupport {
     parentCode: String? = "0",
     level: Int = 1,
   ): Long =
-    transaction(UserExposedH2TestSupport.database) {
+    transaction(UserPgTestSupport.database) {
       RegionsTable.insert {
         it[RegionsTable.id] = id
         it[RegionsTable.name] = name

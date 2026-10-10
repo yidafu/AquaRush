@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.customer.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.domain.table.CustomerGroupsTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -36,11 +36,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 客户分组仓储 Exposed 实现测试(H2):save/软删与双删 no-op/派生查询/分页。
+ * 客户分组仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删与双删 no-op/派生查询/分页。
  */
 class CustomerGroupRepositoryImplTest :
   FunSpec({
-    val repo = CustomerGroupRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = CustomerGroupRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -55,7 +55,7 @@ class CustomerGroupRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.customerGroup(name = "旧名")
+      val id = MarketingPgTestSupport.customerGroup(name = "旧名")
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.name = "新名"
       loaded.description = "描述"
@@ -68,9 +68,9 @@ class CustomerGroupRepositoryImplTest :
     }
 
     test("软删分组不可见:各查询均过滤,findAllById 按 id 升序") {
-      val first = MarketingExposedH2TestSupport.customerGroup(name = "一")
-      val second = MarketingExposedH2TestSupport.customerGroup(name = "二")
-      MarketingExposedH2TestSupport.customerGroup(name = "删", deleted = true)
+      val first = MarketingPgTestSupport.customerGroup(name = "一")
+      val second = MarketingPgTestSupport.customerGroup(name = "二")
+      MarketingPgTestSupport.customerGroup(name = "删", deleted = true)
 
       repo.findById(first).isPresent shouldBe true
       repo.findById(second).isPresent shouldBe true
@@ -81,13 +81,13 @@ class CustomerGroupRepositoryImplTest :
     }
 
     test("delete 软删三列写入,二次 delete no-op(deletedAt 哨兵不被重写)") {
-      val id = MarketingExposedH2TestSupport.customerGroup(name = "待删")
+      val id = MarketingPgTestSupport.customerGroup(name = "待删")
       val entity = repo.findById(id).orElse(null).shouldNotBeNull()
 
       repo.delete(entity)
       repo.findById(id).isPresent shouldBe false
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           CustomerGroupsTable.selectAll().where { CustomerGroupsTable.id eq id }.single()
         }
       row[CustomerGroupsTable.isDeleted] shouldBe true
@@ -95,12 +95,12 @@ class CustomerGroupRepositoryImplTest :
 
       // 哨兵:二次 delete 不重写 deleted_at
       val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
-      transaction(MarketingExposedH2TestSupport.database) {
+      transaction(MarketingPgTestSupport.database) {
         CustomerGroupsTable.update({ CustomerGroupsTable.id eq id }) { it[CustomerGroupsTable.deletedAt] = sentinel }
       }
       repo.delete(entity)
       val after =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           CustomerGroupsTable.selectAll().where { CustomerGroupsTable.id eq id }.single()
         }
       after[CustomerGroupsTable.deletedAt] shouldBe sentinel
@@ -110,10 +110,10 @@ class CustomerGroupRepositoryImplTest :
     test("searchGroups:关键词过滤,createdAt 降序,软删不进结果") {
       val older = LocalDateTime.of(2026, 1, 1, 10, 0)
       val newer = LocalDateTime.of(2026, 6, 1, 10, 0)
-      MarketingExposedH2TestSupport.customerGroup(name = "熟客A", createdAt = older)
-      MarketingExposedH2TestSupport.customerGroup(name = "熟客B", createdAt = newer)
-      MarketingExposedH2TestSupport.customerGroup(name = "熟客C", createdAt = newer, deleted = true)
-      MarketingExposedH2TestSupport.customerGroup(name = "新客", createdAt = newer)
+      MarketingPgTestSupport.customerGroup(name = "熟客A", createdAt = older)
+      MarketingPgTestSupport.customerGroup(name = "熟客B", createdAt = newer)
+      MarketingPgTestSupport.customerGroup(name = "熟客C", createdAt = newer, deleted = true)
+      MarketingPgTestSupport.customerGroup(name = "新客", createdAt = newer)
 
       repo.searchGroups("熟客", PageRequest.of(0, 10)).totalElements shouldBe 2L
       // createdAt 降序 + id 破平(同 newer 时间戳的组内按 id 降序)
@@ -127,9 +127,9 @@ class CustomerGroupRepositoryImplTest :
 
     test("searchGroups:同 createdAt 以 id 破平,跨页不重不漏") {
       val tie = LocalDateTime.of(2026, 5, 1, 8, 0)
-      val a = MarketingExposedH2TestSupport.customerGroup(name = "A", createdAt = tie)
-      val b = MarketingExposedH2TestSupport.customerGroup(name = "B", createdAt = tie)
-      val c = MarketingExposedH2TestSupport.customerGroup(name = "C", createdAt = tie)
+      val a = MarketingPgTestSupport.customerGroup(name = "A", createdAt = tie)
+      val b = MarketingPgTestSupport.customerGroup(name = "B", createdAt = tie)
+      val c = MarketingPgTestSupport.customerGroup(name = "C", createdAt = tie)
 
       val page0 = repo.searchGroups(null, PageRequest.of(0, 2))
       val page1 = repo.searchGroups(null, PageRequest.of(1, 2))

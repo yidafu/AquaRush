@@ -12,6 +12,17 @@
 - WeChat integration should be tested with sandbox environments
 - React components should have unit tests with React Testing Library
 
+### Test Database (Testcontainers PostgreSQL)
+
+**H2 has been removed from the test stack.** Repository impl tests and Spring integration tests run against a **real PostgreSQL** container via Testcontainers (default image `postgres:17-alpine`) — H2's `MODE=PostgreSQL` does not reproduce `INSERT ... ON CONFLICT` upsert semantics, `jsonString` binding, varchar length checks, or row-lock behaviour.
+
+- Shared container bootstrap: `PostgresTestContainer` (test fixture of `aqua-foundation`, consumed via `testImplementation(testFixtures(project(":modules:aqua-foundation")))`).
+- Gradle wiring: the `aqua.testcontainers` convention plugin (container deps + `DOCKER_HOST`/ryuk setup).
+- `services/aqua-admin` and `services/aqua-client` inject the container into Spring through a tracked `ApplicationContextInitializer` registered in `src/test/resources/META-INF/spring.factories` — **not** through `application-test.yml`, which `.gitignore` excludes from version control (`application-*.yml`).
+- **A container runtime is required** to run backend tests: Docker, or podman on machines without Docker (the convention plugin falls back to the podman machine socket and disables ryuk). CI needs a working Docker daemon.
+- Image override: `AQUA_TEST_PG_IMAGE` (default `postgres:17-alpine`). The container is tuned for speed and a small footprint (`fsync=off`, `shared_buffers=16MB`, `max_connections=200`).
+- **`./gradlew check` takes ~20 min**, dominated by `services/aqua-admin` booting ~30 cached Spring contexts (test bodies themselves total ~13 s). Runtime is the same order as before the migration — iterate with module-scoped `--tests` and `--no-build-cache` when you need a trustworthy result (the test task result otherwise often comes `FROM-CACHE`).
+
 ### Coverage Standards (Kover)
 
 The build enforces per-module line-coverage gates via **Kover** (configured in root `build.gradle.kts`, `koverModuleBounds`). `koverVerify` runs on `check`, so `./gradlew build` fails when a module is below its bound. The standard:
@@ -36,7 +47,7 @@ The following are **excluded** from measurement (no business logic or generated 
    - `aqua-analytics`: `ReconciliationServiceImpl`, `StatisticsServiceImpl` family, both schedulers
    - `aqua-ops`: `DeliveryFeeRuleMutationServiceImpl` (fee tiers), `OpsConfigAuditService`
 2. **Tier 2 — business orchestration** (all `*MutationServiceImpl` / `*QueryServiceImpl` not yet covered in `aqua-marketing`, `aqua-product`, `aqua-user`, `aqua-platform`, `aqua-analytics`)
-3. **Tier 3 — cheap & valuable**: utils (`JsonHelper`, `SearchContentBuilder`, `PaginationUtils`), domain-model methods with real logic (money fields, status transitions), repository custom impls (H2 integration, see `SoftDeleteRepositoryTest` / `MonetaryFieldsIntegrationTest`)
+3. **Tier 3 — cheap & valuable**: utils (`JsonHelper`, `SearchContentBuilder`, `PaginationUtils`), domain-model methods with real logic (money fields, status transitions), repository custom impls (Testcontainers PostgreSQL integration — see `SoftDeleteRepositoryTest` / `MonetaryFieldsIntegrationTest`)
 
 **No unit tests needed** for: DTOs, conversion functions in `*Mapper*.kt` (mechanical translation, excluded from coverage by class name and covered by integration tests — do not write conversion unit tests), GraphQL resolvers/controllers (integration-tested), `@Configuration`/exception classes.
 

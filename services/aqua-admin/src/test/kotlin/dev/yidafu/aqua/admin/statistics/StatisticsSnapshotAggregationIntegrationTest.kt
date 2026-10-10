@@ -52,7 +52,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 统计快照按日聚合仓储集成测试(H2 PostgreSQL 模式)
+ * 统计快照按日聚合仓储集成测试(Testcontainers 真实 PG)
  * 覆盖第 3 层中间表写入侧的数据正确性:
  * - 订单事实:多商品订单(F-ORD-004)金额按订单只计一次(防 P1-3),件数按明细汇总,状态维度落库;
  * - 商品事实:revenue = Σ order_items.total_price_cents,quantity = Σ 件数;

@@ -76,7 +76,7 @@ class DailyReconciliationRepositoryImpl(
       updatedAt = row[DailyReconciliationsTable.updatedAt],
     )
 
-  /** report_data 文本 → 结构化 Map;剥掉 H2 json 列可能多包的一层 JSON string(幂等,PG 无影响)。 */
+  /** report_data 文本 → 结构化 Map;按需剥掉历史上被双重编码的一层 JSON string(幂等,PG 下正常单层 JSON 不受影响)。 */
   private fun parseJsonMap(json: String): Map<String, Any> {
     val trimmed = json.trim()
     val effective =

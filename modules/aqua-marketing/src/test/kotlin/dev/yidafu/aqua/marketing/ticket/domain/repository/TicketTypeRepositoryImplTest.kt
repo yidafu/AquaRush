@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -30,11 +30,11 @@ import io.kotest.matchers.shouldBe
 import org.springframework.data.domain.PageRequest
 
 /**
- * 桶水票票种仓储 Exposed 实现测试(H2):save/软删/派生查询/分页。
+ * 桶水票票种仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/分页。
  */
 class TicketTypeRepositoryImplTest :
   FunSpec({
-    val repo = TicketTypeRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = TicketTypeRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -62,8 +62,8 @@ class TicketTypeRepositoryImplTest :
     }
 
     test("软删票种不可见:findByName/findAllById/findByStatus/findById 均过滤") {
-      val keep = MarketingExposedH2TestSupport.ticketType(name = "存活")
-      MarketingExposedH2TestSupport.ticketType(name = "已删", deleted = true)
+      val keep = MarketingPgTestSupport.ticketType(name = "存活")
+      MarketingPgTestSupport.ticketType(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findByName("存活")!!.id shouldBe keep
@@ -74,9 +74,9 @@ class TicketTypeRepositoryImplTest :
     }
 
     test("searchTicketTypes:关键词+状态 + 软删过滤 + 分页 id 破平") {
-      val a = MarketingExposedH2TestSupport.ticketType(name = "十次票", status = "ACTIVE")
-      val b = MarketingExposedH2TestSupport.ticketType(name = "二十次票", status = "DISABLED")
-      MarketingExposedH2TestSupport.ticketType(name = "隐藏票", status = "ACTIVE", deleted = true)
+      val a = MarketingPgTestSupport.ticketType(name = "十次票", status = "ACTIVE")
+      val b = MarketingPgTestSupport.ticketType(name = "二十次票", status = "DISABLED")
+      MarketingPgTestSupport.ticketType(name = "隐藏票", status = "ACTIVE", deleted = true)
 
       repo.searchTicketTypes("次票", null, PageRequest.of(0, 10)).totalElements shouldBe 2L
       repo.searchTicketTypes(null, TicketTypeStatus.ACTIVE, PageRequest.of(0, 10)).totalElements shouldBe 1L

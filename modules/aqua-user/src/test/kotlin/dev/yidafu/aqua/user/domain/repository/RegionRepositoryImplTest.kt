@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.RegionModel
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport.reset
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -29,7 +29,7 @@ import io.kotest.matchers.shouldBe
 
 class RegionRepositoryImplTest :
   FunSpec({
-    val repo = RegionRepositoryImpl(UserExposedH2TestSupport.database)
+    val repo = RegionRepositoryImpl(UserPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -48,9 +48,9 @@ class RegionRepositoryImplTest :
     }
 
     test("层级/父级/名称过滤查询") {
-      UserExposedH2TestSupport.region(code = "R1", name = "浙江省", parentCode = "0", level = 1)
-      UserExposedH2TestSupport.region(code = "R2", name = "杭州市", parentCode = "R1", level = 2)
-      UserExposedH2TestSupport.region(code = "R3", name = "宁波市", parentCode = "R1", level = 2)
+      UserPgTestSupport.region(code = "R1", name = "浙江省", parentCode = "0", level = 1)
+      UserPgTestSupport.region(code = "R2", name = "杭州市", parentCode = "R1", level = 2)
+      UserPgTestSupport.region(code = "R3", name = "宁波市", parentCode = "R1", level = 2)
 
       repo.findRootRegions(1) shouldHaveSize 1
       repo.findByParentCodeAndLevel("R1", 2) shouldHaveSize 2
@@ -64,7 +64,7 @@ class RegionRepositoryImplTest :
     }
 
     test("save 更新分支") {
-      val id = UserExposedH2TestSupport.region()
+      val id = UserPgTestSupport.region()
       val loaded = repo.findById(id).shouldNotBeNull()
       repo.save(loaded) // RegionModel 业务列全为 val,update 分支以原值写回
       repo.findById(id).shouldNotBeNull().name shouldBe loaded.name

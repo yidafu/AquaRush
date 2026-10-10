@@ -21,8 +21,8 @@ package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.table.ProductFavoritesTable
-import dev.yidafu.aqua.product.common.exposed.ProductExposedH2TestSupport
-import dev.yidafu.aqua.product.common.exposed.ProductExposedH2TestSupport.reset
+import dev.yidafu.aqua.product.common.exposed.ProductPgTestSupport
+import dev.yidafu.aqua.product.common.exposed.ProductPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -35,16 +35,16 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 商品收藏仓储 Exposed 实现测试(H2):save 双分支/软删可见性/enable 过滤/分页排序/统计口径。
+ * 商品收藏仓储 Exposed 实现测试(Testcontainers 真实 PG):save 双分支/软删可见性/enable 过滤/分页排序/统计口径。
  */
 class ProductFavoriteRepositoryImplTest :
   FunSpec({
-    val repo = ProductFavoriteRepositoryImpl(ProductExposedH2TestSupport.database)
+    val repo = ProductFavoriteRepositoryImpl(ProductPgTestSupport.database)
 
     beforeTest { reset() }
 
     test("save 新增并回填雪花 id,findByUserIdAndProductId 可查") {
-      val pid = ProductExposedH2TestSupport.product()
+      val pid = ProductPgTestSupport.product()
       val saved = repo.save(ProductFavoriteModel(userId = 1L, productId = pid, enable = true))
       saved.id.shouldNotBeNull()
       val found = repo.findByUserIdAndProductId(1L, pid)
@@ -54,20 +54,20 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支(enable 翻转)") {
-      val pid = ProductExposedH2TestSupport.product()
-      val id = ProductExposedH2TestSupport.favorite(userId = 1L, productId = pid, enable = true)
+      val pid = ProductPgTestSupport.product()
+      val id = ProductPgTestSupport.favorite(userId = 1L, productId = pid, enable = true)
       val loaded = repo.findByUserIdAndProductId(1L, pid).shouldNotBeNull()
       repo.save(loaded.copy(enable = false))
       repo.findByUserIdAndProductId(1L, pid)!!.enable shouldBe false
       // 主键未变,行数仍为 1
-      transaction(ProductExposedH2TestSupport.database) {
+      transaction(ProductPgTestSupport.database) {
         ProductFavoritesTable.selectAll().where { ProductFavoritesTable.id eq id }.count()
       } shouldBe 1L
     }
 
     test("软删收藏不可见:查询/count/exists 均过滤") {
-      val pid = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = pid, deleted = true)
+      val pid = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = pid, deleted = true)
 
       repo.findByUserIdAndProductId(1L, pid) shouldBe null
       repo.count() shouldBe 0L
@@ -76,13 +76,13 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("findByUserId 分页:仅该用户,软删过滤") {
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      val p3 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p1)
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p2)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p3)
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = ProductExposedH2TestSupport.product(), deleted = true)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      val p3 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1)
+      ProductPgTestSupport.favorite(userId = 1L, productId = p2)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p3)
+      ProductPgTestSupport.favorite(userId = 1L, productId = ProductPgTestSupport.product(), deleted = true)
 
       val page = repo.findByUserId(1L, PageRequest.of(0, 10))
       page.totalElements shouldBe 2L
@@ -93,19 +93,19 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("findByProductId:命中/无行/软删过滤") {
-      val pid = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = pid)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = pid, deleted = true)
+      val pid = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = pid)
+      ProductPgTestSupport.favorite(userId = 2L, productId = pid, deleted = true)
 
       repo.findByProductId(pid) shouldHaveSize 1
       repo.findByProductId(999_999L) shouldHaveSize 0
     }
 
     test("enable 过滤:exists/countByUserId/findFavoriteProductIdsByUserId") {
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p1, enable = true)
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p2, enable = false)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1, enable = true)
+      ProductPgTestSupport.favorite(userId = 1L, productId = p2, enable = false)
 
       repo.existsByUserIdAndProductId(1L, p1) shouldBe true
       repo.existsByUserIdAndProductId(1L, p2) shouldBe false
@@ -115,15 +115,15 @@ class ProductFavoriteRepositoryImplTest :
 
     test("findFavoriteIdsByUserId:启用过滤+createdAt 倒序+分页+总数") {
       val base = LocalDateTime.of(2026, 3, 1, 12, 0)
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      val p3 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 7L, productId = p1, createdAt = base.plusHours(1))
-      ProductExposedH2TestSupport.favorite(userId = 7L, productId = p2, createdAt = base.plusHours(3))
-      ProductExposedH2TestSupport.favorite(userId = 7L, productId = p3, createdAt = base.plusHours(2))
-      ProductExposedH2TestSupport.favorite(
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      val p3 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 7L, productId = p1, createdAt = base.plusHours(1))
+      ProductPgTestSupport.favorite(userId = 7L, productId = p2, createdAt = base.plusHours(3))
+      ProductPgTestSupport.favorite(userId = 7L, productId = p3, createdAt = base.plusHours(2))
+      ProductPgTestSupport.favorite(
         userId = 7L,
-        productId = ProductExposedH2TestSupport.product(),
+        productId = ProductPgTestSupport.product(),
         enable = false,
         createdAt = base.plusHours(4),
       )
@@ -139,12 +139,12 @@ class ProductFavoriteRepositoryImplTest :
 
     test("findFavoriteIdsByUserId:同 createdAt 以 id 破平,跨页不重不漏") {
       val at = LocalDateTime.of(2026, 3, 1, 12, 0)
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      val p3 = ProductExposedH2TestSupport.product()
-      val f1 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p1, createdAt = at)
-      val f2 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p2, createdAt = at)
-      val f3 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p3, createdAt = at)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      val p3 = ProductPgTestSupport.product()
+      val f1 = ProductPgTestSupport.favorite(userId = 7L, productId = p1, createdAt = at)
+      val f2 = ProductPgTestSupport.favorite(userId = 7L, productId = p2, createdAt = at)
+      val f3 = ProductPgTestSupport.favorite(userId = 7L, productId = p3, createdAt = at)
 
       // createdAt 全同 → 破平后按收藏行 id DESC 跨页切分,不重不漏
       val byFavoriteIdDesc =
@@ -156,8 +156,8 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("updateEnableStatus:仅更新活跃行") {
-      val pid = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = pid, enable = true)
+      val pid = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = pid, enable = true)
 
       repo.updateEnableStatus(1L, pid, false) shouldBe 1
       repo.findByUserIdAndProductId(1L, pid)!!.enable shouldBe false
@@ -166,12 +166,12 @@ class ProductFavoriteRepositoryImplTest :
 
     test("统计口径:count/countDistinctUsersWithFavorites/countFavoritesSince") {
       val base = LocalDateTime.of(2026, 3, 1, 0, 0)
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p1, createdAt = base)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p1, createdAt = base.plusDays(1))
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p2, createdAt = base.plusDays(2))
-      ProductExposedH2TestSupport.favorite(userId = 3L, productId = p2, createdAt = base, deleted = true)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1, createdAt = base)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p1, createdAt = base.plusDays(1))
+      ProductPgTestSupport.favorite(userId = 2L, productId = p2, createdAt = base.plusDays(2))
+      ProductPgTestSupport.favorite(userId = 3L, productId = p2, createdAt = base, deleted = true)
 
       repo.count() shouldBe 3L
       repo.countDistinctUsersWithFavorites() shouldBe 2L
@@ -181,15 +181,15 @@ class ProductFavoriteRepositoryImplTest :
 
     test("findMostFavoritedProducts:SQL 侧分页+HAVING 过滤,软删不计,附最后收藏时间") {
       val base = LocalDateTime.of(2026, 3, 1, 0, 0)
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      val p3 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p1, createdAt = base)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p1, createdAt = base.plusDays(1))
-      ProductExposedH2TestSupport.favorite(userId = 3L, productId = p1, createdAt = base.plusDays(2))
-      ProductExposedH2TestSupport.favorite(userId = 4L, productId = p2, createdAt = base)
-      ProductExposedH2TestSupport.favorite(userId = 5L, productId = p2, deleted = true)
-      ProductExposedH2TestSupport.favorite(userId = 6L, productId = p3, createdAt = base)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      val p3 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1, createdAt = base)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p1, createdAt = base.plusDays(1))
+      ProductPgTestSupport.favorite(userId = 3L, productId = p1, createdAt = base.plusDays(2))
+      ProductPgTestSupport.favorite(userId = 4L, productId = p2, createdAt = base)
+      ProductPgTestSupport.favorite(userId = 5L, productId = p2, deleted = true)
+      ProductPgTestSupport.favorite(userId = 6L, productId = p3, createdAt = base)
 
       // 第 1 页(每页 2 条):收藏数倒序,同数按商品 id 升序
       val page0 = repo.findMostFavoritedProducts(PageRequest.of(0, 2))
@@ -209,12 +209,12 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("findTopFavoritedProducts/countFavoritedProducts/countTotalFavorites:SQL 侧 limit 与聚合") {
-      val p1 = ProductExposedH2TestSupport.product()
-      val p2 = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p1)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p1)
-      ProductExposedH2TestSupport.favorite(userId = 3L, productId = p2)
-      ProductExposedH2TestSupport.favorite(userId = 4L, productId = p2, deleted = true)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p1)
+      ProductPgTestSupport.favorite(userId = 3L, productId = p2)
+      ProductPgTestSupport.favorite(userId = 4L, productId = p2, deleted = true)
 
       repo.findTopFavoritedProducts(1).map { it.productId } shouldContainExactly listOf(p1)
       repo.countFavoritedProducts() shouldBe 2L
@@ -223,13 +223,13 @@ class ProductFavoriteRepositoryImplTest :
 
     test("findFavoritesForExport:过滤组合 + keyset 游标分批(软删不计)") {
       val base = LocalDateTime.of(2026, 3, 1, 0, 0)
-      val pa = ProductExposedH2TestSupport.product()
-      val pb = ProductExposedH2TestSupport.product()
-      val f1 = ProductExposedH2TestSupport.favorite(userId = 11L, productId = pa, createdAt = base)
-      val f2 = ProductExposedH2TestSupport.favorite(userId = 12L, productId = pb, createdAt = base.plusDays(5))
-      val f3 = ProductExposedH2TestSupport.favorite(userId = 11L, productId = pb, createdAt = base.plusDays(9))
+      val pa = ProductPgTestSupport.product()
+      val pb = ProductPgTestSupport.product()
+      val f1 = ProductPgTestSupport.favorite(userId = 11L, productId = pa, createdAt = base)
+      val f2 = ProductPgTestSupport.favorite(userId = 12L, productId = pb, createdAt = base.plusDays(5))
+      val f3 = ProductPgTestSupport.favorite(userId = 11L, productId = pb, createdAt = base.plusDays(9))
       // 软删行:落在任一过滤维度内,均不应出现在导出结果
-      ProductExposedH2TestSupport.favorite(
+      ProductPgTestSupport.favorite(
         userId = 11L,
         productId = pa,
         createdAt = base.plusDays(3),
@@ -256,10 +256,10 @@ class ProductFavoriteRepositoryImplTest :
     }
 
     test("getAverageFavoritesPerUser:均值与无用户回退 0.0") {
-      val p = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p)
-      ProductExposedH2TestSupport.favorite(userId = 1L, productId = p)
-      ProductExposedH2TestSupport.favorite(userId = 2L, productId = p)
+      val p = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p)
+      ProductPgTestSupport.favorite(userId = 1L, productId = p)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p)
 
       repo.getAverageFavoritesPerUser() shouldBe 1.5
     }

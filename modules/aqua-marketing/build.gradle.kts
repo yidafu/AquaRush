@@ -19,6 +19,8 @@
 plugins {
   id("aqua.spring.boot.library")
   id("aqua.kotlin.exposed")
+  // Testcontainers 真实 PG 测试(容器运行时接线见 build-logic/aqua.testcontainers.gradle.kts)
+  id("aqua.testcontainers")
 }
 
 dependencies {
@@ -39,6 +41,6 @@ dependencies {
   testImplementation(libs.mockk.core)
   testImplementation(libs.springmockk)
   testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
-  // 仓储实现 H2 实现级测试(aqua.kotlin.exposed 不带 test 依赖)
-  testImplementation(libs.h2)
+  // 仓储实现级测试打 Testcontainers 真实 PG(共享基建在 foundation testFixtures)
+  testImplementation(testFixtures(project(":modules:aqua-foundation")))
 }

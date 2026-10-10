@@ -45,7 +45,7 @@ import java.time.LocalDateTime
 /**
  * AdminBusinessLog Resolver GraphQL 集成测试(F-LOG-003,AC-LOG-003-xx)
  * 权限:PERMISSION_LOG_READ。恒 createdAt 倒序;支持 domain/operationType 维度筛选。
- * 测试环境 Liquibase 禁用(H2 + create-drop),@BeforeEach 经仓库播种 business_logs 行。
+ * 测试环境 Liquibase 禁用(Testcontainers PG + create-drop),@BeforeEach 经仓库播种 business_logs 行。
  */
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.MOCK,

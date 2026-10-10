@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
-import dev.yidafu.aqua.analytics.common.exposed.AnalyticsExposedH2TestSupport
+import dev.yidafu.aqua.analytics.common.exposed.AnalyticsPgTestSupport
 import dev.yidafu.aqua.common.domain.model.DailyMarketingFactModel
 import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
@@ -33,12 +33,12 @@ import io.kotest.matchers.shouldBe
 import java.time.LocalDate
 
 /**
- * 7 个统计日事实仓储实现的 H2 测试:saveAll→findBy→findFirst→deleteBy 生命周期 + 雪花 id 回填。
+ * 7 个统计日事实仓储实现的 真实 PG 测试:saveAll→findBy→findFirst→deleteBy 生命周期 + 雪花 id 回填。
  * 覆盖 ExposedDailyFactRepository 基类与各 Impl 的列映射。
  */
 class ExposedDailyFactRepositoriesImplTest :
   FunSpec({
-    val database = AnalyticsExposedH2TestSupport.database
+    val database = AnalyticsPgTestSupport.database
     val orderRepo = ExposedDailyOrderFactRepositoryImpl(database)
     val productRepo = ExposedDailyProductFactRepositoryImpl(database)
     val userRepo = ExposedDailyUserFactRepositoryImpl(database)
@@ -48,7 +48,7 @@ class ExposedDailyFactRepositoriesImplTest :
     val usageRepo = ExposedDailyMarketingUsageFactRepositoryImpl(database)
     val date = LocalDate.of(2026, 10, 1)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("order fact 生命周期:saveAll→findByStatDateBetween→findFirst→deleteByStatDateIn") {
       orderRepo.saveAll(

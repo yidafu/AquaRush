@@ -22,22 +22,22 @@ package dev.yidafu.aqua.ops.systemconfig.domain.repository
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
 /**
- * 系统参数仓储实现测试（H2 + Exposed，F-SYS-001）。
+ * 系统参数仓储实现测试（Testcontainers 真实 PG + Exposed，F-SYS-001）。
  * setting_key 唯一；本表无软删列，查询不过滤 is_deleted。
  */
 class SystemSettingsRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = SystemSettingsRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun setting(
       key: String,
@@ -55,7 +55,7 @@ class SystemSettingsRepositoryTest :
       )
 
     test("save 新建 + findBySettingKey 回读") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(setting("low_stock_threshold", "10"))
 
       val loaded = repository.findBySettingKey("low_stock_threshold")
@@ -65,12 +65,12 @@ class SystemSettingsRepositoryTest :
     }
 
     test("findBySettingKey 不存在返回 null") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.findBySettingKey("not_exist") shouldBe null
     }
 
     test("save 更新：值与 updated_by 覆盖，其余列不动") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(setting("login_fail_lock_threshold", "5"))
       saved.settingValue = "8"
       repository.save(saved)
@@ -81,7 +81,7 @@ class SystemSettingsRepositoryTest :
     }
 
     test("findAllBySettingGroupOrderBySettingKey 组内按键升序") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(setting("c_key", group = SystemSettingGroup.INVENTORY))
       repository.save(setting("a_key", group = SystemSettingGroup.INVENTORY))
       repository.save(setting("b_key", group = SystemSettingGroup.ORDER_AND_FULFILLMENT))
@@ -91,7 +91,7 @@ class SystemSettingsRepositoryTest :
     }
 
     test("findAllBySettingKeyIn 空集合返回空列表") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.findAllBySettingKeyIn(emptyList()) shouldBe emptyList()
 
       repository.save(setting("token_validity_hours", "24"))

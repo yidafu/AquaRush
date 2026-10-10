@@ -97,7 +97,7 @@ class AdminNoticeResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子公告(按标题去重,避免共享 H2 遗留数据重复)
+      // 幂等种子公告(按标题去重,避免共享测试库遗留数据重复)
       if (noticeRepository.findByTitle("种子公告A") == null) {
         noticeRepository.saveAll(
           listOf(

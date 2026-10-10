@@ -1,6 +1,8 @@
 plugins {
   id("aqua.spring.boot.library")
   id("aqua.kotlin.exposed")
+  // Testcontainers 真实 PG 测试(容器运行时接线见 build-logic/aqua.testcontainers.gradle.kts)
+  id("aqua.testcontainers")
 }
 
 group = "dev.yidafu.aqua"
@@ -52,7 +54,7 @@ dependencies {
   // ========================================================
   // 测试依赖
   // ========================================================
-  testImplementation(libs.h2)
+  testImplementation(testFixtures(project(":modules:aqua-foundation")))
   testImplementation(libs.spring.boot.starter.test)
 }
 

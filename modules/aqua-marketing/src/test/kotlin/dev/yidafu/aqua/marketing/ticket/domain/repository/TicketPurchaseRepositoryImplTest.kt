@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -30,11 +30,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 购票单仓储 Exposed 实现测试(H2):save/软删/派生查询/按日销售聚合/支付入账原子流转。
+ * 购票单仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/按日销售聚合/支付入账原子流转。
  */
 class TicketPurchaseRepositoryImplTest :
   FunSpec({
-    val repo = TicketPurchaseRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = TicketPurchaseRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -56,7 +56,7 @@ class TicketPurchaseRepositoryImplTest :
         .shouldNotBeNull()
         .paymentStatus shouldBe TicketPurchaseStatus.PAID
 
-      val gone = MarketingExposedH2TestSupport.ticketPurchase(userId = 1L, ticketTypeId = 1L, deleted = true)
+      val gone = MarketingPgTestSupport.ticketPurchase(userId = 1L, ticketTypeId = 1L, deleted = true)
       repo.findById(gone).isPresent shouldBe false
       repo.findByOrderNo("TK-no") shouldBe null
       repo.countByUserIdAndTicketTypeIdAndPaymentStatus(100L, 1L, TicketPurchaseStatus.PAID) shouldBe 1L
@@ -68,7 +68,7 @@ class TicketPurchaseRepositoryImplTest :
       val d2 = LocalDate.of(2026, 3, 2)
       val tid = 7L
       // d1:两笔已支付(paidAt 落 d1)
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 1L,
         ticketTypeId = tid,
         packageCount = 1,
@@ -78,7 +78,7 @@ class TicketPurchaseRepositoryImplTest :
         paidAt = d1.atTime(10, 0),
         createdAt = d1.atTime(9, 0),
       )
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 1L,
         ticketTypeId = tid,
         packageCount = 1,
@@ -89,7 +89,7 @@ class TicketPurchaseRepositoryImplTest :
         createdAt = d1.atTime(9, 0),
       )
       // d2:paidAt 为 null → 回退 createdAt
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 2L,
         ticketTypeId = tid,
         totalCount = 3,
@@ -99,14 +99,14 @@ class TicketPurchaseRepositoryImplTest :
         createdAt = d2.atTime(8, 0),
       )
       // PENDING 不计;他票种不计;软删不计
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 3L,
         ticketTypeId = tid,
         paymentStatus = "PENDING",
         paidAt = d1.atTime(12, 0),
         createdAt = d1.atTime(12, 0),
       )
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 4L,
         ticketTypeId = 8L,
         totalCount = 99,
@@ -115,7 +115,7 @@ class TicketPurchaseRepositoryImplTest :
         paidAt = d1.atTime(12, 0),
         createdAt = d1.atTime(12, 0),
       )
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 5L,
         ticketTypeId = tid,
         paymentStatus = "PAID",
@@ -145,7 +145,7 @@ class TicketPurchaseRepositoryImplTest :
 
     test("findPaidSalesGroupedByDay:边界 [from, to) — to 当日不计") {
       val tid = 9L
-      MarketingExposedH2TestSupport.ticketPurchase(
+      MarketingPgTestSupport.ticketPurchase(
         userId = 1L,
         ticketTypeId = tid,
         paymentStatus = "PAID",
@@ -162,7 +162,7 @@ class TicketPurchaseRepositoryImplTest :
 
     test("markPaidAtomically:PENDING→PAID 幂等,软删/已处理 no-op") {
       val id =
-        MarketingExposedH2TestSupport.ticketPurchase(
+        MarketingPgTestSupport.ticketPurchase(
           userId = 100L,
           ticketTypeId = 1L,
           paymentStatus = "PENDING",
@@ -178,7 +178,7 @@ class TicketPurchaseRepositoryImplTest :
       repo.markPaidAtomically(id, "wx-2", now.plusMinutes(1)) shouldBe 0
 
       val gone =
-        MarketingExposedH2TestSupport.ticketPurchase(
+        MarketingPgTestSupport.ticketPurchase(
           userId = 1L,
           ticketTypeId = 1L,
           paymentStatus = "PENDING",

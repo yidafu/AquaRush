@@ -18,6 +18,7 @@
  */
 package dev.yidafu.aqua.common.domain.table
 
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -25,22 +26,16 @@ import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
- * foundation 表定义 H2 冒烟测试的内存库支撑(JPA→Exposed 迁移 P4),
- * 模式与 user/analytics/platform/ops 的 *ExposedH2TestSupport 一致。
+ * foundation 表定义冒烟测试的真实 PG 支撑(JPA→Exposed 迁移 P4),
+ * 模式与 user/analytics/platform/ops 的 *PgTestSupport 一致。
  *
  * 覆盖 [common.domain.table] 包下全部 56 个具体 table object
  * (Trade/Marketing/Product/Source/Reconciliation/Fact/Platform/User/Logging),
  * 不含抽象基类 [SoftDeletableTable] —— 目的是在最便宜的时点暴露
- * 列名拼错、H2 保留字冲突、jsonString 类型映射问题。
+ * 列名拼错、PG 保留字冲突、jsonString 类型映射问题。
  */
-object FoundationExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquafoundationtables;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object FoundationPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquafoundationtables")
 
   val allTables: Array<Table> =
     arrayOf(

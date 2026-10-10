@@ -3,6 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("aqua.kotlin.spring")
   id("aqua.spring.boot.library")
+  // java-test-fixtures：把共用的 Testcontainers PG 基建(PostgresTestContainer)以
+  // testFixtures 形式提供给各业务模块的 test 源集，避免容器参数(内存/连接数)在 8 处漂移。
+  id("java-test-fixtures")
+  id("aqua.testcontainers")
   // aqua-logging 需要 kotlinx.serialization
   alias(libs.plugins.kotlin.serialization)
 }
@@ -38,8 +42,13 @@ dependencies {
   // SpringTransactionManager(spring7-transaction):ExposedAutoConfiguration 的主事务管理器
   implementation(libs.exposed.spring.transaction)
   testImplementation(libs.spring.boot.starter.test)
-  // 表定义 H2 冒烟测试(TableDefinitionsSmokeTest)的内存库驱动
-  testImplementation(libs.h2)
+
+  // testFixtures 里的 PostgresTestContainer 供业务模块 test 源集复用；
+  // 用 testFixturesApi 让消费方(testImplementation(testFixtures(...)))直接拿到
+  // PostgreSQLContainer/Database 类型，不必各自重复声明 testcontainers/exposed。
+  testFixturesApi(libs.testcontainers.core)
+  testFixturesApi(libs.testcontainers.postgresql)
+  testFixturesApi(libs.exposed.jdbc)
 
   // ========================================================
   // 来自 aqua-api 的独立依赖（去重后）

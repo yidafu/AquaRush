@@ -22,22 +22,22 @@ package dev.yidafu.aqua.ops.notice.domain.repository
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 公告仓储实现测试（H2 + Exposed）。
+ * 公告仓储实现测试（Testcontainers 真实 PG + Exposed）。
  * 重点覆盖生效公告的「状态 + 时间窗 + 置顶优先」口径（AC-OPS-002-02）。
  */
 class NoticeRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = NoticeRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun notice(
       title: String,
@@ -62,7 +62,7 @@ class NoticeRepositoryTest :
       )
 
     test("save 新建 + findById 回读") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(notice("停水公告"))
 
       val loaded = repository.findById(saved.id!!).orElseThrow()
@@ -71,7 +71,7 @@ class NoticeRepositoryTest :
     }
 
     test("save 更新：状态与发布时间覆盖") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(notice("草稿公告", status = NoticeStatus.DRAFT, publishedAt = null))
       saved.status = NoticeStatus.PUBLISHED
       saved.publishedAt = LocalDateTime.now()
@@ -81,7 +81,7 @@ class NoticeRepositoryTest :
     }
 
     test("findActiveNotices：草稿/已停用不出现，时间窗外不出现，置顶优先") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val now = LocalDateTime.now()
       repository.save(notice("普通已发布", publishedAt = now.minusHours(3)))
       repository.save(notice("置顶已发布", pinned = true, publishedAt = now.minusHours(5)))
@@ -94,7 +94,7 @@ class NoticeRepositoryTest :
     }
 
     test("delete 后 findById/findByTitle/findPage 均过滤") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(notice("待删除"))
 
       repository.delete(saved)
@@ -105,7 +105,7 @@ class NoticeRepositoryTest :
     }
 
     test("findPage：关键字/类型/状态组合过滤") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(notice("停水通知A", type = NoticeType.WATER_OUTAGE))
       repository.save(notice("活动通知B", type = NoticeType.ACTIVITY_PREVIEW, status = NoticeStatus.DRAFT, publishedAt = null))
 
