@@ -1,4 +1,4 @@
-# Test Schema for AdminVO ProductVO Favorites Resolver GraphQL Integration Tests
+# Test Schema for AdminVo ProductVo Favorites Resolver GraphQL Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/product/) 加载
 # 与 services/aqua-admin/src/main/resources/graphql/modules/product.graphqls 的 favoriteProducts 保持一致
 # (用户详情页「收藏商品」Tab,F-USR-022)
@@ -7,10 +7,10 @@ scalar Long
 scalar LocalDateTime
 
 type Query {
-  favoriteProducts(userId: Long!, page: Int = 0, size: Int = 20): FavoriteProductVOPage!
+  favoriteProducts(userId: Long!, page: Int = 0, size: Int = 20): FavoriteProductVoPage!
 }
 
-type FavoriteProductVO {
+type FavoriteProductVo {
   id: Long!
   name: String!
   subtitle: String
@@ -23,12 +23,12 @@ type FavoriteProductVO {
   addedAt: LocalDateTime!
 }
 
-type FavoriteProductVOPage {
-  list: [FavoriteProductVO!]!
-  pageInfo: PageInfoVO!
+type FavoriteProductVoPage {
+  list: [FavoriteProductVo!]!
+  pageInfo: PageInfoVo!
 }
 
-type PageInfoVO {
+type PageInfoVo {
   total: Int!
   pageSize: Int!
   pageNum: Int!

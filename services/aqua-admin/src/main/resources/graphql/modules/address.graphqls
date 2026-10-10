@@ -1,8 +1,8 @@
-# AddressVO management (for admin)
+# AddressVo management (for admin)
 
-# 地址分页(新式分页,参照 OrderVOPage/BannerVOPage)
-type AddressVOPage {
-  content: [AddressVO!]!
+# 地址分页(新式分页,参照 OrderVoPage/BannerVoPage)
+type AddressVoPage {
+  content: [AddressVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -10,16 +10,16 @@ type AddressVOPage {
 }
 
 extend type Query {
-  # AddressVO queries
-  userAddresses(userId: PrimaryId): [AddressVO!]!
+  # AddressVo queries
+  userAddresses(userId: PrimaryId): [AddressVo!]!
   # 管理端地址列表统一走分页搜索(AGENTS.md 规则 10:不允许无界全量返回)
-  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
+  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVoPage!
 }
 
 extend type Mutation {
-  # AddressVO mutations
-  createAdminAddress(input: AddressInput!): AddressVO!
-  updateAdminAddress(id: PrimaryId!, input: UpdateAddressInput!): AddressVO!
-  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVO!
+  # AddressVo mutations
+  createAdminAddress(input: AddressInput!): AddressVo!
+  updateAdminAddress(id: PrimaryId!, input: UpdateAddressInput!): AddressVo!
+  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVo!
   deleteAdminAddress(id: PrimaryId!): Boolean!
 }

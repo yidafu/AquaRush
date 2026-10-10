@@ -8,10 +8,10 @@ type Query {
 }
 
 type Mutation {
-  createAdmin(input: CreateAdminInput!): AdminVO!
+  createAdmin(input: CreateAdminInput!): AdminVo!
 }
 
-type AdminVO {
+type AdminVo {
   id: Long!
   username: String!
   realName: String

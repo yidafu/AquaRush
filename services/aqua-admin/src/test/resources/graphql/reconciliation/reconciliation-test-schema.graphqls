@@ -25,19 +25,19 @@ enum PaymentType {
 
 type Query {
   _dummy: String
-  dailyCollections(input: DailyCollectionListInput): DailyCollectionVOPage!
-  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationVOPage!
-  dailyCollectionSummary(collectionDate: String): DailyCollectionSummaryVO!
+  dailyCollections(input: DailyCollectionListInput): DailyCollectionVoPage!
+  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationVoPage!
+  dailyCollectionSummary(collectionDate: String): DailyCollectionSummaryVo!
   dailyReconciliationOrderDetails(
     reconciliationDate: String!
     deliveryWorkerId: Long
     page: Int = 0
     size: Int = 20
-  ): ReconciliationOrderDetailVOPage!
+  ): ReconciliationOrderDetailVoPage!
 }
 
 type Mutation {
-  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecordVO!
+  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecordVo!
 }
 
 input RejectDailyCollectionInput {
@@ -57,17 +57,17 @@ input DailyReconciliationListInput {
   size: Int = 10
 }
 
-type DailyCollectionVOPage {
-  list: [DailyCollectionRecordVO!]!
-  pageInfo: PageInfoVO!
+type DailyCollectionVoPage {
+  list: [DailyCollectionRecordVo!]!
+  pageInfo: PageInfoVo!
 }
 
-type DailyReconciliationVOPage {
-  list: [DailyReconciliationVO!]!
-  pageInfo: PageInfoVO!
+type DailyReconciliationVoPage {
+  list: [DailyReconciliationVo!]!
+  pageInfo: PageInfoVo!
 }
 
-type DailyCollectionSummaryVO {
+type DailyCollectionSummaryVo {
   collectionDate: String!
   totalCashAmountCents: Long!
   totalQrCodeAmountCents: Long!
@@ -77,7 +77,7 @@ type DailyCollectionSummaryVO {
   totalSubmittedCount: Int!
 }
 
-type ReconciliationOrderDetailVO {
+type ReconciliationOrderDetailVo {
   orderId: PrimaryId!
   orderNo: String!
   deliveryWorkerId: PrimaryId
@@ -87,12 +87,12 @@ type ReconciliationOrderDetailVO {
   deliveredAt: LocalDateTime
 }
 
-type ReconciliationOrderDetailVOPage {
-  list: [ReconciliationOrderDetailVO!]!
-  pageInfo: PageInfoVO!
+type ReconciliationOrderDetailVoPage {
+  list: [ReconciliationOrderDetailVo!]!
+  pageInfo: PageInfoVo!
 }
 
-type PageInfoVO {
+type PageInfoVo {
   total: Int!
   pageSize: Int!
   pageNum: Int!
@@ -101,7 +101,7 @@ type PageInfoVO {
   totalPages: Int!
 }
 
-type DailyCollectionRecordVO {
+type DailyCollectionRecordVo {
   id: PrimaryId!
   deliveryWorkerId: PrimaryId!
   collectionDate: String!
@@ -119,7 +119,7 @@ type DailyCollectionRecordVO {
   updatedAt: LocalDateTime!
 }
 
-type DailyReconciliationVO {
+type DailyReconciliationVo {
   id: PrimaryId!
   reconciliationDate: String!
   totalCashAmountCents: Long!
@@ -170,7 +170,7 @@ enum SourceSystem {
   WECHAT
 }
 
-type ReconciliationTaskVO {
+type ReconciliationTaskVo {
   id: PrimaryId!
   taskId: String!
   taskType: ReconciliationTaskType!
@@ -186,15 +186,15 @@ type ReconciliationTaskVO {
   updatedAt: LocalDateTime!
 }
 
-type ReconciliationTaskVOPage {
-  content: [ReconciliationTaskVO!]!
+type ReconciliationTaskVoPage {
+  content: [ReconciliationTaskVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type ReconciliationDiscrepancyVO {
+type ReconciliationDiscrepancyVo {
   id: PrimaryId!
   taskId: String!
   discrepancyType: DiscrepancyType!
@@ -209,15 +209,15 @@ type ReconciliationDiscrepancyVO {
   updatedAt: LocalDateTime!
 }
 
-type ReconciliationDiscrepancyVOPage {
-  content: [ReconciliationDiscrepancyVO!]!
+type ReconciliationDiscrepancyVoPage {
+  content: [ReconciliationDiscrepancyVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type ReconciliationReportVO {
+type ReconciliationReportVo {
   id: PrimaryId!
   taskId: String!
   reportType: String!
@@ -247,19 +247,19 @@ extend type Query {
     dateTo: String
     page: Int = 0
     size: Int = 20
-  ): ReconciliationTaskVOPage!
-  reconciliationTask(taskId: String!): ReconciliationTaskVO
+  ): ReconciliationTaskVoPage!
+  reconciliationTask(taskId: String!): ReconciliationTaskVo
   reconciliationDiscrepancies(
     taskId: String
     status: DiscrepancyStatus
     page: Int = 0
     size: Int = 20
-  ): ReconciliationDiscrepancyVOPage!
-  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReportVO!]!
+  ): ReconciliationDiscrepancyVoPage!
+  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReportVo!]!
 }
 
 extend type Mutation {
   # 微信资金对账变更
-  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTaskVO!
+  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTaskVo!
   resolveDiscrepancy(input: ResolveDiscrepancyInput!): Boolean!
 }

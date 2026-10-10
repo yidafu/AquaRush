@@ -5,58 +5,58 @@
 
 extend type Query {
   # 客户分组列表(分页,关键字按名称模糊)
-  customerGroups(input: CustomerGroupListInput): CustomerGroupVOPage
+  customerGroups(input: CustomerGroupListInput): CustomerGroupVoPage
   # 客户分组详情
-  customerGroup(id: PrimaryId!): CustomerGroupVO
+  customerGroup(id: PrimaryId!): CustomerGroupVo
   # 分组商品专属价列表(分页)
-  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVOPage
+  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVoPage
   # 优惠券模板列表(分页,含已领未用/已核销统计)
-  couponTemplates(input: CouponTemplateListInput): CouponTemplateVOPage
+  couponTemplates(input: CouponTemplateListInput): CouponTemplateVoPage
   # 优惠券模板详情
-  couponTemplate(id: PrimaryId!): CouponTemplateAdminVO
+  couponTemplate(id: PrimaryId!): CouponTemplateAdminVo
   # 满减/折扣活动列表(分页)
-  promotionActivities(input: PromotionActivityListInput): PromotionActivityVOPage
+  promotionActivities(input: PromotionActivityListInput): PromotionActivityVoPage
   # 满减/折扣活动详情(含档位)
-  promotionActivity(id: PrimaryId!): PromotionActivityVO
+  promotionActivity(id: PrimaryId!): PromotionActivityVo
   # 桶水票票种列表(分页)
-  ticketTypes(input: TicketTypeListInput): TicketTypeVOPage
+  ticketTypes(input: TicketTypeListInput): TicketTypeVoPage
   # 桶水票票种详情
-  ticketType(id: PrimaryId!): TicketTypeAdminVO
+  ticketType(id: PrimaryId!): TicketTypeAdminVo
   # 限时特价活动列表(分页)
-  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVOPage
+  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVoPage
   # 限时特价活动详情
-  flashSaleActivity(id: PrimaryId!): FlashSaleActivityVO
+  flashSaleActivity(id: PrimaryId!): FlashSaleActivityVo
   # 买赠/满赠活动列表(分页)
-  giftActivities(input: GiftActivityListInput): GiftActivityVOPage
+  giftActivities(input: GiftActivityListInput): GiftActivityVoPage
   # 买赠/满赠活动详情
-  giftActivity(id: PrimaryId!): GiftActivityVO
+  giftActivity(id: PrimaryId!): GiftActivityVo
   # 首单立减/新人专享价活动列表(分页)
-  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
+  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVoPage
   # 首单立减/新人专享价活动详情
-  firstOrderActivity(id: PrimaryId!): FirstOrderActivityVO
+  firstOrderActivity(id: PrimaryId!): FirstOrderActivityVo
   # 用户持有的优惠券(用户详情页「优惠券」Tab,状态空=全部)
-  userCoupons(userId: PrimaryId!, status: UserCouponStatus): [UserCouponVO!]!
+  userCoupons(userId: PrimaryId!, status: UserCouponStatus): [UserCouponVo!]!
   # 用户持有的桶水票(用户详情页「水票」Tab,状态空=全部)
-  userTickets(userId: PrimaryId!, status: UserTicketStatus): [UserTicketVO!]!
+  userTickets(userId: PrimaryId!, status: UserTicketStatus): [UserTicketVo!]!
   # 桶水票票种销售/使用统计(票种详情图表,时间范围)
-  ticketTypeStats(ticketTypeId: PrimaryId!, input: DateRangeInput!): TicketTypeStatsVO!
+  ticketTypeStats(ticketTypeId: PrimaryId!, input: DateRangeInput!): TicketTypeStatsVo!
   # 优惠券模板使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-003)
-  couponTemplateUsage(couponTemplateId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  couponTemplateUsage(couponTemplateId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVo
   # 满减/折扣活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-004)
-  promotionActivityUsage(promotionActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  promotionActivityUsage(promotionActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVo
   # 限时特价活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-005)
-  flashSaleActivityUsage(flashSaleActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  flashSaleActivityUsage(flashSaleActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVo
   # 买赠/满赠活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-008)
-  giftActivityUsage(giftActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  giftActivityUsage(giftActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVo
   # 首单立减/新人专享价活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-009)
-  firstOrderActivityUsage(firstOrderActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  firstOrderActivityUsage(firstOrderActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVo
 }
 
 extend type Mutation {
   # 新建客户分组
-  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroupVO!
+  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroupVo!
   # 编辑客户分组
-  updateCustomerGroup(id: PrimaryId!, input: UpdateCustomerGroupInput!): CustomerGroupVO!
+  updateCustomerGroup(id: PrimaryId!, input: UpdateCustomerGroupInput!): CustomerGroupVo!
   # 删除客户分组(成员回「未分组」)
   deleteCustomerGroup(id: PrimaryId!): Boolean!
   # 设置用户所属分组(空=未分组,即时生效)
@@ -64,48 +64,48 @@ extend type Mutation {
   # 批量保存分组商品专属价(空=清空该项回退目录价)
   saveGroupProductPrices(input: SaveGroupProductPricesInput!): Boolean!
   # 新建优惠券模板
-  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplateAdminVO!
+  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplateAdminVo!
   # 编辑优惠券模板
-  updateCouponTemplate(id: PrimaryId!, input: UpdateCouponTemplateInput!): CouponTemplateAdminVO!
+  updateCouponTemplate(id: PrimaryId!, input: UpdateCouponTemplateInput!): CouponTemplateAdminVo!
   # 停用优惠券模板(已领券按快照继续有效)
-  disableCouponTemplate(id: PrimaryId!): CouponTemplateAdminVO!
+  disableCouponTemplate(id: PrimaryId!): CouponTemplateAdminVo!
   # 定向发放优惠券(按用户列表/客户分组),返回实际发放张数
   issueCoupons(input: IssueCouponsInput!): Int!
   # 新建满减/折扣活动
-  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivityVO!
+  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivityVo!
   # 编辑满减/折扣活动(全量覆盖,含档位)
-  updatePromotionActivity(id: PrimaryId!, input: UpdatePromotionActivityInput!): PromotionActivityVO!
+  updatePromotionActivity(id: PrimaryId!, input: UpdatePromotionActivityInput!): PromotionActivityVo!
   # 停用满减/折扣活动(立即失效)
-  disablePromotionActivity(id: PrimaryId!): PromotionActivityVO!
+  disablePromotionActivity(id: PrimaryId!): PromotionActivityVo!
   # 新建桶水票票种
-  createTicketType(input: CreateTicketTypeInput!): TicketTypeAdminVO!
+  createTicketType(input: CreateTicketTypeInput!): TicketTypeAdminVo!
   # 编辑桶水票票种
-  updateTicketType(id: PrimaryId!, input: UpdateTicketTypeInput!): TicketTypeAdminVO!
+  updateTicketType(id: PrimaryId!, input: UpdateTicketTypeInput!): TicketTypeAdminVo!
   # 停用桶水票票种(不可再购,已购票不受影响)
-  disableTicketType(id: PrimaryId!): TicketTypeAdminVO!
+  disableTicketType(id: PrimaryId!): TicketTypeAdminVo!
   # 新建限时特价活动
-  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivityVO!
+  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivityVo!
   # 编辑限时特价活动(全量覆盖)
-  updateFlashSaleActivity(id: PrimaryId!, input: UpdateFlashSaleActivityInput!): FlashSaleActivityVO!
+  updateFlashSaleActivity(id: PrimaryId!, input: UpdateFlashSaleActivityInput!): FlashSaleActivityVo!
   # 停用限时特价活动(立即失效,商品回退分组价/目录价)
-  disableFlashSaleActivity(id: PrimaryId!): FlashSaleActivityVO!
+  disableFlashSaleActivity(id: PrimaryId!): FlashSaleActivityVo!
   # 新建买赠/满赠活动
-  createGiftActivity(input: CreateGiftActivityInput!): GiftActivityVO!
+  createGiftActivity(input: CreateGiftActivityInput!): GiftActivityVo!
   # 编辑买赠/满赠活动(全量覆盖)
-  updateGiftActivity(id: PrimaryId!, input: UpdateGiftActivityInput!): GiftActivityVO!
+  updateGiftActivity(id: PrimaryId!, input: UpdateGiftActivityInput!): GiftActivityVo!
   # 停用买赠/满赠活动(立即失效,不再触发赠品)
-  disableGiftActivity(id: PrimaryId!): GiftActivityVO!
+  disableGiftActivity(id: PrimaryId!): GiftActivityVo!
   # 新建首单立减/新人专享价活动
-  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivityVO!
+  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivityVo!
   # 编辑首单立减/新人专享价活动(全量覆盖)
-  updateFirstOrderActivity(id: PrimaryId!, input: UpdateFirstOrderActivityInput!): FirstOrderActivityVO!
+  updateFirstOrderActivity(id: PrimaryId!, input: UpdateFirstOrderActivityInput!): FirstOrderActivityVo!
   # 停用首单立减/新人专享价活动(立即失效)
-  disableFirstOrderActivity(id: PrimaryId!): FirstOrderActivityVO!
+  disableFirstOrderActivity(id: PrimaryId!): FirstOrderActivityVo!
 }
 
 # ============ 客户分组(F-MKT-001) ============
 
-type CustomerGroupVO {
+type CustomerGroupVo {
   id: PrimaryId!
   name: String!
   description: String
@@ -115,8 +115,8 @@ type CustomerGroupVO {
   updatedAt: LocalDateTime!
 }
 
-type CustomerGroupVOPage {
-  content: [CustomerGroupVO!]!
+type CustomerGroupVoPage {
+  content: [CustomerGroupVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -145,7 +145,7 @@ input UpdateCustomerGroupInput {
 
 # ============ 分组商品专属价(F-MKT-002) ============
 
-type GroupProductPriceVO {
+type GroupProductPriceVo {
   id: PrimaryId!
   customerGroupId: PrimaryId!
   productId: PrimaryId!
@@ -159,8 +159,8 @@ type GroupProductPriceVO {
   priceCents: Long
 }
 
-type GroupProductPriceVOPage {
-  content: [GroupProductPriceVO!]!
+type GroupProductPriceVoPage {
+  content: [GroupProductPriceVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -189,7 +189,7 @@ input SaveGroupProductPricesInput {
 
 # ============ 优惠券(F-MKT-003) ============
 
-type CouponTemplateAdminVO {
+type CouponTemplateAdminVo {
   id: PrimaryId!
   name: String!
   couponType: CouponType!
@@ -216,8 +216,8 @@ type CouponTemplateAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type CouponTemplateVOPage {
-  content: [CouponTemplateAdminVO!]!
+type CouponTemplateVoPage {
+  content: [CouponTemplateAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -294,7 +294,7 @@ enum IssueTargetType {
 
 # ============ 满减/折扣活动(F-MKT-004) ============
 
-type PromotionActivityVO {
+type PromotionActivityVo {
   id: PrimaryId!
   name: String!
   activityType: PromotionActivityType!
@@ -307,20 +307,20 @@ type PromotionActivityVO {
   # 展示状态(未开始/进行中/已结束/已停用,按时间窗与存储状态计算)
   currentStatus: PromotionActivityDisplayStatus!
   # 档位(递增且互斥)
-  tiers: [PromotionActivityTierVO!]!
+  tiers: [PromotionActivityTierVo!]!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
-type PromotionActivityTierVO {
+type PromotionActivityTierVo {
   id: PrimaryId!
   thresholdCents: Long!
   discountAmountCents: Long
   discountRatePermille: Long
 }
 
-type PromotionActivityVOPage {
-  content: [PromotionActivityVO!]!
+type PromotionActivityVoPage {
+  content: [PromotionActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -397,7 +397,7 @@ input UpdatePromotionActivityInput {
 
 # ============ 桶水票(F-MKT-007) ============
 
-type TicketTypeAdminVO {
+type TicketTypeAdminVo {
   id: PrimaryId!
   name: String!
   ticketType: TicketTypeKind!
@@ -417,8 +417,8 @@ type TicketTypeAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type TicketTypeVOPage {
-  content: [TicketTypeAdminVO!]!
+type TicketTypeVoPage {
+  content: [TicketTypeAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -472,7 +472,7 @@ input UpdateTicketTypeInput {
 # 桶水票票种销售/使用统计(后台票种详情图表,F-MKT-007)
 
 # 按日销售点(购票单数/入账张数 N+M/销售金额,金额单位:分 R-MON-01)
-type TicketSalesPointVO {
+type TicketSalesPointVo {
   # 日期(yyyy-MM-dd)
   date: String!
   # 购票单数
@@ -484,7 +484,7 @@ type TicketSalesPointVO {
 }
 
 # 按日使用点(核销/退回/过期张数)
-type TicketUsagePointVO {
+type TicketUsagePointVo {
   # 日期(yyyy-MM-dd)
   date: String!
   # 核销张数(USED)
@@ -496,7 +496,7 @@ type TicketUsagePointVO {
 }
 
 # 区间汇总(与查询时间范围一致;availableCount 为当前存量,与区间无关)
-type TicketStatsSummaryVO {
+type TicketStatsSummaryVo {
   # 区间销售张数(入账 N+M)
   soldCount: Int!
   # 区间销售金额(分)
@@ -512,17 +512,17 @@ type TicketStatsSummaryVO {
 }
 
 # 票种统计汇总:汇总 + 销售/使用按日序列(空数据日补零)
-type TicketTypeStatsVO {
+type TicketTypeStatsVo {
   ticketTypeId: PrimaryId!
   ticketTypeName: String!
-  summary: TicketStatsSummaryVO!
-  sales: [TicketSalesPointVO!]!
-  usage: [TicketUsagePointVO!]!
+  summary: TicketStatsSummaryVo!
+  sales: [TicketSalesPointVo!]!
+  usage: [TicketUsagePointVo!]!
 }
 
 # ============ 限时特价活动(F-MKT-005,R-MKT-02 单价链③) ============
 
-type FlashSaleActivityVO {
+type FlashSaleActivityVo {
   id: PrimaryId!
   name: String!
   productId: PrimaryId!
@@ -541,8 +541,8 @@ type FlashSaleActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type FlashSaleActivityVOPage {
-  content: [FlashSaleActivityVO!]!
+type FlashSaleActivityVoPage {
+  content: [FlashSaleActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -580,7 +580,7 @@ enum GiftActivityType {
   BUY_GIFT
 }
 
-type GiftActivityVO {
+type GiftActivityVo {
   id: PrimaryId!
   name: String!
   giftType: GiftActivityType!
@@ -606,8 +606,8 @@ type GiftActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type GiftActivityVOPage {
-  content: [GiftActivityVO!]!
+type GiftActivityVoPage {
+  content: [GiftActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -657,7 +657,7 @@ enum FirstOrderActivityType {
   NEWCOMER_PRICE
 }
 
-type FirstOrderActivityVO {
+type FirstOrderActivityVo {
   id: PrimaryId!
   name: String!
   activityType: FirstOrderActivityType!
@@ -683,8 +683,8 @@ type FirstOrderActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type FirstOrderActivityVOPage {
-  content: [FirstOrderActivityVO!]!
+type FirstOrderActivityVoPage {
+  content: [FirstOrderActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -726,7 +726,7 @@ input UpdateFirstOrderActivityInput {
 # ============ 营销方式详情:使用情况与相关订单(F-MKT-003~009) ============
 
 # 营销使用情况汇总(金额单位:分 R-MON-01)
-type MarketingUsageSummaryVO {
+type MarketingUsageSummaryVo {
   # 使用订单数
   orderCount: Int!
   # 优惠/让利总金额(分)。口径:券/满减/首单立减=订单营销优惠快照列合计
@@ -739,10 +739,10 @@ type MarketingUsageSummaryVO {
 }
 
 # 营销方式使用情况(汇总 + 相关订单分页)
-type MarketingUsageVO {
-  summary: MarketingUsageSummaryVO!
+type MarketingUsageVo {
+  summary: MarketingUsageSummaryVo!
   # 相关订单记录(分页,按下单时间倒序)
-  orders: OrderVOPage!
+  orders: OrderVoPage!
 }
 
 input MarketingUsageListInput {

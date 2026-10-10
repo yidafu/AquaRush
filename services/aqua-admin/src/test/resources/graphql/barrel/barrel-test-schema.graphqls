@@ -1,4 +1,4 @@
-# Test Schema for AdminVO Barrel Resolvers GraphQL Integration Tests
+# Test Schema for AdminVo Barrel Resolvers GraphQL Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/barrel/) 加载
 # 与 services/aqua-admin/src/main/resources/graphql/modules/barrel.graphqls 保持一致(G06 水桶费)
 
@@ -19,7 +19,7 @@ enum BarrelPaymentStatus {
   REFUNDED
 }
 
-type BarrelFeeAdminVO {
+type BarrelFeeAdminVo {
   id: Long!
   specification: String!
   priceCents: Long!
@@ -29,22 +29,22 @@ type BarrelFeeAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type BarrelFeeVOPage {
-  content: [BarrelFeeAdminVO!]!
+type BarrelFeeVoPage {
+  content: [BarrelFeeAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type BarrelPurchaseItemAdminVO {
+type BarrelPurchaseItemAdminVo {
   specification: String!
   unitPriceCents: Long!
   quantity: Int!
   amountCents: Long!
 }
 
-type BarrelPurchaseAdminVO {
+type BarrelPurchaseAdminVo {
   id: Long!
   orderNo: String!
   userId: Long!
@@ -55,13 +55,13 @@ type BarrelPurchaseAdminVO {
   refundedBy: Long
   refundRemark: String
   remark: String
-  items: [BarrelPurchaseItemAdminVO!]!
+  items: [BarrelPurchaseItemAdminVo!]!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
-type BarrelPurchaseVOPage {
-  content: [BarrelPurchaseAdminVO!]!
+type BarrelPurchaseVoPage {
+  content: [BarrelPurchaseAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -96,13 +96,13 @@ input BarrelPurchaseListInput {
 }
 
 type Query {
-  barrelFees(input: BarrelFeeListInput): BarrelFeeVOPage!
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVOPage!
+  barrelFees(input: BarrelFeeListInput): BarrelFeeVoPage!
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVoPage!
 }
 
 type Mutation {
-  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVO!
-  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVO!
-  disableBarrelFee(id: Long!): BarrelFeeAdminVO!
-  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchaseAdminVO!
+  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVo!
+  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVo!
+  disableBarrelFee(id: Long!): BarrelFeeAdminVo!
+  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchaseAdminVo!
 }

@@ -1,6 +1,6 @@
 # Payment refund review management (R-PAY-02 管理员退款审核流)
 # 退款申请(已支付订单取消生成,PENDING)→ 管理员审核(通过=执行退款并流转订单「已退款」/驳回=终止)
-# 类型 RefundRequestVO/RefundStatus/ProcessRefundInput/RefundAction 定义于 shared-types.graphqls
+# 类型 RefundRequestVo/RefundStatus/ProcessRefundInput/RefundAction 定义于 shared-types.graphqls
 
 extend type Query {
   # 退款申请分页查询(状态/时间范围筛选;PERMISSION_PAYMENT_READ)
@@ -10,19 +10,19 @@ extend type Query {
     dateTo: LocalDateTime
     page: Int = 0
     size: Int = 20
-  ): RefundRequestVOPage!
+  ): RefundRequestVoPage!
   # 退款申请详情
-  refundRequest(id: String!): RefundRequestVO
+  refundRequest(id: String!): RefundRequestVo
 }
 
 extend type Mutation {
   # 审核退款申请(APPROVE=执行微信/假退款并流转订单「已退款」;REJECT=驳回终止;PERMISSION_PAYMENT_REFUND)
-  processRefund(input: ProcessRefundInput!): RefundRequestVO!
+  processRefund(input: ProcessRefundInput!): RefundRequestVo!
 }
 
 # 退款申请分页
-type RefundRequestVOPage {
-  content: [RefundRequestVO!]!
+type RefundRequestVoPage {
+  content: [RefundRequestVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

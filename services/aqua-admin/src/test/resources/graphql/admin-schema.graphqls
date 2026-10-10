@@ -1,5 +1,5 @@
-# Aqua AdminVO GraphQL Schema
-# Schema for the AdminVO dashboard and delivery worker management
+# Aqua AdminVo GraphQL Schema
+# Schema for the AdminVo dashboard and delivery worker management
 
 # Extend shared schema
 # The shared types are imported from shared-config/graphql/shared-types.graphqls
@@ -10,51 +10,51 @@ schema {
   mutation: Mutation
 }
 
-# AdminVO-specific Query Schema
+# AdminVo-specific Query Schema
 type Query {
-  # AdminVO queries - AdminVO only
-  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVOPage!
-  admin(id: PrimaryId!): AdminVO
+  # AdminVo queries - AdminVo only
+  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVoPage!
+  admin(id: PrimaryId!): AdminVo
 
-  # UserVO management - AdminVO only
+  # UserVo management - AdminVo only
   users(input: UserListInput): UserVoPage!
-  user(id: PrimaryId!): UserVO
+  user(id: PrimaryId!): UserVo
 
   # Delivery Worker queries
-  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
-  onlineDeliveryWorkers: [DeliveryWorkerVO!]!
-  deliveryWorker(id: PrimaryId!): DeliveryWorkerVO
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVoPage!
+  onlineDeliveryWorkers: [DeliveryWorkerVo!]!
+  deliveryWorker(id: PrimaryId!): DeliveryWorkerVo
 
   # Addresses (for admin management)
-  userAddresses(userId: Long): [AddressVO!]!
-  address(id: PrimaryId!): AddressVO
-  searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [AddressVO!]!
-  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
-  deliveryAddresses: [DeliveryAddressVO!]!
-  deliveryAddress(id: PrimaryId!): DeliveryAddressVO
+  userAddresses(userId: Long): [AddressVo!]!
+  address(id: PrimaryId!): AddressVo
+  searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [AddressVo!]!
+  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVoPage!
+  deliveryAddresses: [DeliveryAddressVo!]!
+  deliveryAddress(id: PrimaryId!): DeliveryAddressVo
 
-  # Products (AdminVO management)
-  product(id: PrimaryId!): ProductVO
-  productStatistics(dateRange: DateRangeInput): ProductStatisticsVO
-  productDailySales(input: DateRangeInput!): [ProductDailySalesVO!]!
+  # Products (AdminVo management)
+  product(id: PrimaryId!): ProductVo
+  productStatistics(dateRange: DateRangeInput): ProductStatisticsVo
+  productDailySales(input: DateRangeInput!): [ProductDailySalesVo!]!
   productSalesTrend(input: ProductSalesTrendInput!): ProductSalesTrend
   lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
   productsPaginated(input: ProductSearchInput): ProductVoPage
 
-  # Enhanced ProductVO Management Queries
-  topSalesProducts(limit: Int = 10): [ProductVO!]!
+  # Enhanced ProductVo Management Queries
+  topSalesProducts(limit: Int = 10): [ProductVo!]!
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVoPage!
 
-  # Orders (AdminVO/Delivery perspective)
-  order(orderId: PrimaryId!): OrderVO
-  orderByNo(orderNo: String!): OrderVO
+  # Orders (AdminVo/Delivery perspective)
+  order(orderId: PrimaryId!): OrderVo
+  orderByNo(orderNo: String!): OrderVo
   orders(input: OrderListInput): OrderVoPage
-  orderOperations(orderId: PrimaryId!): [OrderOperationVO!]!
+  orderOperations(orderId: PrimaryId!): [OrderOperationVo!]!
 
   # 派单相关查询
-  pendingDeliveryOrders: [OrderVO!]!              # 待派单订单
-  assignedOrders: [OrderVO!]!  # 已分配订单
-  deliveringOrders: [OrderVO!]! # 配送中订单
+  pendingDeliveryOrders: [OrderVo!]!              # 待派单订单
+  assignedOrders: [OrderVo!]!  # 已分配订单
+  deliveringOrders: [OrderVo!]! # 配送中订单
 
   # 配送员历史订单查询（已完成、已取消、已退款）
   deliveryWorkerHistoryOrders(
@@ -65,25 +65,25 @@ type Query {
   ): OrderVoPage!
 
   # 当日统计数据
-  todayStatistics: TodayStatisticsVO
+  todayStatistics: TodayStatisticsVo
 
   # 一周统计数据
-  weekStatistics: WeekStatisticsVO
+  weekStatistics: WeekStatisticsVo
 
   # 每日收款查询
-  dailyCollections(collectionDate: String): [DailyCollectionRecordVO!]!
-  dailyReconciliations: [DailyReconciliationVO!]!
-  dailyReconciliation(reconciliationDate: String!): DailyReconciliationVO
+  dailyCollections(collectionDate: String): [DailyCollectionRecordVo!]!
+  dailyReconciliations: [DailyReconciliationVo!]!
+  dailyReconciliation(reconciliationDate: String!): DailyReconciliationVo
   # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
-  myTodayCollection: MyTodayCollectionVO
+  myTodayCollection: MyTodayCollectionVo
 
   # 用户搜索
-  findUserByPhone(phone: String!): UserVO
-  findUsersByAddress(address: String!): [UserVO!]!
+  findUserByPhone(phone: String!): UserVo
+  findUsersByAddress(address: String!): [UserVo!]!
 
-  # Payment queries (AdminVO perspective)
+  # Payment queries (AdminVo perspective)
   paymentStatus(transactionId: String!): String!
-  paymentTransaction(id: String!): PaymentTransactionVO
+  paymentTransaction(id: String!): PaymentTransactionVo
   paymentTransactions(
     page: Int = 0
     size: Int = 20
@@ -93,43 +93,43 @@ type Query {
     dateTo: LocalDateTime
     minAmount: BigDecimal
     maxAmount: BigDecimal
-  ): [PaymentTransactionVO!]!
-  userPaymentTransactions(userId: PrimaryId!, page: Int = 0, size: Int = 20): [PaymentTransactionVO!]!
+  ): [PaymentTransactionVo!]!
+  userPaymentTransactions(userId: PrimaryId!, page: Int = 0, size: Int = 20): [PaymentTransactionVo!]!
   refundRequests(
     page: Int = 0
     size: Int = 20
     status: RefundStatus
     dateFrom: LocalDateTime
     dateTo: LocalDateTime
-  ): [RefundRequestVO!]!
-  refundRequest(id: String!): RefundRequestVO
+  ): [RefundRequestVo!]!
+  refundRequest(id: String!): RefundRequestVo
   suspiciousTransactions(
     page: Int = 0
     size: Int = 20
     dateFrom: LocalDateTime
     dateTo: LocalDateTime
-  ): [SuspiciousTransactionVO!]!
+  ): [SuspiciousTransactionVo!]!
 
-  # Statistics and Analytics - AdminVO only
-  orderStatistics(input: DateRangeInput!): OrderStatisticsVO!
-  dailyStatistics(input: DateRangeInput!): [DailyStatisticVO!]!
-  weeklyStatistics(input: DateRangeInput!): [WeeklyStatisticVO!]!
-  monthlyStatistics(input: DateRangeInput!): [MonthlyStatisticVO!]!
+  # Statistics and Analytics - AdminVo only
+  orderStatistics(input: DateRangeInput!): OrderStatisticsVo!
+  dailyStatistics(input: DateRangeInput!): [DailyStatisticVo!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatisticVo!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatisticVo!]!
 
-  # UserVO Statistics - AdminVO only
-  userStatistics: UserStatisticsVO!
+  # UserVo Statistics - AdminVo only
+  userStatistics: UserStatisticsVo!
 
-  # Delivery Worker Statistics - AdminVO only
-  deliveryWorkerStatistics: DeliveryWorkerOverviewVO!
-  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItemVO!]!
+  # Delivery Worker Statistics - AdminVo only
+  deliveryWorkerStatistics: DeliveryWorkerOverviewVo!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItemVo!]!
 
   # Regions (for admin)
-  regions(level: Int, parentCode: String): [RegionVO!]!
-  region(code: String!): RegionVO
+  regions(level: Int, parentCode: String): [RegionVo!]!
+  region(code: String!): RegionVo
   # 获取所有地区数据，用于前端构建树形结构
-  regions(parentCode: String): [RegionVO!]!
+  regions(parentCode: String): [RegionVo!]!
 
-  # AdminVO review queries
+  # AdminVo review queries
   reviews(
     deliveryWorkerId: Long
     minRating: Int
@@ -139,87 +139,87 @@ type Query {
     userId: Long
     page: Int
     size: Int
-  ): [ReviewVO!]!
+  ): [ReviewVo!]!
 
-  # AdminVO UserVO Favorites Management - AdminVO only
-  allProductsFavoriteStats: AllProductsFavoriteStatsVO!
+  # AdminVo UserVo Favorites Management - AdminVo only
+  allProductsFavoriteStats: AllProductsFavoriteStatsVo!
   productsByFavorites(page: Int = 0, size: Int = 20, minFavorites: Int): ProductFavoriteVoPage!
 }
 
-# AdminVO-specific Mutation Schema
+# AdminVo-specific Mutation Schema
 type Mutation {
-  # ProductVO Management - AdminVO only
-  createProduct(input: CreateProductInput!): ProductVO!
-  updateProduct(id: PrimaryId!, input: UpdateProductInput!): ProductVO!
+  # ProductVo Management - AdminVo only
+  createProduct(input: CreateProductInput!): ProductVo!
+  updateProduct(id: PrimaryId!, input: UpdateProductInput!): ProductVo!
   deleteProduct(id: PrimaryId!): Boolean!
   increaseStock(productId: PrimaryId!, quantity: Int!): String!
   decreaseStock(productId: PrimaryId!, quantity: Int!): Boolean!
-  batchUpdateProducts(input: [ProductUpdateRequest!]!): [ProductVO!]!
-  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): ProductVO!
+  batchUpdateProducts(input: [ProductUpdateRequest!]!): [ProductVo!]!
+  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): ProductVo!
 
-  # Enhanced ProductVO Management Mutations
-  onlineProduct(id: PrimaryId!): ProductVO!
-  offlineProduct(id: PrimaryId!): ProductVO!
+  # Enhanced ProductVo Management Mutations
+  onlineProduct(id: PrimaryId!): ProductVo!
+  offlineProduct(id: PrimaryId!): ProductVo!
   batchAdjustStock(input: BatchStockAdjustmentInput!): BatchStockAdjustmentResult!
 
-  # OrderVO Management - AdminVO/Delivery operations
-  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): OrderVO!
-  createDeliveryOrder(input: CreateDeliveryOrderInput!): OrderVO!  # 配送员创建订单
+  # OrderVo Management - AdminVo/Delivery operations
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): OrderVo!
+  createDeliveryOrder(input: CreateDeliveryOrderInput!): OrderVo!  # 配送员创建订单
 
   # 派单管理
-  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): OrderVO!
-  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [OrderVO!]!
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): OrderVo!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [OrderVo!]!
 
   # 配送员操作
-  acceptDelivery(orderId: PrimaryId!): OrderVO!           # 配送员接单
-  startDelivery(orderId: PrimaryId!): OrderVO!             # 开始配送
-  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): OrderVO!  # 完成配送
+  acceptDelivery(orderId: PrimaryId!): OrderVo!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): OrderVo!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): OrderVo!  # 完成配送
 
-  # Payment Management - AdminVO operations
+  # Payment Management - AdminVo operations
   handleWechatCallback(input: WechatCallbackInput!): String!
   refund(input: RefundInput!): Boolean!
-  processRefund(input: ProcessRefundInput!): RefundRequestVO!
-  createManualRefund(input: CreateManualRefundInput!): RefundRequestVO!
+  processRefund(input: ProcessRefundInput!): RefundRequestVo!
+  createManualRefund(input: CreateManualRefundInput!): RefundRequestVo!
   forceCompletePayment(transactionId: String!, adminNote: String!): Boolean!
   forceRefund(transactionId: String!, amount: BigDecimal!, reason: String!, adminNote: String!): Boolean!
   updateTransactionNote(transactionId: String!, note: String!): Boolean!
   freezeSuspiciousTransaction(transactionId: String!, reason: String!): Boolean!
   exportTransactions(input: ExportTransactionsInput!): String!
-  updateTransaction(transactionId: String!, input: UpdateTransactionInput!): PaymentTransactionVO!
-  processSuspiciousTransaction(input: ProcessSuspiciousTransactionInput!): SuspiciousTransactionVO!
+  updateTransaction(transactionId: String!, input: UpdateTransactionInput!): PaymentTransactionVo!
+  processSuspiciousTransaction(input: ProcessSuspiciousTransactionInput!): SuspiciousTransactionVo!
 
-  # Delivery Area Management - AdminVO only
-  createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryAreaVO!
-  updateDeliveryArea(id: PrimaryId!, input: CreateDeliveryAreaInput!): DeliveryAreaVO!
+  # Delivery Area Management - AdminVo only
+  createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryAreaVo!
+  updateDeliveryArea(id: PrimaryId!, input: CreateDeliveryAreaInput!): DeliveryAreaVo!
   deleteDeliveryArea(id: PrimaryId!): Boolean!
 
-  # Delivery Worker Management - AdminVO only
-  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVO!
-  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorkerVO!
-  updateWorkerStatus(workerId: PrimaryId!, status: DeliveryWorkerStatus!): DeliveryWorkerVO!
+  # Delivery Worker Management - AdminVo only
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVo!
+  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorkerVo!
+  updateWorkerStatus(workerId: PrimaryId!, status: DeliveryWorkerStatus!): DeliveryWorkerVo!
 
   # 每日收款管理
-  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecordVO!
-  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecordVO!
-  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliationVO!
-  executeDailyReconciliation(reconciliationDate: String): DailyReconciliationVO!
+  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecordVo!
+  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecordVo!
+  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliationVo!
+  executeDailyReconciliation(reconciliationDate: String): DailyReconciliationVo!
 
-  # AdminVO UserVO Favorites Management - AdminVO only
-  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationVO!
-  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesVO!
+  # AdminVo UserVo Favorites Management - AdminVo only
+  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationVo!
+  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesVo!
 
-  # AdminVO UserVO Management
-  createAdmin(input: CreateAdminInput!): AdminVO!
-  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): AdminVO!
+  # AdminVo UserVo Management
+  createAdmin(input: CreateAdminInput!): AdminVo!
+  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): AdminVo!
   deleteAdmin(id: PrimaryId!): Boolean!
 
-  # AdminVO AddressVO Management
-  createAdminAddress(input: AddressInput!): AddressVO!
-  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVO!
+  # AdminVo AddressVo Management
+  createAdminAddress(input: AddressInput!): AddressVo!
+  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVo!
   deleteAdminAddress(id: PrimaryId!): Boolean!
 }
 
-# AdminVO UserVO Input Types
+# AdminVo UserVo Input Types
 input CreateAdminInput {
   username: String!
   password: String
@@ -241,8 +241,8 @@ input UpdateAdminInput {
   isAvailable: Boolean
 }
 
-# Extend the UserVO type with admin-specific fields
-extend type UserVO {
+# Extend the UserVo type with admin-specific fields
+extend type UserVo {
   status: UserStatus!
   role: UserRole!
   email: String!
@@ -251,31 +251,31 @@ extend type UserVO {
 }
 
 # Batch Import Result Types
-type BatchImportAddressesVO {
+type BatchImportAddressesVo {
   successCount: Int!
   failureCount: Int!
   totalCount: Int!
 }
 
 # 地址分页
-type AddressVOPage {
-  content: [AddressVO!]!
+type AddressVoPage {
+  content: [AddressVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type AdminVOPage {
-  content: [AdminVO!]!
+type AdminVoPage {
+  content: [AdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type DeliveryWorkerVOPage {
-  content: [DeliveryWorkerVO!]!
+type DeliveryWorkerVoPage {
+  content: [DeliveryWorkerVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

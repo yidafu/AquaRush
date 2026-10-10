@@ -3687,6 +3687,13 @@ data class OrderUserTierVo(
     val userCount: kotlin.Int
 )
 
+data class OrderValueBucketStatisticVo(
+    val count: kotlin.Int,
+    val fromCents: kotlin.Long?,
+    val label: kotlin.String,
+    val toCents: kotlin.Long?
+)
+
 data class OrderVo(
     val address: AddressVo?,
     val amountCents: kotlin.Long,
@@ -3734,13 +3741,6 @@ data class OrderVoPage(
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
-)
-
-data class OrderValueBucketStatisticVo(
-    val count: kotlin.Int,
-    val fromCents: kotlin.Long?,
-    val label: kotlin.String,
-    val toCents: kotlin.Long?
 )
 
 data class PageInfoVo(

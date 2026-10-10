@@ -3,12 +3,12 @@
 scalar Long
 
 type Query {
-  searchAllAddresses(keyword: String, page: Int, size: Int): AddressVOPage!
-  userAddresses(userId: Long): [AddressVO!]!
+  searchAllAddresses(keyword: String, page: Int, size: Int): AddressVoPage!
+  userAddresses(userId: Long): [AddressVo!]!
 }
 
-type AddressVOPage {
-  content: [AddressVO!]!
+type AddressVoPage {
+  content: [AddressVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -16,12 +16,12 @@ type AddressVOPage {
 }
 
 type Mutation {
-  createAdminAddress(input: AddressInput!): AddressVO!
-  updateAdminAddress(id: Long!, input: UpdateAddressInput!): AddressVO!
+  createAdminAddress(input: AddressInput!): AddressVo!
+  updateAdminAddress(id: Long!, input: UpdateAddressInput!): AddressVo!
   deleteAdminAddress(id: Long!): Boolean!
 }
 
-type AddressVO {
+type AddressVo {
   id: Long!
   userId: Long!
   receiverName: String!

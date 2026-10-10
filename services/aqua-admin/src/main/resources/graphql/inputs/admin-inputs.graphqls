@@ -1,4 +1,4 @@
-# AdminVO-specific Input Types
+# AdminVo-specific Input Types
 
 input CreateAdminInput {
   # 送水员角色(DELIVERY_WORKER)可不传,后端自动生成 delivery_{账号ID}(F-USR-021)
@@ -42,7 +42,7 @@ input UpdateUserInput {
 }
 
 # Batch Import Result Types
-type BatchImportAddressesVO {
+type BatchImportAddressesVo {
   successCount: Int!
   failureCount: Int!
   totalCount: Int!

@@ -5,18 +5,18 @@
 
 extend type Query {
   # 系统参数列表(按参数组返回,未配置组返回空列表)
-  systemConfigs(group: SystemConfigGroup!): [SystemConfigVO!]!
+  systemConfigs(group: SystemConfigGroup!): [SystemConfigVo!]!
   # 数据维护页总览(单请求:F-SYS-006 保留策略 + 日志分区 + 离线备份记录)
-  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVO!
+  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVo!
 }
 
 extend type Mutation {
   # 批量保存系统参数(按声明类型/范围校验,即时生效;每次修改留审计日志)
-  saveSystemConfigs(input: [SaveSystemConfigInput!]!): [SystemConfigVO!]!
+  saveSystemConfigs(input: [SaveSystemConfigInput!]!): [SystemConfigVo!]!
   # 恢复参数默认值(留审计日志)
-  restoreSystemConfig(settingKey: String!): SystemConfigVO!
+  restoreSystemConfig(settingKey: String!): SystemConfigVo!
   # 离线备份指定超期日志分区(转储冷表 + 导出数据文件;成功后分区从热表移除)
-  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecordVO!
+  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecordVo!
 }
 
 # 参数组
@@ -46,7 +46,7 @@ enum SystemSettingType {
 }
 
 # 系统参数
-type SystemConfigVO {
+type SystemConfigVo {
   # 主键
   id: PrimaryId!
   # 参数键(字母数字下划线,唯一,R-SYS-01)
@@ -106,7 +106,7 @@ enum LogBackupStatus {
 }
 
 # 日志热表月度分区
-type LogPartitionVO {
+type LogPartitionVo {
   # 所属日志表
   logTable: LogTableType!
   # 分区名,如 api_logs_2026_01
@@ -128,7 +128,7 @@ type LogPartitionVO {
 }
 
 # 离线备份记录
-type LogBackupRecordVO {
+type LogBackupRecordVo {
   # 主键
   id: PrimaryId!
   # 日志表
@@ -170,9 +170,9 @@ input LogBackupRecordListInput {
 }
 
 # 离线备份记录分页结果
-type LogBackupRecordVOPage {
-  list: [LogBackupRecordVO!]!
-  pageInfo: PageInfoVO!
+type LogBackupRecordVoPage {
+  list: [LogBackupRecordVo!]!
+  pageInfo: PageInfoVo!
 }
 
 # 离线备份请求输入
@@ -186,11 +186,11 @@ input BackupLogPartitionInput {
 }
 
 # 数据维护页总览(F-SYS-006,单请求)
-type DataMaintenanceOverviewVO {
+type DataMaintenanceOverviewVo {
   # DATA_MAINTENANCE 组参数(保留策略)
-  settings: [SystemConfigVO!]!
+  settings: [SystemConfigVo!]!
   # 三类日志热表分区合并(每项含 logTable)
-  partitions: [LogPartitionVO!]!
+  partitions: [LogPartitionVo!]!
   # 离线备份记录分页
-  backupRecords: LogBackupRecordVOPage!
+  backupRecords: LogBackupRecordVoPage!
 }

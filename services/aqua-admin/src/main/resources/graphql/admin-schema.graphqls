@@ -1,5 +1,5 @@
-# Aqua AdminVO GraphQL Schema
-# Schema for the AdminVO dashboard and delivery worker management
+# Aqua AdminVo GraphQL Schema
+# Schema for the AdminVo dashboard and delivery worker management
 # This is the main entry point that combines all module schemas
 
 # Schema definition

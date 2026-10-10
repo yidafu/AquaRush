@@ -17,7 +17,7 @@ enum BarrelPaymentStatus {
 }
 
 # 水桶费价目(按规格,与商品解耦)
-type BarrelFeeAdminVO {
+type BarrelFeeAdminVo {
   id: PrimaryId!
   # 规格(唯一,如 19L/5L)
   specification: String!
@@ -32,8 +32,8 @@ type BarrelFeeAdminVO {
 }
 
 # 水桶费价目分页
-type BarrelFeeVOPage {
-  content: [BarrelFeeAdminVO!]!
+type BarrelFeeVoPage {
+  content: [BarrelFeeAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -41,7 +41,7 @@ type BarrelFeeVOPage {
 }
 
 # 购桶单明细(规格/单价/数量快照,配置变更不影响已生成购桶单)
-type BarrelPurchaseItemAdminVO {
+type BarrelPurchaseItemAdminVo {
   # 规格快照
   specification: String!
   # 单价快照(分)
@@ -52,7 +52,7 @@ type BarrelPurchaseItemAdminVO {
 }
 
 # 水桶购买单(一次性购桶,独立支付)
-type BarrelPurchaseAdminVO {
+type BarrelPurchaseAdminVo {
   id: PrimaryId!
   # 购桶单号(BK 前缀,支付 out_trade_no)
   orderNo: String!
@@ -72,14 +72,14 @@ type BarrelPurchaseAdminVO {
   # 用户备注
   remark: String
   # 购桶明细
-  items: [BarrelPurchaseItemAdminVO!]!
+  items: [BarrelPurchaseItemAdminVo!]!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
 # 购桶单分页
-type BarrelPurchaseVOPage {
-  content: [BarrelPurchaseAdminVO!]!
+type BarrelPurchaseVoPage {
+  content: [BarrelPurchaseAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -119,18 +119,18 @@ input BarrelPurchaseListInput {
 
 extend type Query {
   # 水桶费价目分页查询(状态/关键词筛选;PERMISSION_PAYMENT_READ)
-  barrelFees(input: BarrelFeeListInput): BarrelFeeVOPage!
+  barrelFees(input: BarrelFeeListInput): BarrelFeeVoPage!
   # 购桶单分页查询(状态/时间范围筛选;PERMISSION_PAYMENT_READ)
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVOPage!
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVoPage!
 }
 
 extend type Mutation {
   # 新增水桶费价目(PERMISSION_PAYMENT_WRITE)
-  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVO!
+  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVo!
   # 编辑水桶费价目(PERMISSION_PAYMENT_WRITE)
-  updateBarrelFee(id: PrimaryId!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVO!
+  updateBarrelFee(id: PrimaryId!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVo!
   # 停用水桶费价目(停用后用户端不可购;不影响已生成购桶单;PERMISSION_PAYMENT_WRITE)
-  disableBarrelFee(id: PrimaryId!): BarrelFeeAdminVO!
+  disableBarrelFee(id: PrimaryId!): BarrelFeeAdminVo!
   # 退还水桶费(管理员手动退还,执行退款并置「已退还」;PERMISSION_PAYMENT_REFUND)
-  refundBarrelPurchase(purchaseId: PrimaryId!, remark: String): BarrelPurchaseAdminVO!
+  refundBarrelPurchase(purchaseId: PrimaryId!, remark: String): BarrelPurchaseAdminVo!
 }

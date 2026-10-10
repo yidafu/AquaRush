@@ -4,55 +4,55 @@
 
 extend type Query {
   # 轮播图列表(分页,按排序号升序)
-  banners(input: BannerListInput): BannerVOPage
+  banners(input: BannerListInput): BannerVoPage
   # 轮播图详情
-  banner(id: PrimaryId!): BannerVO
+  banner(id: PrimaryId!): BannerVo
   # 意见反馈列表(分页,按提交时间倒序)
-  feedbacks(input: FeedbackListInput): FeedbackVOPage
+  feedbacks(input: FeedbackListInput): FeedbackVoPage
   # 意见反馈详情
-  feedback(id: PrimaryId!): FeedbackVO
+  feedback(id: PrimaryId!): FeedbackVo
   # 公告列表(分页,置顶优先、发布时间倒序)
-  notices(input: NoticeListInput): NoticeVOPage
+  notices(input: NoticeListInput): NoticeVoPage
   # 公告详情
-  notice(id: PrimaryId!): NoticeVO
+  notice(id: PrimaryId!): NoticeVo
   # 店铺信息(单行配置,未配置返回 null)
-  storeProfile: StoreProfileVO
+  storeProfile: StoreProfileVo
   # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
-  deliveryFeeRule: DeliveryFeeRuleVO
+  deliveryFeeRule: DeliveryFeeRuleVo
 }
 
 extend type Mutation {
   # 新建轮播图
-  createBanner(input: CreateBannerInput!): BannerVO!
+  createBanner(input: CreateBannerInput!): BannerVo!
   # 编辑轮播图
-  updateBanner(id: PrimaryId!, input: UpdateBannerInput!): BannerVO!
+  updateBanner(id: PrimaryId!, input: UpdateBannerInput!): BannerVo!
   # 删除轮播图
   deleteBanner(id: PrimaryId!): Boolean!
   # 上移/下移调整排序,返回重排后的全量列表(按排序号升序)
-  reorderBanner(id: PrimaryId!, direction: ReorderDirection!): [BannerVO!]!
+  reorderBanner(id: PrimaryId!, direction: ReorderDirection!): [BannerVo!]!
   # 处理反馈(填写处理结果并流转状态)
-  reviewFeedback(id: PrimaryId!, input: FeedbackReviewInput!): FeedbackVO!
+  reviewFeedback(id: PrimaryId!, input: FeedbackReviewInput!): FeedbackVo!
   # 新建公告(默认草稿状态)
-  createNotice(input: CreateNoticeInput!): NoticeVO!
+  createNotice(input: CreateNoticeInput!): NoticeVo!
   # 编辑公告(全量更新;已停用公告不可编辑)
-  updateNotice(id: PrimaryId!, input: UpdateNoticeInput!): NoticeVO!
+  updateNotice(id: PrimaryId!, input: UpdateNoticeInput!): NoticeVo!
   # 发布公告(重置发布时间为当前时间)
-  publishNotice(id: PrimaryId!): NoticeVO!
+  publishNotice(id: PrimaryId!): NoticeVo!
   # 停用公告(同时取消置顶)
-  stopNotice(id: PrimaryId!): NoticeVO!
+  stopNotice(id: PrimaryId!): NoticeVo!
   # 置顶/取消置顶(仅已发布公告)
-  setNoticePinned(id: PrimaryId!, pinned: Boolean!): NoticeVO!
+  setNoticePinned(id: PrimaryId!, pinned: Boolean!): NoticeVo!
   # 删除公告(软删除)
   deleteNotice(id: PrimaryId!): Boolean!
   # 保存店铺信息(单行配置,整体覆盖)
-  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfileVO!
+  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfileVo!
   # 保存配送费规则(单行配置,整体覆盖;变更即时生效,已生成订单不受影响)
-  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRuleVO!
+  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRuleVo!
 }
 
-# 轮播图分页(新式分页,参照 OrderVOPage)
-type BannerVOPage {
-  content: [BannerVO!]!
+# 轮播图分页(新式分页,参照 OrderVoPage)
+type BannerVoPage {
+  content: [BannerVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -60,7 +60,7 @@ type BannerVOPage {
 }
 
 # 意见反馈
-type FeedbackVO {
+type FeedbackVo {
   id: PrimaryId!
   userId: PrimaryId!
   feedbackType: FeedbackType!
@@ -76,8 +76,8 @@ type FeedbackVO {
 }
 
 # 意见反馈分页
-type FeedbackVOPage {
-  content: [FeedbackVO!]!
+type FeedbackVoPage {
+  content: [FeedbackVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -153,9 +153,9 @@ input FeedbackReviewInput {
   status: FeedbackStatus!
 }
 
-# 公告分页(新式分页,参照 OrderVOPage)
-type NoticeVOPage {
-  content: [NoticeVO!]!
+# 公告分页(新式分页,参照 OrderVoPage)
+type NoticeVoPage {
+  content: [NoticeVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

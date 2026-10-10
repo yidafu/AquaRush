@@ -1,7 +1,7 @@
-# Statistics and Analytics - AdminVO only
+# Statistics and Analytics - AdminVo only
 
 # 待处理订单存量快照（当前状态，与日期窗口无关）
-type PendingOrderBreakdownVO {
+type PendingOrderBreakdownVo {
   pendingPayment: Int!    # 待支付
   pendingDispatch: Int!   # 待派单
   pendingDelivery: Int!   # 待配送
@@ -10,34 +10,34 @@ type PendingOrderBreakdownVO {
 
 extend type Query {
   # 当日统计数据
-  todayStatistics: TodayStatisticsVO
+  todayStatistics: TodayStatisticsVo
 
   # 一周统计数据
-  weekStatistics: WeekStatisticsVO
+  weekStatistics: WeekStatisticsVo
 
   # Statistics and Analytics
-  orderStatistics(input: DateRangeInput!): OrderStatisticsVO!
-  dailyStatistics(input: DateRangeInput!): [DailyStatisticVO!]!
-  weeklyStatistics(input: DateRangeInput!): [WeeklyStatisticVO!]!
-  monthlyStatistics(input: DateRangeInput!): [MonthlyStatisticVO!]!
+  orderStatistics(input: DateRangeInput!): OrderStatisticsVo!
+  dailyStatistics(input: DateRangeInput!): [DailyStatisticVo!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatisticVo!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatisticVo!]!
 
-  # UserVO Statistics - AdminVO only
-  userStatistics: UserStatisticsVO!
+  # UserVo Statistics - AdminVo only
+  userStatistics: UserStatisticsVo!
 
-  # Delivery Worker Statistics - AdminVO only
-  deliveryWorkerStatistics: DeliveryWorkerOverviewVO!
-  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItemVO!]!
+  # Delivery Worker Statistics - AdminVo only
+  deliveryWorkerStatistics: DeliveryWorkerOverviewVo!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItemVo!]!
 
   # 待处理订单三态细分（仪表盘）
-  pendingOrderBreakdown: PendingOrderBreakdownVO!
+  pendingOrderBreakdown: PendingOrderBreakdownVo!
 
   # 营销统计(F-STA-007):汇总 + 按日趋势 + 营销方式使用明细
   # 第 3 层日汇总中间表(daily_marketing_facts / daily_marketing_usage_facts)查询侧两段合并
-  marketingStatistics(input: DateRangeInput!): MarketingStatisticsVO!
+  marketingStatistics(input: DateRangeInput!): MarketingStatisticsVo!
 }
 
 # 营销统计汇总(金额单位:分 R-MON-01;口径见 PRD 08-statistics.md §F-STA-007)
-type MarketingStatisticsSummaryVO {
+type MarketingStatisticsSummaryVo {
   # 营销订单数(订单含 券/满减/首单立减 任一快照优惠,按订单去重)
   marketingOrderCount: Int!
   # 让利总额 = 券 + 满减 + 首单立减(订单快照列,精确;赠品估算/水票抵扣不计入)
@@ -56,7 +56,7 @@ type MarketingStatisticsSummaryVO {
 }
 
 # 营销统计单日(空数据日补零,图表 x 轴连续)
-type MarketingDailyStatisticVO {
+type MarketingDailyStatisticVo {
   date: String!
   marketingOrderCount: Int!
   couponBenefitCents: Long!
@@ -78,7 +78,7 @@ enum MarketingBreakdownKind {
 }
 
 # 营销方式使用明细行(区间内按 kind × refId 聚合;票种行使用 ticket_* 字段,其余为 0)
-type MarketingUsageBreakdownRowVO {
+type MarketingUsageBreakdownRowVo {
   kind: MarketingBreakdownKind!
   refId: PrimaryId!
   # 活动/券/票种名称(查询侧解析)
@@ -95,8 +95,8 @@ type MarketingUsageBreakdownRowVO {
   ticketRedeemedCount: Int!
 }
 
-type MarketingStatisticsVO {
-  summary: MarketingStatisticsSummaryVO!
-  daily: [MarketingDailyStatisticVO!]!
-  breakdown: [MarketingUsageBreakdownRowVO!]!
+type MarketingStatisticsVo {
+  summary: MarketingStatisticsSummaryVo!
+  daily: [MarketingDailyStatisticVo!]!
+  breakdown: [MarketingUsageBreakdownRowVo!]!
 }

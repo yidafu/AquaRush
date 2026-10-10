@@ -1,4 +1,4 @@
-# Test Schema for AdminVO Marketing Resolvers GraphQL Integration Tests
+# Test Schema for AdminVo Marketing Resolvers GraphQL Integration Tests
 # 自包含 schema(仿 ops 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/marketing/) 加载
 # 与 services/aqua-admin/src/main/resources/graphql/modules/marketing.graphqls 保持一致(F-MKT-001/002/003/004/007)
 
@@ -6,56 +6,56 @@ scalar Long
 scalar LocalDateTime
 
 type Query {
-  customerGroups(input: CustomerGroupListInput): CustomerGroupVOPage
-  customerGroup(id: Long!): CustomerGroupVO
-  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVOPage
-  couponTemplates(input: CouponTemplateListInput): CouponTemplateVOPage
-  couponTemplate(id: Long!): CouponTemplateAdminVO
-  promotionActivities(input: PromotionActivityListInput): PromotionActivityVOPage
-  promotionActivity(id: Long!): PromotionActivityVO
-  ticketTypes(input: TicketTypeListInput): TicketTypeVOPage
-  ticketType(id: Long!): TicketTypeAdminVO
-  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVOPage
-  flashSaleActivity(id: Long!): FlashSaleActivityVO
-  giftActivities(input: GiftActivityListInput): GiftActivityVOPage
-  giftActivity(id: Long!): GiftActivityVO
-  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
-  firstOrderActivity(id: Long!): FirstOrderActivityVO
+  customerGroups(input: CustomerGroupListInput): CustomerGroupVoPage
+  customerGroup(id: Long!): CustomerGroupVo
+  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVoPage
+  couponTemplates(input: CouponTemplateListInput): CouponTemplateVoPage
+  couponTemplate(id: Long!): CouponTemplateAdminVo
+  promotionActivities(input: PromotionActivityListInput): PromotionActivityVoPage
+  promotionActivity(id: Long!): PromotionActivityVo
+  ticketTypes(input: TicketTypeListInput): TicketTypeVoPage
+  ticketType(id: Long!): TicketTypeAdminVo
+  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVoPage
+  flashSaleActivity(id: Long!): FlashSaleActivityVo
+  giftActivities(input: GiftActivityListInput): GiftActivityVoPage
+  giftActivity(id: Long!): GiftActivityVo
+  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVoPage
+  firstOrderActivity(id: Long!): FirstOrderActivityVo
   # 用户持有券/票(用户详情页 Tab;F-USR-022)
-  userCoupons(userId: Long!, status: UserCouponStatus): [UserCouponVO!]!
-  userTickets(userId: Long!, status: UserTicketStatus): [UserTicketVO!]!
+  userCoupons(userId: Long!, status: UserCouponStatus): [UserCouponVo!]!
+  userTickets(userId: Long!, status: UserTicketStatus): [UserTicketVo!]!
 }
 
 type Mutation {
-  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroupVO!
-  updateCustomerGroup(id: Long!, input: UpdateCustomerGroupInput!): CustomerGroupVO!
+  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroupVo!
+  updateCustomerGroup(id: Long!, input: UpdateCustomerGroupInput!): CustomerGroupVo!
   deleteCustomerGroup(id: Long!): Boolean!
   setUserCustomerGroup(userId: Long!, customerGroupId: Long): Boolean!
   saveGroupProductPrices(input: SaveGroupProductPricesInput!): Boolean!
-  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplateAdminVO!
-  updateCouponTemplate(id: Long!, input: UpdateCouponTemplateInput!): CouponTemplateAdminVO!
-  disableCouponTemplate(id: Long!): CouponTemplateAdminVO!
+  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplateAdminVo!
+  updateCouponTemplate(id: Long!, input: UpdateCouponTemplateInput!): CouponTemplateAdminVo!
+  disableCouponTemplate(id: Long!): CouponTemplateAdminVo!
   issueCoupons(input: IssueCouponsInput!): Int!
-  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivityVO!
-  updatePromotionActivity(id: Long!, input: UpdatePromotionActivityInput!): PromotionActivityVO!
-  disablePromotionActivity(id: Long!): PromotionActivityVO!
-  createTicketType(input: CreateTicketTypeInput!): TicketTypeAdminVO!
-  updateTicketType(id: Long!, input: UpdateTicketTypeInput!): TicketTypeAdminVO!
-  disableTicketType(id: Long!): TicketTypeAdminVO!
-  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivityVO!
-  updateFlashSaleActivity(id: Long!, input: UpdateFlashSaleActivityInput!): FlashSaleActivityVO!
-  disableFlashSaleActivity(id: Long!): FlashSaleActivityVO!
-  createGiftActivity(input: CreateGiftActivityInput!): GiftActivityVO!
-  updateGiftActivity(id: Long!, input: UpdateGiftActivityInput!): GiftActivityVO!
-  disableGiftActivity(id: Long!): GiftActivityVO!
-  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivityVO!
-  updateFirstOrderActivity(id: Long!, input: UpdateFirstOrderActivityInput!): FirstOrderActivityVO!
-  disableFirstOrderActivity(id: Long!): FirstOrderActivityVO!
+  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivityVo!
+  updatePromotionActivity(id: Long!, input: UpdatePromotionActivityInput!): PromotionActivityVo!
+  disablePromotionActivity(id: Long!): PromotionActivityVo!
+  createTicketType(input: CreateTicketTypeInput!): TicketTypeAdminVo!
+  updateTicketType(id: Long!, input: UpdateTicketTypeInput!): TicketTypeAdminVo!
+  disableTicketType(id: Long!): TicketTypeAdminVo!
+  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivityVo!
+  updateFlashSaleActivity(id: Long!, input: UpdateFlashSaleActivityInput!): FlashSaleActivityVo!
+  disableFlashSaleActivity(id: Long!): FlashSaleActivityVo!
+  createGiftActivity(input: CreateGiftActivityInput!): GiftActivityVo!
+  updateGiftActivity(id: Long!, input: UpdateGiftActivityInput!): GiftActivityVo!
+  disableGiftActivity(id: Long!): GiftActivityVo!
+  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivityVo!
+  updateFirstOrderActivity(id: Long!, input: UpdateFirstOrderActivityInput!): FirstOrderActivityVo!
+  disableFirstOrderActivity(id: Long!): FirstOrderActivityVo!
 }
 
 # ============ 客户分组(F-MKT-001) ============
 
-type CustomerGroupVO {
+type CustomerGroupVo {
   id: Long!
   name: String!
   description: String
@@ -64,8 +64,8 @@ type CustomerGroupVO {
   updatedAt: LocalDateTime!
 }
 
-type CustomerGroupVOPage {
-  content: [CustomerGroupVO!]!
+type CustomerGroupVoPage {
+  content: [CustomerGroupVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -92,7 +92,7 @@ input UpdateCustomerGroupInput {
 
 # ============ 分组商品专属价(F-MKT-002) ============
 
-type GroupProductPriceVO {
+type GroupProductPriceVo {
   id: Long!
   customerGroupId: Long!
   productId: Long!
@@ -102,8 +102,8 @@ type GroupProductPriceVO {
   priceCents: Long
 }
 
-type GroupProductPriceVOPage {
-  content: [GroupProductPriceVO!]!
+type GroupProductPriceVoPage {
+  content: [GroupProductPriceVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -130,7 +130,7 @@ input SaveGroupProductPricesInput {
 
 # ============ 优惠券(F-MKT-003) ============
 
-type CouponTemplateAdminVO {
+type CouponTemplateAdminVo {
   id: Long!
   name: String!
   couponType: CouponType!
@@ -152,8 +152,8 @@ type CouponTemplateAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type CouponTemplateVOPage {
-  content: [CouponTemplateAdminVO!]!
+type CouponTemplateVoPage {
+  content: [CouponTemplateAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -171,8 +171,8 @@ enum CouponScope {
   PRODUCT
 }
 
-# 用户持有券/票(用户详情页 Tab;与 shared-config UserCouponVO/UserTicketVO 保持一致)
-type UserCouponVO {
+# 用户持有券/票(用户详情页 Tab;与 shared-config UserCouponVo/UserTicketVo 保持一致)
+type UserCouponVo {
   id: Long!
   name: String!
   couponType: CouponType!
@@ -193,7 +193,7 @@ enum UserCouponStatus {
   EXPIRED
 }
 
-type UserTicketVO {
+type UserTicketVo {
   id: Long!
   ticketTypeName: String!
   specification: String
@@ -277,7 +277,7 @@ enum IssueTargetType {
 
 # ============ 满减/折扣活动(F-MKT-004) ============
 
-type PromotionActivityVO {
+type PromotionActivityVo {
   id: Long!
   name: String!
   activityType: PromotionActivityType!
@@ -288,20 +288,20 @@ type PromotionActivityVO {
   validTo: LocalDateTime!
   status: PromotionActivityStatus!
   currentStatus: PromotionActivityDisplayStatus!
-  tiers: [PromotionActivityTierVO!]!
+  tiers: [PromotionActivityTierVo!]!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
-type PromotionActivityTierVO {
+type PromotionActivityTierVo {
   id: Long!
   thresholdCents: Long!
   discountAmountCents: Long
   discountRatePermille: Long
 }
 
-type PromotionActivityVOPage {
-  content: [PromotionActivityVO!]!
+type PromotionActivityVoPage {
+  content: [PromotionActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -367,7 +367,7 @@ input UpdatePromotionActivityInput {
 
 # ============ 桶水票(F-MKT-007) ============
 
-type TicketTypeAdminVO {
+type TicketTypeAdminVo {
   id: Long!
   name: String!
   ticketType: TicketTypeKind!
@@ -386,8 +386,8 @@ type TicketTypeAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type TicketTypeVOPage {
-  content: [TicketTypeAdminVO!]!
+type TicketTypeVoPage {
+  content: [TicketTypeAdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -443,7 +443,7 @@ input UpdateTicketTypeInput {
 
 # ============ 限时特价活动(F-MKT-005) ============
 
-type FlashSaleActivityVO {
+type FlashSaleActivityVo {
   id: Long!
   name: String!
   productId: Long!
@@ -458,8 +458,8 @@ type FlashSaleActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type FlashSaleActivityVOPage {
-  content: [FlashSaleActivityVO!]!
+type FlashSaleActivityVoPage {
+  content: [FlashSaleActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -495,7 +495,7 @@ enum GiftActivityType {
   BUY_GIFT
 }
 
-type GiftActivityVO {
+type GiftActivityVo {
   id: Long!
   name: String!
   giftType: GiftActivityType!
@@ -515,8 +515,8 @@ type GiftActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type GiftActivityVOPage {
-  content: [GiftActivityVO!]!
+type GiftActivityVoPage {
+  content: [GiftActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -564,7 +564,7 @@ enum FirstOrderActivityType {
   NEWCOMER_PRICE
 }
 
-type FirstOrderActivityVO {
+type FirstOrderActivityVo {
   id: Long!
   name: String!
   activityType: FirstOrderActivityType!
@@ -583,8 +583,8 @@ type FirstOrderActivityVO {
   updatedAt: LocalDateTime!
 }
 
-type FirstOrderActivityVOPage {
-  content: [FirstOrderActivityVO!]!
+type FirstOrderActivityVoPage {
+  content: [FirstOrderActivityVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

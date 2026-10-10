@@ -10,22 +10,22 @@ type Query {
 type Mutation {
   deleteAdmin(id: Long!): Boolean!
   resetAdminPassword(id: Long!, newPassword: String): Boolean!
-  updateAdmin(id: Long!, input: UpdateAdminInput!): AdminVO!
+  updateAdmin(id: Long!, input: UpdateAdminInput!): AdminVo!
   deleteDeliveryWorker(id: Long!): Boolean!
   resetDeliveryWorkerPassword(id: Long!, newPassword: String): Boolean!
-  createUser(input: CreateUserInput!): UserVO!
-  updateUser(id: Long!, input: UpdateUserInput!): UserVO!
+  createUser(input: CreateUserInput!): UserVo!
+  updateUser(id: Long!, input: UpdateUserInput!): UserVo!
   deleteUser(id: Long!): Boolean!
 }
 
-type AdminVO {
+type AdminVo {
   id: Long!
   username: String!
   role: String!
   accountStatus: AdminAccountStatus!
 }
 
-type UserVO {
+type UserVo {
   id: Long!
   wechatOpenId: String!
   nickname: String

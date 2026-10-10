@@ -2434,6 +2434,13 @@ export type OrderUserTierVo = {
   readonly userCount: Scalars['Int']['output'];
 };
 
+export type OrderValueBucketStatisticVo = {
+  readonly count: Scalars['Int']['output'];
+  readonly fromCents?: Maybe<Scalars['Long']['output']>;
+  readonly label: Scalars['String']['output'];
+  readonly toCents?: Maybe<Scalars['Long']['output']>;
+};
+
 export type OrderVo = {
   readonly address?: Maybe<AddressVo>;
   readonly amountCents: Scalars['Long']['output'];
@@ -2481,13 +2488,6 @@ export type OrderVoPage = {
   readonly size: Scalars['Int']['output'];
   readonly totalElements: Scalars['Int']['output'];
   readonly totalPages: Scalars['Int']['output'];
-};
-
-export type OrderValueBucketStatisticVo = {
-  readonly count: Scalars['Int']['output'];
-  readonly fromCents?: Maybe<Scalars['Long']['output']>;
-  readonly label: Scalars['String']['output'];
-  readonly toCents?: Maybe<Scalars['Long']['output']>;
 };
 
 export type PageInfoVo = {

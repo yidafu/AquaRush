@@ -28,15 +28,19 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
+import java.io.File
 
 /**
  * GraphQL 请求类 / 返回类的类名后缀约束（architecture.md §Type Naming Conventions）。
  *
  * 约定：
  *  - 请求(入参)类后缀 `Input` / `Request`
- *  - 返回类后缀 `Vo` / `VO` / `Page` / `Response` / `Result`（`VoPage`/`VOPage` 由 `Page` 覆盖）
+ *  - 返回类后缀 `Vo` / `Page` / `Response` / `Result`（`VoPage` 由 `Page` 覆盖）
+ *  - `VO` 拼写禁止：codegen(change-case) 一律把 schema 的尾缀规范化为 `Vo`，
+ *    schema 文本也统一 `Vo`/`VoPage`（G6 直接校验 .graphqls 源文件，字节码侧无法区分 VO/Vo）
  *
- * 判别只依赖字节码：
+ * 判别方式：G1–G5 依赖字节码，G6 直接读 .graphqls 源文件（见下）。
+ * 字节码侧的判别规则：
  *  - 生成包中带 `(Map)` 次构造器的类 = graphql-codegen 为 GraphQL `input` 生成的请求类
  *    （codegen 同时为每个根字段生成 `Mutation*Args`/`Query*Args` 包装类，按名字豁免）；
  *    其余 data class 即输出类型。
@@ -45,7 +49,7 @@ import org.springframework.graphql.data.method.annotation.SchemaMapping
  */
 private val REQUEST_SUFFIXES = listOf("Input", "Request")
 
-private val RESPONSE_SUFFIXES = listOf("Vo", "VO", "Page", "Response", "Result")
+private val RESPONSE_SUFFIXES = listOf("Vo", "Page", "Response", "Result")
 
 private const val GENERATED_PACKAGE = "dev.yidafu.aqua.common.graphql.generated"
 
@@ -144,6 +148,28 @@ private fun graphQlParticipatingTypes(): Set<JavaClass> {
   return visited
 }
 
+/**
+ * schema 源文件根目录（相对 services/aqua-admin 模块目录 = Gradle 测试 workingDir）：
+ * admin main/test schema、shared-config 共享类型、client schema。
+ * codegen(change-case) 会把 `OrderVO` 规范成 `OrderVo`，字节码无法区分 VO/Vo，
+ * 因此 G6 必须直接校验 .graphqls 文本。
+ */
+private val SCHEMA_SOURCE_ROOTS =
+  listOf(
+    "src/main/resources/graphql",
+    "src/test/resources/graphql",
+    "../../shared-config/graphql",
+    "../aqua-client/src/main/resources/graphql",
+  )
+
+private fun schemaSourceFiles(): List<File> =
+  SCHEMA_SOURCE_ROOTS
+    .flatMap { root -> File(root).walkTopDown().toList() }
+    .filter { it.isFile && it.extension == "graphqls" }
+
+/** 匹配 `type Foo` / `extend type Foo` / `interface` / `union` 定义行（行首，忽略前导空白）。 */
+private val SCHEMA_TYPE_PATTERN = Regex("""^(?:extend\s+)?(?:type|interface|union)\s+(\w+)""")
+
 private fun report(
   rule: String,
   violations: List<String>,
@@ -169,7 +195,7 @@ class GraphQLNamingTest :
       report("G1", violations)
     }
 
-    test("G2 resolver 返回类必须以 Vo/VO/Page/Response/Result 结尾") {
+    test("G2 resolver 返回类必须以 Vo/Page/Response/Result 结尾") {
       val violations =
         graphQlMethods()
           .flatMap { method ->
@@ -191,7 +217,7 @@ class GraphQLNamingTest :
       report("G3", violations)
     }
 
-    test("G4 生成包输出类必须以 Vo/VO/Page/Response/Result 结尾") {
+    test("G4 生成包输出类必须以 Vo/Page/Response/Result 结尾") {
       val violations =
         backendClasses
           .filter {
@@ -212,8 +238,23 @@ class GraphQLNamingTest :
       report("G5", violations)
     }
 
+    test("G6 schema 输出类型名必须以 Vo/VoPage 结尾(禁止 VO 拼写)") {
+      val violations =
+        schemaSourceFiles()
+          .flatMap { file ->
+            file
+              .readLines()
+              .mapNotNull { line -> SCHEMA_TYPE_PATTERN.find(line.trim())?.groupValues?.get(1) }
+              .filterNot { it in ROOT_OPERATION_TYPES }
+              .filterNot { it.endsWith("Vo") || it.endsWith("VoPage") }
+              .map { "${file.path}: $it" }
+          }
+      report("G6", violations)
+    }
+
     test("哨兵: 规则确实覆盖生成包与 resolver(防空转)") {
       (backendClasses.count { it.packageName == GENERATED_PACKAGE } > 100) shouldBe true
       (graphQlMethods().count() > 200) shouldBe true
+      (schemaSourceFiles().size > 20) shouldBe true
     }
   })

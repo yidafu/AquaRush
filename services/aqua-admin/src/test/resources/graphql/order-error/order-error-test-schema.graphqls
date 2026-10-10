@@ -1,9 +1,9 @@
-# Test Schema for AdminVO OrderVO Error Handling GraphQL Integration Test
+# Test Schema for AdminVo OrderVo Error Handling GraphQL Integration Test
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/order-error/) 加载。
 # 镜像订单详情页单请求(ORDER_DETAIL_PAGE_DATA_QUERY):order + onlineDeliveryWorkers + orderOperations。
 # 回归目标:orderId 不存在时,order 查询必须返回可读的业务错误(code=NOT_FOUND),
 # 而不是被 Spring GraphQL 默认掩码为 INTERNAL_ERROR(classification: INTERNAL_ERROR)。
-# 注意:order 失败发生在 mapper 之前(NotFound 抛出),故 OrderVO 仅需最小字段即可完成错误断言;
+# 注意:order 失败发生在 mapper 之前(NotFound 抛出),故 OrderVo 仅需最小字段即可完成错误断言;
 # 兄弟字段仅取 id/name/phone 等安全字段,避免枚举序列化差异。
 
 scalar Long
@@ -11,22 +11,22 @@ scalar LocalDateTime
 scalar PrimaryId
 
 type Query {
-  order(orderId: PrimaryId!): OrderVO
-  onlineDeliveryWorkers: [DeliveryWorkerVO!]!
-  orderOperations(orderId: PrimaryId!): [OrderOperationVO!]!
+  order(orderId: PrimaryId!): OrderVo
+  onlineDeliveryWorkers: [DeliveryWorkerVo!]!
+  orderOperations(orderId: PrimaryId!): [OrderOperationVo!]!
 }
 
-type OrderVO {
+type OrderVo {
   id: PrimaryId!
   orderNo: String!
 }
 
-type DeliveryWorkerVO {
+type DeliveryWorkerVo {
   id: PrimaryId!
   name: String!
   phone: String!
 }
 
-type OrderOperationVO {
+type OrderOperationVo {
   id: PrimaryId!
 }

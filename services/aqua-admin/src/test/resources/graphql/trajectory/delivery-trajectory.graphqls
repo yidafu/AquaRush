@@ -1,4 +1,4 @@
-# Test Schema for DeliveryTrajectoryVO GraphQL Integration Tests
+# Test Schema for DeliveryTrajectoryVo GraphQL Integration Tests
 # (F-ADR-012 实时轨迹上报与后台轨迹查看)
 
 scalar Long
@@ -10,15 +10,15 @@ type Query {
     orderId: Long
     startTime: LocalDateTime
     endTime: LocalDateTime
-  ): [DeliveryTrajectoryVO!]!
-  deliveryWorkerLatestLocation(workerId: Long!): DeliveryTrajectoryVO
+  ): [DeliveryTrajectoryVo!]!
+  deliveryWorkerLatestLocation(workerId: Long!): DeliveryTrajectoryVo
 }
 
 type Mutation {
   reportTrajectory(input: ReportTrajectoryInput!): Boolean!
 }
 
-type DeliveryTrajectoryVO {
+type DeliveryTrajectoryVo {
   id: Long!
   deliveryWorkerId: Long!
   orderId: Long!

@@ -1,4 +1,4 @@
-# Test Schema for AdminVO Data Maintenance Resolvers GraphQL Integration Tests
+# Test Schema for AdminVo Data Maintenance Resolvers GraphQL Integration Tests
 # 自包含 schema(仿 system 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/data-maintenance/) 加载
 # 覆盖 F-SYS-006:dataMaintenanceOverview 总览 + backupLogPartition 离线备份
 
@@ -7,11 +7,11 @@ scalar LocalDateTime
 scalar PrimaryId
 
 type Query {
-  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVO!
+  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVo!
 }
 
 type Mutation {
-  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecordVO!
+  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecordVo!
 }
 
 enum SystemConfigGroup {
@@ -29,7 +29,7 @@ enum SystemSettingType {
   ENUM
 }
 
-type SystemConfigVO {
+type SystemConfigVo {
   id: Long!
   settingKey: String!
   settingType: SystemSettingType!
@@ -61,7 +61,7 @@ enum LogBackupStatus {
   FAILED
 }
 
-type LogPartitionVO {
+type LogPartitionVo {
   logTable: LogTableType!
   partitionName: String!
   partitionMonth: String
@@ -73,7 +73,7 @@ type LogPartitionVO {
   backupable: Boolean!
 }
 
-type LogBackupRecordVO {
+type LogBackupRecordVo {
   id: PrimaryId!
   logTable: LogTableType!
   partitionName: String!
@@ -96,9 +96,9 @@ input LogBackupRecordListInput {
   size: Int = 10
 }
 
-type LogBackupRecordVOPage {
-  list: [LogBackupRecordVO!]!
-  pageInfo: PageInfoVO!
+type LogBackupRecordVoPage {
+  list: [LogBackupRecordVo!]!
+  pageInfo: PageInfoVo!
 }
 
 input BackupLogPartitionInput {
@@ -106,13 +106,13 @@ input BackupLogPartitionInput {
   partitionName: String!
 }
 
-type DataMaintenanceOverviewVO {
-  settings: [SystemConfigVO!]!
-  partitions: [LogPartitionVO!]!
-  backupRecords: LogBackupRecordVOPage!
+type DataMaintenanceOverviewVo {
+  settings: [SystemConfigVo!]!
+  partitions: [LogPartitionVo!]!
+  backupRecords: LogBackupRecordVoPage!
 }
 
-type PageInfoVO {
+type PageInfoVo {
   total: Int!
   pageSize: Int!
   pageNum: Int!

@@ -4,7 +4,7 @@
 
 extend type Query {
   # 送水工端消息中心:分页查询本人消息(type/read 为空 = 全部,仅本人数据 R-AUTH-02)
-  myWorkerNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVOPage!
+  myWorkerNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVoPage!
   # 送水工端未读消息数(任务页/我的页入口角标)
   workerUnreadNotificationCount: Long!
   # 后台消息列表(F-NTF-006):组合筛选分页,默认近 30 天由页面层给定时间范围
@@ -17,9 +17,9 @@ extend type Query {
     endAt: LocalDateTime
     page: Int = 0
     size: Int = 10
-  ): NotificationVOPage!
+  ): NotificationVoPage!
   # 后台消息详情(F-NTF-006)
-  notification(id: PrimaryId!): NotificationVO
+  notification(id: PrimaryId!): NotificationVo
 }
 
 extend type Mutation {
@@ -28,5 +28,5 @@ extend type Mutation {
   # 送水工端:全部已读
   markAllWorkerNotificationsRead: Boolean!
   # 后台:手动重发失败/待发送的微信订阅消息(F-NTF-006,PERMISSION_NOTIFICATION_WRITE 仅超管)
-  resendNotification(id: PrimaryId!): NotificationVO
+  resendNotification(id: PrimaryId!): NotificationVo
 }

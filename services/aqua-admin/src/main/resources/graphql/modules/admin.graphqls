@@ -1,8 +1,8 @@
-# AdminVO UserVO Management - AdminVO only
+# AdminVo UserVo Management - AdminVo only
 
-# 账号分页(参照 AddressVOPage/BannerVOPage 的新式分页)
-type AdminVOPage {
-  content: [AdminVO!]!
+# 账号分页(参照 AddressVoPage/BannerVoPage 的新式分页)
+type AdminVoPage {
+  content: [AdminVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -10,17 +10,17 @@ type AdminVOPage {
 }
 
 extend type Query {
-  # AdminVO queries
+  # AdminVo queries
   # 账号列表:分页 + keyword(username/realName/phone 模糊)。AGENTS.md 规则 10 禁止无界全量返回
-  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVOPage!
+  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVoPage!
   # 账号详情(超管视图按 id 查,替代原「全量 admins 前端 find」)
-  admin(id: PrimaryId!): AdminVO
+  admin(id: PrimaryId!): AdminVo
 }
 
 extend type Mutation {
-  # AdminVO mutations
-  createAdmin(input: CreateAdminInput!): AdminVO!
-  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): AdminVO!
+  # AdminVo mutations
+  createAdmin(input: CreateAdminInput!): AdminVo!
+  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): AdminVo!
   # 删除管理员(软删除;不能删除自己/最后一个超级管理员,G11 落地)
   deleteAdmin(id: PrimaryId!): Boolean!
   # 重置管理员密码(newPassword 留空则重置为默认密码 123456,G11 落地)

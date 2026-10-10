@@ -1,16 +1,16 @@
-# OrderVO management (AdminVO/Delivery perspective)
+# OrderVo management (AdminVo/Delivery perspective)
 
 extend type Query {
-  # OrderVO queries
-  order(orderId: PrimaryId!): OrderVO
-  orderByNo(orderNo: String!): OrderVO
-  orders(input: OrderListInput): OrderVOPage
-  orderOperations(orderId: PrimaryId!): [OrderOperationVO!]!
+  # OrderVo queries
+  order(orderId: PrimaryId!): OrderVo
+  orderByNo(orderNo: String!): OrderVo
+  orders(input: OrderListInput): OrderVoPage
+  orderOperations(orderId: PrimaryId!): [OrderOperationVo!]!
 
   # 派单相关查询
-  pendingDeliveryOrders: [OrderVO!]!              # 待派单订单
-  assignedOrders: [OrderVO!]!  # 已分配订单
-  deliveringOrders: [OrderVO!]! # 配送中订单
+  pendingDeliveryOrders: [OrderVo!]!              # 待派单订单
+  assignedOrders: [OrderVo!]!  # 已分配订单
+  deliveringOrders: [OrderVo!]! # 配送中订单
 
   # 配送员历史订单查询（已完成、已取消、已退款）
   deliveryWorkerHistoryOrders(
@@ -18,19 +18,19 @@ extend type Query {
     keyword: String
     page: Int = 0
     size: Int = 20
-  ): OrderVOPage!
+  ): OrderVoPage!
 
   # 用户评价记录(用户详情页「评价记录」Tab,分页,F-ORD-007)
-  reviewsByUser(userId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+  reviewsByUser(userId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVoPage!
 
   # 配送员收到的评价记录(账号详情页「评价记录」Tab,分页,F-USR-020/021;
   # deliveryWorkerId=账号 id,管理员兼送水同口径,PERMISSION_DELIVERY_WORKER_READ)
-  reviewsByDeliveryWorker(deliveryWorkerId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+  reviewsByDeliveryWorker(deliveryWorkerId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVoPage!
 }
 
 # 用户评价分页
-type ReviewVOPage {
-  content: [ReviewVO!]!
+type ReviewVoPage {
+  content: [ReviewVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -38,23 +38,23 @@ type ReviewVOPage {
 }
 
 extend type Mutation {
-  # OrderVO mutations
-  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): OrderVO!
-  createDeliveryOrder(input: CreateDeliveryOrderInput!): OrderVO!  # 配送员创建订单
+  # OrderVo mutations
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): OrderVo!
+  createDeliveryOrder(input: CreateDeliveryOrderInput!): OrderVo!  # 配送员创建订单
 
   # 派单管理
-  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): OrderVO!
-  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [OrderVO!]!
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): OrderVo!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [OrderVo!]!
 
   # 配送员操作
-  acceptDelivery(orderId: PrimaryId!): OrderVO!           # 配送员接单
-  startDelivery(orderId: PrimaryId!): OrderVO!             # 开始配送
-  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): OrderVO!  # 完成配送
+  acceptDelivery(orderId: PrimaryId!): OrderVo!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): OrderVo!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): OrderVo!  # 完成配送
 
   # 配送任务中修正收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位 WGS-84 经纬度,
   # 仅传入字段生效;PERMISSION_DELIVERY_TASK,送水工与管理员共用)
-  updateOrderAddress(orderId: PrimaryId!, input: UpdateOrderAddressInput!): OrderVO!
+  updateOrderAddress(orderId: PrimaryId!, input: UpdateOrderAddressInput!): OrderVo!
 
   # 配送照片核验(G23/F-ORD-021:后台「通过/驳回」核验流,PERMISSION_ORDER_REVIEW)
-  reviewDeliveryPhoto(orderId: PrimaryId!, action: DeliveryPhotoReviewAction!, remark: String): OrderVO!
+  reviewDeliveryPhoto(orderId: PrimaryId!, action: DeliveryPhotoReviewAction!, remark: String): OrderVo!
 }

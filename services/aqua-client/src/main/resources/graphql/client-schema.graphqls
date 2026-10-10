@@ -13,102 +13,102 @@ schema {
 # Client-specific Query Schema
 type Query {
   # Authentication
-  me: UserInfoVO
+  me: UserInfoVo
 
   # Addresses
-  address(id: PrimaryId!): AddressVO
+  address(id: PrimaryId!): AddressVo
 
-  # Enhanced AddressVO Management
-  userAddresses: [AddressVO!]!
+  # Enhanced AddressVo Management
+  userAddresses: [AddressVo!]!
 
   # Regions
-  regions(level: Int, parentCode: String): [RegionVO!]!
-  region(code: String!): RegionVO
+  regions(level: Int, parentCode: String): [RegionVo!]!
+  region(code: String!): RegionVo
 
   # Products
-  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVOPage!
-  product(id: PrimaryId!): ProductVO
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVoPage!
+  product(id: PrimaryId!): ProductVo
 
   # Favorites queries
-  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVOPage!
+  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVoPage!
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 
   # Orders (F-ORD-003 订单详情/支付回显)
-  order(id: PrimaryId!): OrderVO
+  order(id: PrimaryId!): OrderVo
   # 我的订单列表(F-ORD-002,仅本人,分页;statuses 为空=全部)
-  myOrders(statuses: [OrderStatus!], page: Int = 0, size: Int = 10): OrderVOPage!
+  myOrders(statuses: [OrderStatus!], page: Int = 0, size: Int = 10): OrderVoPage!
   # 我的订单状态计数(F-USR-002,G31):仅本人,单请求返回各状态订单数(我的页订单角标)
-  myOrderStatistics: MyOrderStatisticsVO!
+  myOrderStatistics: MyOrderStatisticsVo!
   # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
-  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckVO!
+  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckVo!
 
   # Operations config queries (运营配置域 F-OPS-001/002/004/005)
-  activeBanners: [BannerVO!]!
+  activeBanners: [BannerVo!]!
   # 当前生效公告(已发布且在时间窗内,置顶优先、发布时间倒序)
-  activeNotices: [NoticeVO!]!
+  activeNotices: [NoticeVo!]!
   # 店铺信息(未配置返回 null,用户端按默认值兜底)
-  storeProfile: StoreProfileVO
+  storeProfile: StoreProfileVo
   # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
-  deliveryFeeRule: DeliveryFeeRuleVO!
+  deliveryFeeRule: DeliveryFeeRuleVo!
   # 配送时段配置(F-SYS-002,AC-SYS-002-01/03):后台「订单与履约参数」配置,保存即热生效。
   # 确认订单页只展示 enabled=true 的时段;订单详情按 id 映射全量时段(含已停用,历史快照展示用)。
-  deliverySlots: [DeliverySlotVO!]!
+  deliverySlots: [DeliverySlotVo!]!
   # 我的-反馈记录(F-USR-005 处理结果回传):仅本人反馈,按提交时间倒序分页
-  myFeedbacks(page: Int = 0, size: Int = 10): FeedbackRecordVOPage!
+  myFeedbacks(page: Int = 0, size: Int = 10): FeedbackRecordVoPage!
 
   # Marketing queries (营销域 F-MKT-002/003/007,PRD 10-marketing.md)
   # 商品成交单价解析(按登录用户分组价,R-MKT-01)
-  productPrice(productId: PrimaryId!): ProductPriceVO
+  productPrice(productId: PrimaryId!): ProductPriceVo
   # 领券中心(F-MKT-003,仅自动领取模板)
-  couponCenter: [CouponTemplateVO!]!
+  couponCenter: [CouponTemplateVo!]!
   # 我的券包(按状态过滤,空=全部)
-  myCoupons(status: UserCouponStatus): [UserCouponVO!]!
+  myCoupons(status: UserCouponStatus): [UserCouponVo!]!
   # 水票商城(F-MKT-007,仅上架票种)
-  ticketShop: [TicketTypeVO!]!
+  ticketShop: [TicketTypeVo!]!
   # 我的水票(按状态过滤,空=全部)
-  myTickets(status: UserTicketStatus): [UserTicketVO!]!
+  myTickets(status: UserTicketStatus): [UserTicketVo!]!
   # 水桶费商城(买水桶,G06:仅启用价目,按排序;一次性塑料水桶费,独立支付,与商品订单不捆绑)
-  barrelShop: [BarrelFeeVO!]!
+  barrelShop: [BarrelFeeVo!]!
   # 我的水桶(G06:当前用户购桶单,未购买返回 null)
-  myBarrelPurchase: BarrelPurchaseVO
+  myBarrelPurchase: BarrelPurchaseVo
   # 确认订单计价预览(F-ORD-023,促销引擎 R-MKT-02/07/08 全链路,服务端计算 R-MON-01)
-  orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
+  orderPreview(input: OrderPreviewInput!): OrderPreviewVo!
 
   # ============ 消息中心与订阅消息(PRD 13-notification.md F-NTF-002/001) ============
   # 消息中心:分页查询本人消息(仅本人,R-AUTH-02),type/read 为空=全部
-  myNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVOPage!
+  myNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVoPage!
   # 未读消息数(我的页消息中心入口角标)
   unreadNotificationCount: Int!
   # 已启用的订阅消息模板(下单确认页订阅授权 Taro.requestSubscribeMessage 用,R-NTF-01)
-  subscribeTemplates: [SubscribeTemplateVO!]!
+  subscribeTemplates: [SubscribeTemplateVo!]!
 
 }
 
 # Client-specific Mutation Schema
 type Mutation {
   # Authentication
-  updateProfile(input: UpdateProfileInput!): UserInfoVO!
+  updateProfile(input: UpdateProfileInput!): UserInfoVo!
 
   # Addresses
-  createAddress(input: AddressInput!): AddressVO!
-  updateAddress(id: PrimaryId!, input: UpdateAddressInput!): AddressVO!
+  createAddress(input: AddressInput!): AddressVo!
+  updateAddress(id: PrimaryId!, input: UpdateAddressInput!): AddressVo!
   deleteAddress(id: PrimaryId!): Boolean!
   setDefaultAddress(id: PrimaryId!): Boolean!
 
   # Orders
-  createOrder(input: CreateOrderInput!): OrderVO!
+  createOrder(input: CreateOrderInput!): OrderVo!
   # 发起订单支付(F-ORD-005):测试环境假支付自动完成(autoCompleted=true)
-  createOrderPayment(orderId: PrimaryId!): OrderPaymentParamsVO!
+  createOrderPayment(orderId: PrimaryId!): OrderPaymentParamsVo!
   # 取消订单(F-ORD-006,仅本人):未支付即时取消恢复库存;已支付(待派单)取消自动退款
-  cancelOrder(orderId: PrimaryId!): OrderVO!
+  cancelOrder(orderId: PrimaryId!): OrderVo!
   # 确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,按确认时间计入营收;
   # 送达 N 天未确认由系统自动签收(配置 auto_confirm_receipt_days,默认 7)
-  confirmReceipt(orderId: PrimaryId!): OrderVO!
+  confirmReceipt(orderId: PrimaryId!): OrderVo!
   # 催单(F-ORD-008,仅本人配送中订单):防抖短时间重复点击仅一次生效,向用户/送水工推送催单提醒
   urgeOrder(orderId: PrimaryId!): Boolean!
   # 订单评价(F-ORD-007,R-EVL-01 一单一评):仅已完成订单,评分计入送水工统计
-  createReview(input: CreateReviewRequest!): ReviewVO!
+  createReview(input: CreateReviewRequest!): ReviewVo!
 
 
   # Favorites mutations
@@ -119,11 +119,11 @@ type Mutation {
 
   # Marketing mutations (营销域 F-MKT-003/007)
   # 领取优惠券(领券中心)
-  claimCoupon(couponTemplateId: PrimaryId!): UserCouponVO!
+  claimCoupon(couponTemplateId: PrimaryId!): UserCouponVo!
   # 购买桶水票(在线支付,购票即预收款项,一经购买不支持退款 R-MKT-08)
-  purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVO!
+  purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVo!
   # 购买水桶(一次性塑料水桶费,G06:独立支付,每用户总限购一次;测试环境假支付自动完成)
-  purchaseBarrel(input: PurchaseBarrelInput!): BarrelPurchaseVO!
+  purchaseBarrel(input: PurchaseBarrelInput!): BarrelPurchaseVo!
 
   # ============ 消息中心与订阅消息(PRD 13-notification.md R-NTF-01/04) ============
   # 单条消息标已读(幂等,仅本人消息)
@@ -136,7 +136,7 @@ type Mutation {
 
 # ============ 商品价格(R-MKT-01) ============
 
-type ProductPriceVO {
+type ProductPriceVo {
   productId: PrimaryId!
   # 有效成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
   effectivePriceCents: Long!
@@ -149,7 +149,7 @@ type ProductPriceVO {
 }
 
 # 用户端商品成交单价(按登录用户解析,分组价/特价/新人价/目录价 —— R-MKT-01)
-extend type ProductVO {
+extend type ProductVo {
   # 当前用户有效成交单价(分,R-MKT-02 链路解析)
   effectivePriceCents: Long!
   # 成交单价来源(展示标签依据 —— R-MKT-01)
@@ -160,7 +160,7 @@ extend type ProductVO {
 
 # ============ 优惠券用户端(F-MKT-003) ============
 
-type CouponTemplateVO {
+type CouponTemplateVo {
   id: PrimaryId!
   name: String!
   couponType: CouponType!
@@ -178,12 +178,12 @@ type CouponTemplateVO {
   claimedCount: Int!
 }
 
-# UserCouponVO / UserCouponStatus 已上移 shared-config/graphql/shared-types.graphqls
+# UserCouponVo / UserCouponStatus 已上移 shared-config/graphql/shared-types.graphqls
 # (管理后台用户详情页「优惠券」Tab 共用,避免 admin/client schema 重复定义)
 
 # ============ 桶水票用户端(F-MKT-007) ============
 
-type TicketTypeVO {
+type TicketTypeVo {
   id: PrimaryId!
   name: String!
   ticketType: TicketTypeKind!
@@ -201,7 +201,7 @@ type TicketTypeVO {
   myPurchasedCount: Int!
 }
 
-# UserTicketVO / UserTicketStatus 已上移 shared-config/graphql/shared-types.graphqls
+# UserTicketVo / UserTicketStatus 已上移 shared-config/graphql/shared-types.graphqls
 # (管理后台用户详情页「水票」Tab 共用,避免 admin/client schema 重复定义)
 
 input PurchaseTicketsInput {
@@ -209,7 +209,7 @@ input PurchaseTicketsInput {
   packageCount: Int! @min(value: 1, message: "购票张数必须大于0") @max(value: 10, message: "单次购票张数不能超过10")
 }
 
-type TicketPurchaseVO {
+type TicketPurchaseVo {
   id: PrimaryId!
   orderNo: String!
   ticketTypeName: String!
@@ -232,7 +232,7 @@ enum TicketPurchaseStatus {
 
 # ============ 订单支付(F-ORD-005) ============
 
-type OrderPaymentParamsVO {
+type OrderPaymentParamsVo {
   # 微信支付参数(真实支付:appId/timeStamp/nonceStr/package/signType/paySign;
   # 测试环境假支付:mock=true 且已自动完成,前端直接刷新订单状态)
   paymentParams: JsonObject
@@ -245,7 +245,7 @@ type OrderPaymentParamsVO {
 # ============ 我的订单状态计数(F-USR-002,G31) ============
 # 我的页订单角标:按当前用户各状态订单数聚合(仅本人,R-AUTH-02);待配送口径=待派单+待配送
 
-type MyOrderStatisticsVO {
+type MyOrderStatisticsVo {
   # 全部订单数(各状态合计)
   total: Int!
   pendingPayment: Int!
@@ -273,9 +273,9 @@ input OrderPreviewInput {
   ticketRedeemCount: Int @min(value: 0, message: "水票核销张数无效") @max(value: 999, message: "水票核销张数不能超过999")
 }
 
-type OrderPreviewVO {
+type OrderPreviewVo {
   # 逐商品计价明细(F-ORD-004 多商品下单:单价/小计/水票覆盖/目录价)
-  items: [OrderPreviewItemVO!]!
+  items: [OrderPreviewItemVo!]!
   # 成交单价(分,首件商品,R-MKT-02:分组价→目录价)
   unitPriceCents: Long!
   priceSource: PriceSource!
@@ -312,15 +312,15 @@ type OrderPreviewVO {
   # 可用水票张数
   availableTicketCount: Int!
   # 全部可用券及各自优惠金额(最优默认勾选,用户可改选/取消)
-  couponOptions: [CouponOptionVO!]!
+  couponOptions: [CouponOptionVo!]!
   # 可用券列表(含不可用置灰项)
-  availableCoupons: [UserCouponVO!]!
+  availableCoupons: [UserCouponVo!]!
   # 买赠/满赠赠品(附加 0 价行 —— R-MKT-09)
-  giftItems: [GiftItemVO!]!
+  giftItems: [GiftItemVo!]!
 }
 
 # 商品计价明细项(F-ORD-004 多商品下单:服务端按 R-MKT-02 逐商品解析)
-type OrderPreviewItemVO {
+type OrderPreviewItemVo {
   productId: PrimaryId!
   quantity: Int!
   # 成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
@@ -336,7 +336,7 @@ type OrderPreviewItemVO {
   cashSubtotalCents: Long!
 }
 
-type CouponOptionVO {
+type CouponOptionVo {
   couponId: PrimaryId!
   name: String!
   # 该券在本订单上下文下的优惠金额(分)
@@ -362,7 +362,7 @@ input FeedbackSubmitInput {
 # ============ 我的-反馈记录(F-USR-005 处理结果回传) ============
 
 # 反馈记录(用户端,仅本人数据;不含联系方式)
-type FeedbackRecordVO {
+type FeedbackRecordVo {
   id: PrimaryId!
   feedbackType: FeedbackType!
   # 反馈内容
@@ -380,9 +380,9 @@ type FeedbackRecordVO {
   createdAt: LocalDateTime!
 }
 
-# 反馈记录分页(新式分页,参照 OrderVOPage)
-type FeedbackRecordVOPage {
-  content: [FeedbackRecordVO!]!
+# 反馈记录分页(新式分页,参照 OrderVoPage)
+type FeedbackRecordVoPage {
+  content: [FeedbackRecordVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -392,7 +392,7 @@ type FeedbackRecordVOPage {
 # ============ 水桶费(买水桶,G06:一次性塑料水桶费,独立支付) ============
 
 # 水桶费价目(用户端,仅启用项)
-type BarrelFeeVO {
+type BarrelFeeVo {
   id: PrimaryId!
   # 规格(如 19L/5L)
   specification: String!
@@ -401,7 +401,7 @@ type BarrelFeeVO {
 }
 
 # 购桶单明细项(规格/单价/数量快照)
-type BarrelPurchaseItemVO {
+type BarrelPurchaseItemVo {
   specification: String!
   unitPriceCents: Long!
   quantity: Int!
@@ -417,7 +417,7 @@ enum BarrelPaymentStatus {
 }
 
 # 水桶购买单(用户端;paymentParams=微信支付参数,requiresSimulation=支付桩标记)
-type BarrelPurchaseVO {
+type BarrelPurchaseVo {
   id: PrimaryId!
   orderNo: String!
   totalAmountCents: Long!
@@ -427,7 +427,7 @@ type BarrelPurchaseVO {
   # 退还时间(未退还为空)
   refundedAt: LocalDateTime
   # 购买明细
-  items: [BarrelPurchaseItemVO!]!
+  items: [BarrelPurchaseItemVo!]!
   createdAt: LocalDateTime!
   requiresSimulation: Boolean!
   paymentParams: JsonObject
@@ -451,7 +451,7 @@ input PurchaseBarrelItemInput {
 # 后台「订单与履约参数」页(system-config/order)配置立即配送时限/上午/下午/晚上时间窗与启停,
 # 用户端确认订单页(F-ORD-001)按 enabled=true 渲染配送时间选项(AC-SYS-002-01/03),
 # 订单详情按 id 映射全量时段文案(含已停用,供历史订单快照展示);未配置时按种子默认兜底。
-type DeliverySlotVO {
+type DeliverySlotVo {
   # 时段枚举(与 orders.delivery_time_slot 落库值一一对应,提交时随单快照)
   id: DeliveryTimeSlot!
   # 时段名称(立即配送/上午配送/下午配送/晚上配送,后端统一提供,前端不写死)

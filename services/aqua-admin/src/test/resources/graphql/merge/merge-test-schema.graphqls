@@ -4,15 +4,15 @@
 scalar Long
 
 type Query {
-  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVoPage!
 }
 
 type Mutation {
-  createAdmin(input: CreateAdminInput!): AdminVO!
-  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVO!
+  createAdmin(input: CreateAdminInput!): AdminVo!
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVo!
 }
 
-type AdminVO {
+type AdminVo {
   id: Long!
   username: String!
   realName: String
@@ -22,7 +22,7 @@ type AdminVO {
   isAvailable: Boolean!
 }
 
-type DeliveryWorkerVO {
+type DeliveryWorkerVo {
   id: Long!
   name: String!
   phone: String!
@@ -59,8 +59,8 @@ input CreateDeliveryWorkerInput {
   isAvailable: Boolean
 }
 
-type DeliveryWorkerVOPage {
-  content: [DeliveryWorkerVO!]!
+type DeliveryWorkerVoPage {
+  content: [DeliveryWorkerVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

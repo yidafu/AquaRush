@@ -3,7 +3,7 @@
 
 extend type Query {
   # 业务日志分页查询(恒 createdAt 倒序;时间线视图默认 10/页)
-  businessLogs(input: BusinessLogListInput): BusinessLogVOPage
+  businessLogs(input: BusinessLogListInput): BusinessLogVoPage
 }
 
 # 业务域(映射自 logger_name:BizLogger 落库的 module 值)
@@ -30,7 +30,7 @@ enum BizLogLevel {
 }
 
 # 业务日志
-type BusinessLogVO {
+type BusinessLogVo {
   # 主键
   id: PrimaryId!
   # 关联ID(关联订单操作时间线与请求链)
@@ -73,8 +73,8 @@ input BusinessLogListInput {
   size: Int = 10
 }
 
-# 业务日志分页结果(PageInfoVO 风格,恒 createdAt 倒序)
-type BusinessLogVOPage {
-  list: [BusinessLogVO!]!
-  pageInfo: PageInfoVO!
+# 业务日志分页结果(PageInfoVo 风格,恒 createdAt 倒序)
+type BusinessLogVoPage {
+  list: [BusinessLogVo!]!
+  pageInfo: PageInfoVo!
 }

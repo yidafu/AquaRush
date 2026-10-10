@@ -1,8 +1,8 @@
 # Delivery Worker management
 
-# 配送员分页(参照 AddressVOPage/AdminVOPage 的新式分页)
-type DeliveryWorkerVOPage {
-  content: [DeliveryWorkerVO!]!
+# 配送员分页(参照 AddressVoPage/AdminVoPage 的新式分页)
+type DeliveryWorkerVoPage {
+  content: [DeliveryWorkerVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -12,10 +12,10 @@ type DeliveryWorkerVOPage {
 extend type Query {
   # Delivery Worker queries
   # 配送员列表:分页 + keyword(username/realName/phone 模糊)。AGENTS.md 规则 10 禁止无界全量返回
-  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVoPage!
   # 在线配送员(状态过滤 + SQL 侧上限,运维用途)
-  onlineDeliveryWorkers: [DeliveryWorkerVO!]!
-  deliveryWorker(id: PrimaryId!): DeliveryWorkerVO
+  onlineDeliveryWorkers: [DeliveryWorkerVo!]!
+  deliveryWorker(id: PrimaryId!): DeliveryWorkerVo
   # 送水工配送轨迹(F-ADR-012,仅管理员 PERMISSION_DELIVERY_WORKER_READ;
   # orderId 指定=查该订单轨迹,否则按时间范围;startTime/endTime 为空=全部)
   deliveryTrajectories(
@@ -23,18 +23,18 @@ extend type Query {
     orderId: PrimaryId
     startTime: LocalDateTime
     endTime: LocalDateTime
-  ): [DeliveryTrajectoryVO!]!
+  ): [DeliveryTrajectoryVo!]!
   # 送水工最近轨迹点(实时位置,F-ADR-012;无轨迹返回 null)
-  deliveryWorkerLatestLocation(workerId: PrimaryId!): DeliveryTrajectoryVO
+  deliveryWorkerLatestLocation(workerId: PrimaryId!): DeliveryTrajectoryVo
   # 配送员评分分布/总评价数(账号详情页「评价记录」Tab,F-USR-020/021;
   # 数据源 delivery_worker_statistics,deliveryWorkerId=账号 id,PERMISSION_DELIVERY_WORKER_READ)
-  deliveryWorkerRatingStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsVO!
+  deliveryWorkerRatingStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsVo!
 }
 
 extend type Mutation {
   # Delivery Worker mutations
-  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVO!
-  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorkerVO!
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVo!
+  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorkerVo!
   # 删除送水员(软删除,G11 落地)
   deleteDeliveryWorker(id: PrimaryId!): Boolean!
   # 重置送水员密码(newPassword 留空则重置为默认密码 123456,G11 落地)
