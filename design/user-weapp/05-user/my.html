@@ -14,7 +14,7 @@
   <header class="stage-head">
     <div>
       <h1>用户端小程序 · 个人中心（我的）</h1>
-      <p class="sub">功能编号 F-USR-002 ｜ 用户与账户域（tabBar 页）｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：订单 / 地址 / 收藏 / 反馈 / 关于 / 消息中心</p>
+      <p class="sub">功能编号 F-USR-002 / F-USR-001 ｜ 用户与账户域（tabBar 页）｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：订单 / 地址 / 收藏 / 我的资产 / 反馈 / 关于 / 消息中心</p>
     </div>
     <div class="chips">
       <span class="chip">F-USR-002</span>
@@ -58,22 +58,15 @@
           <div class="app">
             <div class="app-scroll">
 
-              <div class="mp-statgrid hair-b">
-                <div class="mp-statgrid__item">
-                  <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">126</span><span class="weui-price__dec">.50</span></span>
-                  <div class="mp-statgrid__lbl">余额</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">3</div>
-                  <div class="mp-statgrid__lbl">优惠券</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">5</div>
-                  <div class="mp-statgrid__lbl">水票</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">1200</div>
-                  <div class="mp-statgrid__lbl">积分</div>
+              <div class="weui-cells__title">我的资产</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10.5h18M16.5 15h1.5"/></svg></div>
+                  <div class="weui-cell__bd">
+                    <span>我的资产</span>
+                    <div class="f-note" style="color:var(--weui-FG-1);margin-top:3px">优惠券 3 · 水票 5 · 积分 1200 · 水桶账户 2 桶</div>
+                  </div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </div>
               </div>
 
@@ -133,38 +126,13 @@
                   <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </div>
                 <div class="weui-cell">
-                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></div>
-                  <div class="weui-cell__bd">水桶账户</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
-                </div>
-                <div class="weui-cell">
                   <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div>
                   <div class="weui-cell__bd">周期订购</div>
                   <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </div>
                 <div class="weui-cell">
-                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></div>
-                  <div class="weui-cell__bd">优惠券</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
-                </div>
-                <div class="weui-cell">
-                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 10h5M9.5 14h5"/></svg></div>
-                  <div class="weui-cell__bd">我的水票</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
-                </div>
-                <div class="weui-cell">
-                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9.5h18"/></svg></div>
-                  <div class="weui-cell__bd">储值</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
-                </div>
-                <div class="weui-cell">
                   <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M4 18h16l1.5-9-5 3-4.5-6-4.5 6-5-3z"/></svg></div>
                   <div class="weui-cell__bd">会员中心</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
-                </div>
-                <div class="weui-cell">
-                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div>
-                  <div class="weui-cell__bd">积分中心</div>
                   <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </div>
                 <div class="weui-cell">
@@ -239,7 +207,7 @@
                 <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:12px">游</span>
                 <div class="grow">
                   <div style="font-size:20px;font-weight:600">游客</div>
-                  <div class="f-aux mt2" style="opacity:.88">点击头像登录</div>
+                  <div class="f-aux mt2" style="opacity:.88">点击头像授权登录</div>
                 </div>
                 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
               </div>
@@ -249,22 +217,15 @@
           <div class="app">
             <div class="app-scroll">
 
-              <div class="mp-statgrid hair-b">
-                <div class="mp-statgrid__item">
-                  <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">0</span><span class="weui-price__dec">.00</span></span>
-                  <div class="mp-statgrid__lbl">余额</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">0</div>
-                  <div class="mp-statgrid__lbl">优惠券</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">0</div>
-                  <div class="mp-statgrid__lbl">水票</div>
-                </div>
-                <div class="mp-statgrid__item">
-                  <div class="mp-statgrid__num">0</div>
-                  <div class="mp-statgrid__lbl">积分</div>
+              <div class="weui-cells__title">我的资产</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10.5h18M16.5 15h1.5"/></svg></div>
+                  <div class="weui-cell__bd">
+                    <span>我的资产</span>
+                    <div class="f-note" style="color:var(--weui-FG-1);margin-top:3px">登录后查看优惠券 · 水票 · 积分 · 水桶账户</div>
+                  </div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
                 </div>
               </div>
 
@@ -302,7 +263,7 @@
                 <div class="weui-empty__icon">
                   <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
                 </div>
-                <div class="weui-empty__text">登录后查看更多<br>收藏 / 地址 / 水票 / 会员权益一站管理</div>
+                <div class="weui-empty__text">登录后查看更多<br>收藏 / 地址 / 资产 / 会员权益一站管理</div>
               </div>
 
             </div>
@@ -328,47 +289,175 @@
       </div>
     </div>
 
+    <!-- ============ 状态三：游客点击需登录动作 → 微信授权引导弹层 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 游客点击需登录动作 → 微信授权引导弹层</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__title">我的</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="row gap3">
+                <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:12px">游</span>
+                <div class="grow">
+                  <div style="font-size:20px;font-weight:600">游客</div>
+                  <div class="f-aux mt2" style="opacity:.88">点击头像授权登录</div>
+                </div>
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells__title">我的资产</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10.5h18M16.5 15h1.5"/></svg></div>
+                  <div class="weui-cell__bd">
+                    <span>我的资产</span>
+                    <div class="f-note" style="color:var(--weui-FG-1);margin-top:3px">登录后查看优惠券 · 水票 · 积分 · 水桶账户</div>
+                  </div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+              </div>
+              <div class="weui-cells__title">我的订单</div>
+              <div class="weui-panel">
+                <div class="weui-panel__hd">
+                  <span></span>
+                  <span style="color:var(--weui-LINK)">查看全部</span>
+                </div>
+                <div class="weui-grids" style="grid-template-columns:repeat(5,1fr)">
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+                    <span class="weui-grid__label">全部</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14.5" r="1.2"/></svg></span>
+                    <span class="weui-grid__label">待付款</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span>
+                    <span class="weui-grid__label">待配送</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg></span>
+                    <span class="weui-grid__label">配送中</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg></span>
+                    <span class="weui-grid__label">已完成</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="weui-mask"></div>
+          <div class="weui-half">
+            <div class="weui-half__hd">
+              <span class="weui-half__title">微信授权登录</span>
+              <span class="weui-half__close"></span>
+            </div>
+            <div class="weui-half__bd">
+              <div class="weui-cells__tips">用于下单、配送与售后，不会用于其他用途。</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">手机号</div>
+                  <div class="weui-cell__ft">配送联系</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">收货地址</div>
+                  <div class="weui-cell__ft">下单填写</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">订阅消息</div>
+                  <div class="weui-cell__ft">订单进度通知</div>
+                </div>
+              </div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-checkbox on"></div></div>
+                  <div class="weui-cell__bd" style="font-size:14px;color:var(--weui-FG-1)">我已阅读并同意《用户服务协议》与《隐私政策》</div>
+                </div>
+              </div>
+              <div class="weui-btn_area" style="flex-direction:column;gap:10px">
+                <div class="weui-btn weui-btn_primary">微信一键登录</div>
+                <div class="weui-btn weui-btn_plain-default">暂不登录，先逛逛</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- ============ 标注 ============ -->
     <div class="notes">
       <div class="note-card">
         <h3>组件与度量</h3>
-        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；渐变头部（<code>.phone-screen.is-brand</code> + <code>.hero</code>）、资产条用小程序数据格 <code>.mp-statgrid</code>、订单入口用官方 <code>.weui-grids</code>、服务列表用官方 <code>.weui-cells</code>。</p>
-        <p><strong>本页组件：</strong><code>.mp-status</code> / <code>.mp-nav.is-brand</code> / <code>.mp-capsule</code> + <code>.weui-tag</code>（会员等级）+ <code>.mp-statgrid__item</code> / <code>__num</code> / <code>__lbl</code> + <code>.weui-cells__title</code> + <code>.weui-panel</code> / <code>.weui-grids</code>（5 列，<code>.weui-badge</code> 角标）+ <code>.weui-cell</code> / <code>.weui-cell__icon--brand</code> / <code>.weui-cell__ft_in-access</code> + <code>.weui-empty</code> + <code>.mp-tabbar</code>。</p>
-        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；TabBar 高 50px、底 <code>--weui-BG-1</code>、图标 27px、文字 10px；单元格最小 56px、17px 主文字；资产格数字 19px、间隔 0.5px 发丝线。</p>
-        <p><strong>配色：</strong>交互主色品牌蓝（图标、TabBar 选中）；金额 <code>.weui-price</code>（微信电商红）；未读 / 角标用 <code>var(--weui-RED)</code>；链接色 <code>var(--weui-LINK)</code>；本页不使用强调橙。</p>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；渐变头部（<code>.phone-screen.is-brand</code> + <code>.hero</code>）、资产入口用官方 <code>.weui-cells</code>、订单入口用官方 <code>.weui-grids</code>、服务列表用官方 <code>.weui-cells</code>、授权引导用官方 <strong>半屏弹层</strong> <code>.weui-mask</code> + <code>.weui-half</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-status</code> / <code>.mp-nav.is-brand</code> / <code>.mp-capsule</code> + <code>.weui-tag</code>（会员等级）+ <code>.weui-cells__title</code> + <code>.weui-panel</code> / <code>.weui-grids</code>（5 列，<code>.weui-badge</code> 角标）+ <code>.weui-cell</code> / <code>.weui-cell__icon--brand</code> / <code>.weui-cell__ft_in-access</code> + <code>.weui-checkbox</code> + <code>.weui-btn_area</code> / <code>.weui-btn_primary</code> / <code>.weui-btn_plain-default</code> + <code>.weui-cells__tips</code> + <code>.weui-empty</code> + <code>.mp-tabbar</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；TabBar 高 50px、底 <code>--weui-BG-1</code>、图标 27px、文字 10px；单元格最小 56px、17px 主文字；半屏弹层圆角 16px、最大高 78%；按钮高 48px、圆角 8px（WeUI 官方）。</p>
+        <p><strong>配色：</strong>交互主色品牌蓝（图标、TabBar 选中）；金额 <code>.weui-price</code>（微信电商红 <code>#FA5151</code>）；未读 / 角标用 <code>var(--weui-RED)</code>；链接色 <code>var(--weui-LINK)</code>；本页不使用强调橙。</p>
       </div>
 
       <div class="note-card">
         <h3>页面说明</h3>
         <p><strong>所属端：</strong>用户端小程序（tabBar 页）</p>
         <p><strong>入口：</strong>tabBar「我的」</p>
-        <p><strong>跳转：</strong>订单区 → <code>order-list?tab=类型</code>；服务区 → <code>favorites</code> / <code>address-list</code> / 拨打客服 400-800-8888 / <code>feedback</code> / <code>feedback-records</code> / <code>about</code>；消息中心 → <code>message-center</code>（目标形态）；用户区已登录 → 弹头像昵称表单</p>
-        <p><strong>数据：</strong>用户信息（头像 / 昵称 / 手机号）；订单统计 total / pendingPayment / pendingDispatch+pendingDelivery（待配送口径）/ delivering / completed / cancelled / refunded</p>
+        <p><strong>跳转：</strong>资产入口 → <code>04-marketing/assets.html</code>；订单区 → <code>order-list?tab=类型</code>；服务区 → <code>favorites</code> / <code>address-list</code> / <code>subscriptions</code> / <code>member-center</code> / <code>message-center</code> / <code>feedback</code> / <code>feedback-records</code> / <code>about</code></p>
+        <p><strong>登录承载：</strong>用户端<strong>不设独立登录页</strong>。需要身份的动作（结算 / 我的订单 / 资产 / 收藏 / 地址）触发<strong>半屏授权引导弹层</strong>，登录成功后就地返回原动作，不跳页。</p>
+        <p><strong>与 PRD 的口径调和：</strong>PRD 07-user.md §F-USR-001 为「静默登录（免授权弹窗，code 换 token）」。因此<strong>登录本体仍是静默的</strong>——启动即 code 换 token，不弹窗、不拦截浏览；弹层只承载「手机号 + 订阅消息」这类<strong>需要用户手势的授权补充</strong>，且仅在用户<strong>主动点击</strong>需登录动作时出现，关闭后停留游客态。若产品要求严格贴合字面，可把弹层降级为纯 toast +「正在登录...」。</p>
+        <p><strong>数据：</strong>用户信息（头像 / 昵称 / 手机号）；订单统计 total / pendingPayment / pendingDispatch+pendingDelivery（待配送口径）/ delivering / completed / cancelled / refunded；资产汇总 balance / couponCount / ticketCount / points / barrelCount</p>
       </div>
 
       <div class="note-card">
         <h3>布局结构</h3>
         <ol>
           <li>渐变头部：头像 + 昵称 + 手机号脱敏 + 会员等级标签 + 右箭头</li>
-          <li>资产条（<code>.mp-statgrid</code>）：余额（<code>.weui-price--sm</code>）/ 优惠券 / 水票 / 积分，点击下钻</li>
+          <li>「我的资产」组标题 + <strong>单个资产入口单元格</strong>：钱包图标 + 「我的资产」+ 摘要行（优惠券 / 水票 / 积分 / 水桶账户）+ 右侧箭头（<strong>无余额</strong>——用户储值不做，2026-10-09 合规决策）</li>
           <li>「我的订单」组标题（<code>.weui-cells__title</code>）+ <code>.weui-panel</code> 内 <code>.weui-grids</code> 五入口：全部 / 待付款 / 待配送 / 配送中 / 已完成（各带图标与 <code>.weui-badge</code> 角标）</li>
-          <li>「常用服务」组标题 + 服务单元格（13 项）：我的收藏 / 收货地址 / 水桶账户 / 周期订购 / 优惠券 / 我的水票 / 储值 / 会员中心 / 积分中心 / 消息中心 / 意见反馈 / 反馈记录 / 关于我们</li>
+          <li>「常用服务」组标题 + 服务单元格（8 项）：我的收藏 / 收货地址 / 周期订购 / 会员中心 / 消息中心 / 意见反馈 / 反馈记录 / 关于我们</li>
           <li>「退出登录」入口（语义红）</li>
           <li>底部原生 TabBar：首页 / 订单 / 我的（当前选中「我的」）</li>
+        </ol>
+        <p><strong>状态三 · 授权引导弹层</strong>：遮罩 + 半屏弹层（标题「微信授权登录」+ 关闭）× 信息用途清单（手机号 / 收货地址 / 订阅消息）× 协议勾选 × 主按钮「微信一键登录」+ 次按钮「暂不登录，先逛逛」。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>点击渐变头部（头像/昵称区）→ 已登录：弹出头像昵称表单；游客：弹出<strong>授权引导弹层</strong>（状态三）</li>
+          <li>点击「我的资产」单元格 → 进入 <code>我的资产</code> 页，在页内下钻水桶账户 / 水票 / 优惠券 / 积分</li>
+          <li>点击订单 5 入口 → <code>order-list</code> 并带上对应 Tab；点击「查看全部」→ 全部订单</li>
+          <li>点击服务项 → 对应二级页；未登录时统一先弹授权引导弹层</li>
+          <li>弹层内点击「微信一键登录」→ 未勾选协议时 <code>.weui-toptips</code> 提示「请先阅读并同意用户协议」并中止；已勾选则拉起微信授权 → 成功后<strong>关闭弹层并继续原动作</strong></li>
+          <li>点击「暂不登录，先逛逛」或关闭图标 → 关闭弹层，停留游客态；点击「退出登录」→ 二次确认 → 回游客态</li>
         </ol>
       </div>
 
       <div class="note-card">
         <h3>状态与规则</h3>
-        <p><strong>空态：</strong>无头像显示默认头像字母（游客态显示「游」）；无订单角标不显示数字；<strong>游客态：</strong>昵称「游客」+「点击头像登录」，角标全 0（状态二）；<strong>加载态：</strong>「加载中...」；<strong>错误态：</strong>获取用户信息失败回退游客态；<strong>禁用态：</strong>登录中禁用重复触发。</p>
-        <p><strong>角标规则：</strong>&gt;99 显示 <code>99+</code>；待配送口径 = 待派单 + 待配送。金额一律 <code>.weui-price</code>（分转元两位小数）。useDidShow 加载用户信息与订单统计；未登录回退游客态且不发起需登录请求。</p>
+        <p><strong>空态：</strong>无头像显示默认头像字母（游客态显示「游」）；无订单角标不显示数字；<strong>游客态：</strong>昵称「游客」+「点击头像授权登录」，资产摘要显示「登录后查看…」、角标全 0（状态二）；<strong>加载态：</strong>「加载中...」；<strong>错误态：</strong>获取用户信息失败回退游客态；<strong>禁用态：</strong>登录中禁用重复触发并显示 loading。</p>
+        <p><strong>资产口径：</strong><strong>无储值余额</strong>（用户储值不做，2026-10-09 合规决策，资产入口不显示金额）；角标规则 &gt;99 显示 <code>99+</code>；待配送口径 = 待派单 + 待配送。useDidShow 加载用户信息与订单统计；未登录回退游客态且不发起需登录请求。</p>
+        <p><strong>授权规则：</strong>授权信息仅用于下单 / 配送 / 售后；拒绝授权后降级为「仅站内消息」，订单进度仍可在消息中心查看；订阅消息授权与登录授权分离（见 <code>subscription-auth</code>）。</p>
       </div>
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
-        <p>Web 风旧组件（卡片 / 四列宫格 / 快捷入口 / 旧 TabBar / 缩略图等旧类名）一律禁用，全部以 WeUI 等价类实现；<strong>本页不出现强调橙</strong>，资产条数字与单元格图标一律品牌蓝，角标仅用语义红。</p>
-        <p>用户区 / 资产条 / 订单区 / 常用服务 / 退出登录自上而下分区清晰；触达行高 ≥ 44px（单元格最小 56px）；「设置」为现状死链，本稿不呈现待清理。</p>
-        <p><span class="weui-tag weui-tag--goal"></span> 消息中心入口为 <strong>目标形态（F-NTF-002）</strong>，未读数与消息中心联动；订单入口按切片补全为五入口；<strong>优惠券 / 水票入口归属见 10-marketing.md（优惠券）与水票域，07-user.md 未定义，需交叉确认归属</strong>。</p>
+        <p>Web 风旧组件（卡片 / 四列宫格 / 快捷入口 / 旧 TabBar / 缩略图等旧类名）一律禁用，全部以 WeUI 等价类实现；<strong>本页不出现强调橙</strong>，资产数字与单元格图标一律品牌蓝，角标仅用语义红。</p>
+        <p>资产区 / 订单区 / 常用服务 / 退出登录自上而下分区清晰；触达行高 ≥ 44px（单元格最小 56px）；「设置」为现状死链，本稿不呈现待清理。</p>
+        <p><strong>资产入口已收口：</strong>水桶账户 / 水票 / 套餐 / 积分 / 优惠券<strong>不再在「我的」平铺</strong>，统一聚合为「我的资产」一个入口，再在资产页内下钻（<code>04-marketing/assets.html</code>）；本页<strong>只保留一个资产入口</strong>，避免同一资产出现两处入口；<strong>无储值余额</strong>（用户储值不做，2026-10-09 合规决策，资产摘要不含余额）。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 消息中心入口为 <strong>目标形态（F-NTF-002）</strong>，未读数与消息中心联动；用户端登录以<strong>授权引导弹层</strong>承载（非独立页面），与 PRD「免授权弹窗、静默登录」口径一致。</p>
       </div>
     </div>
 

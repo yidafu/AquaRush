@@ -58,10 +58,6 @@
                   <div class="weui-cell__bd">微信支付</div>
                   <div class="weui-cell__ft"><span class="weui-radio on"></span></div>
                 </div>
-                <div class="weui-cell">
-                  <div class="weui-cell__bd t-weak">余额支付</div>
-                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--outline">即将上线</span></div>
-                </div>
               </div>
 
               <!-- 支付金额 -->
@@ -253,7 +249,7 @@
       <div class="note-card">
         <h3>布局结构</h3>
         <ol>
-          <li>支付确认：订单号 + 支付方式 <code>.weui-cells</code> 单选（微信支付 / 余额支付「即将上线」）+ 支付金额 <code>.weui-price--lg</code> + <code>.weui-btn_area</code>「确认支付」</li>
+          <li>支付确认：订单号 + 支付方式 <code>.weui-cells</code> 单选（仅微信支付，无余额支付选项——用户储值不做，2026-10-09 合规决策）+ 支付金额 <code>.weui-price--lg</code> + <code>.weui-btn_area</code>「确认支付」</li>
           <li>支付中：loading 遮罩（本稿以确认态表达）</li>
           <li>支付结果态：成功确认页（<code>.weui-empty__icon</code> 换对勾 + 金额 + 订单信息 + 查看订单 / 返回首页）</li>
           <li>支付超时倒计时（目标形态）：剩余时间 + 超时规则 + 取消订单 / 重新支付</li>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 套餐票种配置｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 套餐票种配置</h1>
+      <p class="sub">功能编号 F-MKT-010 [规划中]（2026-10 新增；原「储值与套餐」，储值部分 2026-10-09 决策不做）｜ 营销域 ｜ 下游：用户端我的资产 · 我的套餐</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-010</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G79</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：套餐票种列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 套餐票种列表（张数/桶数 · 售价 · 有效期 · 适用规格 · 启用）+ 凭证合规提示常驻</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/package-plans</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>套餐票种</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>套餐票种 <span class="tag tag-goal"></span></h2>
+                    <div class="desc">次卡 / 月卡 / 季卡（预购货物凭证，核销/退款口径对齐水票 R-MKT-08）；<strong>不做用户储值</strong>（2026-10-09 合规决策，无预付卡资质）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出</span>
+                    <span class="btn sm">＋ 新建票种</span>
+                  </div>
+                </div>
+
+                <div class="notice brand mb3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  合规常驻：套餐卡为<strong>预购货物凭证</strong>（非储值）；购买页须明示<strong>有效期 / 退款规则</strong>——未核销且未过期可退，已核销不可退
+                </div>
+
+                <div class="ant-table mb3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>套餐名</th>
+                        <th class="num">张数 / 桶数</th>
+                        <th class="num">售价</th>
+                        <th class="num">赠送次数</th>
+                        <th>有效期</th>
+                        <th>适用规格</th>
+                        <th>启用</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">桶装水次卡 · 10 次装</div><div class="sub-line">次卡</div></td>
+                        <td class="num">10 次</td>
+                        <td class="num bold">¥200.00</td>
+                        <td class="num t-brand bold">赠 1 次</td>
+                        <td>购卡后 180 天</td>
+                        <td>通兑 · 限 18.9L</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">饮水机月卡 · 30 天</div><div class="sub-line">月卡</div></td>
+                        <td class="num">30 天</td>
+                        <td class="num bold">¥268.00</td>
+                        <td class="num t-weak">—</td>
+                        <td>购卡后 30 天</td>
+                        <td>指定 5 款桶装水</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">季度畅饮卡 · 90 天</div><div class="sub-line">季卡</div></td>
+                        <td class="num">90 天</td>
+                        <td class="num bold">¥798.00</td>
+                        <td class="num t-weak">—</td>
+                        <td>购卡后 90 天</td>
+                        <td>18.9L / 19L 桶装水</td>
+                        <td><span class="switch"></span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 个票种</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title sm">凭证类预购 · 合规与资金口径</span><span class="tag tag-goal"></span></div>
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">不做储值</div><div class="v"><strong>无储值档位 / 余额账本 / 充值流水</strong>——储值属单用途预付卡资金类业务，需备案/资金存管资质，本项目不做（2026-10-09）</div></div>
+                    <div class="desc-item"><div class="k">购买支付</div><div class="v">套餐购买走微信支付既有链路（F-ORD-005），幂等与对账沿用 R-PAY-01/02</div></div>
+                    <div class="desc-item"><div class="k">核销幂等</div><div class="v">下单核销原子条件更新 + 幂等，防重复核销（对齐水票 R-MKT-08）</div></div>
+                    <div class="desc-item"><div class="k">退款规则</div><div class="v">未核销且未过期可退（原路），已核销 / 已过期不可退；购买页明示</div></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建票种弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建 / 编辑票种弹窗（类型 · 张数/桶数 · 售价 · 赠送次数 · 有效期 · 适用规格）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/package-plans/new</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>套餐票种</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>套餐票种</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">导出</span><span class="btn sm">＋ 新建票种</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>套餐名</th><th class="num">张数 / 桶数</th><th class="num">售价</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>桶装水次卡 · 10 次装</td><td class="num">10 次</td><td class="num">¥200.00</td><td><span class="tag tag-ok">启用</span></td></tr>
+                      <tr><td>饮水机月卡 · 30 天</td><td class="num">30 天</td><td class="num">¥268.00</td><td><span class="tag tag-ok">启用</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">新建套餐票种</div>
+              <div class="modal-body">
+                <div class="notice brand mb3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  凭证类预购提示：有效期与退款规则须在用户端购买页明示——未核销且未过期可退，已核销不可退；<strong>不设储值/赠送金额类票种</strong>（用户储值不做）
+                </div>
+
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">套餐名</label>
+                    <div class="input"><span class="ph">桶装水次卡 · 10 次装</span></div>
+                  </div>
+                  <div class="field">
+                    <label class="req">套餐类型</label>
+                    <div class="radio-row">
+                      <span class="radio on">次卡（张数）</span>
+                      <span class="radio">月卡（有效期）</span>
+                      <span class="radio">季卡（有效期）</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="req">张数 / 桶数</label>
+                    <div class="input"><span>10</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">张数 / 桶数 整数 &gt; 0</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">售价（元）</label>
+                    <div class="input"><span>200.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">precision=2</div>
+                  </div>
+                  <div class="field">
+                    <label>赠送次数 / 张数</label>
+                    <div class="input"><span>1</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">整数 ≥ 0（如「10+1」）</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">适用范围</label>
+                    <div class="select"><span>18.9L 桶装水</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">适用商品 / 规格（Select，对齐水票票种）</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">有效期</label>
+                    <div class="radio-row">
+                      <span class="radio on">购卡后 N 天</span>
+                      <span class="radio">固定区间</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>购卡后有效天数</label>
+                    <div class="input"><span>180</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">有效期上限：≤ 365 天（合规约束）</div>
+                  </div>
+                </div>
+
+                <div class="field mb0">
+                  <label>启用</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">启用后用户端套餐商城可见；购买走微信支付既有链路，核销幂等</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存并启用</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：核销 / 退款记录 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 核销 / 退款记录查询（购买 · 核销 · 退款，关联订单）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/package-plans?tab=records</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>套餐票种 · 记录</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>套餐票种 · 核销 / 退款记录 <span class="tag tag-goal"></span></h2><div class="desc">购买 / 核销 / 退款记录；按条件分页查询；购买支付对账沿用微信支付既有口径</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">导出记录</span></div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>用户</span><div class="input" style="width:150px"><span class="ph">昵称 / 手机号</span></div></div>
+                  <div class="fitem"><span>类型</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="fitem"><span>票种</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="fitem"><span>日期</span><div class="row gap2"><div class="input" style="width:130px"><span class="ph">开始</span></div><span class="t-weak">–</span><div class="input" style="width:130px"><span class="ph">结束</span></div></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>记录号</th>
+                        <th>用户</th>
+                        <th>票种</th>
+                        <th>类型</th>
+                        <th class="num">张数 / 桶数</th>
+                        <th>关联订单</th>
+                        <th>时间</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num bold">PK202609200001</td>
+                        <td>张伟</td>
+                        <td>桶装水次卡 · 10 次装</td>
+                        <td><span class="tag tag-brand">购买</span></td>
+                        <td class="num">+10 次</td>
+                        <td class="num">ORD20260920000012</td>
+                        <td>2026-09-20 10:24</td>
+                        <td><span class="tag tag-deliver">成功</span></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">PK202609210002</td>
+                        <td>李娜</td>
+                        <td>桶装水次卡 · 10 次装</td>
+                        <td><span class="tag tag-neutral">核销</span></td>
+                        <td class="num">-1 次</td>
+                        <td class="num">ORD20260921000066</td>
+                        <td>2026-09-21 08:12</td>
+                        <td><span class="tag tag-deliver">成功</span></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">PK202609220003</td>
+                        <td>王强</td>
+                        <td>饮水机月卡 · 30 天</td>
+                        <td><span class="tag tag-cancel">退款</span></td>
+                        <td class="num">-30 天</td>
+                        <td class="num">—</td>
+                        <td>2026-09-22 15:40</td>
+                        <td><span class="tag tag-warn">原路退回中</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 条</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 标注 ============ -->
+      <div class="notes">
+        <div class="note-card">
+          <h3>页面说明</h3>
+          <p><strong>所属端：</strong>管理后台（admin-client）</p>
+          <p><strong>入口：</strong>营销管理 → 套餐票种（原「储值与套餐」，2026-10-09 收敛）</p>
+          <p><strong>跳转：</strong>票种详情 / 编辑（弹窗）；核销 / 退款记录查询；用户端下游为 我的资产 · 我的套餐 / 套餐商城</p>
+          <p><strong>数据：</strong>票种（类型 / 张数 / 桶数 / 售价 / 赠送次数 / 有效期 / 适用规格 / 启用）、核销 / 退款记录</p>
+          <p><strong>合规：</strong><strong>不做用户储值</strong>（2026-10-09 决策）——本页无储值档位 / 余额账本 / 充值流水；套餐卡为预购货物凭证，与水票同口径。</p>
+          <p><strong>功能状态：</strong>规划中（缺口 G79），本页为目标形态。</p>
+        </div>
+
+        <div class="note-card">
+          <h3>布局结构</h3>
+          <ol>
+            <li>页面标题 +「导出」「＋ 新建票种」</li>
+            <li>合规常驻提示（<code>.notice brand</code>）：凭证类预购 · 有效期 / 退款规则明示</li>
+            <li>票种列表（<code>.ant-table</code>）：套餐名（类型副行）/ 张数 / 售价 / 赠送次数 / 有效期 / 适用规格 / 启用开关 / 操作</li>
+            <li>记录查询（Tabs 或子页）：类型（购买 / 核销 / 退款）+ 筛选（用户 / 票种 / 日期）+ 分页</li>
+            <li>凭证类预购合规与资金口径卡（<code>.card</code> + <code>.desc-grid</code>）</li>
+          </ol>
+        </div>
+
+        <div class="note-card">
+          <h3>关键交互</h3>
+          <ol>
+            <li>新建 / 编辑票种 → 保存并启用 → 用户端套餐商城可见</li>
+            <li>停用 → 新购不可见，已持有卡继续有效至到期 / 用完</li>
+            <li>记录查询按条件分页（禁全表）；核销记录与订单核销明细一一对应（幂等防重）</li>
+          </ol>
+        </div>
+
+        <div class="note-card">
+          <h3>状态与规则</h3>
+          <p><strong>票种：</strong>启用 / 停用；<strong>记录类型：</strong>购买 / 核销 / 退款；<strong>退款：</strong>未核销且未过期可退（原路），已核销 / 已过期不可退（R-MKT-11，对齐 R-MKT-08）。</p>
+          <p><strong>校验：</strong>张数 / 桶数整数 &gt; 0；售价 precision=2；有效期 ≤ 365 天；赠送次数整数 ≥ 0。</p>
+          <p><strong>R-MON-01：</strong>金额以分存储，展示转元（两位小数）。</p>
+        </div>
+
+        <div class="note-card todo-note">
+          <h3>设计要点 / 禁忌</h3>
+          <p><span class="weui-tag weui-tag--goal"></span> 本页为规划中目标形态，缺口编号 <strong>G79</strong>。</p>
+          <p><strong>禁止出现储值元素：</strong>储值档位 / 赠送金额（货币）/ 余额流水 / 充值对账视图一律不得出现（用户储值不做，2026-10-09 合规决策）。</p>
+          <p>赠送仅允许「次数 / 张数」形态（如 10+1），不允许货币赠送；配置形态复用桶水票票种管理（water-tickets）。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

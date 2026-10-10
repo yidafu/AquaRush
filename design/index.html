@@ -25,10 +25,10 @@
 
     <div class="card">
       <div class="ix-stats">
-        <div class="ix-stat"><div class="n">107</div><div class="l">页面总数</div></div>
+        <div class="ix-stat"><div class="n">106</div><div class="l">页面总数</div></div>
         <div class="ix-stat"><div class="n">3</div><div class="l">终端</div></div>
         <div class="ix-stat"><div class="n">21</div><div class="l">功能域 / 模块组</div></div>
-        <div class="ix-stat"><div class="n">77</div><div class="l">已实现页</div></div>
+        <div class="ix-stat"><div class="n">76</div><div class="l">已实现页</div></div>
         <div class="ix-stat"><div class="n">4</div><div class="l">部分实现页</div></div>
         <div class="ix-stat"><div class="n">26</div><div class="l">规划中页（目标形态）</div></div>
       </div>
@@ -36,12 +36,12 @@
         <strong>阅读方式：</strong>每张稿为「stage 画布 + 设备外框 + 右侧标注面板」。左侧是设计效果（多状态并排：正常态 / 空态 / 弹窗态 / 视口态），右侧标注面板给出 <strong>页面说明 / 布局结构 / 关键交互 / 状态与规则 / 设计要点·禁忌</strong>；三端稿件的标注面板另含一张「组件与度量」说明卡。
         <br><strong>小程序端（user-weapp）组件体系：</strong>严格按微信官方 <strong>WeUI 2.x</strong> —— 44px 导航栏 + 87×32 微信胶囊、原生 TabBar（50px / 图标 27px / 文字 10px / 底 <code>#F7F7F7</code>）、页面底 <code>#EDEDED</code>、单元格 17px 主文字与 0.5px 内缩 16px 发丝线、官方 Grids / Loadmore / Actionsheet / HalfScreen / Dialog。主题色经 <code>--weui-BRAND</code> 注入 AquaRush 品牌蓝；<strong>金额用微信电商惯例红 <code>#FA5151</code></strong>。
         <br><strong>配色红线：</strong>强调橙仅用于消费者端优惠券品牌元素与最高优先级 CTA（每屏 ≤ 3 处）；管理后台与送水工端完全不出现强调橙。增长指标用红、下降用绿（中国口径）。金额一律分存储、展示为元两位小数。
-        <br><strong>状态标记：</strong>与 PRD 功能条目一一对应；「规划中」页面在稿内以「目标形态」标签标出并注明缺口编号（G 编号）。
+        <br><strong>入口收口：</strong>用户端<strong>不设独立登录页</strong>——微信授权以<strong>半屏授权引导弹层</strong>承载（见「个人中心（我的）」状态三），登录成功后就地返回原动作；水桶账户 / 水票 / 套餐 / 积分 / 优惠券在「我的」聚合为<strong>单一「我的资产」入口</strong>，在资产页内下钻。<strong>不做用户储值</strong>（2026-10-09 合规决策：无预付卡资质，余额充值 / 余额支付 / 余额抵扣均不设，充值页与余额入口已移除，预收资金由水票与套餐卡承接）。<br><strong>价格与圆角分端：</strong>小程序端金额用微信电商红 <code>#FA5151</code>、按钮圆角 8px（WeUI 官方）；管理端 / 配送端金额用品牌蓝加粗、按钮全圆角 24px。<br><strong>状态标记：</strong>与 PRD 功能条目一一对应；「规划中」页面在稿内以「目标形态」标签标出并注明缺口编号（G 编号）。
       </div>
     </div>
 
     <section class="card">
-      <div class="card-head"><div class="ix-end"><div class="t">① 用户端小程序</div><div class="d">Taro 微信小程序 · 消费者订购链路 · 组件体系 WeUI 2.x（微信官方）· 主题色注入品牌蓝</div></div><span class="chip chip-plain">35 页</span></div>
+      <div class="card-head"><div class="ix-end"><div class="t">① 用户端小程序</div><div class="d">Taro 微信小程序 · 消费者订购链路 · 组件体系 WeUI 2.x（微信官方）· 主题色注入品牌蓝</div></div><span class="chip chip-plain">34 页</span></div>
       <div class="section-title">商品域 <span class="f-note t-weak">F-PRO-001~012 · 6 页</span></div>
       <div class="list mb3">
         <a class="list-item" href="user-weapp/01-product/barrel-account.html"><span class="grow col"><span class="f-body bold t-main">水桶账户与退押</span><span class="f-note t-sub">商品域 · F-PRO-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
@@ -77,16 +77,14 @@
         <a class="list-item" href="user-weapp/04-marketing/member-center.html"><span class="grow col"><span class="f-body bold t-main">会员中心</span><span class="f-note t-sub">营销域 · F-MKT-011</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/04-marketing/points.html"><span class="grow col"><span class="f-body bold t-main">积分中心</span><span class="f-note t-sub">营销域 · F-MKT-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/04-marketing/promotion-detail.html"><span class="grow col"><span class="f-body bold t-main">活动详情</span><span class="f-note t-sub">营销域 · F-MKT-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="user-weapp/04-marketing/recharge.html"><span class="grow col"><span class="f-body bold t-main">充值（储值）</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/04-marketing/ticket-mall.html"><span class="grow col"><span class="f-body bold t-main">水票商城（购票页）</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/04-marketing/ticket-mine.html"><span class="grow col"><span class="f-body bold t-main">我的水票（票夹）</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
       </div>
-      <div class="section-title">用户与账户域 / 通知 <span class="f-note t-weak">F-USR-001~006、F-NTF-001/002 · 8 页</span></div>
+      <div class="section-title">用户与账户域 / 通知 <span class="f-note t-weak">F-USR-001~006、F-NTF-001/002 · 7 页（登录为弹层，不占独立页）</span></div>
       <div class="list mb3">
         <a class="list-item" href="user-weapp/05-user/about.html"><span class="grow col"><span class="f-body bold t-main">关于我们</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/05-user/feedback-records.html"><span class="grow col"><span class="f-body bold t-main">反馈记录</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/05-user/feedback.html"><span class="grow col"><span class="f-body bold t-main">意见反馈</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="user-weapp/05-user/login.html"><span class="grow col"><span class="f-body bold t-main">微信登录授权</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/05-user/message-center.html"><span class="grow col"><span class="f-body bold t-main">消息中心</span><span class="f-note t-sub">用户与账户域 / 通知 · F-NTF-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/05-user/my.html"><span class="grow col"><span class="f-body bold t-main">个人中心（我的）</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/05-user/profile-edit.html"><span class="grow col"><span class="f-body bold t-main">资料编辑</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
@@ -163,7 +161,7 @@
         <a class="list-item" href="admin/08-marketing/member-levels.html"><span class="grow col"><span class="f-body bold t-main">会员等级配置</span><span class="f-note t-sub">营销域 · F-MKT-011</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/08-marketing/points-rules.html"><span class="grow col"><span class="f-body bold t-main">积分规则配置</span><span class="f-note t-sub">营销域 · F-MKT-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/08-marketing/promotions-discount.html"><span class="grow col"><span class="f-body bold t-main">满减 / 折扣活动</span><span class="f-note t-sub">营销域 · F-MKT-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="admin/08-marketing/recharge-plans.html"><span class="grow col"><span class="f-body bold t-main">储值与套餐配置</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/package-plans.html"><span class="grow col"><span class="f-body bold t-main">套餐票种配置</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/08-marketing/ticket-detail.html"><span class="grow col"><span class="f-body bold t-main">票种销售 · 使用详情</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/08-marketing/tickets.html"><span class="grow col"><span class="f-body bold t-main">桶水票票种管理</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
       </div>

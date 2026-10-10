@@ -14,7 +14,7 @@
   <header class="stage-head">
     <div>
       <h1>用户端小程序 · 我的资产</h1>
-      <p class="sub">功能编号 F-MKT-010 ｜ 营销域 ｜ 规划中（缺口 G79）｜ 组件体系 WeUI 2.x ｜ 下游：充值 / 水票 / 优惠券 / 积分</p>
+      <p class="sub">功能编号 F-MKT-010 ｜ 营销域 ｜ 规划中（缺口 G79）｜ 组件体系 WeUI 2.x ｜ 下游：水票 / 优惠券 / 积分 / 水桶账户（不做用户储值，2026-10-09 合规决策）</p>
     </div>
     <div class="chips">
       <span class="chip">F-MKT-010</span>
@@ -28,7 +28,7 @@
 
     <!-- ============ 手机 1：完整资产 ============ -->
     <div class="col gap3">
-      <span class="f-note t-sub bold">状态一 · 有余额 / 有套餐（正常态）</span>
+      <span class="f-note t-sub bold">状态一 · 有套餐（正常态）</span>
       <div class="phone mp">
         <div class="phone-screen">
 
@@ -45,15 +45,33 @@
           <div class="app">
             <div class="app-scroll">
 
-              <!-- 余额卡 -->
+              <!-- 资产入口 -->
               <div class="weui-cells mt2">
-                <div class="weui-cell">
-                  <div class="weui-cell__bd">
-                    <div class="f-note t-sub">储值余额</div>
-                    <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">140</span><span class="weui-price__dec">.00</span></span>
-                    <div class="f-note t-weak mt2">本金 ¥120.00 ｜ 赠送余额 ¥20.00</div>
-                  </div>
-                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_mini weui-btn_primary">充值</span></div>
+                <div class="weui-cells__title" style="margin-top:0">资产概览</div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
+                  <div class="weui-cell__bd">我的水票</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 8 张</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M4 11h16"/></svg></span></div>
+                  <div class="weui-cell__bd">我的套餐</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">剩余 6 次</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon" style="color:var(--action)"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
+                  <div class="weui-cell__bd">优惠券</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 2 张</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5 13 10l3.5.2-2.7 2.3.9 3.4-2.7-1.8-2.7 1.8.9-3.4L7.5 10.2 11 10z"/></svg></span></div>
+                  <div class="weui-cell__bd">积分</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">1,280 分</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span></div>
+                  <div class="weui-cell__bd">水桶账户</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">押金桶 2 只</div>
                 </div>
               </div>
 
@@ -82,65 +100,33 @@
                 </div>
               </div>
 
-              <!-- 资产入口 -->
-              <div class="weui-cells__title">我的资产入口</div>
-              <div class="weui-cells">
-                <div class="weui-cell weui-cell_link">
-                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span></div>
-                  <div class="weui-cell__bd">水桶账户</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access">押金桶 2 只</div>
-                </div>
-                <div class="weui-cell weui-cell_link">
-                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
-                  <div class="weui-cell__bd">我的水票</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 8 张</div>
-                </div>
-                <div class="weui-cell weui-cell_link">
-                  <div class="weui-cell__hd"><span class="weui-cell__icon" style="color:var(--action)"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
-                  <div class="weui-cell__bd">优惠券</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 2 张</div>
-                </div>
-                <div class="weui-cell weui-cell_link">
-                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5 13 10l3.5.2-2.7 2.3.9 3.4-2.7-1.8-2.7 1.8.9-3.4L7.5 10.2 11 10z"/></svg></span></div>
-                  <div class="weui-cell__bd">积分</div>
-                  <div class="weui-cell__ft weui-cell__ft_in-access">1,280 分</div>
-                </div>
-              </div>
-
-              <!-- 明细流水 -->
-              <div class="weui-cells__title">明细流水</div>
+              <!-- 套餐购买/核销记录 -->
+              <div class="weui-cells__title">套餐记录</div>
               <div class="weui-cells">
                 <div class="weui-cell">
                   <div class="weui-cell__bd">
-                    <div>充值</div>
+                    <div>购买次卡 · 10 次装</div>
                     <div class="f-note t-weak">2026-10-08 10:20 · 微信支付</div>
                   </div>
-                  <div class="weui-cell__ft"><span style="color:var(--weui-price)">+</span><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">100</span><span class="weui-price__dec">.00</span></span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">+10 次</span></div>
                 </div>
                 <div class="weui-cell">
                   <div class="weui-cell__bd">
-                    <div>订单消费抵扣</div>
+                    <div>下单核销</div>
                     <div class="f-note t-weak">2026-10-07 18:05 · 订单 ORD20261007000066</div>
                   </div>
-                  <div class="weui-cell__ft"><span style="color:var(--weui-FG-0)">-</span><span class="weui-price weui-price--sm" style="color:var(--weui-FG-0)"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">-1 次</span></div>
                 </div>
                 <div class="weui-cell">
                   <div class="weui-cell__bd">
-                    <div>充值赠送</div>
-                    <div class="f-note t-weak">2026-10-08 10:20 · 赠送余额入账</div>
+                    <div>退款 · 未核销张数</div>
+                    <div class="f-note t-weak">2026-10-05 14:20 · 原路退回</div>
                   </div>
-                  <div class="weui-cell__ft"><span style="color:var(--weui-price)">+</span><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">10</span><span class="weui-price__dec">.00</span></span></div>
-                </div>
-                <div class="weui-cell">
-                  <div class="weui-cell__bd">
-                    <div>水票抵扣</div>
-                    <div class="f-note t-weak">2026-10-05 14:20 · 核销 1 张</div>
-                  </div>
-                  <div class="weui-cell__ft"><span style="color:var(--weui-FG-0)">-</span><span class="weui-price weui-price--sm" style="color:var(--weui-FG-0)"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">-3 次</span></div>
                 </div>
               </div>
 
-              <div class="weui-cells__tips">储值为单用途预付卡，仅限本店订水消费，不可转让、提现；未消费余额可退，已消费不可退。</div>
+              <div class="weui-cells__tips">套餐卡与水票同为预购凭证：未核销且未过期可退，已核销不可退；有效期以票面为准。</div>
 
             </div>
             <div class="home-indicator"></div>
@@ -152,7 +138,7 @@
 
     <!-- ============ 手机 2：新用户空态 ============ -->
     <div class="col gap3">
-      <span class="f-note t-sub bold">状态二 · 无余额 / 无套餐（空态）</span>
+      <span class="f-note t-sub bold">状态二 · 无套餐（空态）</span>
       <div class="phone mp">
         <div class="phone-screen">
 
@@ -170,13 +156,26 @@
             <div class="app-scroll">
 
               <div class="weui-cells mt2">
-                <div class="weui-cell">
-                  <div class="weui-cell__bd">
-                    <div class="f-note t-sub">储值余额</div>
-                    <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">0</span><span class="weui-price__dec">.00</span></span>
-                    <div class="f-note t-weak mt2">本金 ¥0.00 ｜ 赠送余额 ¥0.00</div>
-                  </div>
-                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_mini weui-btn_primary">充值</span></div>
+                <div class="weui-cells__title" style="margin-top:0">资产概览</div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
+                  <div class="weui-cell__bd">我的水票</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 0 张</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M4 11h16"/></svg></span></div>
+                  <div class="weui-cell__bd">我的套餐</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">剩余 0 次</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon" style="color:var(--action)"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span></div>
+                  <div class="weui-cell__bd">优惠券</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">可用 0 张</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5 13 10l3.5.2-2.7 2.3.9 3.4-2.7-1.8-2.7 1.8.9-3.4L7.5 10.2 11 10z"/></svg></span></div>
+                  <div class="weui-cell__bd">积分</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">0 分</div>
                 </div>
               </div>
 
@@ -185,16 +184,8 @@
                 <div class="weui-empty__icon">
                   <svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
                 </div>
-                <div class="weui-empty__text">可用套餐不足<br>充值或购买套餐，下单更划算</div>
-                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去充值</span>
-              </div>
-
-              <div class="weui-cells__title">明细流水</div>
-              <div class="weui-empty">
-                <div class="weui-empty__icon">
-                  <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-                </div>
-                <div class="weui-empty__text">暂无流水<br>充值 / 消费后在此查看明细</div>
+                <div class="weui-empty__text">暂无套餐<br>购买次卡 / 月卡，下单更划算</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去购买套餐</span>
               </div>
 
             </div>
@@ -210,53 +201,52 @@
       <div class="note-card">
         <h3>页面说明</h3>
         <p><strong>所属端：</strong>用户端小程序（Taro）</p>
-        <p><strong>入口：</strong>我的页 →「我的资产」（储值余额 / 我的套餐）</p>
-        <p><strong>跳转：</strong>「充值」→ <code>recharge</code>；水桶账户 / 水票 / 优惠券 / 积分各入口；确认订单页新增「余额抵扣」「套餐卡核销」区</p>
-        <p><strong>数据：</strong>本金余额（分）、赠送余额（分）、套餐卡张数 / 桶数、有效期、状态、抵扣明细</p>
+        <p><strong>入口：</strong>我的页 →「我的资产」单一入口（券 / 水票 / 套餐 / 积分 / 水桶聚合，2026-10-09 收口决策）</p>
+        <p><strong>跳转：</strong>水票 → 水票商城 / 票夹；套餐 → 套餐商城；优惠券 / 积分 / 水桶账户各入口；确认订单页新增「套餐卡核销」区（与水票核销区同形态）</p>
+        <p><strong>数据：</strong>套餐卡张数 / 桶数、有效期、状态、核销明细</p>
+        <p><strong>合规：</strong><strong>不做用户储值</strong>（2026-10-09 决策）——本页无余额卡 / 充值入口 / 余额抵扣；预收资金由水票与套餐卡（预购货物凭证）承接。</p>
         <p><strong>功能状态：</strong>规划中（缺口 G79），本页为目标形态。</p>
       </div>
 
       <div class="note-card">
         <h3>布局结构</h3>
         <ol>
-          <li>余额卡（<code>.weui-cells</code>）：余额 <code>.weui-price--lg</code> + 本金 / 赠送说明 +「充值」（<code>.weui-btn_mini</code>）</li>
+          <li>资产概览（<code>.weui-cells</code>）：水票 / 套餐 / 优惠券 / 积分 / 水桶账户入口（<code>.weui-cell__ft_in-access</code> 摘要）</li>
           <li>我的套餐（<code>.weui-cells</code>）：次卡 / 月卡剩余次数与有效期（可用 <code>.weui-tag--brand</code> / 已过期 <code>.weui-tag--done</code>）</li>
-          <li>资产入口（<code>.weui-cells</code>）：水桶账户 / 水票 / 优惠券 / 积分（<code>.weui-cell__ft_in-access</code>）</li>
-          <li>明细流水（<code>.weui-cells__title</code> + <code>.weui-cells</code>）：时间 + 备注 + 金额（收入 <code>+</code> / 支出 <code>-</code>）</li>
-          <li>空态：<code>.weui-empty</code>「可用套餐不足」「暂无流水」</li>
+          <li>套餐记录（<code>.weui-cells__title</code> + <code>.weui-cells</code>）：购买 / 核销 / 退款 + 次数增减</li>
+          <li>空态：<code>.weui-empty</code>「暂无套餐」</li>
         </ol>
       </div>
 
       <div class="note-card">
         <h3>关键交互</h3>
         <ol>
-          <li>下单选余额抵扣：优先扣赠送余额、再扣本金（不足走微信组合支付）</li>
-          <li>购买套餐 → 按张数 / 桶数生成套餐卡 → 下单核销抵扣（幂等）</li>
-          <li>各入口跳转对应资产页；「充值」→ 充值页</li>
+          <li>购买套餐 → 微信支付（既有 F-ORD-005 链路）→ 按张数 / 桶数生成套餐卡</li>
+          <li>下单 → 核销套餐卡抵扣（幂等，对齐 R-MKT-08）</li>
+          <li>各入口跳转对应资产页</li>
         </ol>
       </div>
 
       <div class="note-card">
         <h3>状态与规则</h3>
-        <p><strong>套餐卡：</strong>可用 / 已核销 / 已过期；<strong>空态：</strong>「可用套餐不足」「暂无流水」；<strong>禁用：</strong>余额抵扣「抵扣金额不能超过应付金额」。</p>
-        <p><strong>流水配色：</strong>收入用 <code>var(--weui-price)</code> 前缀 <code>+</code>，支出用 <code>var(--weui-FG-0)</code> 前缀 <code>-</code>。</p>
-        <p><strong>抵扣顺序：</strong>赠送余额优先，再扣本金；本金 / 赠送分开展示。</p>
+        <p><strong>套餐卡：</strong>可用 / 已核销 / 已过期；<strong>空态：</strong>「暂无套餐」；<strong>禁用：</strong>过期 / 已用完套餐不可核销。</p>
+        <p><strong>退款：</strong>未核销且未过期可退（原路），已核销 / 已过期不可退（R-MKT-11，对齐 R-MKT-08）。</p>
         <p><strong>R-MON-01：</strong>金额以分存储，展示转元（两位小数）。</p>
       </div>
 
       <div class="note-card">
         <h3>组件与度量</h3>
-        <p><strong>基准：</strong>微信官方 WeUI 2.x；余额、充值按钮、套餐状态用品牌蓝 / 语义色，唯一券元素（优惠券入口图标）用品牌橙红。</p>
-        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.weui-price--lg</code> 22px；<code>.weui-btn_mini</code> 高 28px；<code>.weui-cell</code> 0.5px 内缩 16px 发丝线；页面底 <code>--weui-BG-0</code>。</p>
-        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.weui-cells</code> / <code>__title</code> / <code>__tips</code>、<code>.weui-cell</code> / <code>.weui-cell__ft_in-access</code>、<code>.weui-cell_link</code>、<code>.weui-tag</code>（<code>--brand</code> / <code>--done</code>）、<code>.weui-btn_mini</code> / <code>.weui-btn_primary</code>、<code>.weui-empty</code>、<code>.weui-price--lg</code>。</p>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；套餐状态、入口图标用品牌蓝 / 语义色，唯一券元素（优惠券入口图标）用品牌橙红。</p>
+        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.weui-btn_mini</code> 高 28px；<code>.weui-cell</code> 0.5px 内缩 16px 发丝线；页面底 <code>--weui-BG-0</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.weui-cells</code> / <code>__title</code> / <code>__tips</code>、<code>.weui-cell</code> / <code>.weui-cell__ft_in-access</code>、<code>.weui-cell_link</code>、<code>.weui-tag</code>（<code>--brand</code> / <code>--done</code>）、<code>.weui-btn_mini</code> / <code>.weui-btn_primary</code>、<code>.weui-empty</code>。</p>
       </div>
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
         <p><span class="weui-tag weui-tag--goal"></span> 本页为规划中目标形态，缺口编号 <strong>G79</strong>。</p>
-        <p><strong>强调橙禁用：</strong>本页属「余额 / 资产」类，<strong>禁止把强调橙用于非券元素</strong>；余额、充值按钮、明细金额均用品牌蓝 / 语义色。唯一例外是<strong>「优惠券」入口图标</strong>，作为券品牌元素使用品牌橙红（设计系统 §2.1）。</p>
-        <p>本金 / 赠送余额分开展示；组合支付明细需清晰；预付卡合规提示。</p>
-        <p>明细金额正负用色：收入 <code>var(--weui-price)</code> / 支出 <code>var(--weui-FG-0)</code>，金额用 <code>.weui-price</code>；禁止手拼「¥」字符串。</p>
+        <p><strong>禁止出现储值元素：</strong>余额卡 / 充值按钮 / 余额抵扣 / 「余额不足」文案一律不得出现（用户储值不做，2026-10-09 合规决策）。</p>
+        <p><strong>强调橙禁用：</strong>禁止把强调橙用于非券元素；唯一例外是<strong>「优惠券」入口图标</strong>，作为券品牌元素使用品牌橙红（设计系统 §2.1）。</p>
+        <p>凭证类预购合规提示（有效期 / 退款规则）保留；禁止手拼「¥」字符串。</p>
       </div>
     </div>
 
