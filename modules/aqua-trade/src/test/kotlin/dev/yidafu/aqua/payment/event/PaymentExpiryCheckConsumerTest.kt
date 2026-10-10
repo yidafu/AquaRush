@@ -21,20 +21,37 @@ package dev.yidafu.aqua.payment.event
 
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.outbox.OutboxEventRecord
+import dev.yidafu.aqua.common.messaging.outbox.OutboxStatus
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import io.mockk.verify
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import java.time.LocalDateTime
 
 /**
- * 支付到期检查延迟消息消费者测试(R-ORD-04 支付超时优化):
+ * 支付到期检查 outbox 处理器测试(R-ORD-04 支付超时优化):
  * 解析 PAYMENT_EXPIRY_CHECK payload 的 orderId → 触发 handlePaymentTimeout;
- * 非法 payload 异常上抛(触发 Artemis 重投,消费端幂等由 CAS 认领保证)。
+ * 非法 payload 异常上抛(outbox 退避重试,消费端幂等由 CAS 认领保证)。
  */
 class PaymentExpiryCheckConsumerTest :
   FunSpec({
     var paymentService: PaymentService = mockk()
     var consumer: PaymentExpiryCheckConsumer = mockk()
+    val objectMapper = jacksonObjectMapper()
+
+    fun recordOf(event: DomainEvent) =
+      OutboxEventRecord(
+        id = 1L,
+        eventType = event.eventType,
+        destination = "payment-expiry-events",
+        subscriber = null,
+        payload = objectMapper.writeValueAsString(event),
+        nextRunAt = LocalDateTime.now(),
+        status = OutboxStatus.PROCESSING,
+        retryCount = 0,
+      )
 
     beforeTest {
       paymentService = mockk(relaxed = true)
@@ -47,20 +64,20 @@ class PaymentExpiryCheckConsumerTest :
           payload = """{"orderId":123,"userId":100,"expireAt":"2026-01-01T00:00:00","timestamp":1}""",
         )
 
-      consumer.handlePaymentExpiryCheck(event)
+      consumer.handle(recordOf(event))
 
       verify(exactly = 1) { paymentService.handlePaymentTimeout(123L) }
     }
-    test("malformedPayloadRethrowsForRedelivery") {
+    test("malformedPayloadRethrowsForRetry") {
       val event = DomainEvent(eventType = "PAYMENT_EXPIRY_CHECK", payload = "not-json")
 
-      shouldThrow<Exception> { consumer.handlePaymentExpiryCheck(event) }
+      shouldThrow<Exception> { consumer.handle(recordOf(event)) }
       verify(exactly = 0) { paymentService.handlePaymentTimeout(any()) }
     }
-    test("missingOrderIdRethrowsForRedelivery") {
+    test("missingOrderIdRethrowsForRetry") {
       val event = DomainEvent(eventType = "PAYMENT_EXPIRY_CHECK", payload = """{"userId":100}""")
 
-      shouldThrow<Exception> { consumer.handlePaymentExpiryCheck(event) }
+      shouldThrow<Exception> { consumer.handle(recordOf(event)) }
       verify(exactly = 0) { paymentService.handlePaymentTimeout(any()) }
     }
   })

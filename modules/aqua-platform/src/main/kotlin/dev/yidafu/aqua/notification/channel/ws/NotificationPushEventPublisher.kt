@@ -19,38 +19,38 @@
 
 package dev.yidafu.aqua.notification.channel.ws
 
+import dev.yidafu.aqua.common.messaging.outbox.OutboxEventPublisher
+import dev.yidafu.aqua.common.messaging.outbox.OutboxEventTypes
+import dev.yidafu.aqua.common.messaging.outbox.OutboxProperties
 import dev.yidafu.aqua.common.messaging.publisher.EventQueueConst
-import jakarta.jms.Topic
 import org.slf4j.LoggerFactory
-import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import tools.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * WebSocket 推送事件发布器(PRD 13-notification.md F-NTF-003)
  *
- * 消息网关落库后,把推送载荷发布到 broadcast-events 主题(多播);
- * 两个服务各自消费并推送到本服务在线会话,实现跨服务实时触达
+ * 消息网关在事务提交后(afterCommit)把推送载荷写入 outbox broadcast-events 行,
+ * 按 [OutboxProperties.subscribers] 为每个服务各写一行(subscriber 归属隔离);
+ * 两服务各自消费自己名下的行并推送到本服务在线会话,实现跨服务实时触达
  * (用户会话连 aqua-client,送水工会话连 aqua-admin,无需关心网关落在哪个服务)。
+ * 发布失败由网关 handler 的 outbox 重试收敛(通知侧幂等键去重,语义 best-effort)。
  */
 @Component
 class NotificationPushEventPublisher(
-  private val jmsTemplate: JmsTemplate,
+  private val outboxEventPublisher: OutboxEventPublisher,
+  private val outboxProperties: OutboxProperties,
 ) {
   private val logger = LoggerFactory.getLogger(NotificationPushEventPublisher::class.java)
   private val objectMapper = jacksonObjectMapper()
 
-  @Volatile
-  private var topic: Topic? = null
-
   fun publish(event: PushEvent) {
-    try {
-      val destination = topic ?: jmsTemplate.execute { session -> session.createTopic(PushEvent.TOPIC) } ?: return
-      topic = destination
-      jmsTemplate.convertAndSend(destination, objectMapper.writeValueAsString(event))
-    } catch (e: Exception) {
-      logger.error("WebSocket 推送事件发布失败: {}", event, e)
-    }
+    outboxEventPublisher.publishToSubscribers(
+      eventType = OutboxEventTypes.PUSH_EVENT,
+      payload = objectMapper.writeValueAsString(event),
+      subscribers = outboxProperties.subscribers,
+    )
+    logger.debug("WebSocket 推送事件已写入 outbox: {}", event)
   }
 }
 
@@ -64,7 +64,7 @@ data class PushEvent(
   val payload: Map<String, Any?>,
 ) {
   companion object {
-    /** 复用既有 broadcast-events 多播主题 */
+    /** 复用既有 broadcast-events 目的地(outbox destination) */
     const val TOPIC: String = EventQueueConst.BROADCAST_TOPIC_NAME
   }
 }

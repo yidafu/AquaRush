@@ -23,6 +23,7 @@ import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.messaging.publisher.EventPublisher
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -47,10 +48,11 @@ class SimplifiedEventPublishServiceTest :
       result shouldBe true
       verify { eventPublisher.publishSync(any()) }
     }
-    test("publishDomainEvent should return false when publishing fails") {
-      every { eventPublisher.publishSync(any()) } throws RuntimeException("broker down")
-      val result = service.publishDomainEvent("ORDER_CREATED", "123", mapOf("a" to 1))
-      result shouldBe false
+    test("publishDomainEvent 应在发布失败时向上传播(outbox 原子性:回滚业务事务)") {
+      every { eventPublisher.publishSync(any()) } throws RuntimeException("insert failed")
+      shouldThrow<RuntimeException> {
+        service.publishDomainEvent("ORDER_CREATED", "123", mapOf("a" to 1))
+      }
     }
     test("publishOrderCreated should publish order created event") {
       every { eventPublisher.publishSync(any()) } returns true
@@ -103,9 +105,11 @@ class SimplifiedEventPublishServiceTest :
         )
       }
     }
-    test("publishPaymentExpiryCheck should return false when delayed publish fails") {
-      every { eventPublisher.publishDelayed(any(), any()) } throws RuntimeException("broker down")
-      service.publishPaymentExpiryCheck(100L, 1L, LocalDateTime.now().plusMinutes(30)) shouldBe false
+    test("publishPaymentExpiryCheck 应在延迟发布失败时向上传播(outbox 原子性)") {
+      every { eventPublisher.publishDelayed(any(), any()) } throws RuntimeException("insert failed")
+      shouldThrow<RuntimeException> {
+        service.publishPaymentExpiryCheck(100L, 1L, LocalDateTime.now().plusMinutes(30))
+      }
     }
     test("publishPaymentTimeout with UUID ids should publish") {
       every { eventPublisher.publishSync(any()) } returns true
@@ -123,7 +127,7 @@ class SimplifiedEventPublishServiceTest :
     test("getSystemStatus should report messaging config") {
       val status = service.getSystemStatus()
       status["messagingEnabled"] shouldBe true
-      status["strategy"] shouldBe "artemis"
+      status["strategy"] shouldBe "outbox"
     }
     test("isPublisherHealthy should return true when available") {
       every { eventPublisher.isAvailable() } returns true

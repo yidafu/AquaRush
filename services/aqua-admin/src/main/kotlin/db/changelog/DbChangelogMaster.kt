@@ -62,4 +62,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V300WidenOrdersStatus", logicalFilePath = "db/changelog/changes/v3.0.0-widen-orders-status.xml")
     // P5 收口:补回历史 Hibernate ddl-auto 建出、changelog 缺失的 notification_settings 表
     include(file = "db/changelog/changes/V310AddNotificationSettings", logicalFilePath = "db/changelog/changes/v3.1.0-add-notification-settings.xml")
+    // Outbox 替代 Artemis MQ:重建 V100 遗留的 outbox_events(从未被读写)
+    include(file = "db/changelog/changes/V320RecreateOutboxEvents", logicalFilePath = "db/changelog/changes/v3.2.0-recreate-outbox-events.xml")
   })

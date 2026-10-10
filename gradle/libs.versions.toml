@@ -24,7 +24,6 @@ spring-for-kafka = "3.2.1"
 reactor-core = "3.6.2"
 micrometer-tracing = "1.2.1"
 ktlint = "12.1.0"
-artemis = "2.31.2"
 kotest = "6.2.4"
 archunit = "1.5.1"
 # Testcontainers：仓储测试用真实 PG（podman 兼容 docker API），不再用 H2 模拟
@@ -119,8 +118,6 @@ ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version
 mapdb = { module = "org.mapdb:mapdb", version.ref = "mapdb" }
 
 # Spring Messaging
-spring-boot-starter-artemis = { module = "org.springframework.boot:spring-boot-starter-artemis", version.ref = "spring-boot" }
-artemis-jakarta-server = { module = "org.apache.activemq:artemis-jakarta-server", version.ref = "artemis" }
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor-core" }
 micrometer-tracing-bridge-brave = { module = "io.micrometer:micrometer-tracing-bridge-brave", version.ref = "micrometer-tracing" }
 
@@ -184,7 +181,6 @@ spring-boot-security = ["spring-boot-starter-security"]
 jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 graphql = ["spring-boot-starter-graphql"]
 kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]
-messaging = ["spring-boot-starter-artemis", "artemis-jakarta-server"]
 cache = ["spring-boot-starter-cache"]
 redis = ["spring-boot-starter-data-redis"]
 http-client = ["httpclient"]

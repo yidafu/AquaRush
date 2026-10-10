@@ -57,7 +57,7 @@ class NotificationEventPublisher(
 }
 
 /**
- * 各场景通知事件处理器基类(实现 EventProcessor,由 MessageConsumer 按事件类型分发)
+ * 各场景通知事件处理器基类(实现 EventProcessor,由 DomainEventOutboxHandler 按事件类型分发)
  * 处理逻辑绝不抛异常(避免污染订单消费者触发整条消息重投);解析失败仅记录日志跳过。
  */
 abstract class BaseNotificationEventHandler(

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.messaging.config
 
+import dev.yidafu.aqua.common.messaging.outbox.OutboxProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -30,10 +31,10 @@ import java.util.concurrent.ThreadPoolExecutor
 
 /**
  * Spring Messaging配置
- * 配置ActiveMQ Artemis消息队列的相关Bean和线程池
+ * 配置outbox消息分发相关Bean和线程池
  */
 @Configuration
-@EnableConfigurationProperties(SimplifiedMessagingProperties::class)
+@EnableConfigurationProperties(SimplifiedMessagingProperties::class, OutboxProperties::class)
 @EnableAsync
 class MessagingConfig {
   @Bean

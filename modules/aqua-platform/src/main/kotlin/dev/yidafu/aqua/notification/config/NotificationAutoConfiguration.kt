@@ -20,12 +20,10 @@
 package dev.yidafu.aqua.notification.config
 
 import dev.yidafu.aqua.notification.channel.ws.NotificationWsHandler
-import jakarta.jms.ConnectionFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.TaskExecutor
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.web.socket.config.annotation.EnableWebSocket
@@ -35,10 +33,8 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 /**
  * 通知模块自动配置(PRD 13-notification.md)
  * 扫描 dev.yidafu.aqua.notification 包;注册 WebSocket 推送端点 /ws/notifications;
- * 通知分发使用独立线程池,WebSocket 推送与微信订阅消息发送异步执行,不阻塞 MQ 消费线程。
- *
- * notificationTopicJmsListenerContainerFactory:广播主题(broadcast-events)专用监听容器,
- * 每个服务一个独立非持久订阅(concurrency=1),确保每个服务都收到推送事件并推送到本服务会话。
+ * 通知分发使用独立线程池,WebSocket 推送与微信订阅消息发送异步执行,
+ * 不阻塞 outbox 分发线程。
  */
 @Configuration
 @EnableScheduling
@@ -56,15 +52,6 @@ class NotificationAutoConfiguration(
     executor.setThreadNamePrefix("notification-dispatch-")
     executor.initialize()
     return executor
-  }
-
-  @Bean("notificationTopicJmsListenerContainerFactory")
-  fun notificationTopicJmsListenerContainerFactory(connectionFactory: ConnectionFactory): DefaultJmsListenerContainerFactory {
-    val factory = DefaultJmsListenerContainerFactory()
-    factory.setConnectionFactory(connectionFactory)
-    factory.setConcurrency("1")
-    factory.setSessionTransacted(true)
-    return factory
   }
 
   override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {

@@ -85,7 +85,7 @@
 | 适用功能:F-ORD-003/005
 | 校验与数值:超时时限默认 30 分钟(PaymentServiceImpl.PAYMENT_EXPIRE_MINUTES,发起支付时写入 payments.expired_at)
 | 并发与边界:与支付回调并发时以先到状态为准并保持幂等(`handlePaymentTimeout` 仅接受「待支付」,已流转则跳过;MQ 触发与兜底扫描并发时由 `payments.version` 乐观锁 CAS 认领互斥,只处理一次);与用户/管理员手动取消并发时订单级乐观锁 CAS 认领(`OrderRepository.cancelAtomically`,可取消状态→CANCELLED 仅一方成功),杜绝重复恢复库存
-| 现状与目标:已实现(2026-08,超时优化 2026)——`PaymentExpiryScheduler` 每 60s 周期扫描过期支付记录 → 自动取消(待支付→已取消)+ 恢复库存 + 退回券/水票 + 发布 PAYMENT_TIMEOUT 事件 + 业务日志留痕;支付超时优化(仅 admin 服务处理):创建/重置待支付时发布 `PAYMENT_EXPIRY_CHECK` 延迟消息(Artemis `AMQ_SCHEDULED_DELIVERY_TIME`=expiredAt → 独立队列 `payment-expiry-events`)为主触发,到期秒级自动取消;`PaymentExpiryScheduler` 降级为兜底安全网(默认 5 分钟,分页游标分批扫描,禁止全表);幂等与互斥由 `payments.version` 乐观锁 CAS 认领(`claimExpired`)保证
+| 现状与目标:已实现(2026-08,超时优化 2026,传输层迁移 outbox 2026-10)——`PaymentExpiryScheduler` 每 60s 周期扫描过期支付记录 → 自动取消(待支付→已取消)+ 恢复库存 + 退回券/水票 + 发布 PAYMENT_TIMEOUT 事件 + 业务日志留痕;支付超时优化(仅 admin 服务处理):创建/重置待支付时发布 `PAYMENT_EXPIRY_CHECK` 延迟事件(outbox 行 `next_run_at`=expiredAt → 仅 admin 订阅 `payment-expiry-events`)为主触发,到期秒级自动取消(处理失败 outbox 指数退避重试);`PaymentExpiryScheduler` 降级为兜底安全网(默认 5 分钟,分页游标分批扫描,禁止全表);幂等与互斥由 `payments.version` 乐观锁 CAS 认领(`claimExpired`)保证
 | 缺口关联 —
 
 **R-ORD-05 单商品与多商品**: 已实现多商品合并下单(items 列表,单商品=单元素)
@@ -127,7 +127,7 @@
 | 适用功能:F-ORD-010、F-ORD-014、F-ORD-022、F-ORD-008
 | 校验与数值:推送节点=新订单可抢单/被派单/订单取消/催单/配送超时/支付超时;消息幂等键=订单号+事件类型+事件时间;轮询间隔默认 30s
 | 并发与边界:同一送水工多端在线以最后连接为准;断线指数退避重连;离线消息保留至重连后补发;推送与轮询并发以幂等键去重
-| 现状与目标:已实现(通知域)——后端通知链路(领域事件 → Artemis JMS 队列 → 消息网关落库 → broadcast-events 主题 → WebSocket 会话推送)已接通,送水工端任务页实时刷新 + 消息中心已上线;与微信订阅消息(13-notification.md §F-NTF-001)互补;功能落地见 13-notification.md §F-NTF-003(v0.20 归口)
+| 现状与目标:已实现(通知域)——后端通知链路(领域事件 → outbox 队列 → 消息网关落库 → broadcast-events 按订阅扇出 → WebSocket 会话推送)已接通,送水工端任务页实时刷新 + 消息中心已上线;与微信订阅消息(13-notification.md §F-NTF-001)互补;功能落地见 13-notification.md §F-NTF-003(v0.20 归口)
 | 缺口关联:G44(已解决 2026-09;残余「APNs/FCM 远程推送凭证」见 14-misc.md §G69)
 
 **R-ORD-11 完成配送与营收确认**: 订单在完成配送时直接进入「已完成」并即时计入营收(2026-10 按行业惯例修订,取消原「待确认收货 + 送达 N 天自动确认」中间态)——非自提订单送达即完成、自提订单取水当场完成;营收(已完成口径)按完成配送时间(送达时间,即 `completed_at`)计入;送水工业绩/收款日报/对账同为该时间,三者口径一致

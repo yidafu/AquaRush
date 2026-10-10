@@ -20,30 +20,30 @@
 package dev.yidafu.aqua.notification.gateway
 
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.outbox.OutboxDestinationHandler
+import dev.yidafu.aqua.common.messaging.outbox.OutboxEventRecord
 import dev.yidafu.aqua.common.messaging.publisher.EventQueueConst
 import org.slf4j.LoggerFactory
-import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Component
+import tools.jackson.module.kotlin.jacksonObjectMapper
 
 /**
- * 通知消息消费者(PRD 13-notification.md)
- * 监听 notifications-events 队列,消费 NOTIFICATION_SEND 事件,交由消息网关处理;
- * 处理失败抛出异常触发 Artemis 重投(幂等键保证重投不产生重复消息)。
+ * 通知消息 outbox 处理器(PRD 13-notification.md)
+ * 消费 notifications-events 队列的 NOTIFICATION_SEND 事件,交由消息网关落库+分发;
+ * 失败异常上抛 → outbox 退避重试(幂等键保证重试不产生重复消息)。
  */
 @Component
 class NotificationMessageConsumer(
   private val notificationGatewayService: NotificationGatewayService,
-) {
+) : OutboxDestinationHandler {
   private val logger = LoggerFactory.getLogger(NotificationMessageConsumer::class.java)
+  private val objectMapper = jacksonObjectMapper()
 
-  @JmsListener(destination = EventQueueConst.NOTIFICATIONS_QUEUE_NAME)
-  fun handleNotificationEvent(event: DomainEvent) {
-    try {
-      logger.debug("处理通知事件: {}", event.eventType)
-      notificationGatewayService.handle(event)
-    } catch (e: Exception) {
-      logger.error("处理通知事件失败: {}, eventId={}", event.eventType, event.id, e)
-      throw e
-    }
+  override val destinations: Set<String> = setOf(EventQueueConst.NOTIFICATIONS_QUEUE_NAME)
+
+  override fun handle(record: OutboxEventRecord) {
+    val event = objectMapper.readValue(record.payload, DomainEvent::class.java)
+    logger.debug("处理通知事件: {}", event.eventType)
+    notificationGatewayService.handle(event)
   }
 }

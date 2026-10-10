@@ -44,11 +44,9 @@ dependencies {
 
   // ========================================================
   // 通知域第三方库(PRD 13-notification.md F-NTF-003)
-  // spring-jms 提供 @JmsListener(notifications-events 队列消费 + push-events 主题分发);
   // spring-websocket 提供客户端实时推送端点(WebSocket 直连,替代 MQTT)
+  // 事件传输走共享库 outbox,无 JMS 依赖
   // ========================================================
-  implementation("org.springframework:spring-jms")
-  implementation("jakarta.jms:jakarta.jms-api")
   implementation("org.springframework.boot:spring-boot-starter-websocket")
 
   // ========================================================

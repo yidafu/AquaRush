@@ -32,23 +32,6 @@ spring:
     drop-first: false         # 生产环境必须为 false！
     enabled: false            # Schema is managed by the admin service; client has no db changelog resources
 
-  artemis:
-    # 单一 broker 拓扑:client 与 admin 均连接独立 Artemis broker(tcp://localhost:61616,
-    # 仓库 artemis/ 下的 standalone 实例
-    mode: native
-    broker-url: tcp://localhost:61616
-    user: admin
-    password: admin
-    embedded:
-      enabled: false
-
-  jms:
-    template:
-      default-destination: user-events
-      delivery-mode: persistent
-      priority: 5
-      time-to-live: 3600000 # 1小时
-
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     # 统计聚合时区统一 Asia/Shanghai(P2-8),与 JDBC 会话时区/应用默认时区一致
@@ -131,6 +114,18 @@ aqua:
       mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
+  # Transactional Outbox(docs/compose/spec/outbox-messaging.md):
+  # 与 admin 共享 outbox_events 表;client 不订阅 payment-expiry-events(仅 admin 处理,
+  # R-ORD-04);实例身份取 aqua.mode=client。
+  outbox:
+    enabled: true
+    destinations:
+      - order-events
+      - payment-events
+      - delivery-events
+      - user-events
+      - notifications-events
+      - broadcast-events
   mode: client
   # Default region configuration
   region:
