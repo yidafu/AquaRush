@@ -60,4 +60,11 @@ interface NotificationMutationApiService {
    * 不可重发返回 null。
    */
   fun resendNotification(notificationId: Long): NotificationModel?
+
+  /**
+   * 用户创建时落默认通知开关(user_notification_settings,AC-NTF-005-04);
+   * 幂等:已有记录不覆盖。跨模块写入入口(aqua-user 用户创建 → platform 持有的读方表),
+   * 统一读写方后取代原 notification_settings 默认行写入(缺陷 #7 双表合并)。
+   */
+  fun createDefaultUserSettings(userId: Long)
 }

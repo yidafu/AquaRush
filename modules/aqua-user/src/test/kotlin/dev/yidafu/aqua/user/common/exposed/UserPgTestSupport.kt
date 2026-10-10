@@ -21,7 +21,6 @@ package dev.yidafu.aqua.user.common.exposed
 
 import dev.yidafu.aqua.common.domain.table.AddressesTable
 import dev.yidafu.aqua.common.domain.table.AdminsTable
-import dev.yidafu.aqua.common.domain.table.NotificationSettingsTable
 import dev.yidafu.aqua.common.domain.table.RegionsTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
 import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
@@ -41,7 +40,7 @@ object UserPgTestSupport {
   val database: Database = PostgresTestContainer.connect("aquauserrepo")
 
   private val allTables: Array<Table> =
-    arrayOf(UsersTable, AddressesTable, AdminsTable, RegionsTable, NotificationSettingsTable)
+    arrayOf(UsersTable, AddressesTable, AdminsTable, RegionsTable)
 
   @Volatile
   private var schemaCreated = false

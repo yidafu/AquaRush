@@ -19,13 +19,12 @@
 
 package dev.yidafu.aqua.user.service.impl
 
+import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.api.service.user.UserService
-import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.logging.util.BizLogger
-import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -37,7 +36,7 @@ import java.time.LocalDateTime
 @Transactional(readOnly = true)
 class UserServiceImpl(
   private val userRepository: UserRepository,
-  private val notificationSettingsRepository: NotificationSettingsRepository,
+  private val notificationMutationApiService: NotificationMutationApiService,
   private val bizLogger: BizLogger,
 ) : UserService {
   override fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)
@@ -68,16 +67,8 @@ class UserServiceImpl(
 
     val savedUser = userRepository.save(user)
 
-    // Create default notification settings for the user
-    val notificationSettings =
-      NotificationSettingsModel(
-        userId = savedUser.id!!,
-        orderUpdates = true,
-        paymentNotifications = true,
-        deliveryNotifications = true,
-        promotionalNotifications = false,
-      )
-    notificationSettingsRepository.save(notificationSettings)
+    // 用户创建落默认通知开关(user_notification_settings,AC-NTF-005-04;缺陷 #7 双表合一后的唯一写入口)
+    notificationMutationApiService.createDefaultUserSettings(savedUser.id!!)
 
     // 业务日志(F-LOG-003 USER 域):用户创建
     val (operatorId, operatorName) = bizLogger.resolveOperator()
@@ -147,16 +138,8 @@ class UserServiceImpl(
 
     val savedUser = userRepository.save(user)
 
-    // Create default notification settings for the user
-    val notificationSettings =
-      NotificationSettingsModel(
-        userId = savedUser.id!!,
-        orderUpdates = true,
-        paymentNotifications = true,
-        deliveryNotifications = true,
-        promotionalNotifications = false,
-      )
-    notificationSettingsRepository.save(notificationSettings)
+    // 用户创建落默认通知开关(user_notification_settings,AC-NTF-005-04)
+    notificationMutationApiService.createDefaultUserSettings(savedUser.id!!)
 
     // 业务日志(F-LOG-003 USER 域):后台创建用户
     val (operatorId, operatorName) = bizLogger.resolveOperator()

@@ -66,4 +66,8 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V320RecreateOutboxEvents", logicalFilePath = "db/changelog/changes/v3.2.0-recreate-outbox-events.xml")
     // 缺陷 #6:删除 users.balance_cents(储值不做,PRD 2026-10-09 决策)
     include(file = "db/changelog/changes/V330DropUsersBalanceCents", logicalFilePath = "db/changelog/changes/v3.3.0-drop-users-balance-cents.xml")
+    // 缺陷 #7①:通知设置双表合一,迁数据后删 notification_settings
+    include(file = "db/changelog/changes/V340MergeNotificationSettings", logicalFilePath = "db/changelog/changes/v3.4.0-merge-notification-settings.xml")
+    // 缺陷 #7②:删死表 delivery_addresses + orders.delivery_address_id 恒空列
+    include(file = "db/changelog/changes/V341DropDeliveryAddresses", logicalFilePath = "db/changelog/changes/v3.4.1-drop-delivery-addresses.xml")
   })

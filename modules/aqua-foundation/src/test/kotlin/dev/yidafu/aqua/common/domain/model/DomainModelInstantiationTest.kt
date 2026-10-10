@@ -120,13 +120,11 @@ class DomainModelInstantiationTest :
       trajectory.accuracy.shouldBeNull()
     }
     test("notification settings models should instantiate") {
-      val settings = NotificationSettingsModel(userId = 1L)
-      settings.orderUpdates shouldBe true
-      settings.paymentNotifications shouldBe true
-      settings.deliveryNotifications shouldBe true
-      !settings.promotionalNotifications shouldBe true
       val userSettings = UserNotificationSettingsModel(userId = 1L)
       userSettings.orderUpdates shouldBe true
+      userSettings.paymentNotifications shouldBe true
+      userSettings.deliveryNotifications shouldBe true
+      !userSettings.promotionalNotifications shouldBe true
     }
     test("marketing models should instantiate with defaults") {
       CouponTemplateModel().shouldNotBeNull()

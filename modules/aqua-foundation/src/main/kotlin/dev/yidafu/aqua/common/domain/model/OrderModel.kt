@@ -90,7 +90,6 @@ data class OrderModel(
   var remark: String? = null,
   var deliveryRemark: String? = null,
   var searchContent: String? = null,
-  var deliveryAddressId: Long? = null,
   // ========================================================================
   // Hibernate Associations
   // ========================================================================

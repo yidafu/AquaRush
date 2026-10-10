@@ -99,7 +99,6 @@ object FoundationPgTestSupport {
       // UserTables
       AddressesTable,
       RegionsTable,
-      NotificationSettingsTable,
       // LoggingTables(P5:foundation logging 仓储去 QueryDSL)
       ApiLogsTable,
       BusinessLogsTable,
