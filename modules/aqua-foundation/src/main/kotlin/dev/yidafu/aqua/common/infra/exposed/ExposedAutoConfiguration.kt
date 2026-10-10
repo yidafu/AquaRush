@@ -52,12 +52,13 @@ import javax.sql.DataSource
  * (最近注册的 Database = manager 的内部实例)作为 bean 暴露给仓储。全局只有一个 Database。
  *
  * ## 事务闭合的其余事实(已核对 spring7-transaction 1.5.0 源码)
- * - `doBegin` 把事务连接以 Spring `ConnectionHolder` 绑定到 [DataSource],所以同一事务内的
- *   JdbcTemplate / `DataSourceUtils` 也走同一连接(`LogPartitionRepositoryImpl` 的 COPY 与
- *   advisory xact lock 依赖这一点)。
  * - 仓储的 `transaction(database) { }` 在已有事务时经 `newTransaction` 返回**外层事务**
  *   (`useNestedTransactions=false` 默认),不新开连接,异常一起回滚;未处于 Spring 事务时
  *   (异步消费者、定时任务、单测)仍按原语义自建顶层事务。
+ * - 全仓数据访问**只经 Exposed**:需要裸 JDBC 的少数场景(`LogPartitionRepositoryImpl` 的
+ *   `COPY ... TO STDOUT`)从当前事务取连接(`Transaction.connection.connection`),不再依赖
+ *   「`doBegin` 把连接以 Spring `ConnectionHolder` 绑定到 [DataSource]」这一隐式约定 ——
+ *   事务边界与连接来源都收敛到 Exposed 一处。
  *
  * `@AutoConfigureBefore` 让 Spring Boot 的 `DataSourceTransactionManagerAutoConfiguration`
  * 看到已有 `PlatformTransactionManager` 而退让;`@Primary` 作为双保险。
