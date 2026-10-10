@@ -140,9 +140,11 @@ docs/
 modules/aqua-platform/*/document/
 modules/aqua-platform/*/image/
 .gradle-home
-PRD/_ref/
+spec/prd/_ref/
 storage/
 .workbuddy/memory/
 .worktrees/
 /*.md
 !/AGENTS.md
+changelog/
+outdate/
