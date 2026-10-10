@@ -80,7 +80,7 @@ class AdminQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_READ')")
   fun admin(
     @Argument id: Long,
-  ): Admin? = adminRepository.findAdminById(id)?.toGraphQL()
+  ): AdminVo? = adminRepository.findAdminById(id)?.toGraphQL()
 
   /**
    * 按父级查询地区(parentCode 为空 → 省级列表),供前端树形结构逐级懒加载。
