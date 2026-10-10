@@ -95,7 +95,7 @@ class OrderPaidHandler(
    * 触发配送分配
    */
   private fun triggerDeliveryAssignment(order: OrderModel) {
-    // 通过 Artemis 发布配送分配事件
+    // 通过 outbox 发布配送分配事件
     val eventData =
       mapOf(
         "orderId" to order.id.toString(),

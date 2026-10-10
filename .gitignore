@@ -130,13 +130,9 @@ coverage/
 
 # Ignore Gradle build output directory
 build
-data/artemis/
-**/data/artemis/
-**/data/artemis-user/
 frontend/user-weapp/src/constants/qqmap.ts
 /data
 services/aqua-admin/data/
-artemis/
 !frontend/admin-client/src/pages/logs
 temps/
 examples/

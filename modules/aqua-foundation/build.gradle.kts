@@ -19,7 +19,6 @@ dependencies {
   implementation(libs.bundles.spring.boot.web)
   implementation(libs.bundles.spring.boot.security)
   implementation(libs.bundles.graphql)
-  implementation(libs.bundles.messaging)
   implementation(libs.reactor.core)
   implementation(libs.micrometer.tracing.bridge.brave)
   implementation(libs.spring.boot.starter.actuator)

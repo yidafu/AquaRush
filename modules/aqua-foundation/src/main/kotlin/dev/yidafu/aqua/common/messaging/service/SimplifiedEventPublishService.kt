@@ -35,7 +35,7 @@ import java.util.*
 
 /**
  * 简化的事件发布服务
- * 基于ActiveMQ Artemis实现可靠的消息队列
+ * 基于数据库 Transactional Outbox 实现可靠事件投递(docs/compose/spec/outbox-messaging.md)
  */
 @Service
 @ConditionalOnProperty(name = ["aqua.messaging.enabled"], havingValue = "true", matchIfMissing = false)
@@ -49,56 +49,49 @@ class SimplifiedEventPublishService(
   /**
    * 发布领域事件（智能路由）
    * 根据事件类型选择最优发布策略
+   *
+   * outbox 语义:INSERT 与调用方业务事务同库同事务,序列化/INSERT 失败向上传播
+   * (回滚业务事务,保证「业务成功 ⟺ 事件落库」),不吞异常返回 false。
    */
   @Transactional
   fun publishDomainEvent(
     eventType: String,
     aggregateId: String,
     eventData: Map<String, Any>,
-  ): Boolean =
-    try {
-      val event =
-        DomainEvent(
-          id = DefaultIdGenerator().generate(),
-          aggregateId = aggregateId,
-          eventType = eventType,
-          payload = objectMapper.writeValueAsString(eventData),
-        )
-
-      // 使用ActiveMQ Artemis发布事件（异步发送，不阻塞主请求）
-      logger.debug("Publishing event to ActiveMQ Artemis: $eventType")
-
-      // 使用异步发布，避免阻塞主业务流程
-      eventPublisher.publishSync(event)
-    } catch (e: Exception) {
-      logger.error("Failed to publish domain event: $eventType", e)
-      false
-    }
+  ): Boolean {
+    val event =
+      DomainEvent(
+        id = DefaultIdGenerator().generate(),
+        aggregateId = aggregateId,
+        eventType = eventType,
+        payload = objectMapper.writeValueAsString(eventData),
+      )
+    logger.debug("Publishing event to outbox: $eventType")
+    return eventPublisher.publishSync(event)
+  }
 
   /**
    * 延迟发布领域事件(延迟消息,R-ORD-04 支付超时优化):
-   * 由 broker 在 deliveryTimeMillis 时刻投递;失败仅记录日志,不阻塞主流程
-   * (兜底扫描会覆盖消息丢失场景)。
+   * 写未来 next_run_at,由 outbox 轮询器在到期时刻认领投递;
+   * 失败向上传播(与 [publishDomainEvent] 同语义)。
+   * 注:私有方法上的 @Transactional 不生效(Spring AOP 代理),事务边界由
+   * 调用方(业务方法)或 OutboxEventRepository 自身的 transaction(database) 决定。
    */
   private fun publishDomainEventDelayed(
     eventType: String,
     aggregateId: String,
     eventData: Map<String, Any>,
     deliveryTimeMillis: Long,
-  ): Boolean =
-    try {
-      val event =
-        DomainEvent(
-          id = DefaultIdGenerator().generate(),
-          aggregateId = aggregateId,
-          eventType = eventType,
-          payload = objectMapper.writeValueAsString(eventData),
-        )
-      eventPublisher.publishDelayed(event, deliveryTimeMillis)
-    } catch (e: Exception) {
-      logger.error("Failed to publish delayed domain event: $eventType", e)
-      false
-    }
+  ): Boolean {
+    val event =
+      DomainEvent(
+        id = DefaultIdGenerator().generate(),
+        aggregateId = aggregateId,
+        eventType = eventType,
+        payload = objectMapper.writeValueAsString(eventData),
+      )
+    return eventPublisher.publishDelayed(event, deliveryTimeMillis)
+  }
   // ==================== Long 类型版本 ====================
 
   /**
@@ -245,8 +238,9 @@ class SimplifiedEventPublishService(
 
   /**
    * 发布支付到期检查延迟消息(R-ORD-04 支付超时优化):
-   * 创建/重置待支付记录时发布,broker 在 expireAt 时刻投递到 payment-expiry-events 队列,
-   * 仅 admin 服务消费触发支付超时处理;消费端以 payments 记录守卫(状态+到期时间)保证幂等。
+   * 创建/重置待支付记录时发布,outbox 在 expireAt 时刻(到期后)允许认领到
+   * payment-expiry-events,仅 admin 服务消费触发支付超时处理;
+   * 消费端以 payments 记录守卫(状态+到期时间)保证幂等。
    */
   fun publishPaymentExpiryCheck(
     orderId: Long,
@@ -337,7 +331,7 @@ class SimplifiedEventPublishService(
   fun getSystemStatus(): Map<String, Any> =
     mapOf(
       "messagingEnabled" to messagingProperties.enabled,
-      "strategy" to "artemis",
+      "strategy" to "outbox",
     )
 
   /**

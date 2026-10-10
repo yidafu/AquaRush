@@ -96,9 +96,9 @@ interface EventPublisher {
  */
 enum class EventTypePublisherType {
   /**
-   * ActiveMQ Artemis模式（可靠且高性能）
+   * 数据库 Transactional Outbox 模式(单体应用,无外部 MQ 依赖)
    */
-  ARTEMIS,
+  OUTBOX,
 }
 
 object EventQueueConst {

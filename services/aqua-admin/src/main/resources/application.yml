@@ -35,36 +35,6 @@ spring:
     drop-first: false         # 生产环境必须为 false！
     enabled: true
 
-  artemis:
-    mode: native
-    broker-url: tcp://localhost:61616
-    pool:
-      enabled: true
-      max-connections: 10
-    embedded:
-      enabled: false
-      max-disk-usage: 98
-      persistent: true
-      data-directory: ./data/artemis-admin
-      config-url: classpath:broker.xml
-      config-resource: classpath:broker.xml
-      server-config: classpath:broker.xml
-      queues: order-events,payment-events,payment-expiry-events,delivery-events,user-events
-      topics: broadcast-events
-    user: admin
-    password: admin
-
-  jms:
-    listener:
-      auto-startup: true
-      acknowledge-mode: client
-      concurrency: 1-5
-    template:
-      default-destination: delivery-events
-      delivery-mode: persistent
-      priority: 5
-      time-to-live: 3600000 # 1小时
-
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     # 统计聚合时区统一 Asia/Shanghai(P2-8),与 JDBC 会话时区/应用默认时区一致
@@ -157,6 +127,19 @@ aqua:
       mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
+  # Transactional Outbox(docs/compose/spec/outbox-messaging.md):
+  # 与 client 共享 outbox_events 表;admin 订阅全部目的地(含仅 admin 消费的
+  # payment-expiry-events,R-ORD-04);实例身份取 aqua.mode=admin。
+  outbox:
+    enabled: true
+    destinations:
+      - order-events
+      - payment-events
+      - payment-expiry-events
+      - delivery-events
+      - user-events
+      - notifications-events
+      - broadcast-events
   mode: admin
 
 # Storage configuration
