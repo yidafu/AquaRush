@@ -8,7 +8,7 @@ export interface GeoPosition {
 /**
  * 获取当前定位(原生端 expo-location,Expo Go 内置;web 端浏览器 Geolocation)。
  *
- * 坐标体系:GPS/浏览器返回 WGS-84,与后端地址坐标存储一致(PRD/05-address-delivery.md
+ * 坐标体系:GPS/浏览器返回 WGS-84,与后端地址坐标存储一致(spec/prd/05-address-delivery.md
  * §坐标体系),可直接用于修正订单地址定位(F-ORD-024)。
  *
  * 失败(权限拒绝/定位服务不可用/超时)返回 null,调用方提示用户。

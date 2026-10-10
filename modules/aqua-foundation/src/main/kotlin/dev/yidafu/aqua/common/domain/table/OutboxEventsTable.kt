@@ -22,7 +22,7 @@ package dev.yidafu.aqua.common.domain.table
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.javatime.datetime
 
-// Transactional outbox 表(docs/compose/spec/outbox-messaging.md,替代 Artemis MQ)。
+// Transactional outbox 表(spec/tech/design/outbox-messaging.md,替代 Artemis MQ)。
 // 列定义对齐 changelog V320RecreateOutboxEvents。
 // subscriber:NULL = 竞争消费(任一服务认领);非空 = 指定服务独享(广播扇出行)。
 // next_run_at = 可认领时刻,延迟投递写未来时间;主键为 Snowflake(应用侧生成)。

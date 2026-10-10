@@ -42,7 +42,7 @@ interface AdminAccountDetailProps {
 }
 
 /**
- * 管理账号视图(role=ADMIN/SUPER_ADMIN,PRD/07-user.md §F-USR-020):
+ * 管理账号视图(role=ADMIN/SUPER_ADMIN,spec/prd/07-user.md §F-USR-020):
  * 纵向布局:基本信息(含权限信息)/ 配送统计 固定排在页面顶部,
  * 下方 Tabs:账号安全 / 配送能力(兼送水,F-USR-023)/ 配送记录 / 配送轨迹 /
  * 每日收款 / 评价记录 / 操作。

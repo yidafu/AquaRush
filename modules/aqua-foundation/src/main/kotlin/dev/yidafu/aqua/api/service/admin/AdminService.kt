@@ -30,7 +30,7 @@ import org.springframework.data.domain.Pageable
 /**
  * 管理员服务接口
  *
- * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021 目标架构),
+ * 送水员档案并入 admins 单表后(spec/prd/07-user.md §F-USR-021 目标架构),
  * 送水员查询/创建/更新统一走本接口:配送能力角色(DELIVERY_WORKER/ADMIN)
  * 的账号行即送水员身份。
  */
@@ -109,7 +109,7 @@ interface AdminService {
   fun countByRole(role: AdminRoleModel): Long
 
   /**
-   * 重置账号密码(G11 落地,PRD/07-user.md §F-USR-020/021)
+   * 重置账号密码(G11 落地,spec/prd/07-user.md §F-USR-020/021)
    *
    * @param newPassword 新密码;为空时重置为默认密码(缺省 123456,与 PRD 一致)
    */

@@ -35,7 +35,7 @@ import java.time.LocalDateTime
  * 支付超时兜底扫描(R-ORD-04 支付超时优化):
  * 延迟消息(MQ,payment-expiry-events)为主触发,本扫描为兜底安全网——仅 admin 服务运行
  * ([AdminService],client 不扫描),间隔默认 5 分钟(可配 `aqua.payment.expiry.scan-interval-ms`);
- * 分页游标分批扫描 PENDING 且已过期的支付记录(禁止全表拉取,CLAUDE.md 规则 13),
+ * 分页游标分批扫描 PENDING 且已过期的支付记录(禁止全表拉取,AGENTS.md 规则 10),
  * 逐条触发 [PaymentService.handlePaymentTimeout];与 MQ 触发并发时由数据库乐观锁
  * CAS 认领(claimExpired)保证幂等与互斥,重复处理安全。
  */

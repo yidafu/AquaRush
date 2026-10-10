@@ -87,7 +87,7 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 }
 
 // ================================================================
-// Kover 测试覆盖率门禁（标准详见 claude/deployment.md §Testing Strategy）
+// Kover 测试覆盖率门禁（标准详见 agents/deployment.md §Testing Strategy）
 // ----------------------------------------------------------------
 // 分模块行覆盖率阈值（开发中必须达到的标准）：
 //   Tier S 80% : aqua-trade, aqua-marketing —— 订单/支付/营销（钱与状态机，最高优先级）

@@ -44,7 +44,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
 /**
- * 送水员档案并入 admins 单表集成测试(PRD/07-user.md §F-USR-021 目标架构):
+ * 送水员档案并入 admins 单表集成测试(spec/prd/07-user.md §F-USR-021 目标架构):
  * - createAdmin(role=DELIVERY_WORKER, 不传 username) 单表落库,用户名自动生成 delivery_{账号ID};
  * - createDeliveryWorker 兼容 mutation 同样单表落库;
  * - deliveryWorkers 查询返回配送能力角色账号(DELIVERY_WORKER/ADMIN),不含 SUPER_ADMIN。

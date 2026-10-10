@@ -1,4 +1,4 @@
-# Merge integration test schema (送水员档案并入 admins 单表, PRD/07-user.md §F-USR-021)
+# Merge integration test schema (送水员档案并入 admins 单表, spec/prd/07-user.md §F-USR-021)
 # 自包含 schema:仅暴露 AdminDeliveryWorkerMergeIntegrationTest 需要的最小面
 
 scalar Long

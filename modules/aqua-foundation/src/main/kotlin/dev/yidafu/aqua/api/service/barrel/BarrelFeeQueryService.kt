@@ -24,7 +24,7 @@ import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import org.springframework.data.domain.Page
 
 /**
- * 水桶费价目查询服务(G06 水桶费模块,实现位于 aqua-marketing;CLAUDE.md 规则 4)
+ * 水桶费价目查询服务(G06 水桶费模块,实现位于 aqua-marketing;AGENTS.md 规则 3)
  */
 interface BarrelFeeQueryService {
   /** 用户端买水桶页:启用价目(升序) */

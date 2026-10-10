@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
  *
  * - UP:携带积压明细(pendingDue/processing/oldestPendingAgeMs),可观测轮询滞后;
  * - DOWN:存在 DEAD 事件(重试耗尽,需人工排查)→ 健康告警出口
- *   (docs/compose/spec/outbox-messaging.md,不建 redrive API)。
+ *   (spec/tech/design/outbox-messaging.md,不建 redrive API)。
  */
 @Component
 @ConditionalOnBean(OutboxEventPublisher::class)

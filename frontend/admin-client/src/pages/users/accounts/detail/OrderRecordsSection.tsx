@@ -14,7 +14,7 @@ interface OrderRecordsSectionProps {
   emptyText?: string;
 }
 
-/** 订单状态筛选参数(2026-08 起替代订单区原 Tab 切换;2026-09 起置于详情页「配送记录」Tab 内,PRD/07-user.md §F-USR-021) */
+/** 订单状态筛选参数(2026-08 起替代订单区原 Tab 切换;2026-09 起置于详情页「配送记录」Tab 内,spec/prd/07-user.md §F-USR-021) */
 const STATUS_FILTER_OPTIONS = [
   { value: 'ALL', label: '全部' },
   { value: OrderStatus.DELIVERING, label: '送货中' },

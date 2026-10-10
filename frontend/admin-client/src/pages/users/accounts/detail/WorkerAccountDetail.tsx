@@ -17,7 +17,7 @@ interface WorkerAccountDetailProps {
 }
 
 /**
- * 送水员视图(role=DELIVERY_WORKER,PRD/07-user.md §F-USR-021):
+ * 送水员视图(role=DELIVERY_WORKER,spec/prd/07-user.md §F-USR-021):
  * 纵向布局:基本信息(含当前任务数)/ 配送统计 固定排在页面顶部,
  * 下方 Tabs:配送记录(「订单状态」筛选参数 + 单表格)/ 配送轨迹 / 每日收款 / 评价记录。
  */

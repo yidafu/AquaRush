@@ -1,4 +1,4 @@
-# 用户与账号域管理 mutation 集成测试 schema(PRD/07-user.md §F-USR-020/021/022)
+# 用户与账号域管理 mutation 集成测试 schema(spec/prd/07-user.md §F-USR-020/021/022)
 # 自包含 schema:仅暴露 AdminUserManagementGraphQLIntegrationTest 需要的最小面
 
 scalar Long

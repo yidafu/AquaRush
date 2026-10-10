@@ -1,4 +1,4 @@
-// Outbox 替代 Artemis MQ(docs/compose/spec/outbox-messaging.md):重建 V100 遗留的 outbox_events。
+// Outbox 替代 Artemis MQ(spec/tech/design/outbox-messaging.md):重建 V100 遗留的 outbox_events。
 // 旧表从未被读写(Artemis 切换后搁置),直接 DROP 重建为点对点/广播双语义事件表。
 package db.changelog.changes
 

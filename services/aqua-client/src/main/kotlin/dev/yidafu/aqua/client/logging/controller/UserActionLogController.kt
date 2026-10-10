@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController
  * 用户操作日志上报控制器(client 端)
  *
  * 小程序端经 `@aquarush/common/tracking` SDK 统一上报到本服务
- * (`POST /api/logs/user-actions/batch`,见 PRD/09-platform-logs.md),
+ * (`POST /api/logs/user-actions/batch`,见 spec/prd/09-platform-logs.md),
  * 因此 client 服务必须注册与 admin 服务一致的批次上报端点,否则请求会落到
  * 静态资源兜底并抛 NoResourceFoundException 变成 500。
  *

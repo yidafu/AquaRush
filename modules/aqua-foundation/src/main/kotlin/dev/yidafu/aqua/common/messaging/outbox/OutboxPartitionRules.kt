@@ -23,7 +23,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * outbox 半年分区规则(纯函数,可单测;docs/compose/spec/outbox-messaging.md 修订)。
+ * outbox 半年分区规则(纯函数,可单测;spec/tech/design/outbox-messaging.md 修订)。
  *
  * 半区边界:H1 = [YYYY-01-01, YYYY-07-01),H2 = [YYYY-07-01, 次年-01-01);
  * 分区名 `outbox_events_YYYYHn`,归档名 `outbox_events_archive_YYYYHn`。

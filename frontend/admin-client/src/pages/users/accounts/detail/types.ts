@@ -1,5 +1,5 @@
 /**
- * 统一账号详情页记录形状(PRD/07-user.md §F-USR-020/021):
+ * 统一账号详情页记录形状(spec/prd/07-user.md §F-USR-020/021):
  * 送水员档案并入 admins 单表后,账号行即配送身份;
  * 超管视图来自 `admins` 查询(Admin 类型),普通管理员视图来自 `deliveryWorker(id:)`(DeliveryWorker 兼容投影)。
  */

@@ -25,7 +25,7 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 /**
- * 后台账号(单表,PRD/07-user.md §F-USR-020/021 目标架构)。
+ * 后台账号(单表,spec/prd/07-user.md §F-USR-020/021 目标架构)。
  *
  * 送水员档案已并入本表:role=DELIVERY_WORKER 的账号行即送水员身份,
  * 配送业务字段(头像/在线状态/坐标/评分/单量/收入/接单权限)直接挂账号行;

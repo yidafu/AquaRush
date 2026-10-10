@@ -38,7 +38,7 @@ interface PaymentRepository {
 
   /**
    * 兜底扫描分页查询(R-ORD-04 支付超时优化):status 列等于入参 [status] 且 expired_at < 入参 [expiredAt]
-   * (严格小于,同原 JPA 派生查询),分批游标处理,禁止全表拉取(CLAUDE.md 规则 13);
+   * (严格小于,同原 JPA 派生查询),分批游标处理,禁止全表拉取(AGENTS.md 规则 10);
    * content 与 count 同事务;排序应用 pageable.sort(可映射属性),未指定时回退 id 升序防跨页漂移。
    */
   fun findByStatusAndExpiredAtBefore(

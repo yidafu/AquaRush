@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional
 /**
  * Service for handling admin operations
  *
- * 送水员档案并入 admins 单表(PRD/07-user.md §F-USR-021 目标架构):role=DELIVERY_WORKER
+ * 送水员档案并入 admins 单表(spec/prd/07-user.md §F-USR-021 目标架构):role=DELIVERY_WORKER
  * 的账号行即送水员身份,配送字段直接挂账号行,不再联动 delivery_workers 档案表。
  */
 @Service
@@ -56,7 +56,7 @@ class AdminServiceImpl(
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
 
   companion object {
-    // 初始/重置缺省密码(PRD/07-user.md §F-USR-010/021:缺省 123456)
+    // 初始/重置缺省密码(spec/prd/07-user.md §F-USR-010/021:缺省 123456)
     private const val DEFAULT_PASSWORD = "123456"
     private const val DELIVERY_WORKER_USERNAME_PREFIX = "delivery_"
     private val DELIVERY_CAPABLE_ROLES = listOf(AdminRoleModel.DELIVERY_WORKER, AdminRoleModel.ADMIN)
@@ -129,7 +129,7 @@ class AdminServiceImpl(
   override fun countByRole(role: AdminRoleModel): Long = adminRepository.countByRole(role)
 
   /**
-   * 重置账号密码(G11 落地,PRD/07-user.md §F-USR-020/021)
+   * 重置账号密码(G11 落地,spec/prd/07-user.md §F-USR-020/021)
    *
    * newPassword 为空时重置为默认密码 123456;重置后原 token 仍有效至过期(签名不变),
    * 停用/删除才即时失效。

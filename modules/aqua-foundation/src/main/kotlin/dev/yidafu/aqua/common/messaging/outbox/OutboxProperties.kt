@@ -22,7 +22,7 @@ package dev.yidafu.aqua.common.messaging.outbox
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
- * Transactional Outbox 配置(docs/compose/spec/outbox-messaging.md)。
+ * Transactional Outbox 配置(spec/tech/design/outbox-messaging.md)。
  * 两服务共享 outbox 表,通过 [destinations] 订阅差异与 [instance] 身份隔离消费。
  */
 @ConfigurationProperties(prefix = "aqua.outbox")
@@ -55,7 +55,7 @@ data class OutboxProperties(
   var visibilityTimeoutMs: Long = 300000,
   /**
    * 分区卸载保留天数:半年分区「结束满该天数」即 DETACH 归档
-   * (docs/compose/spec/outbox-messaging.md 修订;取代已移除的 done-retention-days)。
+   * (spec/tech/design/outbox-messaging.md 修订;取代已移除的 done-retention-days)。
    */
   var partitionRetentionDays: Long = 30,
 )

@@ -1,5 +1,5 @@
 # Daily collection & reconciliation management
-# 分页/筛选(CLAUDE.md 规则 13 禁止全量查询):dailyCollections / dailyReconciliations
+# 分页/筛选(AGENTS.md 规则 10 禁止全量查询):dailyCollections / dailyReconciliations
 # 均返回分页结果;对账详情逐单明细(G29)经 dailyReconciliationOrderDetails 分页取回。
 #
 # 微信资金对账(类型定义见 shared-types.graphqls §微信资金对账域):对账任务/差异/报表查询与

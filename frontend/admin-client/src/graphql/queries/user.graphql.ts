@@ -347,7 +347,7 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
 /**
  * 用户详情页(UserDetailPage)单页查询:
  * 一次请求取回「用户基本信息 + 收货地址 + 分页订单 + 已完成订单数(全量口径,别名)」,
- * 满足 CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * 满足 AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  * Tab 区块(优惠券/水票/反馈/评价/收藏)由 Tabs 懒挂载,激活时才各自请求,不在此合并。
  */
 export const USER_DETAIL_PAGE_DATA_QUERY = gql`
@@ -445,7 +445,7 @@ export const USER_DETAIL_PAGE_DATA = 'UserDetailPageData';
 /**
  * 客户列表页(CustomerUsersPage)单页查询:
  * 一次请求取回「用户分页 + 客户分组(筛选器/设置分组弹窗)」,满足
- * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const CUSTOMER_USERS_PAGE_DATA_QUERY = gql`
   query CustomerUsersPageData($input: UserListInput) {

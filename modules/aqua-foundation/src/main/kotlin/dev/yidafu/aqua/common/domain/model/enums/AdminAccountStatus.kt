@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.common.domain.model.enums
 
 /**
- * 后台账号状态(PRD/07-user.md §F-USR-020/021)
+ * 后台账号状态(spec/prd/07-user.md §F-USR-020/021)
  *
  * 停用(DISABLED)账号无法登录后台/送水工端,旧 token 亦失效;
  * 停用送水员不可派单/接单(AC-USR-020-07、AC-USR-021-07)。

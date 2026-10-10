@@ -51,7 +51,7 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDateTime
 
 /**
- * 用户与账号域管理 mutation 集成测试(PRD/07-user.md §F-USR-020/021/022,G11 落地):
+ * 用户与账号域管理 mutation 集成测试(spec/prd/07-user.md §F-USR-020/021/022,G11 落地):
  * - deleteAdmin/resetAdminPassword:删除保护(最后一个超管)、密码重置落库;
  * - deleteDeliveryWorker/resetDeliveryWorkerPassword;
  * - createUser/updateUser/deleteUser:微信用户后台增改删;

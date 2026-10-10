@@ -38,7 +38,7 @@ fun DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus =
 /**
  * AdminModel(送水员账号行)→ GraphQL DeliveryWorkerVo(原 DeliveryWorkerMapper)。
  *
- * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021 目标架构),DeliveryWorkerVo
+ * 送水员档案并入 admins 单表后(spec/prd/07-user.md §F-USR-021 目标架构),DeliveryWorkerVo
  * 为兼容投影类型:id 即账号 id;wechatOpenId 不再落库,投影为空串。
  */
 fun AdminModel.toDeliveryWorker(): DeliveryWorkerVo =

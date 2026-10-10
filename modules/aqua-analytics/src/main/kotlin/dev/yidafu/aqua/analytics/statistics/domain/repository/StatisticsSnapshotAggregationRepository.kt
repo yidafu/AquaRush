@@ -31,7 +31,7 @@ import java.time.LocalDate
 /**
  * 统计快照按日聚合仓储(第 3 层历史趋势指标中间表写入侧)
  * 对单个日期从源表(orders/order_items/users/user_action_logs/payment_refunds)聚合出原子事实行;
- * 所有聚合均带日期窗口过滤,不做全表扫描(CLAUDE.md 规则 13)。
+ * 所有聚合均带日期窗口过滤,不做全表扫描(AGENTS.md 规则 10)。
  */
 interface StatisticsSnapshotAggregationRepository {
   /**

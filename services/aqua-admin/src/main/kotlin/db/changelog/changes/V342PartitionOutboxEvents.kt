@@ -1,4 +1,4 @@
-// outbox 分区化(docs/compose/spec/outbox-messaging.md 修订):outbox_events 转按半年 RANGE 分区,
+// outbox 分区化(spec/tech/design/outbox-messaging.md 修订):outbox_events 转按半年 RANGE 分区,
 // 配合滚动维护「结束满 30 天的分区 DETACH 归档」,避免临时消息堆积导致慢查询。
 // 迁移保留现有数据(在途 PENDING 不可丢):rename 旧表释放对象名 → 建分区父表(PK 含分区键)
 // → DO $$ 动态建半区(覆盖 min(created_at) 所在半区至当前半区+1)→ 拷贝回流 → drop 旧表,

@@ -40,7 +40,7 @@ import java.time.temporal.WeekFields
 /**
  * 订单统计查询解析器（G42 剩余部分接线）
  * 提供 orderStatistics / weeklyStatistics / monthlyStatistics 查询，仅授予 STATISTICS_READ 权限的角色可访问
- * 营收口径全域统一 = 已完成订单金额合计（PRD/08-statistics.md §域级口径）
+ * 营收口径全域统一 = 已完成订单金额合计（spec/prd/08-statistics.md §域级口径）
  */
 @Controller
 class AdminOrderStatisticsQueryResolver(

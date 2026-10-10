@@ -117,7 +117,7 @@ aqua:
       mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
-  # Transactional Outbox(docs/compose/spec/outbox-messaging.md):
+  # Transactional Outbox(spec/tech/design/outbox-messaging.md):
   # 与 admin 共享 outbox_events 表;client 不订阅 payment-expiry-events(仅 admin 处理,
   # R-ORD-04);实例身份取 aqua.mode=client。
   outbox:

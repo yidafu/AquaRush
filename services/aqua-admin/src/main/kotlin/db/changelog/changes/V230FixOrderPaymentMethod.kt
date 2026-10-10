@@ -9,7 +9,7 @@ class V230FixOrderPaymentMethod :
     // orders.payment_method 枚举对齐:
     //     南山演示数据(v1.7.0-seed-nanshan-demo-data.xml)将 2 笔订单的 payment_method
     //     写成 'CASH_ON_DELIVERY',该值不在 JPA 域枚举 PaymentMethod(WECHAT_PAY/CASH,
-    //     见 modules/aqua-foundation .../PaymentModel.kt)中 —— 域口径见 PRD/04-order.md
+    //     见 modules/aqua-foundation .../PaymentModel.kt)中 —— 域口径见 spec/prd/04-order.md
     //     §R-PAY-03:在线支付 WECHAT_PAY,现场收款/代客下单 CASH。
     //     后果:orderStatistics 服务层经 orderRepository.findAll() 加载订单实体时,
     //     Hibernate 枚举映射抛 IllegalArgumentException(No enum constant

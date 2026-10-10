@@ -10,7 +10,7 @@ class V140FixPaymentRefundsStatusCheck :
     //     旧约束 (PENDING/SUCCESS/FAILED/CANCELLED) 与生成枚举 RefundStatus
     //     (PENDING/APPROVED/REJECTED/COMPLETED/FAILED) 及 PRD 04-order.md §R-PAY-02
     //     状态机(待审核/已通过/已拒绝/已完成/失败)不一致,导致退款记录无法落库。
-    //     开发期不兼容修改(CLAUDE.md 规则 12),仅影响开发/测试库(master changelog 为重建式)。
+    //     开发期不兼容修改(AGENTS.md 规则 9),仅影响开发/测试库(master changelog 为重建式)。
     changeSet(author = "aqua-rush", id = "1.4.0-fix-payment-refunds-status-check") {
       comment("Align payment_refunds.status CHECK with RefundStatus enum (R-PAY-02)")
       sql(

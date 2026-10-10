@@ -13,7 +13,7 @@ export const getRangePickerFormat = (granularity: Granularity): string => {
   }
 };
 
-// 单页面一次渲染一个 GraphQL 请求(CLAUDE.md 规则 10):按粒度 skip 只启用当前粒度查询,
+// 单页面一次渲染一个 GraphQL 请求(AGENTS.md 规则 7):按粒度 skip 只启用当前粒度查询,
 // 每个查询 = orderStatistics(汇总卡,含退款/净营收)+ 对应粒度趋势(图表,含退款,PRD F-STA-002)
 export const GET_DAILY_REVENUE_STATISTICS = gql`
   query GetDailyRevenueStatistics($input: DateRangeInput!) {

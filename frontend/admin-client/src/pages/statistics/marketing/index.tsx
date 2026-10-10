@@ -22,7 +22,7 @@ const { RangePicker } = DatePicker;
 /**
  * 营销统计页(F-STA-007,statistics/marketing):
  * 时间范围筛选(默认近 30 天)+ 汇总卡 + 优惠/订单/水票趋势 + 营销方式构成 + 营销方式使用明细表;
- * 数据来自第 3 层日汇总中间表查询侧两段合并,单页面单 GraphQL 请求(CLAUDE.md 规则 10)。
+ * 数据来自第 3 层日汇总中间表查询侧两段合并,单页面单 GraphQL 请求(AGENTS.md 规则 7)。
  */
 const MarketingStatisticsPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([

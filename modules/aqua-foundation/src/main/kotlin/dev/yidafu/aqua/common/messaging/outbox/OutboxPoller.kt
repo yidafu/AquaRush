@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
 /**
- * outbox 轮询分发器(替代旧 JMS 监听,docs/compose/spec/outbox-messaging.md)。
+ * outbox 轮询分发器(替代旧 JMS 监听,spec/tech/design/outbox-messaging.md)。
  *
  * - 专用单线程调度:不与 `@Scheduled` 单线程池共用,避免被长任务(快照/扫描)饿死;
  * - 每周期:`recoverStuck`(可见性超时复位) → `claim`(SKIP LOCKED 认领,自开事务) → 顺序分发;

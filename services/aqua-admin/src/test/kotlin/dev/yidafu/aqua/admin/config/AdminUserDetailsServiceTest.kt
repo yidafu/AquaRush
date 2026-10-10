@@ -31,7 +31,7 @@ import io.mockk.mockk
 import java.time.LocalDateTime
 
 /**
- * 停用账号不可登录(AC-USR-020-07,PRD/07-user.md §F-USR-020):
+ * 停用账号不可登录(AC-USR-020-07,spec/prd/07-user.md §F-USR-020):
  * AdminUserDetailsService 对 DISABLED 账号返回 disabled=true,AuthenticationManager 抛 DisabledException。
  */
 class AdminUserDetailsServiceTest :

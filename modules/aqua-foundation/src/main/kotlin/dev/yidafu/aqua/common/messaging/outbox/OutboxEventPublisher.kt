@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
- * Transactional Outbox 事件发布器(替代 ArtemisEventPublisher,docs/compose/spec/outbox-messaging.md)。
+ * Transactional Outbox 事件发布器(替代 ArtemisEventPublisher,spec/tech/design/outbox-messaging.md)。
  *
  * 与旧实现的关键语义差异:
  * - 发布 = 向 outbox_events 同步 INSERT,与调用方业务事务同库同事务(原子性);

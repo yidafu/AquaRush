@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.dto.PurchaseBarrelRequest
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 
 /**
- * 水桶购买单变更服务(G06 水桶费模块,实现位于 aqua-marketing;CLAUDE.md 规则 4)
+ * 水桶购买单变更服务(G06 水桶费模块,实现位于 aqua-marketing;AGENTS.md 规则 3)
  */
 interface BarrelPurchaseMutationService {
   /**

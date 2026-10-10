@@ -34,7 +34,7 @@ import org.springframework.stereotype.Controller
 /**
  * 营销统计查询解析器(F-STA-007,PERMISSION_STATISTICS_READ):
  * 第 3 层日汇总中间表(daily_marketing_facts / daily_marketing_usage_facts)查询侧两段合并,
- * 汇总/按日趋势/营销方式使用明细一次返回(单页面单请求,CLAUDE.md 规则 10)。
+ * 汇总/按日趋势/营销方式使用明细一次返回(单页面单请求,AGENTS.md 规则 7)。
  * 口径见 PRD 08-statistics.md §F-STA-007 业务规则扩充。
  */
 @Controller

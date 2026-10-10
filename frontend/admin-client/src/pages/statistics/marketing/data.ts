@@ -4,7 +4,7 @@ import type { MarketingStatisticsVo } from '@aquarush/common';
 
 /**
  * 营销统计页(MarketingStatisticsPage)单页查询(F-STA-007):
- * 一次请求取回「汇总 + 按日趋势 + 营销方式使用明细」,满足 CLAUDE.md 规则 #10。
+ * 一次请求取回「汇总 + 按日趋势 + 营销方式使用明细」,满足 AGENTS.md 规则 7。
  * 数据源:第 3 层日汇总中间表(daily_marketing_facts / daily_marketing_usage_facts)查询侧两段合并。
  */
 export const GET_MARKETING_STATISTICS = gql`

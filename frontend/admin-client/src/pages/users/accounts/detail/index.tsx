@@ -20,7 +20,7 @@ import type { DeliveryRecord } from './types';
 import { useAccountDetailActions } from './hooks/useAccountDetailActions';
 
 /**
- * 统一账号详情页(users/accounts/:id,PRD/07-user.md §F-USR-020/021):
+ * 统一账号详情页(users/accounts/:id,spec/prd/07-user.md §F-USR-020/021):
  * 按角色渲染——DELIVERY_WORKER → 送水员视图;ADMIN/SUPER_ADMIN → 管理账号视图(含送水内容,F-USR-023)。
  * 数据源按登录角色切换:超管查 admins(全部账号)按 id 查找;普通管理员查 deliveryWorker(id:)(配送能力角色投影)。
  * 操作按权限矩阵分发:超管走 admin mutation,普通管理员走 worker mutation(R-AUTH-04 后端强制)。

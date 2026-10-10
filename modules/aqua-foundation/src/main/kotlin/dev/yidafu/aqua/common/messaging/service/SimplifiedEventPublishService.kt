@@ -35,7 +35,7 @@ import java.util.*
 
 /**
  * 简化的事件发布服务
- * 基于数据库 Transactional Outbox 实现可靠事件投递(docs/compose/spec/outbox-messaging.md)
+ * 基于数据库 Transactional Outbox 实现可靠事件投递(spec/tech/design/outbox-messaging.md)
  */
 @Service
 @ConditionalOnProperty(name = ["aqua.messaging.enabled"], havingValue = "true", matchIfMissing = false)

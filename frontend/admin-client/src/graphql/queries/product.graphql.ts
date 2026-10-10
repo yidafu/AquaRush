@@ -42,7 +42,7 @@ export const GET_PRODUCTS_QUERY = gql`
 /**
  * 商品列表页(ProductListPage)单页查询:
  * 一次请求取回「商品分页 + 库存预警阈值(列表着色)」,满足
- * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const PRODUCTS_PAGE_DATA_QUERY = gql`
   query ProductsPageData($input: ProductSearchInput) {

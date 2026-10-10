@@ -39,7 +39,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
 /**
- * 账号密码重置(PRD/07-user.md §F-USR-020/021,G11 落地):
+ * 账号密码重置(spec/prd/07-user.md §F-USR-020/021,G11 落地):
  * - newPassword 为空时重置为默认密码 123456(与 PRD F-USR-010/021 一致);
  * - 新密码长度 <6 位被拒。
  */

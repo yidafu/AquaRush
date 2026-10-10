@@ -4,7 +4,7 @@
 
 AquaRush 是单体(双进程共享一个 PostgreSQL)应用,领域事件不依赖任何外部 MQ,
 基于 **transactional outbox** 传输:发布即向共享表 `outbox_events` INSERT(与业务写同事务),
-两服务各自轮询认领并分发。设计文档:`docs/compose/spec/outbox-messaging.md`。
+两服务各自轮询认领并分发。设计文档:`spec/tech/design/outbox-messaging.md`。
 
 ## 核心语义
 

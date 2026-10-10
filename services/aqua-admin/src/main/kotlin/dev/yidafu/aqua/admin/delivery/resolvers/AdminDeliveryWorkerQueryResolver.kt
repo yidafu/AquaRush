@@ -40,7 +40,7 @@ import dev.yidafu.aqua.common.annotation.AdminService as AdminServiceAnnotation
  * 管理端配送员查询解析器
  * 提供配送员管理的查询功能，仅管理员可访问
  *
- * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),配送员即
+ * 送水员档案并入 admins 单表后(spec/prd/07-user.md §F-USR-021),配送员即
  * role=DELIVERY_WORKER/ADMIN 的账号行,DeliveryWorkerVo 为兼容投影类型。
  */
 @AdminServiceAnnotation

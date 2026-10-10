@@ -3,7 +3,7 @@ import { gql } from '@apollo/client';
 /**
  * 商品统计页(ProductStatisticsPage)单页查询:
  * 一次请求取回「商品总览统计 + 日销量明细(时间范围)+ 全量商品目录(筛选下拉)」,
- * 满足 CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * 满足 AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const PRODUCT_STATISTICS_PAGE_DATA_QUERY = gql`
   query ProductStatisticsPageData($input: DateRangeInput!) {

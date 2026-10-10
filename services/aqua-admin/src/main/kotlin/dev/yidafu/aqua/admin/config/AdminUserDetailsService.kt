@@ -29,7 +29,7 @@ class AdminUserDetailsService(
         .authorities(admin.role.toPermissionAuthorities())
         .accountExpired(false)
         .accountLocked(false)
-        // 停用账号(DISABLED)不可登录(AC-USR-020-07,PRD/07-user.md §F-USR-020)
+        // 停用账号(DISABLED)不可登录(AC-USR-020-07,spec/prd/07-user.md §F-USR-020)
         .disabled(admin.accountStatus == AdminAccountStatus.DISABLED)
         .build()
 

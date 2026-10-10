@@ -22,7 +22,7 @@ package dev.yidafu.aqua.api.service.deposit
 import dev.yidafu.aqua.common.domain.model.DepositRecordModel
 
 /**
- * 历史桶押金记录变更服务接口(G06 押金模块,实现位于 aqua-marketing;CLAUDE.md 规则 4)
+ * 历史桶押金记录变更服务接口(G06 押金模块,实现位于 aqua-marketing;AGENTS.md 规则 3)
  * 2026-08 水桶费改造后押金语义废弃:新购桶走 barrel_purchases;
  * 本接口仅保留「按订单退还全部有效押金」供历史订单(orders.deposit_amount_cents>0)取消退款兼容。
  */

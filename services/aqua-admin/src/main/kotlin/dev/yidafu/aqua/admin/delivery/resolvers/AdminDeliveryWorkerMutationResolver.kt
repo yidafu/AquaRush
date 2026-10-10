@@ -43,7 +43,7 @@ import dev.yidafu.aqua.common.annotation.AdminService as AdminServiceAnnotation
  * 管理端配送员变更解析器
  * 提供配送员管理的变更功能，仅管理员可访问
  *
- * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),创建/更新送水员
+ * 送水员档案并入 admins 单表后(spec/prd/07-user.md §F-USR-021),创建/更新送水员
  * 即创建/更新 role=DELIVERY_WORKER 的账号行,用户名自动为 `delivery_{账号ID}`。
  */
 @AdminServiceAnnotation

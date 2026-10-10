@@ -1,6 +1,6 @@
 /**
  * 设计 token 同步守卫:user-weapp theme.scss 的 --status-* 变量值必须与
- * @aquarush/common STATUS_TONE_COLORS 一致(标签颜色单一来源,docs/ui-design-system.md §2.2)。
+ * @aquarush/common STATUS_TONE_COLORS 一致(标签颜色单一来源,spec/design/ui-design-system.md §2.2)。
  * 任何一端漂移都会在此测试失败。
  */
 import { readFileSync } from 'node:fs'

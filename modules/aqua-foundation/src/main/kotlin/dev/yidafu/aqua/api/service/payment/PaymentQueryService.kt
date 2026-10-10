@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 支付/退款查询服务(跨模块,实现位于 aqua-trade;CLAUDE.md 规则 4)
+ * 支付/退款查询服务(跨模块,实现位于 aqua-trade;AGENTS.md 规则 3)
  */
 interface PaymentQueryService {
   fun getByDateRange(

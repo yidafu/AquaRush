@@ -59,7 +59,7 @@ const Layout: React.FC = () => {
       icon: <UserOutlined />,
       label: '用户管理',
       children: [
-        // 管理员与送水员合并为账号管理(PRD/07-user.md §F-USR-020/021 单表架构);
+        // 管理员与送水员合并为账号管理(spec/prd/07-user.md §F-USR-020/021 单表架构);
         // 超管查看全部账号,普通管理员仅见配送能力账号(后端权限隔离)
         { key: '/users/accounts', icon: <TeamOutlined />, label: '账号' },
         { key: '/users/customers', icon: <UserOutlined />, label: '用户' },

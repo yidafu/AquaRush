@@ -122,7 +122,7 @@ class AdminAuthServiceImpl(
           ),
       )
     } catch (e: org.springframework.security.authentication.DisabledException) {
-      // 停用账号登录(AC-USR-020-07,PRD/07-user.md §F-USR-020)
+      // 停用账号登录(AC-USR-020-07,spec/prd/07-user.md §F-USR-020)
       logger.warn("Admin login failed, account disabled: username={}", username)
       bizLogger.logLogin(
         userId = "0",

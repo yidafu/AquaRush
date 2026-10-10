@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 /**
- * outbox 分区滚动维护(每日 04:40;docs/compose/spec/outbox-messaging.md 修订)。
+ * outbox 分区滚动维护(每日 04:40;spec/tech/design/outbox-messaging.md 修订)。
  *
  * 职责(取代原 DONE 行删除任务):
  * 1. 补建「当前半区 + 下一半区」分区,承接未来约 6 个月的事件写入;

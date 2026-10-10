@@ -12,7 +12,7 @@ interface ResetPasswordModalProps {
 
 /**
  * 重置密码弹窗(F-USR-020/021,G11 落地)
- * 新密码可留空:后端重置为默认密码 123456(与 PRD/07-user.md §F-USR-010/021 一致)
+ * 新密码可留空:后端重置为默认密码 123456(与 spec/prd/07-user.md §F-USR-010/021 一致)
  */
 const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   targetName,

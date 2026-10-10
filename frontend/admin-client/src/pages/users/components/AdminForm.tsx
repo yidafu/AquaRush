@@ -4,7 +4,7 @@ import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { AdminFormData, FormModalProps } from './types';
 
 /**
- * 后台账号表单(送水员档案并入 admin 账号表单表,PRD/07-user.md §F-USR-021 目标架构):
+ * 后台账号表单(送水员档案并入 admin 账号表单表,spec/prd/07-user.md §F-USR-021 目标架构):
  * role=DELIVERY_WORKER 时展示配送字段(头像/在线状态/接单权限),用户名可不填(后端自动生成 delivery_{账号ID});
  * 纯管理账号(SUPER_ADMIN/ADMIN)相关配送字段留空。
  */
@@ -172,7 +172,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
           </Select>
         </Form.Item>
 
-        {/* 头像所有角色可用;在线状态/接单权限仅送水员(PRD/07-user.md §F-USR-020/021) */}
+        {/* 头像所有角色可用;在线状态/接单权限仅送水员(spec/prd/07-user.md §F-USR-020/021) */}
         <Form.Item label="头像" name="avatarUrl">
           <AvatarUpload
             name={username || realName}

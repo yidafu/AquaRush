@@ -6,7 +6,7 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 
 class V121MergeDeliveryWorkerIntoAdmins :
   KotlinCompiledDatabaseChangeLog({
-    // 送水员档案并入 admin 账号表单表(PRD/07-user.md §F-USR-021 业务规则扩充):
+    // 送水员档案并入 admin 账号表单表(spec/prd/07-user.md §F-USR-021 业务规则扩充):
     //     删除 delivery_workers 档案表,配送业务字段并入 admins 单表(role=DELIVERY_WORKER 区分身份);
     //     orders/reviews/delivery_worker_statistics/daily_collection_records 的 delivery_worker_id
     //     由档案 id 数据值迁移为账号 id;删除 admins.delivery_worker_id 冗余关联列;

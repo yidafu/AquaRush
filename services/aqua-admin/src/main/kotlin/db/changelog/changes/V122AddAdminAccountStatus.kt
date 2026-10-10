@@ -6,7 +6,7 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 
 class V122AddAdminAccountStatus :
   KotlinCompiledDatabaseChangeLog({
-    // 后台账号状态列(PRD/07-user.md §F-USR-020/021):
+    // 后台账号状态列(spec/prd/07-user.md §F-USR-020/021):
     //     admins.account_status ACTIVE/DISABLED,停用账号不可登录/不可派单接单(AC-USR-020-07/021-07)。
     changeSet(author = "aqua-rush", id = "1.2.2-add-admin-account-status") {
       preConditions(onFail = "MARK_RAN") {

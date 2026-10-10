@@ -32,7 +32,7 @@ import { AccountToolbar, AccountTable } from './components';
 import type { AccountRow, EditingAdmin, EditingWorker } from './types';
 
 /**
- * 账号管理(管理员管理与送水员管理合并,PRD/07-user.md §F-USR-020/021):
+ * 账号管理(管理员管理与送水员管理合并,spec/prd/07-user.md §F-USR-020/021):
  * - 数据源按登录角色切换:超管查 admins(账号分页列表,含送水员);普通管理员查 deliveryWorkers(配送能力角色),
  *   权限隔离以 PERMISSION_ADMIN_USER_* / PERMISSION_DELIVERY_WORKER_* 后端强制(R-AUTH-04);
  * - 统一表单:超管走 create/updateAdmin(送水员角色展示配送字段);普通管理员走 create/updateDeliveryWorker;

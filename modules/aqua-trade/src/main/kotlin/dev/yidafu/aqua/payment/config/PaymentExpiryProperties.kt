@@ -31,6 +31,6 @@ data class PaymentExpiryProperties(
   var scanIntervalMs: Long = 300_000,
   /** 兜底扫描首次启动延迟(ms) */
   var scanInitialDelayMs: Long = 30_000,
-  /** 兜底扫描每批行数(分批游标处理,避免全表查询,CLAUDE.md 规则 13) */
+  /** 兜底扫描每批行数(分批游标处理,避免全表查询,AGENTS.md 规则 10) */
   var scanBatchSize: Int = 100,
 )

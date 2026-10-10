@@ -107,7 +107,7 @@ export const GET_PROMOTION_ACTIVITIES_QUERY = gql`
 /**
  * 水票管理页(WaterTicketsPage)单页查询:
  * 一次请求取回「票种分页 + 商品目录(指定商品票展示商品名)」,满足
- * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const WATER_TICKETS_PAGE_DATA_QUERY = gql`
   query WaterTicketsPageData($input: TicketTypeListInput, $productsInput: ProductSearchInput) {

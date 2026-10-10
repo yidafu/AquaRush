@@ -39,7 +39,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import java.time.LocalDateTime
 
 /**
- * 管理员登录响应(PRD/07-user.md §F-USR-020):LoginResponse.userInfo 需携带头像 URL,
+ * 管理员登录响应(spec/prd/07-user.md §F-USR-020):LoginResponse.userInfo 需携带头像 URL,
  * 后台顶栏据此展示当前管理员头像;未设置时前端按用户名自动生成 identicon。
  */
 class AdminAuthServiceTest :
