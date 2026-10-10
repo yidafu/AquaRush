@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.pricing.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
 import dev.yidafu.aqua.common.domain.table.GroupProductPricesTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -36,11 +36,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 分组商品专属价仓储 Exposed 实现测试(H2):save/软删与双删 no-op/派生查询/分页。
+ * 分组商品专属价仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删与双删 no-op/派生查询/分页。
  */
 class GroupProductPriceRepositoryImplTest :
   FunSpec({
-    val repo = GroupProductPriceRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = GroupProductPriceRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -55,8 +55,8 @@ class GroupProductPriceRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val groupId = MarketingExposedH2TestSupport.customerGroup(name = "G1")
-      val id = MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 10L, priceCents = 900L)
+      val groupId = MarketingPgTestSupport.customerGroup(name = "G1")
+      val id = MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 10L, priceCents = 900L)
       val loaded =
         repo
           .findByCustomerGroupId(groupId)
@@ -71,10 +71,10 @@ class GroupProductPriceRepositoryImplTest :
     }
 
     test("软删行不可见:列表/单查/分页均过滤") {
-      val groupId = MarketingExposedH2TestSupport.customerGroup(name = "G2")
-      MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 1L)
-      MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 2L, deleted = true)
-      MarketingExposedH2TestSupport.groupProductPrice(groupId = 777L, productId = 1L)
+      val groupId = MarketingPgTestSupport.customerGroup(name = "G2")
+      MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 1L)
+      MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 2L, deleted = true)
+      MarketingPgTestSupport.groupProductPrice(groupId = 777L, productId = 1L)
 
       repo.findByCustomerGroupId(groupId) shouldHaveSize 1
       repo.findByCustomerGroupIdAndProductId(groupId, 2L) shouldBe null
@@ -82,10 +82,10 @@ class GroupProductPriceRepositoryImplTest :
     }
 
     test("findByCustomerGroupId 分页:id 升序破平,跨页不重不漏") {
-      val groupId = MarketingExposedH2TestSupport.customerGroup(name = "G3")
-      val a = MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 1L)
-      val b = MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 2L)
-      val c = MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 3L)
+      val groupId = MarketingPgTestSupport.customerGroup(name = "G3")
+      val a = MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 1L)
+      val b = MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 2L)
+      val c = MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 3L)
 
       val page0 = repo.findByCustomerGroupId(groupId, PageRequest.of(0, 2))
       val page1 = repo.findByCustomerGroupId(groupId, PageRequest.of(1, 2))
@@ -95,22 +95,22 @@ class GroupProductPriceRepositoryImplTest :
     }
 
     test("delete 软删三列写入,二次 delete no-op(deletedAt 哨兵不被重写)") {
-      val groupId = MarketingExposedH2TestSupport.customerGroup(name = "G4")
-      val id = MarketingExposedH2TestSupport.groupProductPrice(groupId = groupId, productId = 1L)
+      val groupId = MarketingPgTestSupport.customerGroup(name = "G4")
+      val id = MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 1L)
       val entity = repo.findByCustomerGroupId(groupId).single()
 
       repo.delete(entity)
       repo.findByCustomerGroupId(groupId) shouldHaveSize 0
 
       val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
-      transaction(MarketingExposedH2TestSupport.database) {
+      transaction(MarketingPgTestSupport.database) {
         GroupProductPricesTable.update({ GroupProductPricesTable.id eq id }) {
           it[GroupProductPricesTable.deletedAt] = sentinel
         }
       }
       repo.delete(entity)
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           GroupProductPricesTable.selectAll().where { GroupProductPricesTable.id eq id }.single()
         }
       row[GroupProductPricesTable.isDeleted] shouldBe true

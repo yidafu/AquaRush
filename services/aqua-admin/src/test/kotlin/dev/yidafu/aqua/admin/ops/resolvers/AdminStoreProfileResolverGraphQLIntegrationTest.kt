@@ -81,7 +81,7 @@ class AdminStoreProfileResolverGraphQLIntegrationTest(
     }
     test("storeProfile returns null when unconfigured") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_READ"))
-      // 清空已保存店铺信息(共享 H2 可能被其他用例/历史运行写入)
+      // 清空已保存店铺信息(共享测试库可能被其他用例/历史运行写入)
       storeProfileRepository.hardDeleteAll()
       val json = postGraphql("{ storeProfile { shopName serviceHotline } }")
       json.contains("\"storeProfile\"") && json.contains("null") && !json.contains("\"errors\"") shouldBe true

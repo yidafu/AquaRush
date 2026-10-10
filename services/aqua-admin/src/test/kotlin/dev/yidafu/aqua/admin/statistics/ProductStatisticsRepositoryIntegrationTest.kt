@@ -46,7 +46,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 商品/用户统计仓储集成测试(H2 PostgreSQL 模式)
+ * 商品/用户统计仓储集成测试(Testcontainers 真实 PG)
  * 覆盖 PRD F-STA-006 与域级口径的数据正确性:
  * - P1-4 商品统计全量口径:总数/在售/下架/售罄按状态 SQL 分组,低库存预警含 OFFLINE/OUT_OF_STOCK 商品;
  * - P2-7 排行营收 = 已完成订单项金额合计(非 price × salesVolume 估算),非 COMPLETED 订单不计入;

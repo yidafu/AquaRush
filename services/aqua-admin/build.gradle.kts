@@ -1,5 +1,7 @@
 plugins {
   id("aqua.spring.boot.application")
+  // Testcontainers 真实 PG 测试(容器运行时接线见 build-logic/aqua.testcontainers.gradle.kts)
+  id("aqua.testcontainers")
 }
 
 // Specify the main class
@@ -55,7 +57,9 @@ dependencies {
   runtimeOnly(libs.postgresql)
 
   // Test dependencies
-  testImplementation(libs.h2)
+  // 集成测试数据源 = Testcontainers 真实 PG(共享基建在 foundation testFixtures),
+  // 由 testutil/PostgresTestContextInitializer 经 spring.factories 注入;不再用 H2
+  testImplementation(testFixtures(project(":modules:aqua-foundation")))
   testImplementation(libs.spring.boot.starter.test)
   testImplementation(libs.springmockk)
   testImplementation(libs.mockk.core)
@@ -81,8 +85,9 @@ tasks.withType<Test>().configureEach {
   exclude("**/db/AddressCoordinateMigrationTest.class")
   exclude("**/delivery/resolvers/DeliveryTrajectoryResolverGraphQLIntegrationTest.class")
   // 同 JVM 缓存的多个 Spring 上下文各持 Hikari 池(main 配置 min-idle=10/max=30),
-  // 上下文数增多时超过本地 PostgreSQL max_connections=100 → 后续上下文
+  // 上下文数(≈30)增多时会打满服务端连接数 → 后续上下文
   // "FATAL: sorry, too many clients already" 连锁失败。测试并发极低,收紧连接池。
+  // 容器侧 max_connections 已由 PostgresTestContainer 提到 200,5×30 亦有余量。
   environment("SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE", "1")
   environment("SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE", "5")
   // ArchUnit D5 需要看 client 的 Resolver 类,但不能把 client 放上 classpath

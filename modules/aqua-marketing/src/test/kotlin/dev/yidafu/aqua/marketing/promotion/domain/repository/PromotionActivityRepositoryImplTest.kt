@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.promotion.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -32,11 +32,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 满减/折扣活动仓储 Exposed 实现测试(H2):save/软删/分页/findActiveActivities。
+ * 满减/折扣活动仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/分页/findActiveActivities。
  */
 class PromotionActivityRepositoryImplTest :
   FunSpec({
-    val repo = PromotionActivityRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = PromotionActivityRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -54,7 +54,7 @@ class PromotionActivityRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.promotionActivity(name = "旧", status = "ACTIVE")
+      val id = MarketingPgTestSupport.promotionActivity(name = "旧", status = "ACTIVE")
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.name = "新"
       loaded.status = PromotionActivityStatus.DISABLED
@@ -66,8 +66,8 @@ class PromotionActivityRepositoryImplTest :
     }
 
     test("软删活动不可见:各查询均过滤") {
-      val keep = MarketingExposedH2TestSupport.promotionActivity(name = "存活")
-      MarketingExposedH2TestSupport.promotionActivity(name = "已删", deleted = true)
+      val keep = MarketingPgTestSupport.promotionActivity(name = "存活")
+      MarketingPgTestSupport.promotionActivity(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findAll() shouldHaveSize 1
@@ -75,9 +75,9 @@ class PromotionActivityRepositoryImplTest :
     }
 
     test("searchActivities:关键词过滤 + 软删不进 + 分页 id 破平") {
-      val a = MarketingExposedH2TestSupport.promotionActivity(name = "满减一")
-      val b = MarketingExposedH2TestSupport.promotionActivity(name = "折扣二")
-      MarketingExposedH2TestSupport.promotionActivity(name = "满减隐藏", deleted = true)
+      val a = MarketingPgTestSupport.promotionActivity(name = "满减一")
+      val b = MarketingPgTestSupport.promotionActivity(name = "折扣二")
+      MarketingPgTestSupport.promotionActivity(name = "满减隐藏", deleted = true)
 
       repo.searchActivities("满减", PageRequest.of(0, 10)).totalElements shouldBe 1L
       repo.searchActivities("二", PageRequest.of(0, 10)).totalElements shouldBe 1L
@@ -91,25 +91,25 @@ class PromotionActivityRepositoryImplTest :
 
     test("findActiveActivities:ACTIVE 且时间窗内,软删排除") {
       val now = LocalDateTime.of(2026, 5, 1, 0, 0)
-      MarketingExposedH2TestSupport.promotionActivity(
+      MarketingPgTestSupport.promotionActivity(
         name = "生效",
         validFrom = now.minusDays(1),
         validTo = now.plusDays(1),
         status = "ACTIVE",
       )
-      MarketingExposedH2TestSupport.promotionActivity(
+      MarketingPgTestSupport.promotionActivity(
         name = "未开始",
         validFrom = now.plusDays(1),
         validTo = now.plusDays(2),
         status = "ACTIVE",
       )
-      MarketingExposedH2TestSupport.promotionActivity(
+      MarketingPgTestSupport.promotionActivity(
         name = "停用",
         validFrom = now.minusDays(1),
         validTo = now.plusDays(1),
         status = "DISABLED",
       )
-      MarketingExposedH2TestSupport.promotionActivity(
+      MarketingPgTestSupport.promotionActivity(
         name = "软删",
         validFrom = now.minusDays(1),
         validTo = now.plusDays(1),

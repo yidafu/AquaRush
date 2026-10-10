@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.promotion.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
 import dev.yidafu.aqua.common.domain.table.PromotionActivityTiersTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -35,11 +35,11 @@ import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
 
 /**
- * 活动档位仓储 Exposed 实现测试(H2):save/软删与双删 no-op/按 sort 排序。
+ * 活动档位仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删与双删 no-op/按 sort 排序。
  */
 class PromotionActivityTierRepositoryImplTest :
   FunSpec({
-    val repo = PromotionActivityTierRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = PromotionActivityTierRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -51,7 +51,7 @@ class PromotionActivityTierRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.promotionTier(activityId = 1L, thresholdCents = 100L, sort = 0)
+      val id = MarketingPgTestSupport.promotionTier(activityId = 1L, thresholdCents = 100L, sort = 0)
       val loaded =
         repo
           .findByActivityId(1L)
@@ -68,17 +68,17 @@ class PromotionActivityTierRepositoryImplTest :
     }
 
     test("软删档位不可见,findByActivityIdOrderBySortAsc 按 sort 升序 + id 破平") {
-      val activityId = MarketingExposedH2TestSupport.promotionActivity(name = "活动")
-      val t1 = MarketingExposedH2TestSupport.promotionTier(activityId = activityId, thresholdCents = 100L, sort = 2)
-      val t2 = MarketingExposedH2TestSupport.promotionTier(activityId = activityId, thresholdCents = 200L, sort = 1)
-      MarketingExposedH2TestSupport.promotionTier(activityId = activityId, thresholdCents = 300L, sort = 0, deleted = true)
+      val activityId = MarketingPgTestSupport.promotionActivity(name = "活动")
+      val t1 = MarketingPgTestSupport.promotionTier(activityId = activityId, thresholdCents = 100L, sort = 2)
+      val t2 = MarketingPgTestSupport.promotionTier(activityId = activityId, thresholdCents = 200L, sort = 1)
+      MarketingPgTestSupport.promotionTier(activityId = activityId, thresholdCents = 300L, sort = 0, deleted = true)
 
       repo
         .findByActivityIdOrderBySortAsc(activityId)
         .map { it.id } shouldContainExactly listOf(t2, t1)
       // 同 sort 以 id 破平
-      val s1 = MarketingExposedH2TestSupport.promotionTier(activityId = 9L, thresholdCents = 1L, sort = 7)
-      val s2 = MarketingExposedH2TestSupport.promotionTier(activityId = 9L, thresholdCents = 2L, sort = 7)
+      val s1 = MarketingPgTestSupport.promotionTier(activityId = 9L, thresholdCents = 1L, sort = 7)
+      val s2 = MarketingPgTestSupport.promotionTier(activityId = 9L, thresholdCents = 2L, sort = 7)
       repo
         .findByActivityIdOrderBySortAsc(9L)
         .map { it.id } shouldContainExactly listOf(s1, s2)
@@ -86,15 +86,15 @@ class PromotionActivityTierRepositoryImplTest :
     }
 
     test("delete 软删三列写入,二次 delete no-op(deletedAt 哨兵不被重写)") {
-      val activityId = MarketingExposedH2TestSupport.promotionActivity(name = "活动2")
-      val id = MarketingExposedH2TestSupport.promotionTier(activityId = activityId)
+      val activityId = MarketingPgTestSupport.promotionActivity(name = "活动2")
+      val id = MarketingPgTestSupport.promotionTier(activityId = activityId)
       val entity = repo.findByActivityId(activityId).single()
 
       repo.delete(entity)
       repo.findByActivityId(activityId) shouldHaveSize 0
 
       val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
-      transaction(MarketingExposedH2TestSupport.database) {
+      transaction(MarketingPgTestSupport.database) {
         PromotionActivityTiersTable.update({
           PromotionActivityTiersTable.id eq id
         }) {
@@ -103,7 +103,7 @@ class PromotionActivityTierRepositoryImplTest :
       }
       repo.delete(entity)
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           PromotionActivityTiersTable
             .selectAll()
             .where { PromotionActivityTiersTable.id eq id }

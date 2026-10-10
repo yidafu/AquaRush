@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.table.BarrelPurchaseItemsTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -33,27 +33,27 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 /**
- * 购桶单明细仓储 Exposed 实现测试(H2):save 双分支/软删可见性/派生查询/saveAll。
+ * 购桶单明细仓储 Exposed 实现测试(Testcontainers 真实 PG):save 双分支/软删可见性/派生查询/saveAll。
  */
 class BarrelPurchaseItemRepositoryImplTest :
   FunSpec({
-    val repo = BarrelPurchaseItemRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = BarrelPurchaseItemRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
     test("save 新增并回填雪花 id,findAllByPurchaseId 可查") {
-      val purchaseId = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L)
+      val purchaseId = MarketingPgTestSupport.barrelPurchase(userId = 1L)
       val saved = repo.save(BarrelPurchaseItemModel(purchaseId = purchaseId, barrelFeeId = 1L, specification = "19L"))
       saved.id.shouldNotBeNull()
       repo.findAllByPurchaseIdOrderByIdAsc(purchaseId) shouldHaveSize 1
     }
 
     test("save 更新已有实体走 update 分支") {
-      val purchaseId = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L)
+      val purchaseId = MarketingPgTestSupport.barrelPurchase(userId = 1L)
       val id =
-        MarketingExposedH2TestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 1L, quantity = 1)
+        MarketingPgTestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 1L, quantity = 1)
       val row =
-        transaction(MarketingExposedH2TestSupport.database) {
+        transaction(MarketingPgTestSupport.database) {
           BarrelPurchaseItemsTable.selectAll().where { BarrelPurchaseItemsTable.id eq id }.single()
         }
       val loaded =
@@ -77,10 +77,10 @@ class BarrelPurchaseItemRepositoryImplTest :
     }
 
     test("软删明细不可见 + 按 id 升序") {
-      val purchaseId = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L)
-      val first = MarketingExposedH2TestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 1L)
-      val second = MarketingExposedH2TestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 2L)
-      MarketingExposedH2TestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 3L, deleted = true)
+      val purchaseId = MarketingPgTestSupport.barrelPurchase(userId = 1L)
+      val first = MarketingPgTestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 1L)
+      val second = MarketingPgTestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 2L)
+      MarketingPgTestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 3L, deleted = true)
 
       repo
         .findAllByPurchaseIdOrderByIdAsc(purchaseId)
@@ -89,7 +89,7 @@ class BarrelPurchaseItemRepositoryImplTest :
     }
 
     test("saveAll 批量 upsert,再保存走 update 分支") {
-      val purchaseId = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L)
+      val purchaseId = MarketingPgTestSupport.barrelPurchase(userId = 1L)
       val items =
         listOf(
           BarrelPurchaseItemModel(purchaseId = purchaseId, barrelFeeId = 1L, quantity = 1, amountCents = 3000L),

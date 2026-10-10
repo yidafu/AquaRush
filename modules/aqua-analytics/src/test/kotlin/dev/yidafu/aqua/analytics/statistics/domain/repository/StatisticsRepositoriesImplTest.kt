@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
-import dev.yidafu.aqua.analytics.common.exposed.AnalyticsExposedH2TestSupport
+import dev.yidafu.aqua.analytics.common.exposed.AnalyticsPgTestSupport
 import dev.yidafu.aqua.analytics.common.exposed.Seed
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
@@ -32,15 +32,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 统计快照聚合与各统计仓储实现的 H2 集成测试(JPA→Exposed 迁移 P3)。
+ * 统计快照聚合与各统计仓储实现的 真实 PG 集成测试(JPA→Exposed 迁移 P3)。
  * 重点验证:聚合口径与原 QueryDSL 版一致 + @SoftDelete 过滤语义(is_deleted=false)。
  */
 class StatisticsSnapshotAggregationRepositoryImplTest :
   FunSpec({
-    val repo = StatisticsSnapshotAggregationRepositoryImpl(AnalyticsExposedH2TestSupport.database)
+    val repo = StatisticsSnapshotAggregationRepositoryImpl(AnalyticsPgTestSupport.database)
     val date = LocalDate.of(2026, 10, 1)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("aggregateOrderFacts 按 status/worker 分组,金额按订单计一次,软删订单不计入") {
       val base = date.atStartOfDay()
@@ -134,7 +134,7 @@ private object PaymentRefundSeed {
     refundedAt: LocalDateTime?,
   ): Long {
     val id = Seed.id()
-    transaction(AnalyticsExposedH2TestSupport.database) {
+    transaction(AnalyticsPgTestSupport.database) {
       dev.yidafu.aqua.common.domain.table.PaymentRefundsTable.insert {
         it[PaymentRefundsTable.id] = id
         it[paymentId] = 1L
@@ -155,10 +155,10 @@ private object PaymentRefundSeed {
 
 class StatisticsOrderRepositoryImplTest :
   FunSpec({
-    val repo = StatisticsOrderRepositoryImpl(AnalyticsExposedH2TestSupport.database)
+    val repo = StatisticsOrderRepositoryImpl(AnalyticsPgTestSupport.database)
     val base = LocalDateTime.of(2026, 10, 1, 0, 0)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("getDailyOrderStatistics 金额按订单一次、件数按明细,软删不计入") {
       val o1 = Seed.order(status = "COMPLETED", amountCents = 100L, createdAt = base.plusHours(5))
@@ -238,10 +238,10 @@ class StatisticsOrderRepositoryImplTest :
 
 class ProductSalesStatisticsRepositoryImplTest :
   FunSpec({
-    val repo = ProductSalesStatisticsRepositoryImpl(AnalyticsExposedH2TestSupport.database)
+    val repo = ProductSalesStatisticsRepositoryImpl(AnalyticsPgTestSupport.database)
     val base = LocalDateTime.of(2026, 10, 1, 0, 0)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("getProductDailySales 仅计 COMPLETED 订单明细") {
       val productId = Seed.product(name = "山泉12L")
@@ -285,10 +285,10 @@ class ProductSalesStatisticsRepositoryImplTest :
 
 class StatisticsDeliveryWorkerRepositoryImplTest :
   FunSpec({
-    val repo = StatisticsDeliveryWorkerRepositoryImpl(AnalyticsExposedH2TestSupport.database)
+    val repo = StatisticsDeliveryWorkerRepositoryImpl(AnalyticsPgTestSupport.database)
     val base = LocalDateTime.of(2026, 10, 1, 0, 0)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("countTodayActiveWorkers 只统计当日有单且角色具备配送能力的账号") {
       val workerId = Seed.admin(role = "DELIVERY_WORKER")
@@ -310,10 +310,10 @@ class StatisticsDeliveryWorkerRepositoryImplTest :
 
 class StatisticsUserRepositoryImplTest :
   FunSpec({
-    val repo = StatisticsUserRepositoryImpl(AnalyticsExposedH2TestSupport.database)
+    val repo = StatisticsUserRepositoryImpl(AnalyticsPgTestSupport.database)
     val base = LocalDateTime.of(2026, 10, 1, 0, 0)
 
-    beforeTest { AnalyticsExposedH2TestSupport.reset() }
+    beforeTest { AnalyticsPgTestSupport.reset() }
 
     test("countDailyNewUsers 按日分组,软删用户不计入") {
       Seed.user(createdAt = base.plusHours(1))

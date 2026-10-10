@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -31,11 +31,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 用户水票实例仓储 Exposed 实现测试(H2):save/软删/派生查询/按日使用聚合/核销与退回/票号取号。
+ * 用户水票实例仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/按日使用聚合/核销与退回/票号取号。
  */
 class UserTicketRepositoryImplTest :
   FunSpec({
-    val repo = UserTicketRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = UserTicketRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -60,15 +60,15 @@ class UserTicketRepositoryImplTest :
       reloaded.status shouldBe UserTicketStatus.USED
       reloaded.usedOrderId shouldBe 777L
 
-      val gone = MarketingExposedH2TestSupport.userTicket(userId = 1L, ticketTypeId = 1L, purchaseId = 1L, deleted = true)
+      val gone = MarketingPgTestSupport.userTicket(userId = 1L, ticketTypeId = 1L, purchaseId = 1L, deleted = true)
       repo.findById(gone).isPresent shouldBe false
     }
 
     test("派生查询:按用户/状态过滤 + 软删不可见 + id 升序") {
-      val u1 = MarketingExposedH2TestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "UNUSED")
-      val u2 = MarketingExposedH2TestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "RETURNED")
-      MarketingExposedH2TestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "UNUSED", deleted = true)
-      MarketingExposedH2TestSupport.userTicket(userId = 101L, ticketTypeId = 1L, purchaseId = 2L, status = "UNUSED")
+      val u1 = MarketingPgTestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "UNUSED")
+      val u2 = MarketingPgTestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "RETURNED")
+      MarketingPgTestSupport.userTicket(userId = 100L, ticketTypeId = 1L, purchaseId = 1L, status = "UNUSED", deleted = true)
+      MarketingPgTestSupport.userTicket(userId = 101L, ticketTypeId = 1L, purchaseId = 2L, status = "UNUSED")
 
       repo.findByUserId(100L).map { it.id } shouldContainExactly listOf(u1, u2)
       repo.findByUserIdAndStatus(100L, UserTicketStatus.UNUSED).map { it.id } shouldContainExactly listOf(u1)
@@ -81,28 +81,28 @@ class UserTicketRepositoryImplTest :
 
     test("countByTicketTypeIdAndStatusInAndExpireTimeGreaterThan:状态+未过期口径,空状态列表=0") {
       val now = LocalDateTime.now()
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 1L,
         ticketTypeId = 7L,
         purchaseId = 1L,
         status = "UNUSED",
         expireTime = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 2L,
         ticketTypeId = 7L,
         purchaseId = 1L,
         status = "RETURNED",
         expireTime = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 3L,
         ticketTypeId = 7L,
         purchaseId = 1L,
         status = "RETURNED",
         expireTime = now.minusDays(1),
       )
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 4L,
         ticketTypeId = 7L,
         purchaseId = 1L,
@@ -127,7 +127,7 @@ class UserTicketRepositoryImplTest :
       val d1 = LocalDate.of(2026, 3, 1)
       val d2 = LocalDate.of(2026, 3, 2)
       // USED → usedAt
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 1L,
         ticketTypeId = tid,
         purchaseId = 1L,
@@ -138,7 +138,7 @@ class UserTicketRepositoryImplTest :
         expireTime = d1.plusDays(30).atStartOfDay(),
       )
       // RETURNED → returnedAt 落 d2
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 1L,
         ticketTypeId = tid,
         purchaseId = 1L,
@@ -149,7 +149,7 @@ class UserTicketRepositoryImplTest :
         expireTime = d1.plusDays(30).atStartOfDay(),
       )
       // EXPIRED → returnedAt 为空回退 updatedAt(种子 updatedAt=createdAt 落 d1)
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 2L,
         ticketTypeId = tid,
         purchaseId = 1L,
@@ -160,14 +160,14 @@ class UserTicketRepositoryImplTest :
         expireTime = d1.plusDays(30).atStartOfDay(),
       )
       // UNUSED 不计;他票种不计;软删不计
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 3L,
         ticketTypeId = tid,
         purchaseId = 1L,
         status = "UNUSED",
         expireTime = d1.plusDays(30).atStartOfDay(),
       )
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 4L,
         ticketTypeId = 6L,
         purchaseId = 1L,
@@ -176,7 +176,7 @@ class UserTicketRepositoryImplTest :
         usedAt = d1.atTime(11, 0),
         expireTime = d1.plusDays(30).atStartOfDay(),
       )
-      MarketingExposedH2TestSupport.userTicket(
+      MarketingPgTestSupport.userTicket(
         userId = 5L,
         ticketTypeId = tid,
         purchaseId = 1L,
@@ -208,7 +208,7 @@ class UserTicketRepositoryImplTest :
     test("redeemAtomically:UNUSED/RETURNED 可核销,USED/过期/软删 no-op") {
       val now = LocalDateTime.now()
       val unused =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 100L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -216,7 +216,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.plusDays(5),
         )
       val returned =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 100L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -224,7 +224,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.plusDays(5),
         )
       val used =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 100L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -234,7 +234,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.plusDays(5),
         )
       val expired =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 100L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -242,7 +242,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.minusDays(1),
         )
       val gone =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 100L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -263,7 +263,7 @@ class UserTicketRepositoryImplTest :
       repo.redeemAtomically(gone, 100L, 892L, now) shouldBe 0
       // 用户不匹配
       val otherUser =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 101L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -275,7 +275,7 @@ class UserTicketRepositoryImplTest :
     test("returnByOrder:未过期→RETURNED,已过期→EXPIRED,幂等") {
       val now = LocalDateTime.now()
       val unexpired =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 1L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -285,7 +285,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.plusDays(3),
         )
       val expired =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 2L,
           ticketTypeId = 1L,
           purchaseId = 1L,
@@ -295,7 +295,7 @@ class UserTicketRepositoryImplTest :
           expireTime = now.minusDays(1),
         )
       val other =
-        MarketingExposedH2TestSupport.userTicket(
+        MarketingPgTestSupport.userTicket(
           userId = 3L,
           ticketTypeId = 1L,
           purchaseId = 1L,

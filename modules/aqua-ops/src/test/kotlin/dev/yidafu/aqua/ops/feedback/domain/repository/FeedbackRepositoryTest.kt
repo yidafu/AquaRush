@@ -22,7 +22,7 @@ package dev.yidafu.aqua.ops.feedback.domain.repository
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -32,16 +32,16 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 
 /**
- * 意见反馈仓储实现测试（H2 + Exposed，F-OPS-003）。
+ * 意见反馈仓储实现测试（Testcontainers 真实 PG + Exposed，F-OPS-003）。
  * 重点覆盖：`images` json 列的 ArrayNode 序列化回环（ArrayNodeConverter 路径）、
  * 软删过滤与组合筛选（迁移方案 §9 R3/R4）。
  */
 class FeedbackRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = FeedbackRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun images(vararg urls: String): ArrayNode = jacksonObjectMapper().valueToTree(urls.toList())
 
@@ -65,7 +65,7 @@ class FeedbackRepositoryTest :
       )
 
     test("save 新建：images json 列按字符串回环，内容逐字一致") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(feedback(100L))
 
       val loaded = repository.findById(saved.id!!).orElseThrow()
@@ -76,7 +76,7 @@ class FeedbackRepositoryTest :
     }
 
     test("save 更新：处理结果与状态覆盖") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(feedback(100L))
       saved.status = FeedbackStatus.RESOLVED
       saved.handleResult = "已上门换水"
@@ -92,7 +92,7 @@ class FeedbackRepositoryTest :
     }
 
     test("delete 后 findById/count/findFirstByContentContaining 全部过滤") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(feedback(100L, content = "唯一关键词水垢"))
       val totalBefore = repository.count()
       repository.delete(saved)
@@ -103,7 +103,7 @@ class FeedbackRepositoryTest :
     }
 
     test("findFirstByContentContaining 命中首条") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(feedback(100L, content = "投诉夜间噪音"))
 
       repository.findFirstByContentContaining("噪音").shouldNotBeNull()
@@ -111,7 +111,7 @@ class FeedbackRepositoryTest :
     }
 
     test("findByUserId 分页仅含该用户") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(feedback(1L, content = "A用户的反馈"))
       repository.save(feedback(1L, content = "A用户的第二条"))
       repository.save(feedback(2L, content = "B用户的反馈"))
@@ -122,7 +122,7 @@ class FeedbackRepositoryTest :
     }
 
     test("findPage：状态/用户/联系方式关键字/时间范围组合过滤") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val now = LocalDateTime.now()
       repository.save(feedback(1L, content = "匹配项", contactInfo = "zhang@aq.cn", createdAt = now))
       repository.save(feedback(2L, content = "其他用户", status = FeedbackStatus.RESOLVED, createdAt = now))
@@ -144,7 +144,7 @@ class FeedbackRepositoryTest :
     }
 
     test("findPage：dateFrom 单独传入也生效（两端配对由服务层负责）") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val now = LocalDateTime.now()
       repository.save(feedback(1L, content = "仅起始时间", createdAt = now.minusDays(30)))
 

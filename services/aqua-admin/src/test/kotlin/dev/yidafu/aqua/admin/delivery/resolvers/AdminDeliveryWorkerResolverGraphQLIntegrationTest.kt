@@ -81,7 +81,7 @@ class AdminDeliveryWorkerResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子化一个在线送水员账号（findByPhone 去重，避免共享 H2 遗留行导致的唯一键冲突）
+      // 幂等种子化一个在线送水员账号（findByPhone 去重，避免共享测试库遗留行导致的唯一键冲突）
       // 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021)，送水员即 role=DELIVERY_WORKER 的账号行
       if (adminRepository.findByPhone("13900139000") == null) {
         adminRepository.save(

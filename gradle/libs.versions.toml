@@ -59,7 +59,8 @@ spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-depe
 spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase", version.ref = "spring-boot" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
-h2 = { module = "com.h2database:h2", version = "2.2.224" }
+# H2 已从测试栈移除：仓储/集成测试一律用 Testcontainers 真实 PostgreSQL
+# (testcontainers-core / testcontainers-postgresql)，见 aqua.testcontainers 约定插件。
 
 # Exposed (1.x: 包名 org.jetbrains.exposed.v1.*)
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }

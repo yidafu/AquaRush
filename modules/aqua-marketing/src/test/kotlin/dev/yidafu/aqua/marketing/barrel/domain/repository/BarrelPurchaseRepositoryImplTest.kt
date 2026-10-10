@@ -22,8 +22,8 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.domain.table.BarrelPurchasesTable
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -35,11 +35,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 水桶购买单仓储 Exposed 实现测试(H2):save/软删/派生查询/分页/原子流转。
+ * 水桶购买单仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/分页/原子流转。
  */
 class BarrelPurchaseRepositoryImplTest :
   FunSpec({
-    val repo = BarrelPurchaseRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = BarrelPurchaseRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -52,7 +52,7 @@ class BarrelPurchaseRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK002")
+      val id = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK002")
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.paymentStatus = BarrelPaymentStatus.PAID
       loaded.transactionId = "wx123"
@@ -66,8 +66,8 @@ class BarrelPurchaseRepositoryImplTest :
     }
 
     test("软删购桶单不可见:findById/findByOrderNo/exists/findFirst 均过滤") {
-      val keep = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-keep")
-      MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-gone", deleted = true)
+      val keep = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-keep")
+      MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-gone", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findByOrderNo("BK-gone") shouldBe null
@@ -79,14 +79,14 @@ class BarrelPurchaseRepositoryImplTest :
     test("findFirstByUserIdOrderByCreatedAtDesc:最新优先,id 破平") {
       val older = LocalDateTime.of(2026, 1, 1, 10, 0)
       val newer = LocalDateTime.of(2026, 6, 1, 10, 0)
-      val first = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-old", createdAt = older)
-      val second = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-new", createdAt = newer)
-      val third = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-old2", createdAt = older)
+      val first = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-old", createdAt = older)
+      val second = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-new", createdAt = newer)
+      val third = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-old2", createdAt = older)
 
       repo.findFirstByUserIdOrderByCreatedAtDesc(100L).shouldNotBeNull().id shouldBe second
       // 同 createdAt 最新组按 id 降序破平(显式接收两个 seed id,组内取 id 大者)
-      val tie1 = MarketingExposedH2TestSupport.barrelPurchase(userId = 101L, orderNo = "BK-tie1", createdAt = older)
-      val tie2 = MarketingExposedH2TestSupport.barrelPurchase(userId = 101L, orderNo = "BK-tie2", createdAt = older)
+      val tie1 = MarketingPgTestSupport.barrelPurchase(userId = 101L, orderNo = "BK-tie1", createdAt = older)
+      val tie2 = MarketingPgTestSupport.barrelPurchase(userId = 101L, orderNo = "BK-tie2", createdAt = older)
       repo.findFirstByUserIdOrderByCreatedAtDesc(101L).shouldNotBeNull().id shouldBe tie2
       // sanity: older/third 存在
       repo.findById(first).isPresent shouldBe true
@@ -95,9 +95,9 @@ class BarrelPurchaseRepositoryImplTest :
 
     test("searchPurchases:状态+paidAt 区间过滤,软删不进结果") {
       val paidAt = LocalDateTime.of(2026, 5, 1, 12, 0)
-      MarketingExposedH2TestSupport.barrelPurchase(userId = 1L, paymentStatus = "PAID", paidAt = paidAt)
-      MarketingExposedH2TestSupport.barrelPurchase(userId = 2L, paymentStatus = "PENDING", paidAt = null)
-      MarketingExposedH2TestSupport.barrelPurchase(userId = 3L, paymentStatus = "PAID", paidAt = paidAt, deleted = true)
+      MarketingPgTestSupport.barrelPurchase(userId = 1L, paymentStatus = "PAID", paidAt = paidAt)
+      MarketingPgTestSupport.barrelPurchase(userId = 2L, paymentStatus = "PENDING", paidAt = null)
+      MarketingPgTestSupport.barrelPurchase(userId = 3L, paymentStatus = "PAID", paidAt = paidAt, deleted = true)
 
       repo
         .searchPurchases(BarrelPaymentStatus.PAID, null, null, PageRequest.of(0, 10))
@@ -116,9 +116,9 @@ class BarrelPurchaseRepositoryImplTest :
 
     test("searchPurchases:createdAt 降序 + 同值 id 破平,跨页不重不漏") {
       val tie = LocalDateTime.of(2026, 5, 2, 8, 0)
-      val a = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L, orderNo = "A", createdAt = tie)
-      val b = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L, orderNo = "B", createdAt = tie)
-      val c = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L, orderNo = "C", createdAt = tie)
+      val a = MarketingPgTestSupport.barrelPurchase(userId = 1L, orderNo = "A", createdAt = tie)
+      val b = MarketingPgTestSupport.barrelPurchase(userId = 1L, orderNo = "B", createdAt = tie)
+      val c = MarketingPgTestSupport.barrelPurchase(userId = 1L, orderNo = "C", createdAt = tie)
 
       val page0 = repo.searchPurchases(null, null, null, PageRequest.of(0, 2))
       val page1 = repo.searchPurchases(null, null, null, PageRequest.of(1, 2))
@@ -129,7 +129,7 @@ class BarrelPurchaseRepositoryImplTest :
     }
 
     test("markPaidAtomically:PENDING→PAID 幂等,二次调用 no-op") {
-      val id = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "BK-pay", paymentStatus = "PENDING")
+      val id = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "BK-pay", paymentStatus = "PENDING")
       val now = LocalDateTime.of(2026, 3, 1, 12, 0)
 
       repo.markPaidAtomically(id, "wx-1", now) shouldBe 1
@@ -147,15 +147,15 @@ class BarrelPurchaseRepositoryImplTest :
     }
 
     test("markPaidAtomically 对软删行 no-op") {
-      val id = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L, paymentStatus = "PENDING", deleted = true)
+      val id = MarketingPgTestSupport.barrelPurchase(userId = 1L, paymentStatus = "PENDING", deleted = true)
       repo.markPaidAtomically(id, "wx", LocalDateTime.now()) shouldBe 0
     }
 
     test("cancelPendingByUser:批量取消该用户 PENDING 单,非 PENDING 不动") {
-      val p1 = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "c1", paymentStatus = "PENDING")
-      val p2 = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "c2", paymentStatus = "PENDING")
-      val other = MarketingExposedH2TestSupport.barrelPurchase(userId = 101L, orderNo = "c3", paymentStatus = "PENDING")
-      val paid = MarketingExposedH2TestSupport.barrelPurchase(userId = 100L, orderNo = "c4", paymentStatus = "PAID")
+      val p1 = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "c1", paymentStatus = "PENDING")
+      val p2 = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "c2", paymentStatus = "PENDING")
+      val other = MarketingPgTestSupport.barrelPurchase(userId = 101L, orderNo = "c3", paymentStatus = "PENDING")
+      val paid = MarketingPgTestSupport.barrelPurchase(userId = 100L, orderNo = "c4", paymentStatus = "PAID")
       val now = LocalDateTime.now()
 
       repo.cancelPendingByUser(100L, now) shouldBe 2
@@ -184,8 +184,8 @@ class BarrelPurchaseRepositoryImplTest :
     }
 
     test("delete 语义由行内三列验证:软删行 updated_at/deleted_at 写入") {
-      val id = MarketingExposedH2TestSupport.barrelPurchase(userId = 1L)
-      transaction(MarketingExposedH2TestSupport.database) {
+      val id = MarketingPgTestSupport.barrelPurchase(userId = 1L)
+      transaction(MarketingPgTestSupport.database) {
         BarrelPurchasesTable.update({ BarrelPurchasesTable.id eq id }) {
           it[isDeleted] = true
           it[deletedAt] = LocalDateTime.of(2020, 1, 1, 0, 0)

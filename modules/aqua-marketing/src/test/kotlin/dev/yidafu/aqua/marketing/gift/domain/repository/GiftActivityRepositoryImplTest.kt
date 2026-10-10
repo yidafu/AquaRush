@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.gift.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -31,11 +31,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 买赠活动仓储 Exposed 实现测试(H2):save/软删/分页/findActiveActivities。
+ * 买赠活动仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/分页/findActiveActivities。
  */
 class GiftActivityRepositoryImplTest :
   FunSpec({
-    val repo = GiftActivityRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = GiftActivityRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -57,16 +57,16 @@ class GiftActivityRepositoryImplTest :
         .shouldNotBeNull()
         .giftQuantity shouldBe 2
 
-      val gone = MarketingExposedH2TestSupport.giftActivity(name = "已删", deleted = true)
+      val gone = MarketingPgTestSupport.giftActivity(name = "已删", deleted = true)
       repo.findById(gone).isPresent shouldBe false
       repo.findAllById(listOf(saved.id!!, gone)).map { it.id } shouldContainExactly listOf(saved.id)
       repo.findAllById(emptyList()).size shouldBe 0
     }
 
     test("searchActivities:关键词 + 分页 id 破平 + 软删过滤") {
-      val a = MarketingExposedH2TestSupport.giftActivity(name = "满赠一")
-      val b = MarketingExposedH2TestSupport.giftActivity(name = "买赠二")
-      MarketingExposedH2TestSupport.giftActivity(name = "隐藏满赠", deleted = true)
+      val a = MarketingPgTestSupport.giftActivity(name = "满赠一")
+      val b = MarketingPgTestSupport.giftActivity(name = "买赠二")
+      MarketingPgTestSupport.giftActivity(name = "隐藏满赠", deleted = true)
 
       repo.searchActivities("赠", PageRequest.of(0, 10)).totalElements shouldBe 2L
       repo.searchActivities("隐藏", PageRequest.of(0, 10)).totalElements shouldBe 0L
@@ -79,15 +79,15 @@ class GiftActivityRepositoryImplTest :
 
     test("findActiveActivities:ACTIVE 且时间窗内,软删排除") {
       val now = LocalDateTime.of(2026, 5, 1, 0, 0)
-      MarketingExposedH2TestSupport.giftActivity(name = "生效", validFrom = now.minusDays(1), validTo = now.plusDays(1))
-      MarketingExposedH2TestSupport.giftActivity(name = "过期", validFrom = now.minusDays(10), validTo = now.minusDays(5))
-      MarketingExposedH2TestSupport.giftActivity(
+      MarketingPgTestSupport.giftActivity(name = "生效", validFrom = now.minusDays(1), validTo = now.plusDays(1))
+      MarketingPgTestSupport.giftActivity(name = "过期", validFrom = now.minusDays(10), validTo = now.minusDays(5))
+      MarketingPgTestSupport.giftActivity(
         name = "停用",
         validFrom = now.minusDays(1),
         validTo = now.plusDays(1),
         status = "DISABLED",
       )
-      MarketingExposedH2TestSupport.giftActivity(
+      MarketingPgTestSupport.giftActivity(
         name = "软删",
         validFrom = now.minusDays(1),
         validTo = now.plusDays(1),

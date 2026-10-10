@@ -53,7 +53,7 @@ class LogPartitionBackupInProgressException(
 ) : ValidationException("该分区正在备份中,请稍后重试:$partitionName")
 
 /**
- * 当前环境不支持分区操作(非 PostgreSQL,如测试 H2)
+ * 当前环境不支持分区操作(非 PostgreSQL 环境)
  */
 class LogPartitionUnsupportedEnvironmentException(
   message: String,

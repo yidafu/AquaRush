@@ -22,8 +22,8 @@ package dev.yidafu.aqua.marketing.firstorder.domain.repository
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -32,11 +32,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 首单活动仓储 Exposed 实现测试(H2):save/软删/分页/生效活动/新人专享价/重叠校验。
+ * 首单活动仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/分页/生效活动/新人专享价/重叠校验。
  */
 class FirstOrderActivityRepositoryImplTest :
   FunSpec({
-    val repo = FirstOrderActivityRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = FirstOrderActivityRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -58,16 +58,16 @@ class FirstOrderActivityRepositoryImplTest :
         .shouldNotBeNull()
         .name shouldBe "首单B"
 
-      val gone = MarketingExposedH2TestSupport.firstOrderActivity(name = "已删", deleted = true)
+      val gone = MarketingPgTestSupport.firstOrderActivity(name = "已删", deleted = true)
       repo.findById(gone).isPresent shouldBe false
       repo.findAllById(listOf(saved.id!!, gone)).map { it.id } shouldContainExactly listOf(saved.id)
       repo.findAllById(emptyList()).size shouldBe 0
     }
 
     test("searchActivities:关键词 + 分页 id 破平 + 软删过滤") {
-      val a = MarketingExposedH2TestSupport.firstOrderActivity(name = "首单一")
-      val b = MarketingExposedH2TestSupport.firstOrderActivity(name = "新人二")
-      MarketingExposedH2TestSupport.firstOrderActivity(name = "隐藏首单", deleted = true)
+      val a = MarketingPgTestSupport.firstOrderActivity(name = "首单一")
+      val b = MarketingPgTestSupport.firstOrderActivity(name = "新人二")
+      MarketingPgTestSupport.firstOrderActivity(name = "隐藏首单", deleted = true)
 
       repo.searchActivities("首单", PageRequest.of(0, 10)).totalElements shouldBe 1L
       repo.searchActivities("  ", PageRequest.of(0, 10)).totalElements shouldBe 2L
@@ -80,9 +80,9 @@ class FirstOrderActivityRepositoryImplTest :
 
     test("findActiveActivities:ACTIVE 且时间窗内") {
       val now = LocalDateTime.of(2026, 5, 1, 0, 0)
-      MarketingExposedH2TestSupport.firstOrderActivity(name = "生效", validFrom = now.minusDays(1), validTo = now.plusDays(1))
-      MarketingExposedH2TestSupport.firstOrderActivity(name = "未开始", validFrom = now.plusDays(1), validTo = now.plusDays(2))
-      MarketingExposedH2TestSupport.firstOrderActivity(name = "软删", validFrom = now.minusDays(1), validTo = now.plusDays(1), deleted = true)
+      MarketingPgTestSupport.firstOrderActivity(name = "生效", validFrom = now.minusDays(1), validTo = now.plusDays(1))
+      MarketingPgTestSupport.firstOrderActivity(name = "未开始", validFrom = now.plusDays(1), validTo = now.plusDays(2))
+      MarketingPgTestSupport.firstOrderActivity(name = "软删", validFrom = now.minusDays(1), validTo = now.plusDays(1), deleted = true)
 
       repo.findActiveActivities(PromotionActivityStatus.ACTIVE, now).map { it.name } shouldContainExactly listOf("生效")
       repo.findActiveActivities(PromotionActivityStatus.ACTIVE, now.plusYears(1)).size shouldBe 0
@@ -90,7 +90,7 @@ class FirstOrderActivityRepositoryImplTest :
 
     test("findActiveNewcomerPriceByProductId:类型+商品过滤,validFrom 最新优先") {
       val now = LocalDateTime.of(2026, 5, 1, 0, 0)
-      MarketingExposedH2TestSupport.firstOrderActivity(
+      MarketingPgTestSupport.firstOrderActivity(
         name = "早",
         activityType = "NEWCOMER_PRICE",
         productId = 1L,
@@ -98,7 +98,7 @@ class FirstOrderActivityRepositoryImplTest :
         validFrom = now.minusDays(10),
         validTo = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.firstOrderActivity(
+      MarketingPgTestSupport.firstOrderActivity(
         name = "晚",
         activityType = "NEWCOMER_PRICE",
         productId = 1L,
@@ -106,7 +106,7 @@ class FirstOrderActivityRepositoryImplTest :
         validFrom = now.minusDays(2),
         validTo = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.firstOrderActivity(
+      MarketingPgTestSupport.firstOrderActivity(
         name = "别型",
         activityType = "FIRST_ORDER_REDUCE",
         productId = 1L,
@@ -136,14 +136,14 @@ class FirstOrderActivityRepositoryImplTest :
     test("existsOverlap:时间窗重叠 + 类型过滤 + excludeId + 软删不冲突") {
       val base = LocalDateTime.of(2026, 5, 1, 0, 0)
       val overlapId =
-        MarketingExposedH2TestSupport.firstOrderActivity(
+        MarketingPgTestSupport.firstOrderActivity(
           name = "重叠",
           activityType = "FIRST_ORDER_REDUCE",
           productId = 1L,
           validFrom = base,
           validTo = base.plusDays(10),
         )
-      MarketingExposedH2TestSupport.firstOrderActivity(
+      MarketingPgTestSupport.firstOrderActivity(
         name = "软删",
         activityType = "FIRST_ORDER_REDUCE",
         productId = 1L,

@@ -59,8 +59,13 @@ data class DailyReconciliationModel(
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   var status: DailyReconciliationStatus = DailyReconciliationStatus.PENDING,
+  // report_data 在 Liquibase DDL(V104AddDailyCollectionTables)与线上库均为 `text`,
+  // 不是 `json` —— 这里必须与 DDL 对齐:测试库由 Hibernate 实体元数据生成,
+  // columnDefinition 写 json 会建出 json 列,而 Exposed 侧(DailyReconciliationsTable)
+  // 按 text 绑定写入 → PG 报 "column report_data is of type json but expression is of
+  // type character varying"(H2 会静默容忍,真实 PG 不会)。
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "report_data", columnDefinition = "json")
+  @Column(name = "report_data", columnDefinition = "text")
   var reportData: Map<String, Any>? = null,
   @Column(name = "reviewed_at")
   var reviewedAt: LocalDateTime? = null,

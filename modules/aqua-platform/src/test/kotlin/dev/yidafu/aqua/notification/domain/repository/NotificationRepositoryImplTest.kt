@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.dto.notification.NotificationListRequest
 import dev.yidafu.aqua.common.domain.model.NotificationModel
 import dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport.reset
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -33,7 +33,7 @@ import java.time.LocalDateTime
 
 class NotificationRepositoryImplTest :
   FunSpec({
-    val repo = NotificationRepositoryImpl(PlatformExposedH2TestSupport.database)
+    val repo = NotificationRepositoryImpl(PlatformPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -67,9 +67,9 @@ class NotificationRepositoryImplTest :
     }
 
     test("findMyNotifications:USER/WORKER 接收人与已读过滤") {
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "u1", userId = 1L)
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "u2", userId = 1L, readAt = LocalDateTime.now())
-      PlatformExposedH2TestSupport.notification(
+      PlatformPgTestSupport.notification(idempotencyKey = "u1", userId = 1L)
+      PlatformPgTestSupport.notification(idempotencyKey = "u2", userId = 1L, readAt = LocalDateTime.now())
+      PlatformPgTestSupport.notification(
         idempotencyKey = "w1",
         receiverType = "WORKER",
         userId = null,
@@ -99,8 +99,8 @@ class NotificationRepositoryImplTest :
     }
 
     test("countUnread 与 markAllRead(幂等)") {
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "a", userId = 1L)
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "b", userId = 1L)
+      PlatformPgTestSupport.notification(idempotencyKey = "a", userId = 1L)
+      PlatformPgTestSupport.notification(idempotencyKey = "b", userId = 1L)
 
       repo.countUnread(NotificationReceiverType.USER, 1L) shouldBe 2L
       repo.markAllRead(NotificationReceiverType.USER, 1L) shouldBe 2
@@ -109,9 +109,9 @@ class NotificationRepositoryImplTest :
     }
 
     test("findByFilters:时间窗/关键词/接收类型") {
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "f1", title = "订单已送达")
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "f2", title = "余额提醒")
-      PlatformExposedH2TestSupport.notification(
+      PlatformPgTestSupport.notification(idempotencyKey = "f1", title = "订单已送达")
+      PlatformPgTestSupport.notification(idempotencyKey = "f2", title = "余额提醒")
+      PlatformPgTestSupport.notification(
         idempotencyKey = "f3",
         receiverType = "WORKER",
         userId = null,
@@ -132,8 +132,8 @@ class NotificationRepositoryImplTest :
 
     test("deleteExpired 软删保留策略") {
       val old = LocalDateTime.now().minusDays(1)
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "old", createdAt = old)
-      PlatformExposedH2TestSupport.notification(idempotencyKey = "new", createdAt = LocalDateTime.now().plusMinutes(5))
+      PlatformPgTestSupport.notification(idempotencyKey = "old", createdAt = old)
+      PlatformPgTestSupport.notification(idempotencyKey = "new", createdAt = LocalDateTime.now().plusMinutes(5))
 
       repo.deleteExpired(LocalDateTime.now()) shouldBe 1
       // 软删后旧行不再计入未读,新行保留

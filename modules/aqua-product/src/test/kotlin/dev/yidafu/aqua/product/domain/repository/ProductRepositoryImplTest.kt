@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.domain.table.ProductsTable
-import dev.yidafu.aqua.product.common.exposed.ProductExposedH2TestSupport
-import dev.yidafu.aqua.product.common.exposed.ProductExposedH2TestSupport.reset
+import dev.yidafu.aqua.product.common.exposed.ProductPgTestSupport
+import dev.yidafu.aqua.product.common.exposed.ProductPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -39,11 +39,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 商品仓储 Exposed 实现测试(H2):save 双分支/软删可见性/派生查询/分页/搜索/json 回环。
+ * 商品仓储 Exposed 实现测试(Testcontainers 真实 PG):save 双分支/软删可见性/派生查询/分页/搜索/json 回环。
  */
 class ProductRepositoryImplTest :
   FunSpec({
-    val repo = ProductRepositoryImpl(ProductExposedH2TestSupport.database)
+    val repo = ProductRepositoryImpl(ProductPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -67,7 +67,7 @@ class ProductRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = ProductExposedH2TestSupport.product(name = "旧名称", stock = 3)
+      val id = ProductPgTestSupport.product(name = "旧名称", stock = 3)
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.name = "新名称"
       loaded.stock = 9
@@ -80,8 +80,8 @@ class ProductRepositoryImplTest :
     }
 
     test("软删商品不可见:findById/existsById/findAll/findByStatus 均过滤") {
-      val keep = ProductExposedH2TestSupport.product(name = "存活")
-      val removed = ProductExposedH2TestSupport.product(name = "已删", deleted = true)
+      val keep = ProductPgTestSupport.product(name = "存活")
+      val removed = ProductPgTestSupport.product(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findById(removed).isPresent shouldBe false
@@ -91,9 +91,9 @@ class ProductRepositoryImplTest :
     }
 
     test("findAllById:命中/缺失/空列表") {
-      val a = ProductExposedH2TestSupport.product()
-      val b = ProductExposedH2TestSupport.product()
-      ProductExposedH2TestSupport.product(deleted = true)
+      val a = ProductPgTestSupport.product()
+      val b = ProductPgTestSupport.product()
+      ProductPgTestSupport.product(deleted = true)
 
       repo.findAllById(listOf(a, b)) shouldHaveSize 2
       repo.findAllById(listOf(a, 999_999L)) shouldHaveSize 1
@@ -101,12 +101,12 @@ class ProductRepositoryImplTest :
     }
 
     test("deleteById 软删:查询不可见,行保留且 is_deleted=true") {
-      val id = ProductExposedH2TestSupport.product()
+      val id = ProductPgTestSupport.product()
       repo.deleteById(id)
       repo.findById(id).isPresent shouldBe false
       repo.existsById(id) shouldBe false
       val row =
-        transaction(ProductExposedH2TestSupport.database) {
+        transaction(ProductPgTestSupport.database) {
           ProductsTable.selectAll().where { ProductsTable.id eq id }.single()
         }
       row[ProductsTable.isDeleted] shouldBe true
@@ -114,18 +114,18 @@ class ProductRepositoryImplTest :
     }
 
     test("deleteById 对已软删行 no-op:deletedAt 不被重写,行仍不可见") {
-      val id = ProductExposedH2TestSupport.product()
+      val id = ProductPgTestSupport.product()
       repo.deleteById(id)
       // 哨兵值:若二次 delete 仍写库,deletedAt 会被 now 覆盖
       val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
-      transaction(ProductExposedH2TestSupport.database) {
+      transaction(ProductPgTestSupport.database) {
         ProductsTable.update({ ProductsTable.id eq id }) { it[ProductsTable.deletedAt] = sentinel }
       }
 
       repo.deleteById(id)
 
       val row =
-        transaction(ProductExposedH2TestSupport.database) {
+        transaction(ProductPgTestSupport.database) {
           ProductsTable.selectAll().where { ProductsTable.id eq id }.single()
         }
       row[ProductsTable.deletedAt] shouldBe sentinel
@@ -134,8 +134,8 @@ class ProductRepositoryImplTest :
     }
 
     test("findByStatus 按状态过滤") {
-      ProductExposedH2TestSupport.product(name = "上线", status = "ONLINE")
-      ProductExposedH2TestSupport.product(name = "下架", status = "OFFLINE")
+      ProductPgTestSupport.product(name = "上线", status = "ONLINE")
+      ProductPgTestSupport.product(name = "下架", status = "OFFLINE")
 
       repo.findByStatus(ProductModelStatus.ONLINE) shouldHaveSize 1
       repo.findByStatus(ProductModelStatus.OUT_OF_STOCK) shouldHaveSize 0
@@ -162,7 +162,7 @@ class ProductRepositoryImplTest :
       reloaded.detailContent shouldBe "详情正文"
       // 原始列值逐字比对(写入读回)
       val rawTags =
-        transaction(ProductExposedH2TestSupport.database) {
+        transaction(ProductPgTestSupport.database) {
           ProductsTable
             .select(ProductsTable.tags)
             .where { ProductsTable.id eq savedId }
@@ -172,9 +172,9 @@ class ProductRepositoryImplTest :
     }
 
     test("searchProducts:关键词+状态+价格区间+分页") {
-      ProductExposedH2TestSupport.product(name = "农夫山泉", priceCents = 2000L, status = "ONLINE")
-      ProductExposedH2TestSupport.product(name = "怡宝纯净水", priceCents = 1500L, status = "OFFLINE")
-      ProductExposedH2TestSupport.product(name = "农夫天然水", priceCents = 3000L, status = "ONLINE")
+      ProductPgTestSupport.product(name = "农夫山泉", priceCents = 2000L, status = "ONLINE")
+      ProductPgTestSupport.product(name = "怡宝纯净水", priceCents = 1500L, status = "OFFLINE")
+      ProductPgTestSupport.product(name = "农夫天然水", priceCents = 3000L, status = "ONLINE")
 
       val byKeyword =
         repo.searchProducts(ProductSearchRequest(keyword = "农夫"), PageRequest.of(0, 10))
@@ -201,8 +201,8 @@ class ProductRepositoryImplTest :
     }
 
     test("searchProducts:库存/销量过滤与空结果") {
-      ProductExposedH2TestSupport.product(name = "低库存", stock = 2, salesVolume = 1)
-      ProductExposedH2TestSupport.product(name = "高库存", stock = 99, salesVolume = 500)
+      ProductPgTestSupport.product(name = "低库存", stock = 2, salesVolume = 1)
+      ProductPgTestSupport.product(name = "高库存", stock = 99, salesVolume = 500)
 
       repo
         .searchProducts(
@@ -218,21 +218,21 @@ class ProductRepositoryImplTest :
     }
 
     test("searchProducts:各排序模式与默认排序") {
-      ProductExposedH2TestSupport.product(
+      ProductPgTestSupport.product(
         name = "A",
         priceCents = 100L,
         salesVolume = 5,
         sortOrder = 2,
         createdAt = LocalDateTime.of(2026, 1, 1, 10, 0),
       )
-      ProductExposedH2TestSupport.product(
+      ProductPgTestSupport.product(
         name = "B",
         priceCents = 300L,
         salesVolume = 30,
         sortOrder = 1,
         createdAt = LocalDateTime.of(2026, 1, 3, 10, 0),
       )
-      ProductExposedH2TestSupport.product(
+      ProductPgTestSupport.product(
         name = "C",
         priceCents = 200L,
         salesVolume = 20,
@@ -253,9 +253,9 @@ class ProductRepositoryImplTest :
 
     test("searchProducts:同值排序键以 id 破平,跨页不重不漏") {
       val tie = LocalDateTime.of(2026, 5, 1, 8, 0)
-      val a = ProductExposedH2TestSupport.product(name = "A", priceCents = 100L, createdAt = tie)
-      val b = ProductExposedH2TestSupport.product(name = "B", priceCents = 100L, createdAt = tie)
-      val c = ProductExposedH2TestSupport.product(name = "C", priceCents = 100L, createdAt = tie)
+      val a = ProductPgTestSupport.product(name = "A", priceCents = 100L, createdAt = tie)
+      val b = ProductPgTestSupport.product(name = "B", priceCents = 100L, createdAt = tie)
+      val c = ProductPgTestSupport.product(name = "C", priceCents = 100L, createdAt = tie)
 
       // createdAt/price 全同 → 破平后按 id 切分跨页,不重不漏
       val desc = listOf(a, b, c).sortedDescending()
@@ -272,8 +272,8 @@ class ProductRepositoryImplTest :
     }
 
     test("searchProducts:软删商品不进搜索结果") {
-      ProductExposedH2TestSupport.product(name = "可见商品")
-      ProductExposedH2TestSupport.product(name = "可见商品二", deleted = true)
+      ProductPgTestSupport.product(name = "可见商品")
+      ProductPgTestSupport.product(name = "可见商品二", deleted = true)
 
       val page = repo.searchProducts(ProductSearchRequest(keyword = "商品"), PageRequest.of(0, 10))
       page.totalElements shouldBe 1L
@@ -281,9 +281,9 @@ class ProductRepositoryImplTest :
     }
 
     test("findAll 按 id 升序且不含软删") {
-      val first = ProductExposedH2TestSupport.product(name = "一")
-      val second = ProductExposedH2TestSupport.product(name = "二")
-      ProductExposedH2TestSupport.product(name = "删", deleted = true)
+      val first = ProductPgTestSupport.product(name = "一")
+      val second = ProductPgTestSupport.product(name = "二")
+      ProductPgTestSupport.product(name = "删", deleted = true)
 
       val all = repo.findAll()
       all shouldHaveSize 2

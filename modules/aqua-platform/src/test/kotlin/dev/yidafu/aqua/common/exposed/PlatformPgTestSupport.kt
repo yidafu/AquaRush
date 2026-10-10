@@ -23,6 +23,7 @@ import dev.yidafu.aqua.common.domain.table.FileMetadataTable
 import dev.yidafu.aqua.common.domain.table.NotificationsTable
 import dev.yidafu.aqua.common.domain.table.UserNotificationSettingsTable
 import dev.yidafu.aqua.common.domain.table.UserSubscriptionAuthsTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -31,15 +32,9 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 
-/** platform 仓储实现测试的 H2 内存库支撑(P3 收尾覆盖率配套,模式与 analytics/user 一致)。 */
-object PlatformExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquaplatformrepo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+/** platform 仓储实现测试的 Testcontainers 真实 PG 支撑(P3 收尾覆盖率配套,模式与 analytics/user 一致)。 */
+object PlatformPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquaplatformrepo")
 
   private val allTables: Array<Table> =
     arrayOf(NotificationsTable, UserSubscriptionAuthsTable, UserNotificationSettingsTable, FileMetadataTable)
@@ -48,7 +43,7 @@ object PlatformExposedH2TestSupport {
   private var schemaCreated = false
 
   fun reset() {
-    transaction(PlatformExposedH2TestSupport.database) {
+    transaction(PlatformPgTestSupport.database) {
       if (schemaCreated) {
         allTables.forEach { it.deleteAll() }
       } else {
@@ -76,7 +71,7 @@ object PlatformExposedH2TestSupport {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(PlatformExposedH2TestSupport.database) {
+    transaction(PlatformPgTestSupport.database) {
       NotificationsTable.insert {
         it[NotificationsTable.id] = id
         it[NotificationsTable.receiverType] = receiverType
@@ -101,7 +96,7 @@ object PlatformExposedH2TestSupport {
     templateId: String = "tpl-1",
     remainingCount: Int = 1,
   ): Long =
-    transaction(PlatformExposedH2TestSupport.database) {
+    transaction(PlatformPgTestSupport.database) {
       UserSubscriptionAuthsTable.insert {
         it[UserSubscriptionAuthsTable.id] = id
         it[UserSubscriptionAuthsTable.userId] = userId
@@ -125,7 +120,7 @@ object PlatformExposedH2TestSupport {
     ownerId: Long? = 7L,
     createdAt: LocalDateTime = LocalDateTime.now(),
   ): Long =
-    transaction(PlatformExposedH2TestSupport.database) {
+    transaction(PlatformPgTestSupport.database) {
       FileMetadataTable.insert {
         it[FileMetadataTable.id] = id
         it[FileMetadataTable.fileName] = fileName

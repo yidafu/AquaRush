@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 
-import dev.yidafu.aqua.analytics.common.exposed.AnalyticsExposedH2TestSupport.reset
+import dev.yidafu.aqua.analytics.common.exposed.AnalyticsPgTestSupport.reset
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
@@ -41,12 +41,12 @@ import tools.jackson.databind.ObjectMapper
 import java.time.LocalDateTime
 
 /**
- * 对账域三仓储 Exposed 实现的 H2 测试(JPA→Exposed 迁移 P3):
+ * 对账域三仓储 Exposed 实现的真实 PG 测试(JPA→Exposed 迁移 P3):
  * save upsert / 软删查询过滤 / 分页 / 清理类软删。
  */
 class ReconciliationRepositoriesImplTest :
   FunSpec({
-    val database = dev.yidafu.aqua.analytics.common.exposed.AnalyticsExposedH2TestSupport.database
+    val database = dev.yidafu.aqua.analytics.common.exposed.AnalyticsPgTestSupport.database
     val objectMapper = ObjectMapper()
     val taskRepo = ReconciliationTaskRepositoryImpl(database)
     val reportRepo = ReconciliationReportRepositoryImpl(database, objectMapper)

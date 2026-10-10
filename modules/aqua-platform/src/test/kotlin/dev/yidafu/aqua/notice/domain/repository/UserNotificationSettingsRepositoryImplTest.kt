@@ -20,15 +20,15 @@
 package dev.yidafu.aqua.notice.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserNotificationSettingsModel
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport.reset
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class UserNotificationSettingsRepositoryImplTest :
   FunSpec({
-    val repo = UserNotificationSettingsRepositoryImpl(PlatformExposedH2TestSupport.database)
+    val repo = UserNotificationSettingsRepositoryImpl(PlatformPgTestSupport.database)
 
     beforeTest { reset() }
 

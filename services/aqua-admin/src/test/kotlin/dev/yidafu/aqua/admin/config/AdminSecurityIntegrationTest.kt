@@ -106,7 +106,7 @@ class AdminSecurityIntegrationTest(
     }
     test("super admin can create admin") {
       setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"))
-      // 用户名带时间戳后缀，避免共享 H2 在多次运行间重复创建导致唯一键冲突
+      // 用户名带时间戳后缀，避免共享测试库在多次运行间重复创建导致唯一键冲突
       val username = "allowedadmin${System.currentTimeMillis()}"
       val body =
         graphqlBody(
