@@ -70,4 +70,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V340MergeNotificationSettings", logicalFilePath = "db/changelog/changes/v3.4.0-merge-notification-settings.xml")
     // 缺陷 #7②:删死表 delivery_addresses + orders.delivery_address_id 恒空列
     include(file = "db/changelog/changes/V341DropDeliveryAddresses", logicalFilePath = "db/changelog/changes/v3.4.1-drop-delivery-addresses.xml")
+    // outbox 分区化:转按半年 RANGE 分区,配合滚动维护 DETACH 归档
+    include(file = "db/changelog/changes/V342PartitionOutboxEvents", logicalFilePath = "db/changelog/changes/v3.4.2-partition-outbox-events.xml")
   })

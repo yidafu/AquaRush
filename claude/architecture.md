@@ -77,6 +77,7 @@ Modules are structured with clear dependency hierarchy:
 - Domain events are written to the shared `outbox_events` table in the same transaction as the business write (no external MQ dependency)
 - aqua-admin and aqua-client both poll the table: point-to-point rows (`subscriber IS NULL`) are claimed once via `FOR UPDATE SKIP LOCKED`; broadcast rows are fanned out per subscriber (`admin`/`client`)
 - Delayed delivery (`PAYMENT_EXPIRY_CHECK`) via future `next_run_at`; reliability via bounded retries with exponential backoff, `DEAD` parking + health alarm after exhaustion
+- Table lifecycle: `outbox_events` is RANGE-partitioned by `created_at` in half-year partitions (`outbox_events_YYYYHn`); a daily job (`OutboxPartitionScheduler`, advisory-lock serialized) ensures the current + next partition exist and `DETACH`es partitions older than `aqua.outbox.partition-retention-days` (default 30) into archive tables `outbox_events_archive_YYYYHn` — the hot table stays small (no slow queries), history stays queryable via SQL
 - Spec: `docs/compose/spec/outbox-messaging.md`
 
 **Caching System**:

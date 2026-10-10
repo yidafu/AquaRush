@@ -20,19 +20,22 @@ AquaRush 是单体(双进程共享一个 PostgreSQL)应用,领域事件不依赖
   `DEAD` 状态保留 payload/error_message;健康指标 `dead > 0` 报 **DOWN**(告警出口,
   不建 redrive API)。handler 必须幂等(at-least-once)。
 - **崩溃恢复**:进程被杀遗留的 `PROCESSING` 行超过可见性超时(5min)自动复位 `PENDING`。
-- **清理**:`DONE` 行保留 7 天,每日 04:40 分批删除(500/批);`DEAD` 永不自动清理。
+- **归档**:`outbox_events` 按半年 RANGE 分区(分区键 `created_at`);每日 04:40 滚动维护
+  补建「当前+下一半区」,分区结束满 30 天的整区 `DETACH` 并改名
+  `outbox_events_archive_YYYYHn` 归档保留(数据不丢、主表恒小;`DEAD` 行随分区进归档表,
+  告警仍在置 DEAD 时即时触发)。
 
 ## 架构组件(`dev.yidafu.aqua.common.messaging`)
 
 | 组件 | 职责 |
 |---|---|
 | `OutboxEventPublisher` | `EventPublisher` 实现:按 `EventDestinationRouting` 写 outbox 行;`publishToSubscribers` 广播扇出 |
-| `OutboxEventRepository` | Exposed 仓储:insert / claim(SKIP LOCKED) / markDone / markFailed / recoverStuck / 清理 / stats |
+| `OutboxEventRepository` | Exposed 仓储:insert / claim(SKIP LOCKED) / markDone / markFailed / recoverStuck / 分区维护 / stats |
 | `OutboxPoller` | 专用单线程轮询(默认 300ms):认领 → 按 destination 分发 → DONE/退避/DEAD |
 | `OutboxDestinationHandler` | 消费契约(destination 集合 + `handle(record)`,失败抛异常) |
 | `DomainEventOutboxHandler` | 四个业务队列 → `EventProcessor` 按 `DomainEventType` 分发 |
 | `MessagingHealthIndicator` | `/actuator/health`:积压明细 + DEAD → DOWN |
-| `OutboxRetentionScheduler` | DONE 保留期清理 |
+| `OutboxPartitionScheduler` | 分区滚动维护:补建未来半区 + 超期 DETACH 归档(每日 04:40) |
 
 ## 配置
 
@@ -49,7 +52,7 @@ aqua:
 
 调优项(`aqua.outbox.*`):`poll-interval-ms=300`、`batch-size=10`、`max-attempts=8`、
 `initial-backoff-ms=1000`、`backoff-multiplier=2.0`、`max-backoff-ms=60000`、
-`visibility-timeout-ms=300000`、`done-retention-days=7`、`subscribers=[admin,client]`。
+`visibility-timeout-ms=300000`、`partition-retention-days=30`(分区结束满 N 天 DETACH 归档)、`subscribers=[admin,client]`。
 
 ## 使用示例
 
