@@ -1,183 +1,307 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Tabs, Modal, Typography, message } from 'antd';
+import { Card, Tabs, Modal, message, Typography } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
 import {
-  BARREL_FEES_PAGE_QUERY,
-  BARREL_PURCHASES_PAGE_QUERY,
-  BARREL_FEES_PAGE,
-  BARREL_PURCHASES_PAGE,
+  DEPOSIT_PRICES_PAGE_QUERY,
+  DEPOSIT_RECORDS_PAGE_QUERY,
+  DEPOSIT_REFUND_APPLICATIONS_PAGE_QUERY,
+  BARREL_LEDGER_PAGE_QUERY,
+  DEPOSIT_PRICES_PAGE,
+  DEPOSIT_RECORDS_PAGE,
+  DEPOSIT_REFUND_APPLICATIONS_PAGE,
+  BARREL_LEDGER_PAGE,
 } from '../../graphql/queries/barrel.graphql';
 import {
-  CREATE_BARREL_FEE_MUTATION,
-  UPDATE_BARREL_FEE_MUTATION,
-  DISABLE_BARREL_FEE_MUTATION,
-  REFUND_BARREL_PURCHASE_MUTATION,
+  UPSERT_DEPOSIT_PRICE_MUTATION,
+  CONFIRM_BARREL_RECOVERED_MUTATION,
+  APPROVE_DEPOSIT_REFUND_MUTATION,
+  REJECT_DEPOSIT_REFUND_MUTATION,
 } from '../../graphql/mutations/barrel.graphql';
-import type { BarrelFee, BarrelPurchase } from '../../types/barrel';
+import type {
+  BarrelLedgerRow,
+  DepositPrice,
+  DepositRecord,
+  DepositRefundApplication,
+} from '../../types/barrel';
 import {
-  BarrelFeeTable,
-  BarrelPurchaseTable,
-  BarrelFeeFormModal,
-  RefundBarrelModal,
+  DepositPriceTable,
+  DepositRecordTable,
+  DepositRefundTable,
+  BarrelLedgerTable,
+  DepositPriceFormModal,
+  RejectRefundModal,
 } from './components';
-import type { BarrelFeeFormValues, RefundBarrelFormValues } from './components';
+import type { DepositPriceFormValues, RejectRefundFormValues } from './components';
 import { yuanToCents } from '@aquarush/common';
 
 const { Title } = Typography;
 
-interface BarrelFeePageData {
-  barrelFees: { content: BarrelFee[]; totalElements: number; totalPages: number };
+interface PageData<T> {
+  page: { content: T[]; totalElements: number; totalPages: number };
 }
 
-interface BarrelPurchasePageData {
-  barrelPurchases: { content: BarrelPurchase[]; totalElements: number; totalPages: number };
-}
-
+/**
+ * 押金管理(G06 回退改造后:押金价目 / 押金记录 / 退押审核 / 桶账台账)
+ * 对应 R-MON-03 押金桶模型与 F-PRO-012 桶账台账;路由 /barrels 保留。
+ */
 const BarrelManagementPage: React.FC = () => {
-  const [feeStatusFilter, setFeeStatusFilter] = useState<string | undefined>(undefined);
-  const [feePage, setFeePage] = useState(0);
-  const [purchaseStatusFilter, setPurchaseStatusFilter] = useState<string | undefined>(undefined);
-  const [purchasePage, setPurchasePage] = useState(0);
+  const [activeTab, setActiveTab] = useState('prices');
 
-  const [feeModalOpen, setFeeModalOpen] = useState(false);
-  const [editingFee, setEditingFee] = useState<BarrelFee | null>(null);
+  // Tab1 押金价目
+  const [priceStatusFilter, setPriceStatusFilter] = useState<string | undefined>(undefined);
+  const [priceKeyword, setPriceKeyword] = useState('');
+  const [pricePage, setPricePage] = useState(0);
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<DepositPrice | null>(null);
 
-  const [refundTarget, setRefundTarget] = useState<BarrelPurchase | null>(null);
+  // Tab2 押金记录
+  const [recordStatusFilter, setRecordStatusFilter] = useState<string | undefined>(undefined);
+  const [recordSpecFilter, setRecordSpecFilter] = useState('');
+  const [recordPage, setRecordPage] = useState(0);
 
-  // 单页单请求(规则 #10):价目与购桶记录各一次取回
-  const feeQuery = useQuery<BarrelFeePageData>(BARREL_FEES_PAGE_QUERY, {
-    variables: { status: feeStatusFilter || null, page: feePage, size: 10 },
+  // Tab3 退押审核
+  const [refundStatusFilter, setRefundStatusFilter] = useState<string | undefined>(undefined);
+  const [refundPage, setRefundPage] = useState(0);
+  const [rejectTarget, setRejectTarget] = useState<DepositRefundApplication | null>(null);
+
+  // Tab4 桶账台账
+  const [ledgerKeyword, setLedgerKeyword] = useState('');
+  const [ledgerOnlyOwed, setLedgerOnlyOwed] = useState(false);
+  const [ledgerPage, setLedgerPage] = useState(0);
+
+  // 单页单请求(规则 #10):每个 Tab 按需取回一次分页数据
+  const priceQuery = useQuery<PageData<DepositPrice>>(DEPOSIT_PRICES_PAGE_QUERY, {
+    variables: {
+      status: priceStatusFilter || null,
+      keyword: priceKeyword || null,
+      page: pricePage,
+      size: 10,
+    },
     fetchPolicy: 'cache-and-network',
   });
-  const purchaseQuery = useQuery<BarrelPurchasePageData>(BARREL_PURCHASES_PAGE_QUERY, {
-    variables: { status: purchaseStatusFilter || null, page: purchasePage, size: 10 },
+  const recordQuery = useQuery<PageData<DepositRecord>>(DEPOSIT_RECORDS_PAGE_QUERY, {
+    variables: {
+      status: recordStatusFilter || null,
+      specification: recordSpecFilter || null,
+      page: recordPage,
+      size: 10,
+    },
     fetchPolicy: 'cache-and-network',
+    skip: activeTab !== 'records',
+  });
+  const refundQuery = useQuery<PageData<DepositRefundApplication>>(
+    DEPOSIT_REFUND_APPLICATIONS_PAGE_QUERY,
+    {
+      variables: { status: refundStatusFilter || null, page: refundPage, size: 10 },
+      fetchPolicy: 'cache-and-network',
+      skip: activeTab !== 'refunds',
+    },
+  );
+  const ledgerQuery = useQuery<PageData<BarrelLedgerRow>>(BARREL_LEDGER_PAGE_QUERY, {
+    variables: {
+      keyword: ledgerKeyword || null,
+      onlyOwed: ledgerOnlyOwed,
+      page: ledgerPage,
+      size: 10,
+    },
+    fetchPolicy: 'cache-and-network',
+    skip: activeTab !== 'ledger',
   });
 
-  const [createBarrelFee] = useMutation(CREATE_BARREL_FEE_MUTATION, {
-    refetchQueries: [BARREL_FEES_PAGE],
-    onCompleted: () => {
-      message.success('价目已创建');
-      setFeeModalOpen(false);
+  const [upsertDepositPrice, { loading: priceSaving }] = useMutation(
+    UPSERT_DEPOSIT_PRICE_MUTATION,
+    {
+      refetchQueries: [DEPOSIT_PRICES_PAGE],
+      onCompleted: () => {
+        message.success('押金价目已保存');
+        setPriceModalOpen(false);
+        setEditingPrice(null);
+      },
+      onError: (err) => message.error('保存失败: ' + err.message),
     },
-    onError: (err) => message.error('创建失败: ' + err.message),
-  });
-  const [updateBarrelFee] = useMutation(UPDATE_BARREL_FEE_MUTATION, {
-    refetchQueries: [BARREL_FEES_PAGE],
-    onCompleted: () => {
-      message.success('价目已更新');
-      setFeeModalOpen(false);
-    },
-    onError: (err) => message.error('更新失败: ' + err.message),
-  });
-  const [disableBarrelFee] = useMutation(DISABLE_BARREL_FEE_MUTATION, {
-    refetchQueries: [BARREL_FEES_PAGE],
-    onCompleted: () => message.success('价目已停用'),
-    onError: (err) => message.error('停用失败: ' + err.message),
-  });
-  const [refundBarrelPurchase, { loading: refunding }] = useMutation(REFUND_BARREL_PURCHASE_MUTATION, {
-    refetchQueries: [BARREL_PURCHASES_PAGE],
-    onCompleted: () => {
-      message.success('水桶费已退还');
-      setRefundTarget(null);
-    },
-    onError: (err) => message.error('退还失败: ' + err.message),
-  });
-
-  const handleFeeSubmit = useCallback(
-    (values: BarrelFeeFormValues) => {
-      const payload = {
-        specification: values.specification,
-        priceCents: yuanToCents(values.price),
-        sortOrder: values.sortOrder ?? 999,
-      };
-      if (editingFee) {
-        updateBarrelFee({ variables: { id: editingFee.id, input: payload } });
-      } else {
-        createBarrelFee({ variables: { input: payload } });
-      }
-    },
-    [editingFee, createBarrelFee, updateBarrelFee],
   );
 
-  const handleDisableFee = useCallback(
-    (fee: BarrelFee) => {
-      Modal.confirm({
-        title: '停用水桶费价目',
-        content: `停用后用户端不可再购买「${fee.specification}」水桶,已生成的购桶单不受影响。确认停用?`,
-        onOk: () => disableBarrelFee({ variables: { id: fee.id } }),
-      });
+  const [confirmBarrelRecovered] = useMutation(CONFIRM_BARREL_RECOVERED_MUTATION, {
+    refetchQueries: [DEPOSIT_REFUND_APPLICATIONS_PAGE],
+    onCompleted: () => message.success('空桶回收已确认'),
+    onError: (err) => message.error('确认失败: ' + err.message),
+  });
+
+  const [approveDepositRefund] = useMutation(APPROVE_DEPOSIT_REFUND_MUTATION, {
+    // 审核通过后押金记录与桶账余额同步变化,一并刷新(规则 #10 仍为分页查询)
+    refetchQueries: [DEPOSIT_REFUND_APPLICATIONS_PAGE, DEPOSIT_RECORDS_PAGE, BARREL_LEDGER_PAGE],
+    onCompleted: () => message.success('退押已审核通过,押金已退还'),
+    onError: (err) => message.error('审核失败: ' + err.message),
+  });
+
+  const [rejectDepositRefund, { loading: rejecting }] = useMutation(
+    REJECT_DEPOSIT_REFUND_MUTATION,
+    {
+      refetchQueries: [DEPOSIT_REFUND_APPLICATIONS_PAGE],
+      onCompleted: () => {
+        message.success('已驳回退押申请');
+        setRejectTarget(null);
+      },
+      onError: (err) => message.error('驳回失败: ' + err.message),
     },
-    [disableBarrelFee],
   );
 
-  const handleRefundSubmit = useCallback(
-    (values: RefundBarrelFormValues) => {
-      if (!refundTarget) return;
-      refundBarrelPurchase({
+  const handlePriceSubmit = useCallback(
+    (values: DepositPriceFormValues) => {
+      upsertDepositPrice({
         variables: {
-          purchaseId: refundTarget.id,
-          remark: values.refundRemark || null,
+          input: {
+            ...(editingPrice ? { id: editingPrice.id } : {}),
+            specification: values.specification,
+            depositCents: yuanToCents(values.deposit),
+            status: values.status,
+            sortOrder: values.sortOrder ?? 999,
+          },
         },
       });
     },
-    [refundTarget, refundBarrelPurchase],
+    [editingPrice, upsertDepositPrice],
+  );
+
+  const handleConfirmRecovered = useCallback(
+    (record: DepositRefundApplication) => {
+      Modal.confirm({
+        title: '确认空桶已回收',
+        content: `确认已回收「${record.specification} × ${record.bucketCount} 桶」空桶?确认后申请进入「已回收」,可继续审核退押。`,
+        onOk: () => confirmBarrelRecovered({ variables: { applicationId: record.id } }),
+      });
+    },
+    [confirmBarrelRecovered],
+  );
+
+  const handleApprove = useCallback(
+    (record: DepositRefundApplication) => {
+      Modal.confirm({
+        title: '审核通过退押',
+        content: `通过后将退还「${record.specification} × ${record.bucketCount} 桶」押金,金额以押金记录幂等,确认通过?`,
+        onOk: () => approveDepositRefund({ variables: { applicationId: record.id } }),
+      });
+    },
+    [approveDepositRefund],
+  );
+
+  const handleRejectSubmit = useCallback(
+    async (values: RejectRefundFormValues) => {
+      if (!rejectTarget) return;
+      rejectDepositRefund({
+        variables: { applicationId: rejectTarget.id, reason: values.reason },
+      });
+    },
+    [rejectTarget, rejectDepositRefund],
   );
 
   return (
     <div style={{ padding: 24 }}>
       <Title level={3} style={{ marginBottom: 24 }}>
-        水桶费管理
+        押金管理
       </Title>
       <Card>
         <Tabs
-          defaultActiveKey="fees"
+          activeKey={activeTab}
+          onChange={setActiveTab}
           items={[
             {
-              key: 'fees',
-              label: '价目表',
+              key: 'prices',
+              label: '押金价目',
               children: (
-                <BarrelFeeTable
-                  dataSource={feeQuery.data?.barrelFees.content ?? []}
-                  loading={feeQuery.loading}
-                  total={feeQuery.data?.barrelFees.totalElements ?? 0}
-                  statusFilter={feeStatusFilter}
-                  page={feePage}
-                  onFilterChange={(v) => {
-                    setFeeStatusFilter(v);
-                    setFeePage(0);
+                <DepositPriceTable
+                  dataSource={priceQuery.data?.page.content ?? []}
+                  loading={priceQuery.loading}
+                  total={priceQuery.data?.page.totalElements ?? 0}
+                  statusFilter={priceStatusFilter}
+                  page={pricePage}
+                  onStatusFilterChange={(v) => {
+                    setPriceStatusFilter(v);
+                    setPricePage(0);
                   }}
-                  onPageChange={setFeePage}
-                  onRefresh={() => feeQuery.refetch()}
+                  onKeywordChange={(v) => {
+                    setPriceKeyword(v);
+                    setPricePage(0);
+                  }}
+                  onPageChange={setPricePage}
+                  onRefresh={() => priceQuery.refetch()}
                   onCreate={() => {
-                    setEditingFee(null);
-                    setFeeModalOpen(true);
+                    setEditingPrice(null);
+                    setPriceModalOpen(true);
                   }}
-                  onEdit={(fee) => {
-                    setEditingFee(fee);
-                    setFeeModalOpen(true);
+                  onEdit={(price) => {
+                    setEditingPrice(price);
+                    setPriceModalOpen(true);
                   }}
-                  onDisable={handleDisableFee}
                 />
               ),
             },
             {
-              key: 'purchases',
-              label: '购桶记录',
+              key: 'records',
+              label: '押金记录',
               children: (
-                <BarrelPurchaseTable
-                  dataSource={purchaseQuery.data?.barrelPurchases.content ?? []}
-                  loading={purchaseQuery.loading}
-                  total={purchaseQuery.data?.barrelPurchases.totalElements ?? 0}
-                  statusFilter={purchaseStatusFilter}
-                  page={purchasePage}
-                  onFilterChange={(v) => {
-                    setPurchaseStatusFilter(v);
-                    setPurchasePage(0);
+                <DepositRecordTable
+                  dataSource={recordQuery.data?.page.content ?? []}
+                  loading={recordQuery.loading}
+                  total={recordQuery.data?.page.totalElements ?? 0}
+                  statusFilter={recordStatusFilter}
+                  specification={recordSpecFilter}
+                  page={recordPage}
+                  onStatusFilterChange={(v) => {
+                    setRecordStatusFilter(v);
+                    setRecordPage(0);
                   }}
-                  onPageChange={setPurchasePage}
-                  onRefresh={() => purchaseQuery.refetch()}
-                  onRefund={setRefundTarget}
+                  onSpecificationChange={(v) => {
+                    setRecordSpecFilter(v);
+                    setRecordPage(0);
+                  }}
+                  onPageChange={setRecordPage}
+                  onRefresh={() => recordQuery.refetch()}
+                />
+              ),
+            },
+            {
+              key: 'refunds',
+              label: '退押审核',
+              children: (
+                <DepositRefundTable
+                  dataSource={refundQuery.data?.page.content ?? []}
+                  loading={refundQuery.loading}
+                  total={refundQuery.data?.page.totalElements ?? 0}
+                  statusFilter={refundStatusFilter}
+                  page={refundPage}
+                  onStatusFilterChange={(v) => {
+                    setRefundStatusFilter(v);
+                    setRefundPage(0);
+                  }}
+                  onPageChange={setRefundPage}
+                  onRefresh={() => refundQuery.refetch()}
+                  onConfirmRecovered={handleConfirmRecovered}
+                  onApprove={handleApprove}
+                  onReject={setRejectTarget}
+                />
+              ),
+            },
+            {
+              key: 'ledger',
+              label: '桶账台账',
+              children: (
+                <BarrelLedgerTable
+                  dataSource={ledgerQuery.data?.page.content ?? []}
+                  loading={ledgerQuery.loading}
+                  total={ledgerQuery.data?.page.totalElements ?? 0}
+                  onlyOwed={ledgerOnlyOwed}
+                  page={ledgerPage}
+                  onKeywordChange={(v) => {
+                    setLedgerKeyword(v);
+                    setLedgerPage(0);
+                  }}
+                  onOnlyOwedChange={(v) => {
+                    setLedgerOnlyOwed(v);
+                    setLedgerPage(0);
+                  }}
+                  onPageChange={setLedgerPage}
+                  onRefresh={() => ledgerQuery.refetch()}
                 />
               ),
             },
@@ -185,23 +309,24 @@ const BarrelManagementPage: React.FC = () => {
         />
       </Card>
 
-      {/* 价目新增/编辑弹窗(G06) */}
-      <BarrelFeeFormModal
-        open={feeModalOpen}
-        editing={editingFee}
+      {/* 押金价目新增/编辑弹窗(G06,金额输入元 → 提交转分) */}
+      <DepositPriceFormModal
+        open={priceModalOpen}
+        editing={editingPrice}
+        submitting={priceSaving}
         onCancel={() => {
-          setFeeModalOpen(false);
-          setEditingFee(null);
+          setPriceModalOpen(false);
+          setEditingPrice(null);
         }}
-        onSubmit={handleFeeSubmit}
+        onSubmit={handlePriceSubmit}
       />
 
-      {/* 退还水桶费弹窗(G06:管理员手动退还) */}
-      <RefundBarrelModal
-        target={refundTarget}
-        confirmLoading={refunding}
-        onCancel={() => setRefundTarget(null)}
-        onSubmit={handleRefundSubmit}
+      {/* 驳回退押申请弹窗(必填原因) */}
+      <RejectRefundModal
+        target={rejectTarget}
+        confirmLoading={rejecting}
+        onCancel={() => setRejectTarget(null)}
+        onSubmit={handleRejectSubmit}
       />
     </div>
   );

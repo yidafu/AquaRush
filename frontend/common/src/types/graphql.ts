@@ -171,102 +171,42 @@ export type BannerVoPage = {
   readonly totalPages: Scalars['Int']['output'];
 };
 
-export type BarrelFeeAdminVo = {
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly priceCents: Scalars['Long']['output'];
-  readonly sortOrder: Scalars['Int']['output'];
+export type BarrelAccountSpecVo = {
+  readonly depositHeldCents: Scalars['Long']['output'];
+  readonly heldBucketCount: Scalars['Int']['output'];
+  readonly owedBucketCount: Scalars['Int']['output'];
   readonly specification: Scalars['String']['output'];
-  readonly status: BarrelFeeStatus;
-  readonly updatedAt: Scalars['LocalDateTime']['output'];
 };
 
-export type BarrelFeeListInput = {
+export type BarrelAccountVo = {
+  readonly depositHeldCents: Scalars['Long']['output'];
+  readonly owedBucketCount: Scalars['Int']['output'];
+  readonly recordTotal: Scalars['Int']['output'];
+  readonly records: ReadonlyArray<DepositRecordVo>;
+  readonly specs: ReadonlyArray<BarrelAccountSpecVo>;
+};
+
+export type BarrelLedgerInput = {
   readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly onlyOwed?: InputMaybe<Scalars['Boolean']['input']>;
   readonly page?: InputMaybe<Scalars['Int']['input']>;
   readonly size?: InputMaybe<Scalars['Int']['input']>;
-  readonly status?: InputMaybe<BarrelFeeStatus>;
 };
 
-export enum BarrelFeeStatus {
-  DISABLED = 'DISABLED',
-  ENABLED = 'ENABLED'
-}
-
-export type BarrelFeeVo = {
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly priceCents: Scalars['Long']['output'];
-  readonly specification: Scalars['String']['output'];
-};
-
-export type BarrelFeeVoPage = {
-  readonly content: ReadonlyArray<BarrelFeeAdminVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
-};
-
-export enum BarrelPaymentStatus {
-  CANCELLED = 'CANCELLED',
-  PAID = 'PAID',
-  PENDING = 'PENDING',
-  REFUNDED = 'REFUNDED'
-}
-
-export type BarrelPurchaseAdminVo = {
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly items: ReadonlyArray<BarrelPurchaseItemAdminVo>;
-  readonly orderNo: Scalars['String']['output'];
-  readonly paidAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly paymentStatus: BarrelPaymentStatus;
-  readonly refundRemark?: Maybe<Scalars['String']['output']>;
-  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly refundedBy?: Maybe<Scalars['PrimaryId']['output']>;
-  readonly remark?: Maybe<Scalars['String']['output']>;
-  readonly totalAmountCents: Scalars['Long']['output'];
-  readonly updatedAt: Scalars['LocalDateTime']['output'];
+export type BarrelLedgerRowVo = {
+  readonly deliveredBucketCount: Scalars['Int']['output'];
+  readonly depositHeldCents: Scalars['Long']['output'];
+  readonly depositRefundedCents: Scalars['Long']['output'];
+  readonly heldBucketCount: Scalars['Int']['output'];
+  readonly nickname?: Maybe<Scalars['String']['output']>;
+  readonly owedBucketCount: Scalars['Int']['output'];
+  readonly phone?: Maybe<Scalars['String']['output']>;
+  readonly recoveredBucketCount: Scalars['Int']['output'];
   readonly userId: Scalars['PrimaryId']['output'];
 };
 
-export type BarrelPurchaseItemAdminVo = {
-  readonly amountCents: Scalars['Long']['output'];
-  readonly quantity: Scalars['Int']['output'];
-  readonly specification: Scalars['String']['output'];
-  readonly unitPriceCents: Scalars['Long']['output'];
-};
-
-export type BarrelPurchaseItemVo = {
-  readonly amountCents: Scalars['Long']['output'];
-  readonly quantity: Scalars['Int']['output'];
-  readonly specification: Scalars['String']['output'];
-  readonly unitPriceCents: Scalars['Long']['output'];
-};
-
-export type BarrelPurchaseListInput = {
-  readonly dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  readonly dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  readonly page?: InputMaybe<Scalars['Int']['input']>;
-  readonly size?: InputMaybe<Scalars['Int']['input']>;
-  readonly status?: InputMaybe<BarrelPaymentStatus>;
-};
-
-export type BarrelPurchaseVo = {
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly items: ReadonlyArray<BarrelPurchaseItemVo>;
-  readonly orderNo: Scalars['String']['output'];
-  readonly paidAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly paymentParams?: Maybe<Scalars['JsonObject']['output']>;
-  readonly paymentStatus: BarrelPaymentStatus;
-  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly requiresSimulation: Scalars['Boolean']['output'];
-  readonly totalAmountCents: Scalars['Long']['output'];
-};
-
-export type BarrelPurchaseVoPage = {
-  readonly content: ReadonlyArray<BarrelPurchaseAdminVo>;
+export type BarrelLedgerVoPage = {
+  readonly content: ReadonlyArray<BarrelLedgerRowVo>;
   readonly number: Scalars['Int']['output'];
   readonly size: Scalars['Int']['output'];
   readonly totalElements: Scalars['Int']['output'];
@@ -463,12 +403,6 @@ export type CreateBannerInput = {
   readonly startAt?: InputMaybe<Scalars['LocalDateTime']['input']>;
   readonly subtitle?: InputMaybe<Scalars['String']['input']>;
   readonly title: Scalars['String']['input'];
-};
-
-export type CreateBarrelFeeInput = {
-  readonly priceCents: Scalars['Long']['input'];
-  readonly sortOrder: Scalars['Int']['input'];
-  readonly specification: Scalars['String']['input'];
 };
 
 export type CreateCouponTemplateInput = {
@@ -1004,6 +938,104 @@ export type DeliveryWorkerVoPage = {
   readonly totalPages: Scalars['Int']['output'];
 };
 
+export type DepositPriceListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+  readonly status?: InputMaybe<DepositPriceStatus>;
+};
+
+export enum DepositPriceStatus {
+  DISABLED = 'DISABLED',
+  ENABLED = 'ENABLED'
+}
+
+export type DepositPriceVo = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly depositCents: Scalars['Long']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly sortOrder: Scalars['Int']['output'];
+  readonly specification: Scalars['String']['output'];
+  readonly status: DepositPriceStatus;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+};
+
+export type DepositPriceVoPage = {
+  readonly content: ReadonlyArray<DepositPriceVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export type DepositRecordListInput = {
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+  readonly specification?: InputMaybe<Scalars['String']['input']>;
+  readonly status?: InputMaybe<DepositStatus>;
+  readonly userId?: InputMaybe<Scalars['PrimaryId']['input']>;
+};
+
+export type DepositRecordVo = {
+  readonly bucketCount?: Maybe<Scalars['Int']['output']>;
+  readonly collectedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly depositAmountCents: Scalars['Long']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly orderId: Scalars['PrimaryId']['output'];
+  readonly refundRemark?: Maybe<Scalars['String']['output']>;
+  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly specification?: Maybe<Scalars['String']['output']>;
+  readonly status: DepositStatus;
+  readonly unitDepositCents?: Maybe<Scalars['Long']['output']>;
+};
+
+export type DepositRecordVoPage = {
+  readonly content: ReadonlyArray<DepositRecordVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum DepositRefundApplicationStatus {
+  PENDING = 'PENDING',
+  RECOVERED = 'RECOVERED',
+  REFUNDED = 'REFUNDED',
+  REJECTED = 'REJECTED'
+}
+
+export type DepositRefundApplicationVo = {
+  readonly bucketCount: Scalars['Int']['output'];
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly depositCents: Scalars['Long']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly receiverDetail?: Maybe<Scalars['String']['output']>;
+  readonly receiverName?: Maybe<Scalars['String']['output']>;
+  readonly receiverPhone?: Maybe<Scalars['String']['output']>;
+  readonly recoveredAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly rejectReason?: Maybe<Scalars['String']['output']>;
+  readonly rejectedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly remark?: Maybe<Scalars['String']['output']>;
+  readonly specification: Scalars['String']['output'];
+  readonly status: DepositRefundApplicationStatus;
+};
+
+export type DepositRefundApplicationVoPage = {
+  readonly content: ReadonlyArray<DepositRefundApplicationVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum DepositStatus {
+  HELD = 'HELD',
+  PENDING = 'PENDING',
+  REFUNDED = 'REFUNDED'
+}
+
 export enum DiscrepancyStatus {
   RESOLVED = 'RESOLVED',
   UNRESOLVED = 'UNRESOLVED'
@@ -1014,6 +1046,11 @@ export enum DiscrepancyType {
   MISMATCH = 'MISMATCH',
   MISSING = 'MISSING'
 }
+
+export type EmptyBarrelRecoveryInput = {
+  readonly count: Scalars['Int']['input'];
+  readonly specification: Scalars['String']['input'];
+};
 
 export type ExecuteReconciliationInput = {
   readonly reconciliationDate: Scalars['String']['input'];
@@ -1486,6 +1523,7 @@ export type MonthlyStatisticVo = {
 export type Mutation = {
   readonly _dummy?: Maybe<Scalars['String']['output']>;
   readonly acceptDelivery: OrderVo;
+  readonly approveDepositRefund: DepositRefundApplicationVo;
   readonly assignDeliveryWorker: OrderVo;
   readonly backupLogPartition: LogBackupRecordVo;
   readonly batchAssignOrders: ReadonlyArray<OrderVo>;
@@ -1493,12 +1531,12 @@ export type Mutation = {
   readonly cancelOrder: OrderVo;
   readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: OrderVo;
+  readonly confirmBarrelRecovered: DepositRefundApplicationVo;
   readonly confirmDailyCollection: DailyCollectionRecordVo;
   readonly createAddress: AddressVo;
   readonly createAdmin: AdminVo;
   readonly createAdminAddress: AddressVo;
   readonly createBanner: BannerVo;
-  readonly createBarrelFee: BarrelFeeAdminVo;
   readonly createCouponTemplate: CouponTemplateAdminVo;
   readonly createCustomerGroup: CustomerGroupVo;
   readonly createDeliveryOrder: OrderVo;
@@ -1525,7 +1563,6 @@ export type Mutation = {
   readonly deleteProduct: Scalars['Boolean']['output'];
   readonly deleteProductOption: Scalars['Boolean']['output'];
   readonly deleteUser: Scalars['Boolean']['output'];
-  readonly disableBarrelFee: BarrelFeeAdminVo;
   readonly disableCouponTemplate: CouponTemplateAdminVo;
   readonly disableFirstOrderActivity: FirstOrderActivityVo;
   readonly disableFlashSaleActivity: FlashSaleActivityVo;
@@ -1543,11 +1580,10 @@ export type Mutation = {
   readonly onlineProduct: ProductVo;
   readonly processRefund: RefundRequestVo;
   readonly publishNotice: NoticeVo;
-  readonly purchaseBarrel: BarrelPurchaseVo;
   readonly purchaseTickets: TicketPurchaseVo;
   readonly recordSubscribeAuth: Scalars['Boolean']['output'];
-  readonly refundBarrelPurchase: BarrelPurchaseAdminVo;
   readonly rejectDailyCollection: DailyCollectionRecordVo;
+  readonly rejectDepositRefund: DepositRefundApplicationVo;
   readonly reorderBanner: ReadonlyArray<BannerVo>;
   readonly reportTrajectory: Scalars['Boolean']['output'];
   readonly resendNotification?: Maybe<NotificationVo>;
@@ -1568,13 +1604,13 @@ export type Mutation = {
   readonly startDelivery: OrderVo;
   readonly stopNotice: NoticeVo;
   readonly submitDailyCollection: DailyCollectionRecordVo;
+  readonly submitDepositRefund: DepositRefundApplicationVo;
   readonly submitFeedback: Scalars['Boolean']['output'];
   readonly toggleProductFavorites: Scalars['Boolean']['output'];
   readonly updateAddress: AddressVo;
   readonly updateAdmin: AdminVo;
   readonly updateAdminAddress: AddressVo;
   readonly updateBanner: BannerVo;
-  readonly updateBarrelFee: BarrelFeeAdminVo;
   readonly updateCouponTemplate: CouponTemplateAdminVo;
   readonly updateCustomerGroup: CustomerGroupVo;
   readonly updateDeliveryWorker: DeliveryWorkerVo;
@@ -1591,12 +1627,18 @@ export type Mutation = {
   readonly updatePromotionActivity: PromotionActivityVo;
   readonly updateTicketType: TicketTypeAdminVo;
   readonly updateUser: UserVo;
+  readonly upsertDepositPrice: DepositPriceVo;
   readonly urgeOrder: Scalars['Boolean']['output'];
 };
 
 
 export type MutationAcceptDeliveryArgs = {
   orderId: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationApproveDepositRefundArgs = {
+  applicationId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1634,10 +1676,16 @@ export type MutationClaimCouponArgs = {
 
 
 export type MutationCompleteDeliveryArgs = {
+  emptyBarrels?: InputMaybe<ReadonlyArray<EmptyBarrelRecoveryInput>>;
   orderId: Scalars['PrimaryId']['input'];
   paymentType?: InputMaybe<PaymentType>;
   photos: ReadonlyArray<Scalars['String']['input']>;
   remark?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationConfirmBarrelRecoveredArgs = {
+  applicationId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1663,11 +1711,6 @@ export type MutationCreateAdminAddressArgs = {
 
 export type MutationCreateBannerArgs = {
   input: CreateBannerInput;
-};
-
-
-export type MutationCreateBarrelFeeArgs = {
-  input: CreateBarrelFeeInput;
 };
 
 
@@ -1801,11 +1844,6 @@ export type MutationDeleteUserArgs = {
 };
 
 
-export type MutationDisableBarrelFeeArgs = {
-  id: Scalars['PrimaryId']['input'];
-};
-
-
 export type MutationDisableCouponTemplateArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -1881,11 +1919,6 @@ export type MutationPublishNoticeArgs = {
 };
 
 
-export type MutationPurchaseBarrelArgs = {
-  input: PurchaseBarrelInput;
-};
-
-
 export type MutationPurchaseTicketsArgs = {
   input: PurchaseTicketsInput;
 };
@@ -1896,14 +1929,14 @@ export type MutationRecordSubscribeAuthArgs = {
 };
 
 
-export type MutationRefundBarrelPurchaseArgs = {
-  purchaseId: Scalars['PrimaryId']['input'];
-  remark?: InputMaybe<Scalars['String']['input']>;
+export type MutationRejectDailyCollectionArgs = {
+  input: RejectDailyCollectionInput;
 };
 
 
-export type MutationRejectDailyCollectionArgs = {
-  input: RejectDailyCollectionInput;
+export type MutationRejectDepositRefundArgs = {
+  applicationId: Scalars['PrimaryId']['input'];
+  reason: Scalars['String']['input'];
 };
 
 
@@ -2015,6 +2048,11 @@ export type MutationSubmitDailyCollectionArgs = {
 };
 
 
+export type MutationSubmitDepositRefundArgs = {
+  input: SubmitDepositRefundInput;
+};
+
+
 export type MutationSubmitFeedbackArgs = {
   input: FeedbackSubmitInput;
 };
@@ -2046,12 +2084,6 @@ export type MutationUpdateAdminAddressArgs = {
 export type MutationUpdateBannerArgs = {
   id: Scalars['PrimaryId']['input'];
   input: UpdateBannerInput;
-};
-
-
-export type MutationUpdateBarrelFeeArgs = {
-  id: Scalars['PrimaryId']['input'];
-  input: UpdateBarrelFeeInput;
 };
 
 
@@ -2147,6 +2179,11 @@ export type MutationUpdateTicketTypeArgs = {
 export type MutationUpdateUserArgs = {
   id: Scalars['PrimaryId']['input'];
   input: UpdateUserInput;
+};
+
+
+export type MutationUpsertDepositPriceArgs = {
+  input: UpsertDepositPriceInput;
 };
 
 
@@ -2868,15 +2905,6 @@ export type PromotionTierInput = {
   readonly thresholdCents: Scalars['Long']['input'];
 };
 
-export type PurchaseBarrelInput = {
-  readonly items: ReadonlyArray<PurchaseBarrelItemInput>;
-};
-
-export type PurchaseBarrelItemInput = {
-  readonly barrelFeeId: Scalars['PrimaryId']['input'];
-  readonly quantity: Scalars['Int']['input'];
-};
-
 export type PurchaseTicketsInput = {
   readonly packageCount: Scalars['Int']['input'];
   readonly ticketTypeId: Scalars['PrimaryId']['input'];
@@ -2893,9 +2921,8 @@ export type Query = {
   readonly assignedOrders: ReadonlyArray<OrderVo>;
   readonly banner?: Maybe<BannerVo>;
   readonly banners?: Maybe<BannerVoPage>;
-  readonly barrelFees: BarrelFeeVoPage;
-  readonly barrelPurchases: BarrelPurchaseVoPage;
-  readonly barrelShop: ReadonlyArray<BarrelFeeVo>;
+  readonly barrelAccount: BarrelAccountVo;
+  readonly barrelLedger: BarrelLedgerVoPage;
   readonly businessLogs?: Maybe<BusinessLogVoPage>;
   readonly couponCenter: ReadonlyArray<CouponTemplateVo>;
   readonly couponTemplate?: Maybe<CouponTemplateAdminVo>;
@@ -2920,6 +2947,9 @@ export type Query = {
   readonly deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsVo;
   readonly deliveryWorkerStatistics: DeliveryWorkerOverviewVo;
   readonly deliveryWorkers: DeliveryWorkerVoPage;
+  readonly depositPrices: DepositPriceVoPage;
+  readonly depositRecords: DepositRecordVoPage;
+  readonly depositRefundApplications: DepositRefundApplicationVoPage;
   readonly favoriteProducts: FavoriteProductVoPage;
   readonly favoritesCount: Scalars['Long']['output'];
   readonly feedback?: Maybe<FeedbackVo>;
@@ -2938,7 +2968,6 @@ export type Query = {
   readonly marketingStatistics: MarketingStatisticsVo;
   readonly me?: Maybe<UserInfoVo>;
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatisticVo>;
-  readonly myBarrelPurchase?: Maybe<BarrelPurchaseVo>;
   readonly myCoupons: ReadonlyArray<UserCouponVo>;
   readonly myFeedbacks: FeedbackRecordVoPage;
   readonly myNotifications: NotificationVoPage;
@@ -3040,13 +3069,14 @@ export type QueryBannersArgs = {
 };
 
 
-export type QueryBarrelFeesArgs = {
-  input?: InputMaybe<BarrelFeeListInput>;
+export type QueryBarrelAccountArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
-export type QueryBarrelPurchasesArgs = {
-  input?: InputMaybe<BarrelPurchaseListInput>;
+export type QueryBarrelLedgerArgs = {
+  input?: InputMaybe<BarrelLedgerInput>;
 };
 
 
@@ -3155,6 +3185,23 @@ export type QueryDeliveryWorkersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryDepositPricesArgs = {
+  input?: InputMaybe<DepositPriceListInput>;
+};
+
+
+export type QueryDepositRecordsArgs = {
+  input?: InputMaybe<DepositRecordListInput>;
+};
+
+
+export type QueryDepositRefundApplicationsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<DepositRefundApplicationStatus>;
 };
 
 
@@ -3824,6 +3871,15 @@ export type SubmitDailyCollectionInput = {
   readonly waterTicketCount: Scalars['Int']['input'];
 };
 
+export type SubmitDepositRefundInput = {
+  readonly bucketCount: Scalars['Int']['input'];
+  readonly receiverDetail: Scalars['String']['input'];
+  readonly receiverName: Scalars['String']['input'];
+  readonly receiverPhone: Scalars['String']['input'];
+  readonly remark?: InputMaybe<Scalars['String']['input']>;
+  readonly specification: Scalars['String']['input'];
+};
+
 export type SubscribeTemplateVo = {
   readonly enabled: Scalars['Boolean']['output'];
   readonly scene: Scalars['String']['output'];
@@ -4034,12 +4090,6 @@ export type UpdateBannerInput = {
   readonly title: Scalars['String']['input'];
 };
 
-export type UpdateBarrelFeeInput = {
-  readonly priceCents?: InputMaybe<Scalars['Long']['input']>;
-  readonly sortOrder?: InputMaybe<Scalars['Int']['input']>;
-  readonly specification?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type UpdateCouponTemplateInput = {
   readonly couponType: CouponType;
   readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
@@ -4208,6 +4258,14 @@ export type UpdateUserInput = {
   readonly nickname?: InputMaybe<Scalars['String']['input']>;
   readonly phone?: InputMaybe<Scalars['String']['input']>;
   readonly status?: InputMaybe<UserStatus>;
+};
+
+export type UpsertDepositPriceInput = {
+  readonly depositCents: Scalars['Long']['input'];
+  readonly id?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly sortOrder?: InputMaybe<Scalars['Int']['input']>;
+  readonly specification: Scalars['String']['input'];
+  readonly status?: InputMaybe<DepositPriceStatus>;
 };
 
 export enum UserCouponStatus {

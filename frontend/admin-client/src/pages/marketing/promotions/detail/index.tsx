@@ -64,8 +64,8 @@ const PromotionDetailPage: React.FC = () => {
   const usage = data?.promotionActivityUsage;
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setPage(pagination.current - 1);
-    setSize(pagination.pageSize);
+    setPage((pagination.current ?? 1) - 1);
+    setSize(pagination.pageSize ?? 10);
   };
 
   const renderTier = (tier: { thresholdCents: number; discountAmountCents?: number | null; discountRatePermille?: number | null }) => {

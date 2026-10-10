@@ -19,10 +19,12 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.dto.EmptyBarrelRecoveryItem
 import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
@@ -56,6 +58,7 @@ class DeliveryTaskMutationServiceImpl(
   private val jsonHelper: JsonHelper,
   private val bizLogger: BizLogger,
   private val addressService: AddressService,
+  private val depositMutationApiService: DepositMutationApiService,
 ) : DeliveryTaskMutationService {
   private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
 
@@ -313,6 +316,7 @@ class DeliveryTaskMutationServiceImpl(
     deliveryPhotos: List<String>,
     paymentType: PaymentType?,
     remark: String?,
+    emptyBarrels: List<EmptyBarrelRecoveryItem>,
   ): OrderModel {
     val order =
       orderQueryService.getOrderById(orderId)
@@ -339,10 +343,21 @@ class DeliveryTaskMutationServiceImpl(
     }
     order.paymentType = resolvedPaymentType
     order.deliveryRemark = remark
+    // 空桶回收登记(F-ORD-011/R-MON-03,非强制):总数快照落订单列,明细落 barrel_recovery_records
+    if (emptyBarrels.isNotEmpty()) {
+      order.emptyBarrelsRetrieved = emptyBarrels.sumOf { it.count }
+    }
     // 完成时间 = 送达时间,即时计入营收(R-ORD-11:营收/业绩/日报/对账统一锚 completed_at)
     val now = java.time.LocalDateTime.now()
     order.completedAt = now
     val savedOrder = orderMutationService.updateOrder(orderId, order)
+
+    // 空桶回收按规格登记(欠桶 = 已交付 − 已回收,R-PRO-04)
+    depositMutationApiService.registerBarrelRecovery(
+      workerId = savedOrder.deliveryWorkerId,
+      orderId = savedOrder.id!!,
+      items = emptyBarrels,
+    )
 
     // 记录订单操作 - 配送完成(送达)
     orderOperationService.recordOperation(

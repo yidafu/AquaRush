@@ -108,7 +108,7 @@
 | 适用功能:F-ORD-011
 | 校验与数值:照片 ≥1 张;收款方式三选一(现金/水票/扫码)
 | 并发与边界:—
-| 现状与目标:已实现——前端已校验(未拍照禁用「完成配送」按钮并提示「请先拍摄配送照片」);照片经 `POST /api/v1/storage/files` 平台存储上传返回 fileUrl 后随 `completeDelivery` 落库(G13 已解决,2026-08);**后端 `completeDelivery` 已服务端硬校验**(photos 非空拦截;收款方式必选——非自提且无水票核销时拦截;电子票核销订单未选收款方式自动记「水票」,R-COL-04;自提订单默认已收款豁免,R-ORD-09);配送备注随 `completeDelivery` 落库 `orders.delivery_remark`,经 GraphQL `Order.deliveryRemark` 回显(送水工端订单详情「配送信息」卡完成态展示);**完成配送状态流转(R-ORD-11,2026-10 按行业惯例简化):非自提订单 配送中→已完成(记送达时间=完成时间,即时计入营收);自提订单 配送中→已完成(当场转移,即时计入营收)**
+| 现状与目标:已实现——前端已校验(未拍照禁用「完成配送」按钮并提示「请先拍摄配送照片」);照片经 `POST /api/v1/storage/files` 平台存储上传返回 fileUrl 后随 `completeDelivery` 落库(G13 已解决,2026-08);**后端 `completeDelivery` 已服务端硬校验**(photos 非空拦截;收款方式必选——非自提且无水票核销时拦截;电子票核销订单未选收款方式自动记「水票」,R-COL-04;自提订单默认已收款豁免,R-ORD-09);配送备注随 `completeDelivery` 落库 `orders.delivery_remark`,经 GraphQL `Order.deliveryRemark` 回显(送水工端订单详情「配送信息」卡完成态展示);**完成配送状态流转(R-ORD-11,2026-10 按行业惯例简化):非自提订单 配送中→已完成(记送达时间=完成时间,即时计入营收);自提订单 配送中→已完成(当场转移,即时计入营收)**;**空桶回收登记(F-ORD-011,2026-10-11 B2 实现):`completeDelivery` 增可选入参 `emptyBarrels:[{specification,count}]`(按规格,非强制)→ 落 `barrel_recovery_records` + `orders.empty_barrels_retrieved` 总数快照,欠桶=已交付−已回收(R-PRO-04),送水端 UI 在完成配送流程提供逐规格计数
 | 缺口关联 —
 
 **R-ORD-08 派单约束**: 仅可派单给在线且可接单的送水工;同一订单仅能派单一次

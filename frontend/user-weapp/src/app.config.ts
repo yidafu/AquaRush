@@ -23,7 +23,6 @@ export default defineAppConfig({
     'pages/coupon-list/index',
     'pages/ticket-shop/index',
     'pages/ticket-list/index',
-    'pages/barrel-shop/index',
     'pages/barrel-mine/index'
   ],
   window: {

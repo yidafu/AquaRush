@@ -103,7 +103,7 @@ const App: React.FC = () => {
         <Route path="logs/business" element={page('业务日志', <BusinessLogs />)} />
         <Route path="daily-collection" element={page('收银对账', <DailyCollection />)} />
         <Route path="payments/refunds" element={page('退款管理', <RefundManagementPage />)} />
-        <Route path="barrels" element={page('水桶费管理', <BarrelManagementPage />)} />
+        <Route path="barrels" element={page('押金管理', <BarrelManagementPage />)} />
         <Route path="ops/banners" element={page('首页轮播', <OpsBanners />)} />
         <Route path="ops/feedbacks" element={page('意见反馈', <OpsFeedbacks />)} />
         <Route path="ops/notices" element={page('公告', <OpsNotices />)} />

@@ -188,7 +188,7 @@ object TicketNoSequencesTable : Table("ticket_no_sequences") {
 }
 
 /** 水桶费价目表(`barrel_fees`,10 列;specification 有 DB 唯一约束)。 */
-object BarrelFeesTable : SoftDeletableTable("barrel_fees") {
+object DepositPricesTable : SoftDeletableTable("barrel_fees") {
   val id = long("id")
   val specification = varchar("specification", 100)
   val priceCents = long("price_cents")
@@ -231,17 +231,61 @@ object BarrelPurchaseItemsTable : SoftDeletableTable("barrel_purchase_items") {
   override val primaryKey = PrimaryKey(id)
 }
 
-/** 桶押金记录表(`deposit_records`,14 列,历史数据只读;G06 已由水桶费替代)。 */
+/**
+ * 桶押金记录表(`deposit_records`,17 列,R-MON-03 押金账本):
+ * V346 扩列 specification/unit_deposit_cents/bucket_count(在租按规格口径),
+ * 状态值域 PENDING→HELD→REFUNDED;G06 时代历史行前三列可空。
+ */
 object DepositRecordsTable : SoftDeletableTable("deposit_records") {
   val id = long("id")
   val orderId = long("order_id")
   val userId = long("user_id")
   val depositAmountCents = long("deposit_amount_cents")
-  val status = varchar("status", 20).default("COLLECTED")
+  val specification = varchar("specification", 100).nullable()
+  val unitDepositCents = long("unit_deposit_cents").nullable()
+  val bucketCount = integer("bucket_count").nullable()
+  val status = varchar("status", 20).default("PENDING")
   val collectedAt = datetime("collected_at").nullable()
   val refundedAt = datetime("refunded_at").nullable()
   val refundedBy = long("refunded_by").nullable()
   val refundRemark = varchar("refund_remark", 500).nullable()
+  val createdAt = datetime("created_at")
+  val updatedAt = datetime("updated_at")
+  override val primaryKey = PrimaryKey(id)
+}
+
+/**
+ * 退押申请表(`deposit_refund_applications`,R-PRO-04/F-PRO-010):
+ * PENDING(待处理)→ RECOVERED(已回收)→ REFUNDED(已退还)/ REJECTED(已驳回)。
+ */
+object DepositRefundApplicationsTable : SoftDeletableTable("deposit_refund_applications") {
+  val id = long("id")
+  val userId = long("user_id")
+  val specification = varchar("specification", 100)
+  val bucketCount = integer("bucket_count")
+  val depositCents = long("deposit_cents")
+  val receiverName = varchar("receiver_name", 50).nullable()
+  val receiverPhone = varchar("receiver_phone", 20).nullable()
+  val receiverDetail = varchar("receiver_detail", 500).nullable()
+  val remark = varchar("remark", 200).nullable()
+  val status = varchar("status", 16).default("PENDING")
+  val recoveredAt = datetime("recovered_at").nullable()
+  val refundedAt = datetime("refunded_at").nullable()
+  val rejectedAt = datetime("rejected_at").nullable()
+  val handlerAdminId = long("handler_admin_id").nullable()
+  val rejectReason = varchar("reject_reason", 500).nullable()
+  val createdAt = datetime("created_at")
+  val updatedAt = datetime("updated_at")
+  override val primaryKey = PrimaryKey(id)
+}
+
+/** 空桶回收登记表(`barrel_recovery_records`,F-ORD-011;送水工完成配送按规格登记)。 */
+object BarrelRecoveryRecordsTable : SoftDeletableTable("barrel_recovery_records") {
+  val id = long("id")
+  val workerId = long("worker_id")
+  val orderId = long("order_id")
+  val specification = varchar("specification", 100)
+  val bucketCount = integer("bucket_count")
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)

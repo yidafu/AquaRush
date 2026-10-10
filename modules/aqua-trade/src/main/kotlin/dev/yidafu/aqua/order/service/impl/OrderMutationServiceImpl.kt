@@ -20,11 +20,13 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.OrderDepositItem
 import dev.yidafu.aqua.api.dto.OrderItemRequest
 import dev.yidafu.aqua.api.dto.OrderPricingItemRequest
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
 import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
@@ -85,6 +87,7 @@ class OrderMutationServiceImpl(
   private val couponMutationApiService: CouponMutationApiService,
   private val ticketMutationApiService: TicketMutationApiService,
   private val orderOperationService: OrderOperationService,
+  private val depositMutationApiService: DepositMutationApiService,
   private val bizLogger: BizLogger,
 ) : OrderMutationService {
   private val logger = LoggerFactory.getLogger(OrderMutationServiceImpl::class.java)
@@ -166,30 +169,14 @@ class OrderMutationServiceImpl(
 
   /**
    * 配送费计算(R-MON-02 楼层分档,2026-10 修订;PRD 12-operations-config.md §F-OPS-005):
-   * - 自提订单免运费(无配送行为,楼层不参与判定);
-   * - 收货楼层为空(平房/无楼层信息)免运费;
-   * - 楼层 > 免费楼层(默认4)时按所在档位加收 tiers 对应金额
-   *   (默认「免费楼层以上 2 层内 +2 元 / 再上 3 层 +5 元 / 更高 +8 元」);
-   * - tiers 未配置时回退兜底单档 surchargeCents(兼容存量行)。
+   * 委托 [DeliveryFeeRuleModel.feeCentsForFloor] 共享实现——自提/免费楼层免运费、
+   * 超免费楼层按 tiers 档位命中、tiers 缺失回退 surchargeCents(与订单预览同源,保证预览=实付)。
    * 金额以分存储与服务端计算(R-MON-01);规则配置变更即时生效,已生成订单不受影响(运费按下单时快照)。
    */
   private fun computeDeliveryFee(
     floor: Int?,
     isSelfCollect: Boolean,
-  ): Long {
-    if (isSelfCollect) {
-      return 0
-    }
-    val rule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule()
-    if (floor == null || floor <= rule.freeFloorLimit) {
-      return 0
-    }
-    val tier =
-      rule.tiers?.firstOrNull { tier ->
-        floor >= tier.fromFloor && (tier.toFloor == null || floor <= tier.toFloor!!)
-      }
-    return tier?.feeCents ?: rule.surchargeCents
-  }
+  ): Long = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().feeCentsForFloor(floor, isSelfCollect)
 
   /**
    * 保存订单的公共逻辑(含营销计价快照 R-MKT-02/07/08 与多商品明细落库 F-ORD-004)
@@ -201,6 +188,7 @@ class OrderMutationServiceImpl(
     orderNo: String,
     amountCents: Long,
     deliveryFeeCents: Long,
+    depositCents: Long,
     paymentMethod: PaymentMethod?,
     remark: String?,
     isSelfCollect: Boolean,
@@ -225,6 +213,8 @@ class OrderMutationServiceImpl(
         deliveryTimeSlot = deliveryTimeSlot,
         amountCents = amountCents,
         deliveryFeeCents = deliveryFeeCents,
+        // 随单押金(R-MON-03:首购规格收取,计入 payAmountCents,可退)
+        depositCents = depositCents,
         unitPriceCents = pricing.unitPriceCents,
         priceSource = pricing.priceSource,
         promotionActivityId = pricing.promotionActivityId,
@@ -363,6 +353,13 @@ class OrderMutationServiceImpl(
       throw BadRequestException("无权使用此收货地址")
     }
 
+    // 3.5 押金试算(R-MON-03 按规格收取;与订单预览同源,金额服务端计算 R-MON-01)
+    val deposit =
+      depositMutationApiService.calcOrderDeposit(
+        userId = validation.userId,
+        items = validation.items.map { OrderDepositItem(productId = it.product.id!!, quantity = it.quantity) },
+      )
+
     // 4. 保存订单(按预检结果快照,明细落 order_items;幂等键与配送时段随单落库)
     val savedOrder =
       saveOrder(
@@ -372,6 +369,7 @@ class OrderMutationServiceImpl(
         orderNo = validation.orderNo,
         amountCents = preview.payableProductCents,
         deliveryFeeCents = validation.deliveryFeeCents,
+        depositCents = deposit.totalCents,
         paymentMethod = null,
         remark = input.remark,
         isSelfCollect = false,
@@ -383,6 +381,9 @@ class OrderMutationServiceImpl(
         // 配送时段(AC-ORD-001-05):缺省=立即配送
         deliveryTimeSlot = input.deliveryTimeSlot ?: DeliveryTimeSlot.IMMEDIATE,
       )
+
+    // 4.5 随单建押金账(PENDING;支付成功回调置 HELD,取消/超时清账)
+    depositMutationApiService.createPendingDeposits(savedOrder.id!!, validation.userId, deposit)
 
     // 5. 引擎消费(同事务):原子核销水票/优惠券;实际核销数 < 预检 → 抛异常整体回滚
     val finalPricing = promotionPricingService.applyForOrder(savedOrder.id!!, pricingRequest)
@@ -438,6 +439,13 @@ class OrderMutationServiceImpl(
         isSelfCollect = isSelfCollect,
       )
 
+    // 押金试算(R-MON-03:代客下单同口径按客户 userId 判定在租只收一次)
+    val deposit =
+      depositMutationApiService.calcOrderDeposit(
+        userId = userId,
+        items = validation.items.map { OrderDepositItem(productId = it.product.id!!, quantity = it.quantity) },
+      )
+
     val savedOrder =
       saveOrder(
         userId = validation.userId,
@@ -446,6 +454,7 @@ class OrderMutationServiceImpl(
         orderNo = validation.orderNo,
         amountCents = preview.payableProductCents,
         deliveryFeeCents = validation.deliveryFeeCents,
+        depositCents = deposit.totalCents,
         paymentMethod = PaymentMethod.CASH,
         remark = input.remark,
         isSelfCollect = isSelfCollect,
@@ -454,6 +463,10 @@ class OrderMutationServiceImpl(
         // 代客下单现场收款(现金/水票):直接进入「待分配」(R-PAY-03)
         initialStatus = OrderModelStatus.PENDING_DISPATCH,
       )
+
+    // 随单建押金账并即时确认实收(代客下单确认即置 HELD,design03 §9)
+    depositMutationApiService.createPendingDeposits(savedOrder.id!!, validation.userId, deposit)
+    depositMutationApiService.markHeldByOrder(savedOrder.id!!)
 
     val finalPricing = promotionPricingService.applyForOrder(savedOrder.id!!, pricingRequest)
     applyPricingSnapshot(savedOrder, finalPricing)
@@ -536,6 +549,16 @@ class OrderMutationServiceImpl(
 
     // 4. 恢复库存(逐商品明细 R-ORD-02;仅认领成功方执行,并发下不重复恢复)
     restoreStock(order)
+
+    // 4.5 押金清账(R-MON-03):
+    //   未实收(待支付)→ 软删 PENDING 清账;
+    //   现场收款(无微信交易号,代客单实收确认 HELD)→ 取消即线下退款,HELD→REFUNDED;
+    //   微信已付 → 退款审核经 RefundReviewService 联动 HELD→REFUNDED(资金实际退回时)
+    if (order.status == OrderModelStatus.PENDING_PAYMENT) {
+      depositMutationApiService.cancelPendingByOrder(orderId)
+    } else if (order.paymentTransactionId == null) {
+      depositMutationApiService.markRefundedByOrder(orderId, bizLogger.resolveOperator().first, "订单取消(现场收款)退还")
+    }
 
     // 5. 退回营销权益(同事务,幂等):已核销券/水票未过期→可复用,过期→作废(R-MKT-03/08)
     returnCouponAndTickets(orderId)
@@ -724,6 +747,9 @@ class OrderMutationServiceImpl(
 
     val updatedOrder = orderRepository.save(order)
 
+    // 押金实收确认(R-MON-03:随单 PENDING → HELD,在租生效)
+    depositMutationApiService.markHeldByOrder(orderId)
+
     // 发布支付成功事件(商品明细以 order_items 为准,事件载荷仅订单级信息)
     eventPublishService.publishOrderPaid(
       orderId = updatedOrder.id!!,
@@ -764,6 +790,9 @@ class OrderMutationServiceImpl(
 
     // 恢复库存(逐商品明细;仅认领成功方执行,并发下不重复恢复)
     restoreStock(order)
+
+    // 押金清账(未实收:软删 PENDING,R-MON-03)
+    depositMutationApiService.cancelPendingByOrder(orderId)
 
     // 退回营销权益(幂等)
     returnCouponAndTickets(orderId)

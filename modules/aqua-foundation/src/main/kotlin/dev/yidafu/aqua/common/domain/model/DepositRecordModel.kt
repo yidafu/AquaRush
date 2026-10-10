@@ -23,17 +23,25 @@ import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
 import java.time.LocalDateTime
 
 /**
- * 桶押金记录实体(G06/R-MON-03 押金模块,PRD 14-misc.md §核心实体「押金:用户、金额、状态、退还时间」)
- * 押金随下单一并收取(deposit_records 落账),订单取消自动退还,空桶退回由管理员退还。
+ * 水桶押金记录实体(R-MON-03 押金账本,PRD 14-misc.md §核心实体「押金」):
+ * 下单按规格建 PENDING,支付成功置 HELD(在租),退押审核/随单退款置 REFUNDED;
+ * 同一用户同规格在租只收一次(V346 扩列 specification/unit_deposit_cents/bucket_count,
+ * G06 时代历史行这三列可空)。
  */
 data class DepositRecordModel(
   var id: Long? = null,
   var orderId: Long,
   var userId: Long,
-  // 押金金额(分,R-MON-01)
+  // 押金金额(分,R-MON-01)= unit_deposit_cents × bucket_count
   var depositAmountCents: Long,
-  var status: DepositStatus = DepositStatus.COLLECTED,
-  // 收取时间
+  // 规格快照(历史 G06 前行可空)
+  var specification: String? = null,
+  // 单桶押金价快照(分)
+  var unitDepositCents: Long? = null,
+  // 收取桶数快照
+  var bucketCount: Int? = null,
+  var status: DepositStatus = DepositStatus.PENDING,
+  // 收取时间(支付成功实收确认)
   var collectedAt: LocalDateTime? = null,
   // 退还时间
   var refundedAt: LocalDateTime? = null,

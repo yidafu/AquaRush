@@ -186,10 +186,11 @@ completeDelivery（仅本人 DELIVERING 单，单事务）:
          电子票核销单未选 → 自动记 WATER_TICKET；自提单默认已收款豁免）
   执行: 订单 → COMPLETED，completed_at=now（状态谓词条件更新）
         delivery_remark / delivery_photos / payment_type 落库
-        （empty_barrels_retrieved 目标列随押金回退 B2 恢复,现状未建）
+        空桶回收登记（emptyBarrels:[{specification,count}] 非强制,B2 已实现:
+        orders.empty_barrels_retrieved 落总数快照,明细按规格落 barrel_recovery_records）
         photos 置待核验（delivery_photo_review_status=PENDING,随缺陷 #10 已接线）
         sales_volume 累计、送水工统计 upsert（完成单量/收入）
-        若有随单押金收取记录 → 置已收取（实收确认;状态机随 B2 完整化）
+        （押金实收确认不在本步——PENDING→HELD 在支付成功/代客下单确认时完成,见 §9）
   提交后: 营收即时计入（统计按 completed_at）+ 订阅消息「送达确认」+ 用户端可评价
 照片核验（管理员, ORDER_REVIEW）: reviewDeliveryPhoto(action=APPROVED/REJECTED, remark) 通过/驳回
         （驳回必填 remark,可重复核验纠错）
@@ -198,20 +199,24 @@ completeDelivery（仅本人 DELIVERING 单，单事务）:
 
 口径红线：**营收（已完成订单金额）、送水工业绩、收款日报、对账四者统一以 completed_at 为时间锚点**（R-ORD-11；取消「待确认收货」中间态后无确认并发问题）。
 
-## 9. 押金桶生命周期（R-MON-03 / R-PRO-04）
+## 9. 押金桶生命周期（R-MON-03 / R-PRO-04；**B2 已实施**）
 
 ```
-收取: 下单含规格 S 商品 ∧ 用户对 S 无 HELD 押金记录 ∧ 价目启用
+收取: 下单含规格 S 商品 ∧ 用户对 S 无 HELD/PENDING 押金记录 ∧ 价目启用
       → deposit_cents 随单计入 payAmountCents；建 deposit_records(PENDING, bucket_count=本单该规格桶数)
-      （支付成功/代客下单确认后置 HELD；取消/超时/退款随单退回）
-持有: 在租桶数=Σ(HELD bucket_count)；空桶由送水工完成配送时登记回收（barrel_recovery_records，非强制）
-退押: 用户申请（≤在租桶数）→ PENDING
+      （支付成功/代客下单确认后置 HELD；取消/超时软删 PENDING,微信已付走退款审核联动 REFUNDED）
+      预览(orderPreview)与下单同源试算,押金行进费用明细(R-ORD 确认订单页)
+持有: 在租桶数=Σ(HELD bucket_count)；空桶由送水工完成配送时按规格登记回收
+      （barrel_recovery_records，非强制;orders.empty_barrels_retrieved 总数快照）
+退押: 用户申请（≤在租桶数,同规格无处理中申请）→ PENDING（金额按 HELD 记录单桶押金快照定格）
       → 门店/送水工回收确认（RECOVERED，欠桶数同步减少）
-      → 管理员确认退还: 微信退款 DEPOSIT_REFUND（独立账本，不计营收/退款统计）
-        + deposit_records HELD→REFUNDED（条件更新幂等，防并发重复退还）→ REFUNDED
+      → 管理员确认退还: 微信退款 DEPOSIT_REFUND（独立账本，不计营收/退款统计;现金/无交易号仅落账本）
+        + deposit_records HELD→REFUNDED（条件更新幂等，防并发重复退还;部分退还=原记录缩量+
+          已退切片另落 REFUNDED 行）→ REFUNDED
       / 驳回（REJECTED，留原因）
-台账: 桶账为实时聚合视图（在租/欠桶/押金合计/余额），导出脱敏只读快照（R-PRO-05）
-【开放决策】损坏/缺失扣减规则（建议：驳回转人工客服处理）、历史无押金桶口径
+台账: 桶账为实时聚合视图（在租/欠桶/押金合计/已退）,用户端 barrelAccount 与后台 barrelLedger 同源
+      （仅计押金价目规格;后台筛选含「有欠桶」）;导出脱敏只读快照为规划（export_tasks,G20,R-PRO-05）
+【开放决策】损坏/缺失扣减规则（建议：驳回转人工客服处理）
 ```
 
 ## 10. 水票生命周期（R-MKT-08）

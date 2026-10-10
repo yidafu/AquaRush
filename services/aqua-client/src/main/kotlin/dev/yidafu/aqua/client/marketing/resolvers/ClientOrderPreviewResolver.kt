@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.client.marketing.resolvers
 
+import dev.yidafu.aqua.api.dto.OrderDepositItem
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.marketing.CouponQueryApiService
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
@@ -49,6 +51,7 @@ class ClientOrderPreviewResolver(
   private val deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService,
   private val addressQueryApiService: AddressQueryApiService,
   private val couponQueryApiService: CouponQueryApiService,
+  private val depositMutationApiService: DepositMutationApiService,
 ) {
   /**
    * 确认订单计价预览:校验地址归属后委托促销引擎纯计算,返回完整费用明细与可用券列表。
@@ -81,6 +84,13 @@ class ClientOrderPreviewResolver(
         ),
       )
     val deliveryFeeCents = computeDeliveryFee(address.floor)
+    // 押金试算(R-MON-03):与 createOrder 同源判定,返回行含规格/单价/桶数
+    val depositCents =
+      depositMutationApiService
+        .calcOrderDeposit(
+          userId = principal.id,
+          items = input.items.map { OrderDepositItem(productId = it.productId, quantity = it.quantity) },
+        ).totalCents
     // 可用券详情列表:引擎按 couponOptions 计算各券优惠,此处按 couponId 补全券面信息
     val availableCoupons =
       result.couponOptions.mapNotNull { option ->
@@ -90,21 +100,17 @@ class ClientOrderPreviewResolver(
       }
     return result.toGraphQL(
       deliveryFeeCents = deliveryFeeCents,
-      payAmountCents = result.payableProductCents + deliveryFeeCents,
+      // 押金(R-MON-03):随单首购规格收取,预览与 createOrder 同源判定
+      depositCents = depositCents,
+      payAmountCents = result.payableProductCents + deliveryFeeCents + depositCents,
       availableCoupons = availableCoupons,
     )
   }
 
   /**
-   * 配送费计算(R-MON-02 楼层口径):
-   * - 楼层为空(平房/无楼层信息)免运费;
-   * - 楼层 > 免费楼层(默认4)时一次性加收 surchargeCents(默认2元),不随层数累加。
+   * 配送费计算(R-MON-02 楼层分档):委托 DeliveryFeeRuleModel.feeCentsForFloor 共享实现,
+   * 与下单侧同源,保证预览金额与实付一致。
    */
-  private fun computeDeliveryFee(floor: Int?): Long {
-    val rule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule()
-    if (floor == null || floor <= rule.freeFloorLimit) {
-      return 0
-    }
-    return rule.surchargeCents
-  }
+  private fun computeDeliveryFee(floor: Int?): Long =
+    deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().feeCentsForFloor(floor, isSelfCollect = false)
 }

@@ -254,11 +254,13 @@ fun CouponOption.toGraphQL(): CouponOptionVo =
   )
 
 /**
- * 计价结果 → OrderPreviewVO(deliveryFeeCents/payAmountCents 由订单域楼层规则计算后注入;
- * availableCoupons 为可用券详情列表,由服务端按 couponOptions 补全后注入)
+ * 计价结果 → OrderPreviewVO(deliveryFeeCents/depositCents/payAmountCents 由调用方
+ * 按配送费规则与押金试算(R-MON-03)计算后注入;availableCoupons 为可用券详情列表,
+ * 由服务端按 couponOptions 补全后注入)
  */
 fun OrderPricingResult.toGraphQL(
   deliveryFeeCents: Long,
+  depositCents: Long,
   payAmountCents: Long,
   availableCoupons: List<UserCouponVo>,
 ): OrderPreviewVo =
@@ -282,8 +284,8 @@ fun OrderPricingResult.toGraphQL(
     totalDiscountCents = totalDiscountCents,
     payableProductCents = payableProductCents,
     deliveryFeeCents = deliveryFeeCents,
-    // 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,见 14-misc.md §G06)
-    depositCents = 0L,
+    // 随单押金试算(分,R-MON-03:首购规格收取,与 createOrder 同源)
+    depositCents = depositCents,
     payAmountCents = payAmountCents,
     availableTicketCount = availableTicketCount,
     couponOptions = couponOptions.map { it.toGraphQL() },

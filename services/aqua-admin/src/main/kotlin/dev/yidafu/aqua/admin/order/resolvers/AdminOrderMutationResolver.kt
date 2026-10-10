@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
+import dev.yidafu.aqua.api.dto.EmptyBarrelRecoveryItem
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
@@ -29,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
+import dev.yidafu.aqua.common.graphql.generated.EmptyBarrelRecoveryInput
 import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -183,9 +185,22 @@ class AdminOrderMutationResolver(
     @Argument photos: List<String>,
     @Argument paymentType: PaymentType?,
     @Argument remark: String?,
+    // 空桶回收登记(F-ORD-011/R-MON-03,非强制;按规格落 barrel_recovery_records)
+    @Argument emptyBarrels: List<EmptyBarrelRecoveryInput>? = null,
   ): OrderVo {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
-    return adminOrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
+    return adminOrderMapper.map(
+      deliveryTaskMutationService.completeDelivery(
+        orderId = orderId,
+        deliveryPhotos = photos,
+        paymentType = paymentType,
+        remark = remark,
+        emptyBarrels =
+          emptyBarrels.orEmpty().map {
+            EmptyBarrelRecoveryItem(specification = it.specification, count = it.count)
+          },
+      ),
+    )
   }
 
   /**

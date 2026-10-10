@@ -37,6 +37,22 @@ open class DeliveryFeeRuleModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : SoftDeletable {
+  /**
+   * 楼层配送费计算(R-MON-02 分档口径,2026-10 修订):
+   * 自提免运费;楼层为空(平房)或 ≤ 免费楼层免运费;超免费楼层按 tiers 命中,tiers 缺失回退 surchargeCents。
+   * 下单(OrderMutationServiceImpl)与确认订单预览(ClientOrderPreviewResolver)必须共用本方法,
+   * 保证预览金额与实付一致;规则配置变更即时生效,已生成订单按下单快照。
+   */
+  fun feeCentsForFloor(
+    floor: Int?,
+    isSelfCollect: Boolean,
+  ): Long {
+    if (isSelfCollect) return 0
+    if (floor == null || floor <= freeFloorLimit) return 0
+    val tier = tiers?.firstOrNull { t -> floor >= t.fromFloor && (t.toFloor == null || floor <= t.toFloor!!) }
+    return tier?.feeCents ?: surchargeCents
+  }
+
   companion object {
     /** 默认免费楼层:4楼及以下免运费 */
     const val DEFAULT_FREE_FLOOR_LIMIT = 4

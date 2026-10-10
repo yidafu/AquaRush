@@ -83,6 +83,8 @@ data class OrderModel(
   var deliveryStartedAt: LocalDateTime? = null,
   var assignedAt: LocalDateTime? = null,
   var completedAt: LocalDateTime? = null,
+  // 完成配送登记回收空桶总数(F-ORD-011/R-MON-03;明细在 barrel_recovery_records,V346 补列)
+  var emptyBarrelsRetrieved: Int? = null,
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   override var deletedAt: LocalDateTime? = null,

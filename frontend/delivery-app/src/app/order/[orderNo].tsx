@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -15,6 +15,10 @@ import { AddressCard } from '@/components/order-detail/address-card';
 import { AssignWorkerSheet } from '@/components/order-detail/assign-worker-sheet';
 import { CostSummaryCard } from '@/components/order-detail/cost-summary-card';
 import { DeliveryInfoCard } from '@/components/order-detail/delivery-info-card';
+import {
+  EmptyBarrelRecycleCard,
+  toEmptyBarrels,
+} from '@/components/order-detail/empty-barrel-recycle-card';
 import { OrderAddressEditSheet } from '@/components/order-detail/order-address-edit-sheet';
 import { OrderActionsBar } from '@/components/order-detail/order-actions-bar';
 import { OperationsCard } from '@/components/order-detail/operations-card';
@@ -54,6 +58,8 @@ export default function OrderDetailScreen() {
 
   const [deliveryPhotos, setDeliveryPhotos] = useState<string[]>([]);
   const [deliveryRemark, setDeliveryRemark] = useState('');
+  // 回收空桶登记(F-ORD-011,完成配送可选):规格 → 回收数量,全 0 不传 emptyBarrels
+  const [emptyBarrelCounts, setEmptyBarrelCounts] = useState<Record<string, number>>({});
 
   // 订单页地址信息修正(F-ORD-024)
   const [editAddressVisible, setEditAddressVisible] = useState(false);
@@ -83,6 +89,16 @@ export default function OrderDetailScreen() {
       return res?.orderByNo ?? null;
     },
   });
+
+  // 订单商品规格聚合去重(回收空桶按规格逐行登记,F-ORD-011)
+  const barrelSpecifications = useMemo(() => {
+    const specs: string[] = [];
+    for (const item of order?.items ?? []) {
+      const spec = item.product?.specification?.trim();
+      if (spec && !specs.includes(spec)) specs.push(spec);
+    }
+    return specs;
+  }, [order?.items]);
 
   useEffect(() => {
     if (!order?.id) {
@@ -174,10 +190,17 @@ export default function OrderDetailScreen() {
       setActionLoading(true);
       const toastId = toast.loading('配送完成处理中...');
       try {
-        await completeDelivery(order.id, deliveryPhotos, paymentType ?? undefined, deliveryRemark || undefined);
+        await completeDelivery(
+          order.id,
+          deliveryPhotos,
+          paymentType ?? undefined,
+          deliveryRemark || undefined,
+          toEmptyBarrels(emptyBarrelCounts),
+        );
         toast.success('配送完成', { id: toastId });
         setDeliveryPhotos([]);
         setDeliveryRemark('');
+        setEmptyBarrelCounts({});
         refresh();
       } catch (e: any) {
         toast.error(e?.message || '完成配送失败', { id: toastId });
@@ -185,7 +208,7 @@ export default function OrderDetailScreen() {
         setActionLoading(false);
       }
     },
-    [order, deliveryPhotos, deliveryRemark, refresh],
+    [order, deliveryPhotos, deliveryRemark, emptyBarrelCounts, refresh],
   );
 
   // 确认送达按钮:自收直接完成,否则打开收款方式选择
@@ -360,6 +383,15 @@ export default function OrderDetailScreen() {
           />
         ) : null}
 
+        {/* 回收空桶登记(F-ORD-011,完成配送时可选;已完成后不展示) */}
+        {order.status === 'DELIVERING' ? (
+          <EmptyBarrelRecycleCard
+            specifications={barrelSpecifications}
+            counts={emptyBarrelCounts}
+            onChange={setEmptyBarrelCounts}
+          />
+        ) : null}
+
         <OperationsCard operations={operations} />
 
         <OrderInfoCard order={order} />
@@ -399,6 +431,9 @@ export default function OrderDetailScreen() {
         visible={paymentSheetVisible}
         onClose={() => setPaymentSheetVisible(false)}
         onSelect={handlePaymentCollection}
+        recycleSummary={toEmptyBarrels(emptyBarrelCounts)
+          ?.map((item) => `${item.specification} × ${item.count}`)
+          .join('、')}
       />
 
       {/* 管理员派单 */}

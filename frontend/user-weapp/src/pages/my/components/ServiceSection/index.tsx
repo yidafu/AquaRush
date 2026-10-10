@@ -48,10 +48,10 @@ const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
     },
     {
       icon: '/assets/icons/service/ticket',
-      title: '买水桶',
-      description: '一次性购买塑料水桶',
+      title: '水桶账户',
+      description: '查看押金与退押申请',
       onClick: () => {
-        Taro.navigateTo({ url: '/pages/barrel-shop/index' })
+        Taro.navigateTo({ url: '/pages/barrel-mine/index' })
       }
     }
   ]

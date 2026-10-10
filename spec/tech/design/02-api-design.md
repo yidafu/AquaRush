@@ -81,9 +81,9 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `memberCenter` | authenticated | 当前等级/成长进度（当前累计/下一级门槛）/权益列表（G80 排期，schema 现状未落） |
 | `pointsCenter` / `pointsLedger(page,size)` / `exchangePoints(itemId)` | authenticated | 积分余额/明细/兑换（幂等；G81 排期，schema 现状未落） |
 | `myPackages(page,size)` | authenticated | 套餐卡列表（剩余量/状态；G79 排期 schema 现状未落；用户储值不做——2026-10-09 决策，无余额/充值接口） |
-| `barrelAccount` | authenticated | 本人桶账：按规格在租/欠桶/押金合计 + 押金记录分页（G75 随押金回退 B2 排期，schema 现状未落） |
-| `submitDepositRefund(spec, count, addr, remark)` | authenticated | 退押申请（≤在租桶数校验；随押金回退 B2 排期） |
-| `depositRefundApplications(page,size)` | authenticated | 退押申请记录（仅本人；随押金回退 B2 排期） |
+| `barrelAccount(page,size)` | authenticated | 本人桶账：按规格在租/欠桶/押金合计 + 押金记录分页（F-PRO-010;**B2 已实现**） |
+| `submitDepositRefund(input{specification,bucketCount,receiverName,receiverPhone,receiverDetail,remark?})` | authenticated | 退押申请（≤在租桶数校验、重复处理中申请拦截、金额服务端按押金记录快照计算;**B2 已实现**） |
+| `depositRefundApplications(status?,page,size)` | authenticated | 退押申请记录分页（仅本人,R-AUTH-02;与后台同签名,**B2 已实现**） |
 
 ### 4.2 下单与订单（用户端）
 
@@ -123,7 +123,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `workerTasks(tab,page,size)` | DELIVERY_TASK | 任务列表三栏：未接单（PENDING_DISPATCH，可抢）/已接单（PENDING_DELIVERY）/配送中（DELIVERING）；实时刷新（WS 推送 + 30s 轮询降级）。现状替代实现：`pendingDeliveryOrders` / `assignedOrders` / `deliveringOrders` 三查询（三栏分页补全列零散清单，A 类） |
 | `acceptDelivery(orderId)` | DELIVERY_TASK | 抢单：`待派单→待配送`；并发先到先得（目标为状态条件更新，失败提示「该订单已被处理」;现状实现为读-改-存,并发双抢单缺口见 03 §6） |
 | `startDelivery(orderId)` | DELIVERY_TASK | 开始配送：`待配送→配送中`，记 delivery_started_at，启动轨迹上报 |
-| `completeDelivery(orderId,photos[],paymentType,remark)` | DELIVERY_TASK | 完成配送：仅本人配送中订单；**photos ≥1 服务端硬校验**；收款方式 `paymentType` 三选一（票核销单未选自动记 WATER_TICKET；自提豁免）；置 completed_at 即时计入营收（R-ORD-07/11）。现状无 `emptyBarrelsRetrieved` 入参——空桶回收登记随押金回退批次（B2 结构 #4）恢复 |
+| `completeDelivery(orderId,photos[],paymentType,remark,emptyBarrels?)` | DELIVERY_TASK | 完成配送：仅本人配送中订单；**photos ≥1 服务端硬校验**；收款方式 `paymentType` 三选一（票核销单未选自动记 WATER_TICKET；自提豁免）；置 completed_at 即时计入营收（R-ORD-07/11）。`emptyBarrels:[{specification,count}]` 空桶回收按规格登记（F-ORD-011,非强制,**B2 已实现**;`orders.empty_barrels_retrieved` 落总数快照） |
 | `createDeliveryOrder(input{items,addressId,isSelfCollect,remark})` | ORDER_CREATE | 代客下单（原设计名 proxyOrder）：多商品 items + 地址 + `isSelfCollect`（自收/已收款，默认 false）；订单 userId=地址所属客户；进 `PENDING_DISPATCH` 免在线支付，默认 CASH；自提单 payment_time=下单时间（R-ORD-09，G51 归属口径） |
 | `updateOrderAddress(orderId,input)` | DELIVERY_TASK | 订单地址快照修正（`UpdateOrderAddressInput`：receiver/phone/detail/floor/longitude/latitude 仅传字段生效，空值不覆盖；**不回写地址簿**；非终态订单；配送费不重算；留痕 ADDRESS_UPDATED）（F-ORD-024） |
 | `transferOrder(orderId,{toWorkerId,reason})` | DELIVERY_TASK | 发起转单（仅本人待配送/配送中；目标在线可接单；次数上限校验）（R-ORD-15；G84 排期，schema 现状未落） |
@@ -168,8 +168,11 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `productOptions(type)` / `createProductOption/updateProductOption/deleteProductOption` | PRODUCT_READ / PRODUCT_WRITE | 字典维护（同类型唯一校验） |
 | `exportProducts(filter)` | PRODUCT_READ + 导出 | 异步导出（export_tasks，按当前筛选；现状 disabled 占位，G20 P1 排期） |
 | `importProducts(fileUrl)` | PRODUCT_WRITE | 批量导入：模板下载→上传→校验（必填/格式/价格精度/重复）→预览（行级原因、失败行可下载）→确认导入（服务端二次校验）（F-PRO-011；现状 disabled 占位，G20 P1 排期） |
-| `depositPrices` / `upsertDepositPrice` / `barrelLedger(filter,page,size)` / `exportBarrelLedger(filter)` | PRODUCT_READ / PRODUCT_WRITE | 押金价目维护、桶账台账（实时聚合：在租/欠桶/押金合计/余额，筛选含「有欠桶」）、导出（脱敏）（F-PRO-012）。现状代码为 G06 一次性购桶费旧形态（`barrelFees`/`barrelPurchases`/`purchaseBarrel` 六 API）——押金回退批次（B2 结构 #4）后对齐本行 |
-| `depositRefundApplications(status,page,size)` / `confirmBarrelRecovered(id)` / `approveDepositRefund(id)` / `rejectDepositRefund(id,reason)` | PRODUCT_WRITE | 退押处理流转 |
+| `depositPrices(input)` / `upsertDepositPrice(input)` | PRODUCT_READ / PRODUCT_WRITE | 押金价目维护(分页查询 / 新增编辑合一,规格唯一;**B2 已实现**,原 barrelFees 六 API 删除) |
+| `depositRecords(input{userId?,status?,specification?,page,size})` | PRODUCT_READ | 押金记录分页(后台押金管理;**B2 已实现**) |
+| `barrelLedger(input{keyword?,onlyOwed?,page,size})` | PRODUCT_READ | 桶账台账（实时聚合:在租/欠桶/押金合计/已退,筛选含「有欠桶」;**B2 已实现** F-PRO-012 查询面)。`exportBarrelLedger` 依赖 `export_tasks` 异步导出基建(G20 排期)暂未提供——导出面仍为规划 |
+| `depositRefundApplications(status,page,size)` | PRODUCT_READ | 退押申请分页(后台;与用户端同签名) |
+| `confirmBarrelRecovered(id)` / `approveDepositRefund(id)` / `rejectDepositRefund(id,reason)` | PRODUCT_WRITE | 退押处理流转(回收确认→微信退款 DEPOSIT_REFUND+押金记录 HELD→REFUNDED / 驳回留原因;**B2 已实现**) |
 
 ### 5.2 订单域
 

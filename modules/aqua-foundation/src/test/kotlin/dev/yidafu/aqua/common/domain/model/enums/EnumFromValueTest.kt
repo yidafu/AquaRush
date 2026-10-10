@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.domain.model.enums
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.CouponIssuanceType
 import dev.yidafu.aqua.common.domain.model.enums.CouponScope
@@ -31,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
+import dev.yidafu.aqua.common.domain.model.enums.DepositPriceStatus
 import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
@@ -73,7 +73,7 @@ class EnumFromValueTest :
     test("fromValue roundtrip: 每个枚举值可无损解析") {
       AdminAccountStatus.entries.forEach { AdminAccountStatus.fromValue(it.name) shouldBe it }
       AdminRoleModel.entries.forEach { AdminRoleModel.fromValue(it.name) shouldBe it }
-      BarrelFeeStatus.entries.forEach { BarrelFeeStatus.fromValue(it.name) shouldBe it }
+      DepositPriceStatus.entries.forEach { DepositPriceStatus.fromValue(it.name) shouldBe it }
       BarrelPaymentStatus.entries.forEach { BarrelPaymentStatus.fromValue(it.name) shouldBe it }
       CouponIssuanceType.entries.forEach { CouponIssuanceType.fromValue(it.name) shouldBe it }
       CouponScope.entries.forEach { CouponScope.fromValue(it.name) shouldBe it }
@@ -116,7 +116,7 @@ class EnumFromValueTest :
     test("fromValue 未知值抛 IllegalArgumentException(fail-fast)") {
       shouldThrow<IllegalArgumentException> { AdminAccountStatus.fromValue("__NO_SUCH_VALUE__") }
       shouldThrow<IllegalArgumentException> { AdminRoleModel.fromValue("__NO_SUCH_VALUE__") }
-      shouldThrow<IllegalArgumentException> { BarrelFeeStatus.fromValue("__NO_SUCH_VALUE__") }
+      shouldThrow<IllegalArgumentException> { DepositPriceStatus.fromValue("__NO_SUCH_VALUE__") }
       shouldThrow<IllegalArgumentException> { BarrelPaymentStatus.fromValue("__NO_SUCH_VALUE__") }
       shouldThrow<IllegalArgumentException> { CouponIssuanceType.fromValue("__NO_SUCH_VALUE__") }
       shouldThrow<IllegalArgumentException> { CouponScope.fromValue("__NO_SUCH_VALUE__") }

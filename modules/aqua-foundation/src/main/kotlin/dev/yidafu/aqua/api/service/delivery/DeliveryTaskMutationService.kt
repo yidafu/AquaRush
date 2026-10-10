@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.api.service.delivery
 
+import dev.yidafu.aqua.api.dto.EmptyBarrelRecoveryItem
 import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -73,12 +74,14 @@ interface DeliveryTaskMutationService {
    * @param deliveryPhotos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
    * @param remark 配送员备注
+   * @param emptyBarrels 空桶回收登记(F-ORD-011/R-MON-03:按规格登记,非强制,可空)
    */
   fun completeDelivery(
     orderId: Long,
     deliveryPhotos: List<String>,
     paymentType: PaymentType?,
     remark: String?,
+    emptyBarrels: List<EmptyBarrelRecoveryItem> = emptyList(),
   ): OrderModel
 
   /**

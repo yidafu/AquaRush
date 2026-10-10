@@ -7,23 +7,39 @@
   box-sizing: border-box;
 }
 
-.barrel-mine-status {
+/* 押金合计 / 欠桶合计(顶部汇总卡) */
+.barrel-mine-summary {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+  border-radius: 20px;
+  padding: 40px 0;
+  margin-bottom: 32px;
+}
+
+.barrel-mine-summary-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 48px 0 40px;
 }
 
-.barrel-mine-status-text {
-  font-size: 40px;
+.barrel-mine-summary-value {
+  font-size: 48px;
   font-weight: 700;
-  color: var(--theme-text-primary);
+  color: #ffffff;
 }
 
-.barrel-mine-order-no {
+.barrel-mine-summary-label {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.barrel-mine-summary-divider {
+  width: 1px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .barrel-mine-card {
@@ -49,78 +65,201 @@
   color: var(--theme-text-primary);
 }
 
-.barrel-mine-card-total {
-  font-size: 30px;
-  font-weight: 700;
-  color: #e64340;
-}
-
-.barrel-mine-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
-}
-
-.barrel-mine-item-name {
-  flex: 1;
-  font-size: 28px;
-  color: var(--theme-text-primary);
-}
-
-.barrel-mine-item-qty {
+.barrel-mine-card-count {
   font-size: 24px;
   color: var(--theme-text-secondary);
 }
 
-.barrel-mine-item-amount {
-  min-width: 140px;
-  text-align: right;
-  font-size: 26px;
-  color: var(--theme-text-primary);
+.barrel-mine-refund-btn {
+  background: var(--theme-primary-light);
+  border-radius: 32px;
+  padding: 12px 32px;
 }
 
-.barrel-mine-meta {
+.barrel-mine-refund-btn-text {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--theme-primary);
+}
+
+/* 按规格桶账 */
+.barrel-mine-spec {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--theme-border-light);
+}
+
+.barrel-mine-spec:last-child {
+  border-bottom: none;
+}
+
+.barrel-mine-spec-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0;
 }
 
-.barrel-mine-meta-label {
-  font-size: 26px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-meta-value {
-  font-size: 26px;
+.barrel-mine-spec-name {
+  font-size: 28px;
+  font-weight: 600;
   color: var(--theme-text-primary);
 }
 
-.barrel-mine-note {
-  padding: 0 8px;
+.barrel-mine-spec-deposit {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--theme-primary);
 }
 
-.barrel-mine-note-text {
-  font-size: 22px;
-  line-height: 1.6;
+.barrel-mine-spec-sub {
+  display: flex;
+  gap: 32px;
+  margin-top: 10px;
+}
+
+.barrel-mine-spec-meta {
+  font-size: 24px;
   color: var(--theme-text-secondary);
 }
 
-.barrel-mine-empty-action {
-  padding: 48px 0;
-  display: flex;
-  justify-content: center;
+.barrel-mine-spec-empty {
+  display: block;
+  padding: 24px 0;
+  font-size: 26px;
+  color: var(--theme-text-tertiary);
+  text-align: center;
 }
 
-.barrel-mine-buy-btn {
+/* 退押申请表单 */
+.barrel-mine-form-close {
+  font-size: 26px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-mine-form-item {
+  margin-bottom: 24px;
+}
+
+.barrel-mine-form-label {
+  display: block;
+  font-size: 26px;
+  color: var(--theme-text-primary);
+  margin-bottom: 12px;
+}
+
+.barrel-mine-form-picker,
+.barrel-mine-form-input {
+  background: var(--theme-background-secondary);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 28px;
+  color: var(--theme-text-primary);
+}
+
+.barrel-mine-form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.barrel-mine-form-textarea {
+  width: 100%;
+  min-height: 140px;
+  box-sizing: border-box;
+  background: var(--theme-background-secondary);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 28px;
+  color: var(--theme-text-primary);
+}
+
+.barrel-mine-form-help {
+  display: block;
+  margin-top: 10px;
+  font-size: 22px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-mine-submit-btn {
   background: var(--theme-primary);
   border-radius: 44px;
-  padding: 20px 72px;
+  padding: 22px 0;
+  text-align: center;
+  margin-top: 8px;
 }
 
-.barrel-mine-buy-text {
+.barrel-mine-submit-btn--disabled {
+  opacity: 0.6;
+}
+
+.barrel-mine-submit-text {
   color: #ffffff;
   font-size: 28px;
   font-weight: 600;
+}
+
+/* 押金记录 / 退押申请记录 */
+.barrel-mine-record {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--theme-border-light);
+}
+
+.barrel-mine-record:last-child {
+  border-bottom: none;
+}
+
+.barrel-mine-record-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.barrel-mine-record-spec {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.barrel-mine-record-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--theme-primary);
+}
+
+.barrel-mine-record-sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.barrel-mine-record-meta,
+.barrel-mine-record-time {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-mine-record-time {
+  display: block;
+  margin-top: 8px;
+}
+
+.barrel-mine-record-remark {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-mine-record-reject {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--theme-error);
+}
+
+.barrel-mine-load-more {
+  display: block;
+  padding: 20px 0 4px;
+  font-size: 24px;
+  color: var(--theme-text-tertiary);
+  text-align: center;
 }

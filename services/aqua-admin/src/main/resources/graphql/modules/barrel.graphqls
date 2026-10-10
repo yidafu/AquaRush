@@ -1,136 +1,127 @@
-# 水桶费管理(G06:一次性塑料水桶费——独立价目表 + 购桶单 + 管理员手动退还)
-# 水桶费为一次性塑料水桶费用,用户独立支付购桶(与商品订单不捆绑),每用户总限购一次;
-# 一般不可退,特殊情况由管理员手动退还(执行 DEPOSIT_REFUND,不计入退款/净营收统计)
+# 水桶押金管理(B2 押金模型回退,PRD R-MON-03/R-PRO-05/F-PRO-012 与 14-misc §G06):
+# 押金价目(按规格,与商品解耦)+ 押金记录 + 空桶回收与退押确认 + 桶账台账;
+# 原 G06 一次性购桶费 API(barrelFees/barrelPurchases/refundBarrelPurchase)已废弃,
+# barrel_purchases 历史数据保留不 drop,支付回调 BK 单号链路保留兼容。
 
-# 水桶费价目状态
-enum BarrelFeeStatus {
-  ENABLED # 启用(用户端可购)
-  DISABLED # 停用
+# 押金价目状态(R-MON-03:押金 0~99999 元按规格配置)
+enum DepositPriceStatus {
+  ENABLED # 启用(下单按此规格收押)
+  DISABLED # 停用(新订单不再收取,已收押金不受影响)
 }
 
-# 购桶单支付状态
-enum BarrelPaymentStatus {
-  PENDING # 待支付
-  PAID # 已支付(入账)
-  CANCELLED # 已取消
-  REFUNDED # 已退还(管理员手动退还)
-}
-
-# 水桶费价目(按规格,与商品解耦)
-type BarrelFeeAdminVo {
+# 水桶押金价目(按规格,与商品解耦)
+type DepositPriceVo {
   id: PrimaryId!
   # 规格(唯一,如 19L/5L)
   specification: String!
-  # 价格(分)
-  priceCents: Long!
-  # 状态
-  status: BarrelFeeStatus!
+  # 押金(分,0..9999900)
+  depositCents: Long!
+  status: DepositPriceStatus!
   # 排序权重(升序)
   sortOrder: Int!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
-# 水桶费价目分页
-type BarrelFeeVoPage {
-  content: [BarrelFeeAdminVo!]!
+type DepositPriceVoPage {
+  content: [DepositPriceVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-# 购桶单明细(规格/单价/数量快照,配置变更不影响已生成购桶单)
-type BarrelPurchaseItemAdminVo {
-  # 规格快照
-  specification: String!
-  # 单价快照(分)
-  unitPriceCents: Long!
-  quantity: Int!
-  # 金额小计(分)= 单价 × 数量
-  amountCents: Long!
-}
-
-# 水桶购买单(一次性购桶,独立支付)
-type BarrelPurchaseAdminVo {
-  id: PrimaryId!
-  # 购桶单号(BK 前缀,支付 out_trade_no)
-  orderNo: String!
-  # 购买用户
-  userId: PrimaryId!
-  # 购桶总额(分)
-  totalAmountCents: Long!
-  paymentStatus: BarrelPaymentStatus!
-  # 支付时间
-  paidAt: LocalDateTime
-  # 退还时间
-  refundedAt: LocalDateTime
-  # 退还操作人(管理员)
-  refundedBy: PrimaryId
-  # 退还备注
-  refundRemark: String
-  # 用户备注
-  remark: String
-  # 购桶明细
-  items: [BarrelPurchaseItemAdminVo!]!
-  createdAt: LocalDateTime!
-  updatedAt: LocalDateTime!
-}
-
-# 购桶单分页
-type BarrelPurchaseVoPage {
-  content: [BarrelPurchaseAdminVo!]!
+# 押金记录分页(后台押金管理「押金记录」Tab)
+type DepositRecordVoPage {
+  content: [DepositRecordVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-input CreateBarrelFeeInput {
-  specification: String! @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
-  priceCents: Long!
-    @min(value: 0, message: "水桶费不能小于0")
-    @max(value: 9999900, message: "水桶费不能大于99999元")
-  sortOrder: Int! @min(value: 0, message: "排序权重不能小于0") @max(value: 9999, message: "排序权重不能大于9999")
-}
-
-input UpdateBarrelFeeInput {
-  specification: String @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
-  priceCents: Long
-    @min(value: 0, message: "水桶费不能小于0")
-    @max(value: 9999900, message: "水桶费不能大于99999元")
-  sortOrder: Int @min(value: 0, message: "排序权重不能小于0") @max(value: 9999, message: "排序权重不能大于9999")
-}
-
-input BarrelFeeListInput {
-  status: BarrelFeeStatus
+input DepositPriceListInput {
+  status: DepositPriceStatus
   keyword: String
   page: Int = 0
   size: Int = 20
 }
 
-input BarrelPurchaseListInput {
-  status: BarrelPaymentStatus
-  dateFrom: LocalDateTime
-  dateTo: LocalDateTime
+# 押金价目新增/编辑合一(设计 02 §5.1 upsertDepositPrice;id 空=新增,规格唯一冲突拦截)
+input UpsertDepositPriceInput {
+  id: PrimaryId
+  specification: String! @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
+  depositCents: Long!
+    @min(value: 0, message: "押金不能小于0")
+    @max(value: 9999900, message: "押金不能大于99999元")
+  status: DepositPriceStatus = ENABLED
+  sortOrder: Int @min(value: 0, message: "排序权重不能小于0") @max(value: 9999, message: "排序权重不能大于9999")
+}
+
+input DepositRecordListInput {
+  userId: PrimaryId
+  status: DepositStatus
+  specification: String
+  page: Int = 0
+  size: Int = 20
+}
+
+# 桶账台账行(R-PRO-05/F-PRO-012:按客户维度实时聚合,在租/欠桶/押金合计)
+type BarrelLedgerRowVo {
+  userId: PrimaryId!
+  nickname: String
+  phone: String
+  # 在租押金桶数(HELD)
+  heldBucketCount: Int!
+  # 押金合计(在租,分)
+  depositHeldCents: Long!
+  # 已退押金(分,REFUNDED 累计)
+  depositRefundedCents: Long!
+  # 已交付桶数(已完成订单 items,押金价目规格)
+  deliveredBucketCount: Int!
+  # 已回收空桶数
+  recoveredBucketCount: Int!
+  # 欠桶数 = 已交付 − 已回收
+  owedBucketCount: Int!
+}
+
+type BarrelLedgerVoPage {
+  content: [BarrelLedgerRowVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input BarrelLedgerInput {
+  # 关键词(昵称/手机号模糊)
+  keyword: String
+  # 仅看有欠桶
+  onlyOwed: Boolean = false
   page: Int = 0
   size: Int = 20
 }
 
 extend type Query {
-  # 水桶费价目分页查询(状态/关键词筛选;PERMISSION_PAYMENT_READ)
-  barrelFees(input: BarrelFeeListInput): BarrelFeeVoPage!
-  # 购桶单分页查询(状态/时间范围筛选;PERMISSION_PAYMENT_READ)
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVoPage!
+  # 押金价目分页(状态/关键词筛选;PERMISSION_PRODUCT_READ)
+  depositPrices(input: DepositPriceListInput): DepositPriceVoPage!
+  # 押金记录分页(用户/状态/规格筛选;PERMISSION_PRODUCT_READ)
+  depositRecords(input: DepositRecordListInput): DepositRecordVoPage!
+  # 退押申请分页(状态筛选;PERMISSION_PRODUCT_READ;与用户端同签名以合并 schema)
+  depositRefundApplications(status: DepositRefundApplicationStatus, page: Int = 0, size: Int = 20): DepositRefundApplicationVoPage!
+  # 桶账台账(按客户实时聚合,筛选含「有欠桶」;PERMISSION_PRODUCT_READ,F-PRO-012)
+  # 注:导出 exportBarrelLedger 依赖 export_tasks 异步导出基建(G20 排期),暂未提供
+  barrelLedger(input: BarrelLedgerInput): BarrelLedgerVoPage!
 }
 
 extend type Mutation {
-  # 新增水桶费价目(PERMISSION_PAYMENT_WRITE)
-  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVo!
-  # 编辑水桶费价目(PERMISSION_PAYMENT_WRITE)
-  updateBarrelFee(id: PrimaryId!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVo!
-  # 停用水桶费价目(停用后用户端不可购;不影响已生成购桶单;PERMISSION_PAYMENT_WRITE)
-  disableBarrelFee(id: PrimaryId!): BarrelFeeAdminVo!
-  # 退还水桶费(管理员手动退还,执行退款并置「已退还」;PERMISSION_PAYMENT_REFUND)
-  refundBarrelPurchase(purchaseId: PrimaryId!, remark: String): BarrelPurchaseAdminVo!
+  # 押金价目新增/编辑(id 空=新增,规格唯一;PERMISSION_PRODUCT_WRITE)
+  upsertDepositPrice(input: UpsertDepositPriceInput!): DepositPriceVo!
+  # 空桶回收确认(PENDING→RECOVERED;PERMISSION_PRODUCT_WRITE,R-PRO-04)
+  confirmBarrelRecovered(applicationId: PrimaryId!): DepositRefundApplicationVo!
+  # 退押审核通过(RECOVERED→REFUNDED:执行微信退款 DEPOSIT_REFUND 独立账本 + 押金记录 HELD→REFUNDED;
+  # PERMISSION_PRODUCT_WRITE,R-PRO-04/R-MON-03)
+  approveDepositRefund(applicationId: PrimaryId!): DepositRefundApplicationVo!
+  # 退押驳回(PENDING/RECOVERED→REJECTED,留原因;PERMISSION_PRODUCT_WRITE)
+  rejectDepositRefund(applicationId: PrimaryId!, reason: String!): DepositRefundApplicationVo!
 }

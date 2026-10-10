@@ -54,8 +54,8 @@ const FlashSaleDetailPage: React.FC = () => {
   const usage = data?.flashSaleActivityUsage;
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setPage(pagination.current - 1);
-    setSize(pagination.pageSize);
+    setPage((pagination.current ?? 1) - 1);
+    setSize(pagination.pageSize ?? 10);
   };
 
   return (

@@ -1,6 +1,8 @@
-export { default as BarrelFeeTable } from './BarrelFeeTable';
-export { default as BarrelPurchaseTable } from './BarrelPurchaseTable';
-export { default as BarrelFeeFormModal } from './BarrelFeeFormModal';
-export { default as RefundBarrelModal } from './RefundBarrelModal';
-export type { BarrelFeeFormValues } from './BarrelFeeFormModal';
-export type { RefundBarrelFormValues } from './RefundBarrelModal';
+export { default as DepositPriceTable } from './DepositPriceTable';
+export { default as DepositRecordTable } from './DepositRecordTable';
+export { default as DepositRefundTable } from './DepositRefundTable';
+export { default as BarrelLedgerTable } from './BarrelLedgerTable';
+export { default as DepositPriceFormModal } from './DepositPriceFormModal';
+export { default as RejectRefundModal } from './RejectRefundModal';
+export type { DepositPriceFormValues } from './DepositPriceFormModal';
+export type { RejectRefundFormValues } from './RejectRefundModal';

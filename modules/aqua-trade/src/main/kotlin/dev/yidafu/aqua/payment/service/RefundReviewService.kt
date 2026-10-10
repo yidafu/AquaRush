@@ -42,7 +42,7 @@ import java.time.LocalDateTime
 /**
  * 管理员退款审核服务(R-PAY-02):
  * 状态机 PENDING(待审核)→ APPROVED(已通过)→ COMPLETED(已完成)/FAILED(失败);PENDING → REJECTED(已拒绝)。
- * 通过:执行订单退款(商品+配送费,ORDER_REFUND)+ 历史订单押金退还(DEPOSIT_REFUND,如有,2026-08 水桶费改造后仅旧订单触发),订单流转「已退款」;
+ * 通过:执行订单退款(商品+配送费,ORDER_REFUND)+ 随单押金退还(DEPOSIT_REFUND,如有,R-MON-03),订单流转「已退款」;
  * 驳回:退款终止,订单保持「已取消」;失败:人工介入可重试(再 APPROVE)。
  */
 @Service
@@ -92,8 +92,8 @@ class RefundReviewService(
         refundType = RefundType.ORDER_REFUND,
         refundRequestId = refundRequestId,
       )
-      // 历史订单押金退还(2026-08 水桶费改造后新订单恒无押金;此处仅兼容旧订单 orders.deposit_amount_cents>0,
-      // DEPOSIT_REFUND 不计入退款统计,见 14-misc.md §G06)
+      // 随单押金退还(R-MON-03:押金计入 payAmountCents,退款金额=商品+配送费+押金,
+      // DEPOSIT_REFUND 独立账本不计退款统计;账本联动 HELD→REFUNDED 幂等)
       if (order.depositCents > 0) {
         paymentService.refund(
           transactionId = transactionId,

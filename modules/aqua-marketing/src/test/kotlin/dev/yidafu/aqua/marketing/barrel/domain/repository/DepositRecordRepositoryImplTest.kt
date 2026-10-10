@@ -37,14 +37,14 @@ class DepositRecordRepositoryImplTest :
     beforeTest { reset() }
 
     test("findByOrderIdAndStatus 过滤软删与状态") {
-      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED")
+      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "HELD")
       MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "REFUNDED")
-      MarketingPgTestSupport.depositRecord(orderId = 11L, userId = 100L, status = "COLLECTED")
-      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED", deleted = true)
+      MarketingPgTestSupport.depositRecord(orderId = 11L, userId = 100L, status = "HELD")
+      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "HELD", deleted = true)
 
-      repo.findByOrderIdAndStatus(10L, DepositStatus.COLLECTED) shouldHaveSize 1
+      repo.findByOrderIdAndStatus(10L, DepositStatus.HELD) shouldHaveSize 1
       repo.findByOrderIdAndStatus(10L, DepositStatus.REFUNDED) shouldHaveSize 1
-      repo.findByOrderIdAndStatus(99L, DepositStatus.COLLECTED) shouldHaveSize 0
+      repo.findByOrderIdAndStatus(99L, DepositStatus.HELD) shouldHaveSize 0
     }
 
     test("saveAll 新增回填 id,再保存走 update 分支") {
@@ -57,17 +57,17 @@ class DepositRecordRepositoryImplTest :
       saved shouldHaveSize 2
       saved.forEach { it.id.shouldNotBeNull() }
 
-      val found = repo.findByOrderIdAndStatus(10L, DepositStatus.COLLECTED)
+      val found = repo.findByOrderIdAndStatus(10L, DepositStatus.PENDING)
       found shouldHaveSize 2
 
       saved.forEach { it.status = DepositStatus.REFUNDED }
       repo.saveAll(saved)
-      repo.findByOrderIdAndStatus(10L, DepositStatus.COLLECTED) shouldHaveSize 0
+      repo.findByOrderIdAndStatus(10L, DepositStatus.PENDING) shouldHaveSize 0
       repo.findByOrderIdAndStatus(10L, DepositStatus.REFUNDED) shouldHaveSize 2
     }
 
     test("saveAll 空列表 no-op") {
       repo.saveAll(emptyList()) shouldHaveSize 0
-      repo.findByOrderIdAndStatus(1L, DepositStatus.COLLECTED) shouldHaveSize 0
+      repo.findByOrderIdAndStatus(1L, DepositStatus.PENDING) shouldHaveSize 0
     }
   })

@@ -252,40 +252,45 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 
 ### 3.4 押金价目（按规格，与商品解耦）
 
-**目标表 `barrel_deposit_prices`**（押金模型,随押金回退批次 B2 恢复/重建）：
+**表 `barrel_fees`（B2 已实施,表名沿用不重命名）**:
 
 | 列 | 类型 | 说明 |
 | --- | --- | --- |
 | id | BIGINT PK | |
 | specification | VARCHAR(100) | UNIQUE |
-| deposit_cents | BIGINT | 0..9_999_900（如「19L 桶 押金 ¥40」） |
+| price_cents | BIGINT | 押金价(0..9_999_900,如「19L 桶 押金 ¥40」;列名沿用 `price_cents`,GraphQL/Kotlin 面为 `depositCents`/DepositPrice) |
 | status | VARCHAR(16) | ENABLED / DISABLED |
-| sort_weight | INT | |
+| sort_order | INT | |
 
-**现状**：G06 期间以 `barrel_fees`（`specification UK + price_cents + status + sort_order`）承载**一次性水桶费**价目,配套 `barrel_purchases`/`barrel_purchase_items` 购桶单;PRD G06 已回退（拍板:E4 勘误,恢复押金随单收取）,B2 批次将 barrel_fees 语义回退为押金价目并恢复下表押金账本写入。
+**沿革**：G06 期间以 `barrel_fees` 承载**一次性水桶费**价目,配套 `barrel_purchases`/`barrel_purchase_items` 购桶单;PRD G06 已回退(拍板:E4 勘误,恢复押金随单收取)。**B2 已实施**:GraphQL/Kotlin 更名 `depositPrices`/`upsertDepositPrice`/`DepositPrice*`(原 barrelFees 六 API 删除),语义回退为押金价目;表名保留 `barrel_fees`(改名收益低于迁移风险,列名同理);`barrel_purchases`/`barrel_purchase_items` 历史数据保留不 drop(支付回调 BK 单号链路兼容),购桶 API 已删除。
 
 ### 3.5 `deposit_records` 押金记录（押金账本）
+
+**B2 已实施(V346 扩列)**：
 
 | 列 | 类型 | 说明 |
 | --- | --- | --- |
 | id | BIGINT PK | |
 | user_id | BIGINT → users | |
 | order_id | BIGINT → orders | 随单收取来源 |
-| deposit_amount_cents | BIGINT | 收取金额快照（列名 `deposit_amount_cents`;G06 后历史行只读） |
-| status | VARCHAR(20) | 现状默认 `COLLECTED`(已收取) → `REFUNDED`(已退还);目标态机 PENDING(待收取) → HELD(已收取) → REFUNDED 随 B2 恢复 |
+| deposit_amount_cents | BIGINT | 收取金额快照（= unit_deposit_cents × bucket_count） |
+| specification | VARCHAR(100) | 规格快照(V346 扩列;G06 前历史行可空) |
+| unit_deposit_cents | BIGINT | 单桶押金价快照(V346 扩列) |
+| bucket_count | INT | 收取桶数快照(V346 扩列) |
+| status | VARCHAR(20) | **三态机(B2 已实施)**:PENDING(待收取,下单建账) → HELD(已收取,支付成功/代客下单确认) → REFUNDED(已退还);存量 COLLECTED→HELD、CANCELLED→PENDING(V346 回填);取消/超时软删 PENDING |
 | collected_at / refunded_at | TIMESTAMP | |
-| refunded_by / refund_remark | BIGINT / VARCHAR(500) | 退还留痕（现状为管理员手动退,B2 改申请-审核流） |
+| refunded_by / refund_remark | BIGINT / VARCHAR(500) | 退还留痕(退押审核/随单退款) |
 | is_deleted / deleted_at / deleted_by | 软删三列 | |
 | created_at / updated_at | TIMESTAMP | |
 
-索引：`idx_deposit_user_spec(user_id, specification, status)`（目标;现状列组按 deposit 查询）。
-口径公式（R-PRO-04/05，桶账台账同源,B2 恢复后生效）：
-- **在租押金桶数** = Σ(bucket_count WHERE status=HELD)（目标列 `specification + unit_deposit_cents + bucket_count`,现状表无规格/桶数列——B2 扩列）
-- **押金合计** = Σ(在租桶数 × 规格押金)；**押金余额** = 押金合计 − 已退押金
-- 收取规则：下单含某规格商品且该用户该规格**无 HELD 记录**时随单收取（「同一规格在租只收一次押金」）；【开放决策】收取桶数口径 → 建议按本单该规格购买桶数 × 单价收取（与「在租桶数=记录桶数」公式一致）
-- 退押以记录状态幂等（条件更新 `WHERE status='HELD'`），防并发重复退还；退押**不计入营收/退款统计**（独立 DEPOSIT_REFUND 账本）
+索引：`idx_deposit_user_spec(user_id, specification, status)`（V346 已建）。
+口径公式（R-PRO-04/05，桶账台账同源,B2 已生效）：
+- **在租押金桶数** = Σ(bucket_count WHERE status=HELD)
+- **押金合计** = Σ(在租桶数 × 单桶押金快照)；**押金余额** = 押金合计 − 已退押金
+- 收取规则：下单含某规格商品且该用户该规格**无 HELD/PENDING 记录**时随单收取(「同一规格在租只收一次」;PENDING 检查同时防两笔未支付订单重复收——B2 已实施,收取桶数口径已定:**按本单该规格购买桶数 × 单价**)
+- 退押以记录状态幂等（条件更新 `WHERE status='HELD'`），防并发重复退还；部分退还时原记录缩量保 HELD、已退切片另落 REFUNDED 行(已实施);退押**不计入营收/退款统计**（独立 DEPOSIT_REFUND 账本）
 
-### 3.6 `deposit_refund_applications` 退押申请（目标表,随 B2 建表）
+### 3.6 `deposit_refund_applications` 退押申请（**B2 已建表 V346**）
 
 | 列 | 类型 | 说明 |
 | --- | --- | --- |
@@ -293,17 +298,18 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | user_id | BIGINT → users | 仅本人可见（R-AUTH-02） |
 | specification | VARCHAR(100) | |
 | bucket_count | INT | ≤ 在租桶数（服务端校验「退还桶数不能超过在租押金桶数」） |
-| deposit_cents | BIGINT | 应退金额 = 规格押金 × 桶数 |
-| 回收地址快照 | receiver/phone/detail | VARCHAR 群 |
+| deposit_cents | BIGINT | 应退金额 = Σ 覆盖押金记录 桶数×单桶押金快照(提交时定格) |
+| receiver_name / receiver_phone / receiver_detail | VARCHAR | 回收地址快照 |
 | remark | VARCHAR(200) | |
 | status | VARCHAR(16) | PENDING(待处理) → RECOVERED(已回收) → REFUNDED(已退还) / REJECTED(已驳回) |
 | recovered_at / refunded_at / rejected_at | TIMESTAMP | |
 | handler_admin_id | BIGINT | |
+| reject_reason | VARCHAR(500) | 驳回原因 |
 
-### 3.7 `barrel_recovery_records` 空桶回收登记（目标表,随 B2 建表）
+### 3.7 `barrel_recovery_records` 空桶回收登记（**B2 已建表 V346**）
 
-`worker_id + order_id + specification + bucket_count + created_at`；送水工完成配送时登记（**非强制**,经 `completeDelivery` 的 `emptyBarrelsRetrieved` 入参落库——两者的现状缺口见 §3.5/§4.1）。
-**欠桶数**（应回收未回收）= Σ 已交付该规格桶数（来自已完成订单 items）− Σ 回收登记桶数（【开放决策】历史无押金桶的归属口径，建议同样计入欠桶台账）。
+`worker_id + order_id + specification + bucket_count + created_at`；送水工完成配送时按规格登记（**非强制**,经 `completeDelivery` 的 `emptyBarrels: [{specification,count}]` 入参落库——**B2 已实施**;入参为按规格列表而非单总数,欠桶数学需按规格归属;`orders.empty_barrels_retrieved` 为总数快照列,V346 已建）。
+**欠桶数**（应回收未回收）= Σ 已交付该规格桶数（来自已完成订单 items,**仅计配置押金价目规格**）− Σ 回收登记桶数（同口径;【开放决策】历史无押金桶归属——以价目规格存在性为口径,B2 已实施）。
 
 ### 3.8 购物车
 
@@ -373,7 +379,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | delivery_photos | JSONB | 配送照片 URL 数组，完成配送**服务端硬校验 ≥1 张**（R-ORD-07） |
 | delivery_photo_review_status + reviewed_at/by/remark | VARCHAR/BIGINT/TIMESTAMP | 照片核验闭环（F-ORD-021,列名 `delivery_photo_review_*`,非 photo_review_status;可重复核验纠错，每次核验入 order_operations） |
 | payment_type | VARCHAR(20) | 完成配送收款方式（列名 `payment_type`,非 collection_method;枚举 `PaymentType`：CASH / WATER_TICKET / **QR_CODE**(扫码,设计名 SCAN)——三选一；电子票核销单未选自动记 WATER_TICKET；自提默认已收款豁免） |
-| empty_barrels_retrieved | INT | **目标列**:完成配送登记回收空桶数（可空,非强制;现状未建,随押金回退 B2 恢复） |
+| empty_barrels_retrieved | INT | 完成配送登记回收空桶总数快照（可空,非强制;**V346 已建列**,明细在 barrel_recovery_records,入参为按规格列表 `emptyBarrels`） |
 | search_content | TEXT | 全文检索列（订单搜索,B 类补录） |
 
 **支付与取消**

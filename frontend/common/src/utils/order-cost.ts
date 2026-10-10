@@ -5,7 +5,7 @@
  * - user-weapp src/utils/orderCost.ts(buildCostRows(preview) / buildOrderDetailCostRows / ticketDiscountCentsOf / maxTicketRedeem)
  * - delivery-app src/utils/orderCost.ts(buildCostRows(OrderCostInput),items 推导小计)
  *
- * 行序/文案/键与两端现状逐字一致:商品金额 → 水票抵扣 → 满减 → 首单立减 → 优惠券 → 赠品 → 配送费 → 水桶费(历史) → 实付。
+ * 行序/文案/键与两端现状逐字一致:商品金额 → 水票抵扣 → 满减 → 首单立减 → 优惠券 → 赠品 → 配送费 → 水桶押金 → 实付。
  * 金额均为分(R-MON-01),仅展示格式化;所有分字段统一 normalizeCents(number|string 兼容 Long 传输)。
  */
 import type { OrderVo, OrderPreviewVo } from '../types/graphql'
@@ -43,7 +43,7 @@ export interface OrderCostSnapshot {
   giftItems?: ReadonlyArray<{ productName?: string | null; quantity?: number }> | null
   /** 配送费(分) */
   deliveryFeeCents?: number | string | null
-  /** 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06) */
+  /** 水桶押金快照(分,循环水桶押金随单收取,R-MON-03) */
   depositCents?: number | string | null
   /** 实付合计(分) */
   payAmountCents?: number | string | null
@@ -52,7 +52,7 @@ export interface OrderCostSnapshot {
 const zero = (v: number | string | null | undefined): number => normalizeCents(v) ?? 0
 
 /**
- * 组装费用明细行(顺序:商品金额 → 水票抵扣 → 满减/首单立减 → 优惠券 → 赠品 → 配送费 → 水桶费 → 实付)
+ * 组装费用明细行(顺序:商品金额 → 水票抵扣 → 满减/首单立减 → 优惠券 → 赠品 → 配送费 → 水桶押金 → 实付)
  */
 export const buildCostRows = (snapshot: OrderCostSnapshot): CostRow[] => {
   const rows: CostRow[] = []
@@ -121,10 +121,10 @@ export const buildCostRows = (snapshot: OrderCostSnapshot): CostRow[] => {
     value: deliveryFeeCents === 0 ? '免配送费' : displayCents(deliveryFeeCents),
   })
 
-  // 水桶费(历史字段,2026-08 水桶费改造后新订单恒为 0 不展示,仅旧订单有值,见 14-misc.md §G06)
+  // 水桶押金(循环水桶押金随单收取,R-MON-03;为 0 不展示)
   const depositCents = zero(snapshot.depositCents)
   if (depositCents > 0) {
-    rows.push({ key: 'deposit', label: '水桶费', value: displayCents(depositCents) })
+    rows.push({ key: 'deposit', label: '水桶押金', value: displayCents(depositCents) })
   }
 
   rows.push({

@@ -1,108 +1,126 @@
-# Test Schema for AdminVo Barrel Resolvers GraphQL Integration Tests
+# Test Schema for Admin Deposit Resolvers GraphQL Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/barrel/) 加载
-# 与 services/aqua-admin/src/main/resources/graphql/modules/barrel.graphqls 保持一致(G06 水桶费)
+# 与 services/aqua-admin/src/main/resources/graphql/modules/barrel.graphqls + shared-types 保持一致
+# (B2 押金模型回退 R-MON-03/F-PRO-012;本快照仅覆盖价目与记录/申请列表用例)
 
 scalar Long
 scalar LocalDateTime
 
-# 水桶费价目状态
-enum BarrelFeeStatus {
+# 押金价目状态
+enum DepositPriceStatus {
   ENABLED
   DISABLED
 }
 
-# 购桶单支付状态
-enum BarrelPaymentStatus {
+# 押金记录状态(R-MON-03)
+enum DepositStatus {
   PENDING
-  PAID
-  CANCELLED
+  HELD
   REFUNDED
 }
 
-type BarrelFeeAdminVo {
+# 退押申请状态机(R-PRO-04)
+enum DepositRefundApplicationStatus {
+  PENDING
+  RECOVERED
+  REFUNDED
+  REJECTED
+}
+
+type DepositPriceVo {
   id: Long!
   specification: String!
-  priceCents: Long!
-  status: BarrelFeeStatus!
+  depositCents: Long!
+  status: DepositPriceStatus!
   sortOrder: Int!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
-type BarrelFeeVoPage {
-  content: [BarrelFeeAdminVo!]!
+type DepositPriceVoPage {
+  content: [DepositPriceVo!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type BarrelPurchaseItemAdminVo {
-  specification: String!
-  unitPriceCents: Long!
-  quantity: Int!
-  amountCents: Long!
-}
-
-type BarrelPurchaseAdminVo {
+type DepositRecordVo {
   id: Long!
-  orderNo: String!
-  userId: Long!
-  totalAmountCents: Long!
-  paymentStatus: BarrelPaymentStatus!
-  paidAt: LocalDateTime
-  refundedAt: LocalDateTime
-  refundedBy: Long
-  refundRemark: String
-  remark: String
-  items: [BarrelPurchaseItemAdminVo!]!
-  createdAt: LocalDateTime!
-  updatedAt: LocalDateTime!
-}
-
-type BarrelPurchaseVoPage {
-  content: [BarrelPurchaseAdminVo!]!
-  totalElements: Int!
-  totalPages: Int!
-  size: Int!
-  number: Int!
-}
-
-input CreateBarrelFeeInput {
-  specification: String!
-  priceCents: Long!
-  sortOrder: Int!
-}
-
-input UpdateBarrelFeeInput {
+  orderId: Long!
   specification: String
-  priceCents: Long
-  sortOrder: Int
+  unitDepositCents: Long
+  bucketCount: Int
+  depositAmountCents: Long!
+  status: DepositStatus!
+  collectedAt: LocalDateTime
+  refundedAt: LocalDateTime
+  refundRemark: String
+  createdAt: LocalDateTime!
 }
 
-input BarrelFeeListInput {
-  status: BarrelFeeStatus
+type DepositRecordVoPage {
+  content: [DepositRecordVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type DepositRefundApplicationVo {
+  id: Long!
+  specification: String!
+  bucketCount: Int!
+  depositCents: Long!
+  receiverName: String
+  receiverPhone: String
+  receiverDetail: String
+  remark: String
+  status: DepositRefundApplicationStatus!
+  rejectReason: String
+  recoveredAt: LocalDateTime
+  refundedAt: LocalDateTime
+  rejectedAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+type DepositRefundApplicationVoPage {
+  content: [DepositRefundApplicationVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input DepositPriceListInput {
+  status: DepositPriceStatus
   keyword: String
   page: Int
   size: Int
 }
 
-input BarrelPurchaseListInput {
-  status: BarrelPaymentStatus
-  dateFrom: LocalDateTime
-  dateTo: LocalDateTime
+input UpsertDepositPriceInput {
+  id: Long
+  specification: String!
+  depositCents: Long!
+  status: DepositPriceStatus
+  sortOrder: Int
+}
+
+input DepositRecordListInput {
+  userId: Long
+  status: DepositStatus
+  specification: String
   page: Int
   size: Int
 }
 
 type Query {
-  barrelFees(input: BarrelFeeListInput): BarrelFeeVoPage!
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVoPage!
+  depositPrices(input: DepositPriceListInput): DepositPriceVoPage!
+  depositRecords(input: DepositRecordListInput): DepositRecordVoPage!
+  depositRefundApplications(status: DepositRefundApplicationStatus, page: Int, size: Int): DepositRefundApplicationVoPage!
 }
 
 type Mutation {
-  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVo!
-  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVo!
-  disableBarrelFee(id: Long!): BarrelFeeAdminVo!
-  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchaseAdminVo!
+  upsertDepositPrice(input: UpsertDepositPriceInput!): DepositPriceVo!
 }

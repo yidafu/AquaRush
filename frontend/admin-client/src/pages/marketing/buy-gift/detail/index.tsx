@@ -65,8 +65,8 @@ const GiftDetailPage: React.FC = () => {
   const usage = data?.giftActivityUsage;
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setPage(pagination.current - 1);
-    setSize(pagination.pageSize);
+    setPage((pagination.current ?? 1) - 1);
+    setSize(pagination.pageSize ?? 10);
   };
 
   const renderThreshold = (record: GiftActivityVo) => {

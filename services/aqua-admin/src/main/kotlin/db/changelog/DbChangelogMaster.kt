@@ -78,4 +78,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V344AddOrdersAssignedAt", logicalFilePath = "db/changelog/changes/v3.4.4-add-orders-assigned-at.xml")
     // B2 配送费分档(结构 #6,R-MON-02):tiers 档位列 + 默认三档回填
     include(file = "db/changelog/changes/V345AddDeliveryFeeTiers", logicalFilePath = "db/changelog/changes/v3.4.5-add-delivery-fee-tiers.xml")
+    // B2 押金模型回退(结构 #4,R-MON-03):deposit_records 扩列+状态值域 + 退押申请/空桶回收表
+    include(file = "db/changelog/changes/V346AddDepositModel", logicalFilePath = "db/changelog/changes/v3.4.6-add-deposit-model.xml")
   })

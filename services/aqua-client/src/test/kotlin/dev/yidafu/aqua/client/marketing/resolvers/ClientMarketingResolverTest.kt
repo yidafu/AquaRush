@@ -20,10 +20,12 @@
 package dev.yidafu.aqua.client.marketing.resolvers
 
 import dev.yidafu.aqua.api.dto.ClaimCouponRequest
+import dev.yidafu.aqua.api.dto.DepositCalculation
 import dev.yidafu.aqua.api.dto.OrderPricingItemResult
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.api.dto.PurchaseTicketsRequest
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
 import dev.yidafu.aqua.api.service.marketing.CouponQueryApiService
 import dev.yidafu.aqua.api.service.marketing.MarketingPricingQueryApiService
@@ -81,6 +83,7 @@ import dev.yidafu.aqua.common.graphql.generated.UserTicketStatus as GraphQLUserT
 class ClientMarketingResolverTest :
   FunSpec({
     var couponQueryApiService: CouponQueryApiService = mockk()
+    var depositMutationApiService: DepositMutationApiService = mockk()
     var couponMutationApiService: CouponMutationApiService = mockk()
     var ticketQueryApiService: TicketQueryApiService = mockk()
     var ticketMutationApiService: TicketMutationApiService = mockk()
@@ -204,6 +207,9 @@ class ClientMarketingResolverTest :
       userQueryApiService = mockk()
       addressQueryApiService = mockk()
       deliveryFeeRuleQueryApiService = mockk()
+      depositMutationApiService = mockk()
+      // 押金试算默认 0(未配押金价目),预览断言金额不含押金
+      every { depositMutationApiService.calcOrderDeposit(any(), any()) } returns DepositCalculation(0L, emptyList())
       principal =
         UserPrincipal(
           id = 1L,
@@ -381,6 +387,7 @@ class ClientMarketingResolverTest :
           deliveryFeeRuleQueryApiService,
           addressQueryApiService,
           couponQueryApiService,
+          depositMutationApiService,
         )
 
       val result =
@@ -408,6 +415,7 @@ class ClientMarketingResolverTest :
           deliveryFeeRuleQueryApiService,
           addressQueryApiService,
           couponQueryApiService,
+          depositMutationApiService,
         )
 
       val result =

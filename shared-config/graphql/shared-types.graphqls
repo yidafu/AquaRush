@@ -2648,3 +2648,69 @@ enum NotificationReceiverType {
   USER
   WORKER
 }
+
+# ============ 水桶押金(R-MON-03 / R-PRO-04,B2 押金模型回退 2026-10) ============
+
+# 押金记录状态(R-MON-03):PENDING 待收取 → HELD 已收取(在租) → REFUNDED 已退还
+enum DepositStatus {
+  PENDING
+  HELD
+  REFUNDED
+}
+
+# 退押申请状态机(R-PRO-04/F-PRO-010):待处理 → 已回收 → 已退还 / 已驳回
+enum DepositRefundApplicationStatus {
+  PENDING
+  RECOVERED
+  REFUNDED
+  REJECTED
+}
+
+# 押金记录(deposit_records:随单首购规格收取,退押审核/随单退款置已退还;R-MON-03)
+type DepositRecordVo {
+  id: PrimaryId!
+  orderId: PrimaryId!
+  # 规格快照(G06 历史行可空)
+  specification: String
+  # 单桶押金价快照(分)
+  unitDepositCents: Long
+  # 收取桶数快照
+  bucketCount: Int
+  # 收取金额快照(分)= 单价 × 桶数
+  depositAmountCents: Long!
+  status: DepositStatus!
+  collectedAt: LocalDateTime
+  refundedAt: LocalDateTime
+  refundRemark: String
+  createdAt: LocalDateTime!
+}
+
+# 退押申请(deposit_refund_applications;用户端仅本人可见 R-AUTH-02,后台审核流转)
+type DepositRefundApplicationVo {
+  id: PrimaryId!
+  specification: String!
+  bucketCount: Int!
+  # 应退金额(分)= 规格押金 × 桶数(提交时快照)
+  depositCents: Long!
+  # 回收地址快照
+  receiverName: String
+  receiverPhone: String
+  receiverDetail: String
+  remark: String
+  status: DepositRefundApplicationStatus!
+  # 驳回原因
+  rejectReason: String
+  recoveredAt: LocalDateTime
+  refundedAt: LocalDateTime
+  rejectedAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+# 退押申请分页(用户端与后台同签名,两端共用)
+type DepositRefundApplicationVoPage {
+  content: [DepositRefundApplicationVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}

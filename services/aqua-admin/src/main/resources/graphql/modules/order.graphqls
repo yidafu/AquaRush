@@ -37,6 +37,12 @@ type ReviewVoPage {
   number: Int!
 }
 
+# 空桶回收登记行(F-ORD-011:完成配送时按规格登记回收空桶,非强制)
+input EmptyBarrelRecoveryInput {
+  specification: String! @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
+  count: Int! @min(value: 1, message: "回收数量必须大于0") @max(value: 999, message: "回收数量不能超过999")
+}
+
 extend type Mutation {
   # OrderVo mutations
   updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): OrderVo!
@@ -49,7 +55,14 @@ extend type Mutation {
   # 配送员操作
   acceptDelivery(orderId: PrimaryId!): OrderVo!           # 配送员接单
   startDelivery(orderId: PrimaryId!): OrderVo!             # 开始配送
-  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): OrderVo!  # 完成配送
+  completeDelivery(
+    orderId: PrimaryId!
+    photos: [String!]!
+    paymentType: PaymentType
+    remark: String
+    # 空桶回收登记(F-ORD-011/R-MON-03:按规格登记,非强制;欠桶=已交付−已回收)
+    emptyBarrels: [EmptyBarrelRecoveryInput!]
+  ): OrderVo!  # 完成配送
 
   # 配送任务中修正收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位 WGS-84 经纬度,
   # 仅传入字段生效;PERMISSION_DELIVERY_TASK,送水工与管理员共用)

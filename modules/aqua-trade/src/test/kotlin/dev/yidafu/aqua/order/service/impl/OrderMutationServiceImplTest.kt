@@ -20,10 +20,12 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.DepositCalculation
 import dev.yidafu.aqua.api.dto.OrderItemRequest
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
 import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
@@ -84,6 +86,7 @@ class OrderMutationServiceImplTest :
     var couponMutationApiService: CouponMutationApiService = mockk()
     var ticketMutationApiService: TicketMutationApiService = mockk()
     var orderOperationService: OrderOperationService = mockk()
+    var depositMutationApiService: DepositMutationApiService = mockk()
     var bizLogger: BizLogger = mockk()
     var service: OrderMutationServiceImpl = mockk()
     val product = ProductModel(id = 1L, name = "桶装水", price = 1000, stock = 100)
@@ -181,6 +184,7 @@ class OrderMutationServiceImplTest :
       couponMutationApiService = mockk(relaxed = true)
       ticketMutationApiService = mockk(relaxed = true)
       orderOperationService = mockk(relaxed = true)
+      depositMutationApiService = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       // 单测无安全上下文,resolveOperator 返回空操作者(日志仅缺操作人,不阻断业务)
       every { bizLogger.resolveOperator() } returns (null to null)
@@ -201,8 +205,12 @@ class OrderMutationServiceImplTest :
           couponMutationApiService,
           ticketMutationApiService,
           orderOperationService,
+          depositMutationApiService,
           bizLogger,
         )
+      // 押金试算默认无押金(未配押金价目);建账 no-op
+      every { depositMutationApiService.calcOrderDeposit(any(), any()) } returns DepositCalculation(0L, emptyList())
+      every { depositMutationApiService.createPendingDeposits(any(), any(), any()) } returns emptyList()
     }
     test("default rule floor 4 is free") {
       stubCreateOrderCommon(address(floor = 4))

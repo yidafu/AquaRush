@@ -15,16 +15,29 @@ interface PaymentCollectionSheetProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (paymentType: string) => void;
+  /** 本次回收空桶摘要(如「19L 桶 × 2」;空则不展示,F-ORD-011) */
+  recycleSummary?: string;
 }
 
 /**
  * 确认送达收款方式选择 BottomSheet(水票/现金/二维码/取消)
+ * 顶部回显已登记的回收空桶,提示送水员核对后选择收款方式(F-ORD-011)。
  */
-export function PaymentCollectionSheet({ visible, onClose, onSelect }: PaymentCollectionSheetProps) {
+export function PaymentCollectionSheet({
+  visible,
+  onClose,
+  onSelect,
+  recycleSummary,
+}: PaymentCollectionSheetProps) {
   const theme = useTheme();
 
   return (
     <BottomSheet visible={visible} onClose={onClose} title="选择收款方式">
+      {recycleSummary ? (
+        <ThemedText type="small" themeColor="textSecondary" style={styles.recycleHint}>
+          回收空桶：{recycleSummary}（可在订单页修改）
+        </ThemedText>
+      ) : null}
       {PAYMENT_TYPES.map(({ value, label }) => (
         <Pressable
           key={value}
@@ -49,6 +62,10 @@ export function PaymentCollectionSheet({ visible, onClose, onSelect }: PaymentCo
 }
 
 const styles = StyleSheet.create({
+  recycleHint: {
+    marginBottom: Spacing.two,
+    textAlign: 'center',
+  },
   item: {
     paddingVertical: Spacing.three,
     alignItems: 'center',

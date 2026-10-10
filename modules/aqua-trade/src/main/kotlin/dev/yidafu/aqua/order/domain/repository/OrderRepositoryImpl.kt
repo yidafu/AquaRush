@@ -125,6 +125,7 @@ class OrderRepositoryImpl(
       deliveryStartedAt = row[OrdersTable.deliveryStartedAt],
       assignedAt = row[OrdersTable.assignedAt],
       completedAt = row[OrdersTable.completedAt],
+      emptyBarrelsRetrieved = row[OrdersTable.emptyBarrelsRetrieved],
       createdAt = row[OrdersTable.createdAt],
       updatedAt = row[OrdersTable.updatedAt],
       deletedAt = row[OrdersTable.deletedAt],
@@ -350,6 +351,7 @@ class OrderRepositoryImpl(
           it[deliveryStartedAt] = entity.deliveryStartedAt
           it[assignedAt] = entity.assignedAt
           it[completedAt] = entity.completedAt
+          it[emptyBarrelsRetrieved] = entity.emptyBarrelsRetrieved
           it[remark] = entity.remark
           it[deliveryRemark] = entity.deliveryRemark
           it[searchContent] = entity.searchContent
@@ -394,6 +396,7 @@ class OrderRepositoryImpl(
           it[deliveryStartedAt] = entity.deliveryStartedAt
           it[assignedAt] = entity.assignedAt
           it[completedAt] = entity.completedAt
+          it[emptyBarrelsRetrieved] = entity.emptyBarrelsRetrieved
           it[OrdersTable.createdAt] = entity.createdAt
           it[updatedAt] = entity.updatedAt
           it[deletedAt] = entity.deletedAt

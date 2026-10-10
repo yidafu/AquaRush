@@ -9,6 +9,7 @@ import type {
   TodayStatisticsVo,
   UpdateOrderAddressInput,
   WeekStatisticsVo,
+  EmptyBarrelRecoveryInput,
 } from '@aquarush/common';
 
 // 订单操作记录类型
@@ -252,17 +253,21 @@ export const completeDelivery = (
   photos: string[],
   paymentType?: string,
   remark?: string,
+  // 空桶回收登记(F-ORD-011):非必填,0/不传则不传该参数
+  emptyBarrels?: EmptyBarrelRecoveryInput[],
 ) => {
+  const recovery =
+    emptyBarrels && emptyBarrels.length > 0 ? emptyBarrels : undefined;
   return networkManager.mutate<{ completeDelivery: OrderVo }>(
     `
-    mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType, $remark: String) {
-      completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType, remark: $remark) {
+    mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType, $remark: String, $emptyBarrels: [EmptyBarrelRecoveryInput!]) {
+      completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType, remark: $remark, emptyBarrels: $emptyBarrels) {
         id
         status
       }
     }
   `,
-    { orderId, photos, paymentType, remark },
+    { orderId, photos, paymentType, remark, emptyBarrels: recovery },
   );
 };
 

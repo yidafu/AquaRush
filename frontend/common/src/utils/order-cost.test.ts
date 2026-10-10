@@ -1,7 +1,7 @@
 /**
  * order-cost 单测(合并 user-weapp 与 delivery-app 两端测试):
  * 全优惠栈顺序 / 仅水票 / 仅满减 / 仅首单 / 仅优惠券 / 赠品 / 免运费 / 全零 / 水票覆盖 0 /
- * 详情快照(含水桶费)/ 小计直传与 items 推导 / ticketDiscountCentsOf / maxTicketRedeem / orderCostFromPreview。
+ * 详情快照(含水桶押金)/ 小计直传与 items 推导 / ticketDiscountCentsOf / maxTicketRedeem / orderCostFromPreview。
  */
 import { describe, expect, it } from '@jest/globals'
 import { OrderPreviewVo, PriceSource } from '../types/graphql'
@@ -149,7 +149,7 @@ describe('buildCostRows', () => {
     expect(rows.map((r) => r.key)).toEqual(['subtotal', 'gift', 'delivery', 'total'])
   })
 
-  it('详情快照:水票覆盖 0 时无抵扣行;旧订单水桶费行保留', () => {
+  it('详情快照:水票覆盖 0 时无抵扣行;押金行展示', () => {
     const rows = buildCostRows({
       subtotalCents: 6500,
       ticketRedeemCount: 3,
@@ -159,7 +159,7 @@ describe('buildCostRows', () => {
       payAmountCents: 7000,
     })
     expect(rows.map((r) => r.key)).toEqual(['subtotal', 'delivery', 'deposit', 'total'])
-    expect(rows[2]).toMatchObject({ label: '水桶费', value: '¥12.00' })
+    expect(rows[2]).toMatchObject({ label: '水桶押金', value: '¥12.00' })
     expect(rows[3]).toMatchObject({ label: '实付金额', value: '¥70.00' })
   })
 

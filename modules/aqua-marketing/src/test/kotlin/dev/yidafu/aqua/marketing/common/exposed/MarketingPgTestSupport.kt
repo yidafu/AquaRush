@@ -19,16 +19,20 @@
 
 package dev.yidafu.aqua.marketing.common.exposed
 
-import dev.yidafu.aqua.common.domain.table.BarrelFeesTable
 import dev.yidafu.aqua.common.domain.table.BarrelPurchaseItemsTable
 import dev.yidafu.aqua.common.domain.table.BarrelPurchasesTable
+import dev.yidafu.aqua.common.domain.table.BarrelRecoveryRecordsTable
 import dev.yidafu.aqua.common.domain.table.CouponTemplatesTable
 import dev.yidafu.aqua.common.domain.table.CustomerGroupsTable
+import dev.yidafu.aqua.common.domain.table.DepositPricesTable
 import dev.yidafu.aqua.common.domain.table.DepositRecordsTable
+import dev.yidafu.aqua.common.domain.table.DepositRefundApplicationsTable
 import dev.yidafu.aqua.common.domain.table.FirstOrderActivitiesTable
 import dev.yidafu.aqua.common.domain.table.FlashSaleActivitiesTable
 import dev.yidafu.aqua.common.domain.table.GiftActivitiesTable
 import dev.yidafu.aqua.common.domain.table.GroupProductPricesTable
+import dev.yidafu.aqua.common.domain.table.OrderItemsTable
+import dev.yidafu.aqua.common.domain.table.OrdersTable
 import dev.yidafu.aqua.common.domain.table.PromotionActivitiesTable
 import dev.yidafu.aqua.common.domain.table.PromotionActivityTiersTable
 import dev.yidafu.aqua.common.domain.table.TicketNoSequencesTable
@@ -36,6 +40,7 @@ import dev.yidafu.aqua.common.domain.table.TicketPurchasesTable
 import dev.yidafu.aqua.common.domain.table.TicketTypesTable
 import dev.yidafu.aqua.common.domain.table.UserCouponsTable
 import dev.yidafu.aqua.common.domain.table.UserTicketsTable
+import dev.yidafu.aqua.common.domain.table.UsersTable
 import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -67,12 +72,17 @@ object MarketingPgTestSupport {
       FirstOrderActivitiesTable,
       TicketTypesTable,
       TicketNoSequencesTable,
-      BarrelFeesTable,
+      DepositPricesTable,
       BarrelPurchasesTable,
       BarrelPurchaseItemsTable,
       DepositRecordsTable,
-      // SourceTables(marketing 域部分)
+      DepositRefundApplicationsTable,
+      BarrelRecoveryRecordsTable,
+      // SourceTables(marketing 域部分 + 桶账聚合依赖 users/orders/order_items)
       UserCouponsTable,
+      UsersTable,
+      OrdersTable,
+      OrderItemsTable,
       TicketPurchasesTable,
       UserTicketsTable,
     )
@@ -487,15 +497,15 @@ object MarketingPgTestSupport {
     deleted: Boolean = false,
   ): Long =
     transaction(database) {
-      BarrelFeesTable.insert {
-        it[BarrelFeesTable.id] = id
-        it[BarrelFeesTable.specification] = specification
-        it[BarrelFeesTable.priceCents] = priceCents
-        it[BarrelFeesTable.status] = status
-        it[BarrelFeesTable.sortOrder] = sortOrder
-        it[BarrelFeesTable.createdAt] = createdAt
-        it[BarrelFeesTable.updatedAt] = createdAt
-        it[BarrelFeesTable.isDeleted] = deleted
+      DepositPricesTable.insert {
+        it[DepositPricesTable.id] = id
+        it[DepositPricesTable.specification] = specification
+        it[DepositPricesTable.priceCents] = priceCents
+        it[DepositPricesTable.status] = status
+        it[DepositPricesTable.sortOrder] = sortOrder
+        it[DepositPricesTable.createdAt] = createdAt
+        it[DepositPricesTable.updatedAt] = createdAt
+        it[DepositPricesTable.isDeleted] = deleted
       }
       id
     }
@@ -564,7 +574,10 @@ object MarketingPgTestSupport {
     orderId: Long,
     userId: Long,
     depositAmountCents: Long = 500L,
-    status: String = "COLLECTED",
+    specification: String? = "19L",
+    unitDepositCents: Long? = 500L,
+    bucketCount: Int? = 1,
+    status: String = "HELD",
     collectedAt: LocalDateTime? = now(),
     refundedAt: LocalDateTime? = null,
     refundedBy: Long? = null,
@@ -578,6 +591,9 @@ object MarketingPgTestSupport {
         it[DepositRecordsTable.orderId] = orderId
         it[DepositRecordsTable.userId] = userId
         it[DepositRecordsTable.depositAmountCents] = depositAmountCents
+        it[DepositRecordsTable.specification] = specification
+        it[DepositRecordsTable.unitDepositCents] = unitDepositCents
+        it[DepositRecordsTable.bucketCount] = bucketCount
         it[DepositRecordsTable.status] = status
         it[DepositRecordsTable.collectedAt] = collectedAt
         it[DepositRecordsTable.refundedAt] = refundedAt
@@ -586,6 +602,121 @@ object MarketingPgTestSupport {
         it[DepositRecordsTable.createdAt] = createdAt
         it[DepositRecordsTable.updatedAt] = createdAt
         it[DepositRecordsTable.isDeleted] = deleted
+      }
+      id
+    }
+
+  fun depositRefundApplication(
+    id: Long = id(),
+    userId: Long,
+    specification: String = "19L",
+    bucketCount: Int = 1,
+    depositCents: Long = 500L,
+    status: String = "PENDING",
+    handlerAdminId: Long? = null,
+    createdAt: LocalDateTime = now(),
+    deleted: Boolean = false,
+  ): Long =
+    transaction(database) {
+      DepositRefundApplicationsTable.insert {
+        it[DepositRefundApplicationsTable.id] = id
+        it[DepositRefundApplicationsTable.userId] = userId
+        it[DepositRefundApplicationsTable.specification] = specification
+        it[DepositRefundApplicationsTable.bucketCount] = bucketCount
+        it[DepositRefundApplicationsTable.depositCents] = depositCents
+        it[DepositRefundApplicationsTable.status] = status
+        it[DepositRefundApplicationsTable.handlerAdminId] = handlerAdminId
+        it[DepositRefundApplicationsTable.createdAt] = createdAt
+        it[DepositRefundApplicationsTable.updatedAt] = createdAt
+        it[DepositRefundApplicationsTable.isDeleted] = deleted
+      }
+      id
+    }
+
+  fun barrelRecoveryRecord(
+    id: Long = id(),
+    workerId: Long,
+    orderId: Long,
+    specification: String = "19L",
+    bucketCount: Int = 1,
+    createdAt: LocalDateTime = now(),
+    deleted: Boolean = false,
+  ): Long =
+    transaction(database) {
+      BarrelRecoveryRecordsTable.insert {
+        it[BarrelRecoveryRecordsTable.id] = id
+        it[BarrelRecoveryRecordsTable.workerId] = workerId
+        it[BarrelRecoveryRecordsTable.orderId] = orderId
+        it[BarrelRecoveryRecordsTable.specification] = specification
+        it[BarrelRecoveryRecordsTable.bucketCount] = bucketCount
+        it[BarrelRecoveryRecordsTable.createdAt] = createdAt
+        it[BarrelRecoveryRecordsTable.updatedAt] = createdAt
+        it[BarrelRecoveryRecordsTable.isDeleted] = deleted
+      }
+      id
+    }
+
+  fun depositUser(
+    id: Long = id(),
+    nickname: String = "桶账用户$id",
+    phone: String? = "13800000000",
+  ): Long =
+    transaction(database) {
+      UsersTable.insert {
+        it[UsersTable.id] = id
+        it[UsersTable.wechatOpenid] = "openid-$id"
+        it[UsersTable.nickname] = nickname
+        it[UsersTable.phone] = phone
+        it[UsersTable.email] = "user-$id@test.local"
+        it[UsersTable.status] = "ACTIVE"
+        it[UsersTable.role] = "USER"
+        it[UsersTable.createdAt] = now()
+        it[UsersTable.updatedAt] = now()
+        it[UsersTable.lastLoginAt] = now()
+      }
+      id
+    }
+
+  fun completedOrder(
+    id: Long = id(),
+    userId: Long,
+    orderNo: String = "SO$id",
+    depositAmountCents: Long = 0L,
+  ): Long =
+    transaction(database) {
+      OrdersTable.insert {
+        it[OrdersTable.id] = id
+        it[OrdersTable.orderNo] = orderNo
+        it[OrdersTable.userId] = userId
+        it[OrdersTable.totalAmountCents] = 4000L
+        it[OrdersTable.deliveryFeeCents] = 0L
+        it[OrdersTable.addressId] = 1L
+        it[OrdersTable.status] = "COMPLETED"
+        it[OrdersTable.depositAmountCents] = depositAmountCents
+        it[OrdersTable.createdAt] = now()
+        it[OrdersTable.updatedAt] = now()
+      }
+      id
+    }
+
+  fun orderItem(
+    id: Long = id(),
+    orderId: Long,
+    productId: Long = id(),
+    quantity: Int = 1,
+    specification: String = "19L",
+  ): Long =
+    transaction(database) {
+      OrderItemsTable.insert {
+        it[OrderItemsTable.id] = id
+        it[OrderItemsTable.orderId] = orderId
+        it[OrderItemsTable.productId] = productId
+        it[OrderItemsTable.quantity] = quantity
+        it[OrderItemsTable.unitPriceCents] = 4000L
+        it[OrderItemsTable.totalPriceCents] = 4000L * quantity
+        it[OrderItemsTable.productSnapshot] = """{"specification":"$specification","name":"水"}"""
+        it[OrderItemsTable.createdAt] = now()
+        it[OrderItemsTable.updatedAt] = now()
       }
       id
     }

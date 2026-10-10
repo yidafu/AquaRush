@@ -1,57 +1,49 @@
 import { gql } from '@apollo/client'
 
-// 新增水桶费价目(G06 价目表;PERMISSION_PAYMENT_WRITE)
-export const CREATE_BARREL_FEE_MUTATION = gql`
-  mutation CreateBarrelFee($input: CreateBarrelFeeInput!) {
-    createBarrelFee(input: $input) {
+// 押金价目新增/编辑合一(G06 设计 §5.1 upsertDepositPrice;id 空 = 新增,规格唯一冲突由后端拦截)
+export const UPSERT_DEPOSIT_PRICE_MUTATION = gql`
+  mutation UpsertDepositPrice($input: UpsertDepositPriceInput!) {
+    upsertDepositPrice(input: $input) {
       id
       specification
-      priceCents
+      depositCents
       status
       sortOrder
     }
   }
 `
 
-// 编辑水桶费价目(G06;PERMISSION_PAYMENT_WRITE)
-export const UPDATE_BARREL_FEE_MUTATION = gql`
-  mutation UpdateBarrelFee($id: PrimaryId!, $input: UpdateBarrelFeeInput!) {
-    updateBarrelFee(id: $id, input: $input) {
+// 空桶回收确认(F-ORD-011:退押申请 PENDING → RECOVERED,送水工回收空桶后管理员确认)
+export const CONFIRM_BARREL_RECOVERED_MUTATION = gql`
+  mutation ConfirmBarrelRecovered($applicationId: PrimaryId!) {
+    confirmBarrelRecovered(applicationId: $applicationId) {
       id
-      specification
-      priceCents
       status
-      sortOrder
+      recoveredAt
     }
   }
 `
 
-// 停用水桶费价目(G06;PERMISSION_PAYMENT_WRITE)
-export const DISABLE_BARREL_FEE_MUTATION = gql`
-  mutation DisableBarrelFee($id: PrimaryId!) {
-    disableBarrelFee(id: $id) {
+// 审核通过退押(RECOVERED → REFUNDED,按完好桶数全额退还押金,R-MON-03)
+export const APPROVE_DEPOSIT_REFUND_MUTATION = gql`
+  mutation ApproveDepositRefund($applicationId: PrimaryId!) {
+    approveDepositRefund(applicationId: $applicationId) {
       id
-      specification
-      priceCents
       status
-    }
-  }
-`
-
-// 退还水桶费(G06:管理员手动退还,执行退款并置「已退还」;PERMISSION_PAYMENT_REFUND)
-export const REFUND_BARREL_PURCHASE_MUTATION = gql`
-  mutation RefundBarrelPurchase($purchaseId: PrimaryId!, $remark: String) {
-    refundBarrelPurchase(purchaseId: $purchaseId, remark: $remark) {
-      id
-      orderNo
-      userId
-      totalAmountCents
-      paymentStatus
-      paidAt
       refundedAt
-      refundedBy
-      refundRemark
-      updatedAt
+      depositCents
+    }
+  }
+`
+
+// 驳回退押申请(PENDING/RECOVERED → REJECTED,必填驳回原因)
+export const REJECT_DEPOSIT_REFUND_MUTATION = gql`
+  mutation RejectDepositRefund($applicationId: PrimaryId!, $reason: String!) {
+    rejectDepositRefund(applicationId: $applicationId, reason: $reason) {
+      id
+      status
+      rejectReason
+      rejectedAt
     }
   }
 `

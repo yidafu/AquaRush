@@ -71,7 +71,7 @@ object FoundationPgTestSupport {
       FirstOrderActivitiesTable,
       TicketTypesTable,
       TicketNoSequencesTable,
-      BarrelFeesTable,
+      DepositPricesTable,
       BarrelPurchasesTable,
       BarrelPurchaseItemsTable,
       DepositRecordsTable,

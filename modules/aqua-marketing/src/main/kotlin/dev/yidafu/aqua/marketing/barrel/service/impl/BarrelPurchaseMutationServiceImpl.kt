@@ -23,13 +23,13 @@ import dev.yidafu.aqua.api.dto.PurchaseBarrelRequest
 import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseMutationService
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
-import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
+import dev.yidafu.aqua.common.domain.model.enums.DepositPriceStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.logging.util.BizLogger
-import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
+import dev.yidafu.aqua.marketing.barrel.domain.repository.DepositPriceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
  */
 @Service
 class BarrelPurchaseMutationServiceImpl(
-  private val barrelFeeRepository: BarrelFeeRepository,
+  private val barrelFeeRepository: DepositPriceRepository,
   private val barrelPurchaseRepository: BarrelPurchaseRepository,
   private val barrelPurchaseItemRepository: BarrelPurchaseItemRepository,
   private val bizLogger: BizLogger,
@@ -62,7 +62,7 @@ class BarrelPurchaseMutationServiceImpl(
       request.items.map { item ->
         val fee =
           barrelFeeRepository.findById(item.barrelFeeId).orElseThrow { BadRequestException("水桶费价目不存在: ${item.barrelFeeId}") }
-        if (fee.status != BarrelFeeStatus.ENABLED) {
+        if (fee.status != DepositPriceStatus.ENABLED) {
           throw BadRequestException("水桶费价目已停用: ${fee.specification}")
         }
         BarrelPurchaseItemModel(

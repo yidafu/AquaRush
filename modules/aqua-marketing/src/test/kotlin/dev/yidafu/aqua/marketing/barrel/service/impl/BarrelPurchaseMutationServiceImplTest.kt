@@ -21,16 +21,16 @@ package dev.yidafu.aqua.marketing.barrel.service.impl
 
 import dev.yidafu.aqua.api.dto.PurchaseBarrelItemRequest
 import dev.yidafu.aqua.api.dto.PurchaseBarrelRequest
-import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
-import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
+import dev.yidafu.aqua.common.domain.model.DepositPriceModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
+import dev.yidafu.aqua.common.domain.model.enums.DepositPriceStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.logging.util.BizLogger
-import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
+import dev.yidafu.aqua.marketing.barrel.domain.repository.DepositPriceRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -46,7 +46,7 @@ import java.util.Optional
  */
 class BarrelPurchaseMutationServiceImplTest :
   FunSpec({
-    var barrelFeeRepository: BarrelFeeRepository = mockk()
+    var barrelFeeRepository: DepositPriceRepository = mockk()
     var barrelPurchaseRepository: BarrelPurchaseRepository = mockk()
     var barrelPurchaseItemRepository: BarrelPurchaseItemRepository = mockk()
     var bizLogger: BizLogger = mockk()
@@ -56,9 +56,9 @@ class BarrelPurchaseMutationServiceImplTest :
       id: Long = 1L,
       specification: String = "19L/桶",
       priceCents: Long = 4000,
-      status: BarrelFeeStatus = BarrelFeeStatus.ENABLED,
-    ): BarrelFeeModel =
-      BarrelFeeModel(
+      status: DepositPriceStatus = DepositPriceStatus.ENABLED,
+    ): DepositPriceModel =
+      DepositPriceModel(
         id = id,
         specification = specification,
         priceCents = priceCents,
@@ -122,7 +122,7 @@ class BarrelPurchaseMutationServiceImplTest :
 
     test("purchaseBarrel rejects when fee disabled") {
       every { barrelPurchaseRepository.existsByUserIdAndPaymentStatus(100L, BarrelPaymentStatus.PAID) } returns false
-      every { barrelFeeRepository.findById(1L) } returns Optional.of(fee(status = BarrelFeeStatus.DISABLED))
+      every { barrelFeeRepository.findById(1L) } returns Optional.of(fee(status = DepositPriceStatus.DISABLED))
 
       shouldThrow<BadRequestException> {
         service.purchaseBarrel(100L, PurchaseBarrelRequest(listOf(PurchaseBarrelItemRequest(1L, 1))))

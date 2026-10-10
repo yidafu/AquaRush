@@ -232,131 +232,49 @@ data class BannerVoPage(
     val totalPages: kotlin.Int
 )
 
-data class BarrelFeeAdminVo(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val priceCents: kotlin.Long,
-    val sortOrder: kotlin.Int,
-    val specification: kotlin.String,
-    val status: BarrelFeeStatus,
-    val updatedAt: java.time.LocalDateTime
-)
-
-data class BarrelFeeListInput(
-    val keyword: kotlin.String? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val status: BarrelFeeStatus? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["keyword"] as kotlin.String?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["status"] as BarrelFeeStatus?
-  )
-}
-
-enum class BarrelFeeStatus(val label: String) {
-      DISABLED("DISABLED"),
-      ENABLED("ENABLED");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): BarrelFeeStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}
-
-data class BarrelFeeVo(
-    val id: kotlin.Long,
-    val priceCents: kotlin.Long,
+data class BarrelAccountSpecVo(
+    val depositHeldCents: kotlin.Long,
+    val heldBucketCount: kotlin.Int,
+    val owedBucketCount: kotlin.Int,
     val specification: kotlin.String
 )
 
-data class BarrelFeeVoPage(
-    val content: kotlin.collections.List<BarrelFeeAdminVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
+data class BarrelAccountVo(
+    val depositHeldCents: kotlin.Long,
+    val owedBucketCount: kotlin.Int,
+    val recordTotal: kotlin.Int,
+    val records: kotlin.collections.List<DepositRecordVo>,
+    val specs: kotlin.collections.List<BarrelAccountSpecVo>
 )
 
-enum class BarrelPaymentStatus(val label: String) {
-      CANCELLED("CANCELLED"),
-      PAID("PAID"),
-      PENDING("PENDING"),
-      REFUNDED("REFUNDED");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): BarrelPaymentStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}
-
-data class BarrelPurchaseAdminVo(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val items: kotlin.collections.List<BarrelPurchaseItemAdminVo>,
-    val orderNo: kotlin.String,
-    val paidAt: java.time.LocalDateTime?,
-    val paymentStatus: BarrelPaymentStatus,
-    val refundRemark: kotlin.String?,
-    val refundedAt: java.time.LocalDateTime?,
-    val refundedBy: kotlin.Long?,
-    val remark: kotlin.String?,
-    val totalAmountCents: kotlin.Long,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
-)
-
-data class BarrelPurchaseItemAdminVo(
-    val amountCents: kotlin.Long,
-    val quantity: kotlin.Int,
-    val specification: kotlin.String,
-    val unitPriceCents: kotlin.Long
-)
-
-data class BarrelPurchaseItemVo(
-    val amountCents: kotlin.Long,
-    val quantity: kotlin.Int,
-    val specification: kotlin.String,
-    val unitPriceCents: kotlin.Long
-)
-
-data class BarrelPurchaseListInput(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
+data class BarrelLedgerInput(
+    val keyword: kotlin.String? = null,
+    val onlyOwed: kotlin.Boolean? = false,
     val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val status: BarrelPaymentStatus? = null
+    val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
+      args["keyword"] as kotlin.String?,
+      args["onlyOwed"] as kotlin.Boolean? ?: false,
       args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["status"] as BarrelPaymentStatus?
+      args["size"] as kotlin.Int? ?: 20
   )
 }
 
-data class BarrelPurchaseVo(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val items: kotlin.collections.List<BarrelPurchaseItemVo>,
-    val orderNo: kotlin.String,
-    val paidAt: java.time.LocalDateTime?,
-    val paymentParams: tools.jackson.databind.node.ObjectNode?,
-    val paymentStatus: BarrelPaymentStatus,
-    val refundedAt: java.time.LocalDateTime?,
-    val requiresSimulation: kotlin.Boolean,
-    val totalAmountCents: kotlin.Long
+data class BarrelLedgerRowVo(
+    val deliveredBucketCount: kotlin.Int,
+    val depositHeldCents: kotlin.Long,
+    val depositRefundedCents: kotlin.Long,
+    val heldBucketCount: kotlin.Int,
+    val nickname: kotlin.String?,
+    val owedBucketCount: kotlin.Int,
+    val phone: kotlin.String?,
+    val recoveredBucketCount: kotlin.Int,
+    val userId: kotlin.Long
 )
 
-data class BarrelPurchaseVoPage(
-    val content: kotlin.collections.List<BarrelPurchaseAdminVo>,
+data class BarrelLedgerVoPage(
+    val content: kotlin.collections.List<BarrelLedgerRowVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -670,24 +588,6 @@ data class CreateBannerInput(
       args["startAt"] as java.time.LocalDateTime?,
       args["subtitle"] as kotlin.String?,
       args["title"] as kotlin.String
-  )
-}
-
-data class CreateBarrelFeeInput(
-    @field:Min(value = 0, message = "水桶费不能小于0")
-    @field:Max(value = 9999900, message = "水桶费不能大于99999元")
-    val priceCents: kotlin.Long,
-    @field:Min(value = 0, message = "排序权重不能小于0")
-    @field:Max(value = 9999, message = "排序权重不能大于9999")
-    val sortOrder: kotlin.Int,
-    @field:NotBlank(message = "规格不能为空")
-    @field:Size(max = 100, message = "规格不能超过100个字符")
-    val specification: kotlin.String
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["priceCents"] as kotlin.Long,
-      args["sortOrder"] as kotlin.Int,
-      args["specification"] as kotlin.String
   )
 }
 
@@ -1649,6 +1549,140 @@ data class DeliveryWorkerVoPage(
     val totalPages: kotlin.Int
 )
 
+data class DepositPriceListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: DepositPriceStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as DepositPriceStatus?
+  )
+}
+
+enum class DepositPriceStatus(val label: String) {
+      DISABLED("DISABLED"),
+      ENABLED("ENABLED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DepositPriceStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class DepositPriceVo(
+    val createdAt: java.time.LocalDateTime,
+    val depositCents: kotlin.Long,
+    val id: kotlin.Long,
+    val sortOrder: kotlin.Int,
+    val specification: kotlin.String,
+    val status: DepositPriceStatus,
+    val updatedAt: java.time.LocalDateTime
+)
+
+data class DepositPriceVoPage(
+    val content: kotlin.collections.List<DepositPriceVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class DepositRecordListInput(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val specification: kotlin.String? = null,
+    val status: DepositStatus? = null,
+    val userId: kotlin.Long? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["specification"] as kotlin.String?,
+      args["status"] as DepositStatus?,
+      args["userId"] as kotlin.Long?
+  )
+}
+
+data class DepositRecordVo(
+    val bucketCount: kotlin.Int?,
+    val collectedAt: java.time.LocalDateTime?,
+    val createdAt: java.time.LocalDateTime,
+    val depositAmountCents: kotlin.Long,
+    val id: kotlin.Long,
+    val orderId: kotlin.Long,
+    val refundRemark: kotlin.String?,
+    val refundedAt: java.time.LocalDateTime?,
+    val specification: kotlin.String?,
+    val status: DepositStatus,
+    val unitDepositCents: kotlin.Long?
+)
+
+data class DepositRecordVoPage(
+    val content: kotlin.collections.List<DepositRecordVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class DepositRefundApplicationStatus(val label: String) {
+      PENDING("PENDING"),
+      RECOVERED("RECOVERED"),
+      REFUNDED("REFUNDED"),
+      REJECTED("REJECTED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DepositRefundApplicationStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class DepositRefundApplicationVo(
+    val bucketCount: kotlin.Int,
+    val createdAt: java.time.LocalDateTime,
+    val depositCents: kotlin.Long,
+    val id: kotlin.Long,
+    val receiverDetail: kotlin.String?,
+    val receiverName: kotlin.String?,
+    val receiverPhone: kotlin.String?,
+    val recoveredAt: java.time.LocalDateTime?,
+    val refundedAt: java.time.LocalDateTime?,
+    val rejectReason: kotlin.String?,
+    val rejectedAt: java.time.LocalDateTime?,
+    val remark: kotlin.String?,
+    val specification: kotlin.String,
+    val status: DepositRefundApplicationStatus
+)
+
+data class DepositRefundApplicationVoPage(
+    val content: kotlin.collections.List<DepositRefundApplicationVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class DepositStatus(val label: String) {
+      HELD("HELD"),
+      PENDING("PENDING"),
+      REFUNDED("REFUNDED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DepositStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 enum class DiscrepancyStatus(val label: String) {
       RESOLVED("RESOLVED"),
       UNRESOLVED("UNRESOLVED");
@@ -1672,6 +1706,20 @@ enum class DiscrepancyType(val label: String) {
       return values().find { it.label == label }
     }
   }
+}
+
+data class EmptyBarrelRecoveryInput(
+    @field:Min(value = 1, message = "回收数量必须大于0")
+    @field:Max(value = 999, message = "回收数量不能超过999")
+    val count: kotlin.Int,
+    @field:NotBlank(message = "规格不能为空")
+    @field:Size(max = 100, message = "规格不能超过100个字符")
+    val specification: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["count"] as kotlin.Int,
+      args["specification"] as kotlin.String
+  )
 }
 
 data class ExecuteReconciliationInput(
@@ -2349,6 +2397,13 @@ data class MutationAcceptDeliveryArgs(
       args["orderId"] as kotlin.Long
   )
 }
+data class MutationApproveDepositRefundArgs(
+    val applicationId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["applicationId"] as kotlin.Long
+  )
+}
 data class MutationAssignDeliveryWorkerArgs(
     val isSelfCollect: kotlin.Boolean,
     val orderId: kotlin.Long,
@@ -2400,16 +2455,26 @@ data class MutationClaimCouponArgs(
   )
 }
 data class MutationCompleteDeliveryArgs(
+    val emptyBarrels: kotlin.collections.List<EmptyBarrelRecoveryInput>? = null,
     val orderId: kotlin.Long,
     val paymentType: PaymentType? = null,
     val photos: kotlin.collections.List<kotlin.String>,
     val remark: kotlin.String? = null
 ) {
+  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
+      args["emptyBarrels"]?.let { emptyBarrels -> (emptyBarrels as List<Map<String, Any>>).map { EmptyBarrelRecoveryInput(it) } },
       args["orderId"] as kotlin.Long,
       args["paymentType"] as PaymentType?,
       args["photos"] as kotlin.collections.List<kotlin.String>,
       args["remark"] as kotlin.String?
+  )
+}
+data class MutationConfirmBarrelRecoveredArgs(
+    val applicationId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["applicationId"] as kotlin.Long
   )
 }
 data class MutationConfirmDailyCollectionArgs(
@@ -2450,14 +2515,6 @@ data class MutationCreateBannerArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       CreateBannerInput(args["input"] as Map<String, Any>)
-  )
-}
-data class MutationCreateBarrelFeeArgs(
-    val input: CreateBarrelFeeInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      CreateBarrelFeeInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationCreateCouponTemplateArgs(
@@ -2657,13 +2714,6 @@ data class MutationDeleteUserArgs(
       args["id"] as kotlin.Long
   )
 }
-data class MutationDisableBarrelFeeArgs(
-    val id: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
-  )
-}
 data class MutationDisableCouponTemplateArgs(
     val id: kotlin.Long
 ) {
@@ -2772,14 +2822,6 @@ data class MutationPublishNoticeArgs(
       args["id"] as kotlin.Long
   )
 }
-data class MutationPurchaseBarrelArgs(
-    val input: PurchaseBarrelInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      PurchaseBarrelInput(args["input"] as Map<String, Any>)
-  )
-}
 data class MutationPurchaseTicketsArgs(
     val input: PurchaseTicketsInput
 ) {
@@ -2795,21 +2837,21 @@ data class MutationRecordSubscribeAuthArgs(
       args["templateIds"] as kotlin.collections.List<kotlin.String>
   )
 }
-data class MutationRefundBarrelPurchaseArgs(
-    val purchaseId: kotlin.Long,
-    val remark: kotlin.String? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["purchaseId"] as kotlin.Long,
-      args["remark"] as kotlin.String?
-  )
-}
 data class MutationRejectDailyCollectionArgs(
     val input: RejectDailyCollectionInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       RejectDailyCollectionInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationRejectDepositRefundArgs(
+    val applicationId: kotlin.Long,
+    val reason: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["applicationId"] as kotlin.Long,
+      args["reason"] as kotlin.String
   )
 }
 data class MutationReorderBannerArgs(
@@ -2977,6 +3019,14 @@ data class MutationSubmitDailyCollectionArgs(
       SubmitDailyCollectionInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationSubmitDepositRefundArgs(
+    val input: SubmitDepositRefundInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      SubmitDepositRefundInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationSubmitFeedbackArgs(
     val input: FeedbackSubmitInput
 ) {
@@ -3030,16 +3080,6 @@ data class MutationUpdateBannerArgs(
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long,
       UpdateBannerInput(args["input"] as Map<String, Any>)
-  )
-}
-data class MutationUpdateBarrelFeeArgs(
-    val id: kotlin.Long,
-    val input: UpdateBarrelFeeInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long,
-      UpdateBarrelFeeInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationUpdateCouponTemplateArgs(
@@ -3198,6 +3238,14 @@ data class MutationUpdateUserArgs(
       UpdateUserInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpsertDepositPriceArgs(
+    val input: UpsertDepositPriceInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      UpsertDepositPriceInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUrgeOrderArgs(
     val orderId: kotlin.Long
 ) {
@@ -3208,6 +3256,7 @@ data class MutationUrgeOrderArgs(
 data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: OrderVo,
+    val approveDepositRefund: DepositRefundApplicationVo,
     val assignDeliveryWorker: OrderVo,
     val backupLogPartition: LogBackupRecordVo,
     val batchAssignOrders: kotlin.collections.List<OrderVo>,
@@ -3215,12 +3264,12 @@ data class Mutation(
     val cancelOrder: OrderVo,
     val claimCoupon: UserCouponVo,
     val completeDelivery: OrderVo,
+    val confirmBarrelRecovered: DepositRefundApplicationVo,
     val confirmDailyCollection: DailyCollectionRecordVo,
     val createAddress: AddressVo,
     val createAdmin: AdminVo,
     val createAdminAddress: AddressVo,
     val createBanner: BannerVo,
-    val createBarrelFee: BarrelFeeAdminVo,
     val createCouponTemplate: CouponTemplateAdminVo,
     val createCustomerGroup: CustomerGroupVo,
     val createDeliveryOrder: OrderVo,
@@ -3247,7 +3296,6 @@ data class Mutation(
     val deleteProduct: kotlin.Boolean,
     val deleteProductOption: kotlin.Boolean,
     val deleteUser: kotlin.Boolean,
-    val disableBarrelFee: BarrelFeeAdminVo,
     val disableCouponTemplate: CouponTemplateAdminVo,
     val disableFirstOrderActivity: FirstOrderActivityVo,
     val disableFlashSaleActivity: FlashSaleActivityVo,
@@ -3265,11 +3313,10 @@ data class Mutation(
     val onlineProduct: ProductVo,
     val processRefund: RefundRequestVo,
     val publishNotice: NoticeVo,
-    val purchaseBarrel: BarrelPurchaseVo,
     val purchaseTickets: TicketPurchaseVo,
     val recordSubscribeAuth: kotlin.Boolean,
-    val refundBarrelPurchase: BarrelPurchaseAdminVo,
     val rejectDailyCollection: DailyCollectionRecordVo,
+    val rejectDepositRefund: DepositRefundApplicationVo,
     val reorderBanner: kotlin.collections.List<BannerVo>,
     val reportTrajectory: kotlin.Boolean,
     val resendNotification: NotificationVo?,
@@ -3290,13 +3337,13 @@ data class Mutation(
     val startDelivery: OrderVo,
     val stopNotice: NoticeVo,
     val submitDailyCollection: DailyCollectionRecordVo,
+    val submitDepositRefund: DepositRefundApplicationVo,
     val submitFeedback: kotlin.Boolean,
     val toggleProductFavorites: kotlin.Boolean,
     val updateAddress: AddressVo,
     val updateAdmin: AdminVo,
     val updateAdminAddress: AddressVo,
     val updateBanner: BannerVo,
-    val updateBarrelFee: BarrelFeeAdminVo,
     val updateCouponTemplate: CouponTemplateAdminVo,
     val updateCustomerGroup: CustomerGroupVo,
     val updateDeliveryWorker: DeliveryWorkerVo,
@@ -3313,6 +3360,7 @@ data class Mutation(
     val updatePromotionActivity: PromotionActivityVo,
     val updateTicketType: TicketTypeAdminVo,
     val updateUser: UserVo,
+    val upsertDepositPrice: DepositPriceVo,
     val urgeOrder: kotlin.Boolean
 )
 
@@ -4343,28 +4391,6 @@ data class PromotionTierInput(
   )
 }
 
-data class PurchaseBarrelInput(
-    @field:Size(min = 1, max = 20, message = "购桶明细数量应在1-20之间")
-    val items: kotlin.collections.List<PurchaseBarrelItemInput>
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { PurchaseBarrelItemInput(it) } }
-  )
-}
-
-data class PurchaseBarrelItemInput(
-    val barrelFeeId: kotlin.Long,
-    @field:Min(value = 1, message = "购桶数量不能小于1")
-    @field:Max(value = 99, message = "购桶数量不能大于99")
-    val quantity: kotlin.Int
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["barrelFeeId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
-  )
-}
-
 data class PurchaseTicketsInput(
     @field:Min(value = 1, message = "购票张数必须大于0")
     @field:Max(value = 10, message = "单次购票张数不能超过10")
@@ -4435,20 +4461,21 @@ data class QueryBannersArgs(
       args["input"]?.let { BannerListInput(it as Map<String, Any>) }
   )
 }
-data class QueryBarrelFeesArgs(
-    val input: BarrelFeeListInput? = null
+data class QueryBarrelAccountArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
 ) {
-  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["input"]?.let { BarrelFeeListInput(it as Map<String, Any>) }
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
   )
 }
-data class QueryBarrelPurchasesArgs(
-    val input: BarrelPurchaseListInput? = null
+data class QueryBarrelLedgerArgs(
+    val input: BarrelLedgerInput? = null
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["input"]?.let { BarrelPurchaseListInput(it as Map<String, Any>) }
+      args["input"]?.let { BarrelLedgerInput(it as Map<String, Any>) }
   )
 }
 data class QueryBusinessLogsArgs(
@@ -4616,6 +4643,33 @@ data class QueryDeliveryWorkersArgs(
       args["page"] as kotlin.Int? ?: 0,
       args["role"] as kotlin.String?,
       args["size"] as kotlin.Int? ?: 20
+  )
+}
+data class QueryDepositPricesArgs(
+    val input: DepositPriceListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { DepositPriceListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryDepositRecordsArgs(
+    val input: DepositRecordListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { DepositRecordListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryDepositRefundApplicationsArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: DepositRefundApplicationStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as DepositRefundApplicationStatus?
   )
 }
 data class QueryFavoriteProductsArgs(
@@ -5187,9 +5241,8 @@ data class Query(
     val assignedOrders: kotlin.collections.List<OrderVo>,
     val banner: BannerVo?,
     val banners: BannerVoPage?,
-    val barrelFees: BarrelFeeVoPage,
-    val barrelPurchases: BarrelPurchaseVoPage,
-    val barrelShop: kotlin.collections.List<BarrelFeeVo>,
+    val barrelAccount: BarrelAccountVo,
+    val barrelLedger: BarrelLedgerVoPage,
     val businessLogs: BusinessLogVoPage?,
     val couponCenter: kotlin.collections.List<CouponTemplateVo>,
     val couponTemplate: CouponTemplateAdminVo?,
@@ -5214,6 +5267,9 @@ data class Query(
     val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsVo,
     val deliveryWorkerStatistics: DeliveryWorkerOverviewVo,
     val deliveryWorkers: DeliveryWorkerVoPage,
+    val depositPrices: DepositPriceVoPage,
+    val depositRecords: DepositRecordVoPage,
+    val depositRefundApplications: DepositRefundApplicationVoPage,
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
     val feedback: FeedbackVo?,
@@ -5232,7 +5288,6 @@ data class Query(
     val marketingStatistics: MarketingStatisticsVo,
     val me: UserInfoVo?,
     val monthlyStatistics: kotlin.collections.List<MonthlyStatisticVo>,
-    val myBarrelPurchase: BarrelPurchaseVo?,
     val myCoupons: kotlin.collections.List<UserCouponVo>,
     val myFeedbacks: FeedbackRecordVoPage,
     val myNotifications: NotificationVoPage,
@@ -5774,6 +5829,34 @@ data class SubmitDailyCollectionInput(
   )
 }
 
+data class SubmitDepositRefundInput(
+    @field:Min(value = 1, message = "退还桶数必须大于0")
+    val bucketCount: kotlin.Int,
+    @field:NotBlank(message = "回收地址不能为空")
+    @field:Size(max = 500, message = "地址不能超过500个字符")
+    val receiverDetail: kotlin.String,
+    @field:NotBlank(message = "回收地址联系人不能为空")
+    @field:Size(max = 50, message = "联系人不能超过50个字符")
+    val receiverName: kotlin.String,
+    @field:NotBlank(message = "回收地址电话不能为空")
+    @field:Size(max = 20, message = "电话不能超过20个字符")
+    val receiverPhone: kotlin.String,
+    @field:Size(max = 200, message = "备注不能超过200个字符")
+    val remark: kotlin.String? = null,
+    @field:NotBlank(message = "规格不能为空")
+    @field:Size(max = 100, message = "规格不能超过100个字符")
+    val specification: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["bucketCount"] as kotlin.Int,
+      args["receiverDetail"] as kotlin.String,
+      args["receiverName"] as kotlin.String,
+      args["receiverPhone"] as kotlin.String,
+      args["remark"] as kotlin.String?,
+      args["specification"] as kotlin.String
+  )
+}
+
 data class SubscribeTemplateVo(
     val enabled: kotlin.Boolean,
     val scene: kotlin.String,
@@ -6086,24 +6169,6 @@ data class UpdateBannerInput(
       args["startAt"] as java.time.LocalDateTime?,
       args["subtitle"] as kotlin.String?,
       args["title"] as kotlin.String
-  )
-}
-
-data class UpdateBarrelFeeInput(
-    @field:Min(value = 0, message = "水桶费不能小于0")
-    @field:Max(value = 9999900, message = "水桶费不能大于99999元")
-    val priceCents: kotlin.Long? = null,
-    @field:Min(value = 0, message = "排序权重不能小于0")
-    @field:Max(value = 9999, message = "排序权重不能大于9999")
-    val sortOrder: kotlin.Int? = null,
-    @field:NotBlank(message = "规格不能为空")
-    @field:Size(max = 100, message = "规格不能超过100个字符")
-    val specification: kotlin.String? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["priceCents"] as kotlin.Long?,
-      args["sortOrder"] as kotlin.Int?,
-      args["specification"] as kotlin.String?
   )
 }
 
@@ -6560,6 +6625,28 @@ data class UpdateUserInput(
       args["nickname"] as kotlin.String?,
       args["phone"] as kotlin.String?,
       args["status"] as UserStatus?
+  )
+}
+
+data class UpsertDepositPriceInput(
+    @field:Min(value = 0, message = "押金不能小于0")
+    @field:Max(value = 9999900, message = "押金不能大于99999元")
+    val depositCents: kotlin.Long,
+    val id: kotlin.Long? = null,
+    @field:Min(value = 0, message = "排序权重不能小于0")
+    @field:Max(value = 9999, message = "排序权重不能大于9999")
+    val sortOrder: kotlin.Int? = null,
+    @field:NotBlank(message = "规格不能为空")
+    @field:Size(max = 100, message = "规格不能超过100个字符")
+    val specification: kotlin.String,
+    val status: DepositPriceStatus? = DepositPriceStatus.ENABLED
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["depositCents"] as kotlin.Long,
+      args["id"] as kotlin.Long?,
+      args["sortOrder"] as kotlin.Int?,
+      args["specification"] as kotlin.String,
+      args["status"] as DepositPriceStatus? ?: DepositPriceStatus.ENABLED
   )
 }
 

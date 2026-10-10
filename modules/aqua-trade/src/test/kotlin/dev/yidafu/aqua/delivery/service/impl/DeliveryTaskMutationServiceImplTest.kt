@@ -19,9 +19,11 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.dto.EmptyBarrelRecoveryItem
 import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.api.service.admin.AdminService
+import dev.yidafu.aqua.api.service.deposit.DepositMutationApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
@@ -65,6 +67,7 @@ class DeliveryTaskMutationServiceImplTest :
     var eventPublishService: SimplifiedEventPublishService = mockk()
     var bizLogger: BizLogger = mockk()
     var addressService: AddressService = mockk()
+    var depositMutationApiService: DepositMutationApiService = mockk()
     var service: DeliveryTaskMutationServiceImpl = mockk()
     val onlineWorker =
       AdminModel(
@@ -87,6 +90,7 @@ class DeliveryTaskMutationServiceImplTest :
       eventPublishService = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       addressService = mockk(relaxed = true)
+      depositMutationApiService = mockk(relaxed = true)
       every { adminService.findById(1L) } returns onlineWorker
       every { orderMutationService.updateOrder(any(), any()) } answers { secondArg() as OrderModel }
       service =
@@ -99,6 +103,7 @@ class DeliveryTaskMutationServiceImplTest :
           JsonHelper(),
           bizLogger,
           addressService,
+          depositMutationApiService,
         )
     }
     test("assign accepts pending dispatch only") {
@@ -196,6 +201,50 @@ class DeliveryTaskMutationServiceImplTest :
 
       completed.status shouldBe OrderModelStatus.COMPLETED
       completed.deliveryRemark shouldBe "放门口"
+    }
+    test("complete delivery 登记空桶回收(F-ORD-011):总数快照 + 按规格落账") {
+      val deliveringOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns deliveringOrder
+
+      val completed =
+        service.completeDelivery(
+          orderId = 1L,
+          deliveryPhotos = listOf("https://x/1.jpg"),
+          paymentType = PaymentType.CASH,
+          remark = null,
+          emptyBarrels =
+            listOf(
+              EmptyBarrelRecoveryItem(specification = "19L", count = 2),
+              EmptyBarrelRecoveryItem(specification = "5L", count = 1),
+            ),
+        )
+
+      completed.status shouldBe OrderModelStatus.COMPLETED
+      completed.emptyBarrelsRetrieved shouldBe 3
+      verify(exactly = 1) {
+        depositMutationApiService.registerBarrelRecovery(
+          workerId = 1L,
+          orderId = 1L,
+          items = match { it.size == 2 && it[0].count == 2 && it[1].specification == "5L" },
+        )
+      }
+    }
+    test("complete delivery 未登记空桶时不落回收记录") {
+      val deliveringOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns deliveringOrder
+
+      val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null)
+
+      completed.emptyBarrelsRetrieved shouldBe null
+      verify(exactly = 1) {
+        depositMutationApiService.registerBarrelRecovery(workerId = 1L, orderId = 1L, items = emptyList())
+      }
     }
     test("complete delivery rejects non delivering order") {
       every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)

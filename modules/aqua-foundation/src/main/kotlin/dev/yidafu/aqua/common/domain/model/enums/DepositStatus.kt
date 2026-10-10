@@ -20,20 +20,22 @@
 package dev.yidafu.aqua.common.domain.model.enums
 
 /**
- * 桶押金记录状态(G06/R-MON-03:押金随单收取,退还闭环)
+ * 桶押金记录状态(R-MON-03 押金桶状态机,B2 回退三态):
+ * PENDING(待收取,下单建账)→ HELD(已收取,支付成功实收)→ REFUNDED(已退还);
+ * 取消/超时未实收的 PENDING 直接删除,不再保留作废态。
  */
 enum class DepositStatus {
-  COLLECTED, // 已收取(收款到账即收取)
-  REFUNDED, // 已退还(订单取消自动退还或管理员退还)
-  CANCELLED, // 已取消(未实际收取,记录作废)
+  PENDING, // 待收取(随单创建,未支付)
+  HELD, // 已收取(在租,计入押金合计)
+  REFUNDED, // 已退还(退押审核通过或随单退款)
   ;
 
   companion object {
     fun fromValue(value: String): DepositStatus =
       when (value) {
-        "COLLECTED" -> COLLECTED
+        "PENDING" -> PENDING
+        "HELD" -> HELD
         "REFUNDED" -> REFUNDED
-        "CANCELLED" -> CANCELLED
         else -> throw IllegalArgumentException("Unknown DepositStatus value: '" + value + "'")
       }
   }

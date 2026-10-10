@@ -71,6 +71,9 @@ object OrdersTable : SoftDeletableTable("orders") {
   val deliveryStartedAt = datetime("delivery_started_at").nullable()
   val assignedAt = datetime("assigned_at").nullable()
   val completedAt = datetime("completed_at").nullable()
+
+  // 完成配送登记回收空桶总数(F-ORD-011,V346 补列;明细 barrel_recovery_records)
+  val emptyBarrelsRetrieved = integer("empty_barrels_retrieved").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   val remark = varchar("remark", 500).nullable()
