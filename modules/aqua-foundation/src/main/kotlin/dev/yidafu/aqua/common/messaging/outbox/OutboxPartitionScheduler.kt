@@ -26,38 +26,42 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 /**
- * outbox DONE 行保留期清理(每日一次,分批限删,不做无界 DELETE)。
- * DEAD 行不清理 —— 保留给人工排查(docs/compose/spec/outbox-messaging.md)。
+ * outbox 分区滚动维护(每日 04:40;docs/compose/spec/outbox-messaging.md 修订)。
+ *
+ * 职责(取代原 DONE 行删除任务):
+ * 1. 补建「当前半区 + 下一半区」分区,承接未来约 6 个月的事件写入;
+ * 2. 分区结束满 [OutboxProperties.partitionRetentionDays] 的分区 DETACH 并改名归档
+ *    (`outbox_events_archive_YYYYHn`,数据不丢,主表恒小)。
+ *
+ * 双服务实例并发:事务级 advisory lock 串行化,未获锁本次跳过(另一实例在执行)。
  */
 @Component
 @ConditionalOnProperty(name = ["aqua.outbox.enabled"], havingValue = "true", matchIfMissing = false)
-class OutboxRetentionScheduler(
+class OutboxPartitionScheduler(
   private val outboxEventRepository: OutboxEventRepository,
   private val properties: OutboxProperties,
 ) {
-  private val logger = LoggerFactory.getLogger(OutboxRetentionScheduler::class.java)
+  private val logger = LoggerFactory.getLogger(OutboxPartitionScheduler::class.java)
 
   @Scheduled(cron = "0 40 4 * * *")
-  fun cleanupExpiredDoneRows() {
+  fun maintainPartitions() {
     try {
-      val cutoff = LocalDateTime.now().minusDays(properties.doneRetentionDays)
-      var total = 0
-      // 循环分批直到删空(或达单次运行上限),避免日事件量超过单批容量导致积压
-      while (total < MAX_ROWS_PER_RUN) {
-        val deleted = outboxEventRepository.deleteDoneBefore(cutoff = cutoff, limit = CLEANUP_BATCH_SIZE)
-        total += deleted
-        if (deleted < CLEANUP_BATCH_SIZE) break
+      val result =
+        outboxEventRepository.maintainPartitions(
+          now = LocalDateTime.now(),
+          retentionDays = properties.partitionRetentionDays,
+        )
+      if (result.lockAcquired) {
+        logger.info(
+          "outbox 分区维护完成: created={}, detached={}",
+          result.createdPartitions,
+          result.detachedArchives,
+        )
+      } else {
+        logger.debug("outbox 分区维护锁被另一实例持有,本次跳过")
       }
-      logger.debug("outbox DONE 行清理完成: cutoff={}, deleted={}", cutoff, total)
     } catch (e: Exception) {
-      logger.error("outbox DONE 行清理失败", e)
+      logger.error("outbox 分区维护失败", e)
     }
-  }
-
-  companion object {
-    private const val CLEANUP_BATCH_SIZE = 500
-
-    /** 单次运行删除上限(500×200=10万行),剩余留到次日,防止清理任务长期占用连接。 */
-    private const val MAX_ROWS_PER_RUN = 100_000
   }
 }

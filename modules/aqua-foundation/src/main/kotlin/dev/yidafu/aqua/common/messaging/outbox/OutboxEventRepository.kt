@@ -31,14 +31,15 @@ import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * outbox 表仓储(PostgreSQL,Transactional Outbox)。
@@ -52,6 +53,8 @@ import java.time.LocalDateTime
 class OutboxEventRepository(
   private val database: Database,
 ) {
+  private val logger = LoggerFactory.getLogger(OutboxEventRepository::class.java)
+
   /** 插入一行待投递事件(与调用方业务事务同库同事务)。 */
   fun insert(
     id: Long,
@@ -142,7 +145,7 @@ class OutboxEventRepository(
       records.map { it.copy(status = OutboxStatus.PROCESSING) }
     }
 
-  /** 处理成功:置 DONE(保留至清理任务按保留期删除)。 */
+  /** 处理成功:置 DONE(保留至分区滚动维护将其随超期分区 DETACH 归档)。 */
   fun markDone(id: Long) {
     transaction(database) {
       OutboxEventsTable.update({ OutboxEventsTable.id eq id }) {
@@ -201,26 +204,82 @@ class OutboxEventRepository(
       }
     }
 
-  /** 清理:删除 [cutoff] 之前的 DONE 行(先按 updated_at 升序取有界 id 集,再按 id 删;单批最多 [limit] 行)。返回删除行数。 */
-  fun deleteDoneBefore(
-    cutoff: LocalDateTime,
-    limit: Int,
-  ): Int =
+  /**
+   * 分区滚动维护(单事务原子):取事务级 advisory 锁 → 补建「当前半区 + 下一半区」分区
+   * → 将上界已超保留期的分区 `DETACH` 并改名归档。锁未获(另一实例执行中)则整体跳过。
+   * 幂等:重复执行时分区已存在不重建、已卸载分区不再出现在挂载列表。
+   */
+  fun maintainPartitions(
+    now: LocalDateTime,
+    retentionDays: Long,
+  ): OutboxPartitionMaintenance =
     transaction(database) {
-      val ids =
-        OutboxEventsTable
-          .select(OutboxEventsTable.id)
-          .where {
-            (OutboxEventsTable.status eq OutboxStatus.DONE) and
-              (OutboxEventsTable.updatedAt less cutoff)
-          }.orderBy(OutboxEventsTable.updatedAt to SortOrder.ASC)
-          .limit(limit)
-          .map { it[OutboxEventsTable.id] }
-      if (ids.isEmpty()) {
-        0
-      } else {
-        OutboxEventsTable.deleteWhere { OutboxEventsTable.id inList ids }
+      val locked =
+        exec(
+          "SELECT pg_try_advisory_xact_lock(hashtext(?))",
+          listOf(VarCharColumnType() to OutboxPartitionRules.MAINTENANCE_LOCK_KEY),
+        ) { rs -> rs.next() && rs.getBoolean(1) } ?: false
+      if (!locked) {
+        return@transaction OutboxPartitionMaintenance(emptyList(), emptyList(), false)
       }
+
+      val created = mutableListOf<String>()
+      val currentHalfStart = OutboxPartitionRules.halfStartOf(now)
+      for (halfStart in listOf(currentHalfStart, currentHalfStart.plusMonths(6))) {
+        val name = OutboxPartitionRules.partitionName(halfStart)
+        val attached =
+          exec(
+            """
+            SELECT 1 FROM pg_inherits i
+            JOIN pg_class c ON c.oid = i.inhrelid
+            WHERE c.relname = ? AND i.inhparent = 'outbox_events'::regclass
+            """.trimIndent(),
+            listOf(VarCharColumnType() to name),
+          ) { rs -> rs.next() } ?: false
+        if (!attached) {
+          val from = halfStart.format(TIMESTAMP_FMT)
+          val to = halfStart.plusMonths(6).format(TIMESTAMP_FMT)
+          exec("CREATE TABLE $name PARTITION OF outbox_events FOR VALUES FROM ('$from') TO ('$to')")
+          created += name
+        }
+      }
+
+      val attachedWithBounds =
+        exec(
+          """
+          SELECT c.relname, pg_get_expr(c.relpartbound, c.oid) AS bound
+          FROM pg_inherits i
+          JOIN pg_class c ON c.oid = i.inhrelid
+          JOIN pg_class p ON p.oid = i.inhparent
+          WHERE p.relname = 'outbox_events' AND p.relkind = 'p'
+          """.trimIndent(),
+        ) { rs ->
+          buildList {
+            while (rs.next()) add(rs.getString(1) to rs.getString(2))
+          }
+        }.orEmpty()
+
+      val detached = mutableListOf<String>()
+      for ((partitionName, bound) in attachedWithBounds) {
+        val upperBound =
+          BOUND_PATTERN
+            .matchEntire(bound ?: "")
+            ?.let { LocalDateTime.parse(it.groupValues[2], TIMESTAMP_FMT) }
+        if (upperBound == null) {
+          logger.warn("outbox 分区 {} 边界解析失败,跳过超期判定: {}", partitionName, bound)
+          continue
+        }
+        if (OutboxPartitionRules.isExpired(upperBound, retentionDays, now)) {
+          val archiveName =
+            OutboxPartitionRules.archiveNameOf(partitionName)
+              ?: continue
+          // 同事务内 DETACH + 改名,原子完成不留半改名状态
+          exec("ALTER TABLE outbox_events DETACH PARTITION $partitionName")
+          exec("ALTER TABLE $partitionName RENAME TO $archiveName")
+          detached += archiveName
+        }
+      }
+      OutboxPartitionMaintenance(createdPartitions = created, detachedArchives = detached, lockAcquired = true)
     }
 
   /** 健康统计(聚合计数)。 */
@@ -267,5 +326,11 @@ class OutboxEventRepository(
 
   companion object {
     private const val ERROR_MESSAGE_MAX_LENGTH = 2000
+
+    /** 分区边界/DDL 字面量的时间格式(与 LogPartitionRepositoryImpl 同口径)。 */
+    private val TIMESTAMP_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+    /** pg_get_expr(relpartbound) 形如 FOR VALUES FROM ('...') TO ('...')。 */
+    private val BOUND_PATTERN = Regex("^FOR VALUES FROM \\('([^']+)'\\) TO \\('([^']+)'\\)$")
   }
 }

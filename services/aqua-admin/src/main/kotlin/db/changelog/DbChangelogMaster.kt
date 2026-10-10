@@ -64,4 +64,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V310AddNotificationSettings", logicalFilePath = "db/changelog/changes/v3.1.0-add-notification-settings.xml")
     // Outbox 替代 Artemis MQ:重建 V100 遗留的 outbox_events(从未被读写)
     include(file = "db/changelog/changes/V320RecreateOutboxEvents", logicalFilePath = "db/changelog/changes/v3.2.0-recreate-outbox-events.xml")
+    // outbox 分区化:转按半年 RANGE 分区,配合滚动维护 DETACH 归档
+    include(file = "db/changelog/changes/V342PartitionOutboxEvents", logicalFilePath = "db/changelog/changes/v3.4.2-partition-outbox-events.xml")
   })
