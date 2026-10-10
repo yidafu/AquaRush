@@ -29,6 +29,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
 
 /**
  * outbox 轮询分发器(替代旧 JMS 监听,docs/compose/spec/outbox-messaging.md)。
@@ -171,7 +172,7 @@ class OutboxPoller(
   /** 第 n 次失败后的退避:n=1 → initial,n=2 → initial×multiplier,...,封顶 maxBackoffMs。 */
   internal fun backoffMs(attempts: Int): Long {
     val exponent = (attempts - 1).coerceAtLeast(0)
-    val delay = properties.initialBackoffMs * Math.pow(properties.backoffMultiplier, exponent.toDouble())
+    val delay = properties.initialBackoffMs * properties.backoffMultiplier.pow(exponent.toDouble())
     return delay.toLong().coerceAtMost(properties.maxBackoffMs)
   }
 }
