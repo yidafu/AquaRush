@@ -40,6 +40,7 @@ import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -73,7 +74,7 @@ class StatisticsOrderRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(dateExpr, distinctOrders, amountSum)
-          .where { OrdersTable.activeOnly(whereClause) }
+          .andWhere(whereClause)
           .groupBy(dateExpr)
           .toList()
           .map { row -> row[dateExpr]!!.toLocalDate() to Pair(row[distinctOrders], row.longOf(amountSum)) }
@@ -108,12 +109,10 @@ class StatisticsOrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(dateExpr, distinctOrders, amountSum)
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status eq OrderModelStatus.COMPLETED.name) and
-              (OrdersTable.completedAt greaterEq startDateTime) and
-              (OrdersTable.completedAt lessEq endDateTime)
-          }
+        .andWhere {
+          (OrdersTable.status eq OrderModelStatus.COMPLETED.name) and
+            (OrdersTable.completedAt greaterEq startDateTime) and
+            (OrdersTable.completedAt lessEq endDateTime)
         }.groupBy(dateExpr)
         .toList()
         .map { row ->
@@ -144,7 +143,7 @@ class StatisticsOrderRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(weekExpr, distinctOrders, amountSum)
-          .where { OrdersTable.activeOnly(whereClause) }
+          .andWhere(whereClause)
           .groupBy(weekExpr)
           .toList()
           .map { row -> row[weekExpr]!!.toLocalDate() to Pair(row[distinctOrders], row.longOf(amountSum)) }
@@ -181,7 +180,7 @@ class StatisticsOrderRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(monthExpr, distinctOrders, amountSum)
-          .where { OrdersTable.activeOnly(whereClause) }
+          .andWhere(whereClause)
           .groupBy(monthExpr)
           .toList()
           .map { row -> row[monthExpr]!!.toLocalDate() to Pair(row[distinctOrders], row.longOf(amountSum)) }
@@ -207,7 +206,7 @@ class StatisticsOrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.status, statusCount)
-        .where { OrdersTable.activeOnly { OrdersTable.status inList statuses.map { it.name } } }
+        .andWhere { OrdersTable.status inList statuses.map { it.name } }
         .groupBy(OrdersTable.status)
         .toList()
         .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
@@ -224,7 +223,7 @@ class StatisticsOrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.status, statusCount)
-        .where { OrdersTable.activeOnly(whereClause) }
+        .andWhere(whereClause)
         .groupBy(OrdersTable.status)
         .toList()
         .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
@@ -245,7 +244,7 @@ class StatisticsOrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(hourExpr, orderCount)
-        .where { OrdersTable.activeOnly(whereClause) }
+        .andWhere(whereClause)
         .groupBy(hourExpr)
         .toList()
         .associate { row -> row[hourExpr] to row[orderCount] }
@@ -269,13 +268,11 @@ class StatisticsOrderRepositoryImpl(
         transaction(database) {
           OrdersTable
             .select(OrdersTable.id)
-            .where {
-              OrdersTable.activeOnly {
-                (OrdersTable.createdAt greaterEq startDateTime) and
-                  (OrdersTable.createdAt lessEq endDateTime) and
-                  (if (bucket.fromCents != null) OrdersTable.totalAmountCents greaterEq bucket.fromCents!! else Op.TRUE) and
-                  (if (bucket.toCents != null) OrdersTable.totalAmountCents less bucket.toCents!! else Op.TRUE)
-              }
+            .andWhere {
+              (OrdersTable.createdAt greaterEq startDateTime) and
+                (OrdersTable.createdAt lessEq endDateTime) and
+                (if (bucket.fromCents != null) OrdersTable.totalAmountCents greaterEq bucket.fromCents!! else Op.TRUE) and
+                (if (bucket.toCents != null) OrdersTable.totalAmountCents less bucket.toCents!! else Op.TRUE)
             }.count()
         }
     }
@@ -290,7 +287,7 @@ class StatisticsOrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.userId, orderCount)
-        .where { OrdersTable.activeOnly(buildWhereClause(startDateTime, endDateTime, deliveryWorkerId = null, statuses = null)) }
+        .andWhere(buildWhereClause(startDateTime, endDateTime, deliveryWorkerId = null, statuses = null))
         .groupBy(OrdersTable.userId)
         .toList()
         .associate { row -> row[OrdersTable.userId] to row[orderCount] }

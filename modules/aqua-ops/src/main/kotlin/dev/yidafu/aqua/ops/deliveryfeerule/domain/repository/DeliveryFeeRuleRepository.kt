@@ -22,9 +22,9 @@ package dev.yidafu.aqua.ops.deliveryfeerule.domain.repository
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.table.DeliveryFeeRuleTable
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -52,7 +52,7 @@ class DeliveryFeeRuleRepository(
     transaction(database) {
       DeliveryFeeRuleTable
         .selectAll()
-        .where { (DeliveryFeeRuleTable.id eq id) and (DeliveryFeeRuleTable.isDeleted eq false) }
+        .andWhere { (DeliveryFeeRuleTable.id eq id) }
         .singleOrNull()
         ?.let(::toModel)
     }.let { Optional.ofNullable(it) }
@@ -65,7 +65,7 @@ class DeliveryFeeRuleRepository(
           ?: error("DeliveryFeeRuleModel.id 必须在保存前赋值(单行配置固定 id=${SINGLETON_ID})")
       val exists =
         DeliveryFeeRuleTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DeliveryFeeRuleTable.id eq id }
           .limit(1)
           .any()
@@ -95,7 +95,7 @@ class DeliveryFeeRuleRepository(
     }
 
   /**
-   * 原生硬删除（绕过软删除）：
+   * 软删豁免:原生硬删除（绕过软删除）：
    * 软删行仍占用 SINGLETON_ID，单行配置重新保存会撞主键（测试复位用）。
    * 迁移前该行为由手写原生 SQL 保证（Hibernate @SoftDelete 会把 JPQL/QueryDSL 的 delete
    * 一律改写为软删 UPDATE）；Exposed 没有这层改写，`deleteAll` 天然就是物理删除。

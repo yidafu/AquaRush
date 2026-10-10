@@ -35,6 +35,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -96,7 +97,7 @@ class UserTicketRepositoryImpl(
     transaction(database) {
       UserTicketsTable
         .selectAll()
-        .where { UserTicketsTable.activeOnly { UserTicketsTable.userId eq userId } }
+        .andWhere { UserTicketsTable.userId eq userId }
         .orderBy(UserTicketsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -108,12 +109,10 @@ class UserTicketRepositoryImpl(
     transaction(database) {
       UserTicketsTable
         .selectAll()
-        .where {
-          UserTicketsTable.activeOnly {
-            (UserTicketsTable.userId eq userId) and (UserTicketsTable.status eq status.name)
-          }
-        }.orderBy(UserTicketsTable.id to SortOrder.ASC)
-        .toList()
+        .andWhere { (UserTicketsTable.userId eq userId) and (UserTicketsTable.status eq status.name) }
+        .orderBy(
+          UserTicketsTable.id to SortOrder.ASC,
+        ).toList()
     }.map(::toModel)
 
   override fun findByUserIdAndStatusIn(
@@ -124,11 +123,9 @@ class UserTicketRepositoryImpl(
     return transaction(database) {
       UserTicketsTable
         .selectAll()
-        .where {
-          UserTicketsTable.activeOnly {
-            (UserTicketsTable.userId eq userId) and
-              (UserTicketsTable.status inList statuses.map { it.name })
-          }
+        .andWhere {
+          (UserTicketsTable.userId eq userId) and
+            (UserTicketsTable.status inList statuses.map { it.name })
         }.orderBy(UserTicketsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -143,12 +140,10 @@ class UserTicketRepositoryImpl(
     return transaction(database) {
       UserTicketsTable
         .selectAll()
-        .where {
-          UserTicketsTable.activeOnly {
-            (UserTicketsTable.ticketTypeId eq ticketTypeId) and
-              (UserTicketsTable.status inList statuses.map { it.name }) and
-              (UserTicketsTable.expireTime greater expireTime)
-          }
+        .andWhere {
+          (UserTicketsTable.ticketTypeId eq ticketTypeId) and
+            (UserTicketsTable.status inList statuses.map { it.name }) and
+            (UserTicketsTable.expireTime greater expireTime)
         }.count()
     }
   }
@@ -158,7 +153,7 @@ class UserTicketRepositoryImpl(
       transaction(database) {
         UserTicketsTable
           .selectAll()
-          .where { UserTicketsTable.activeOnly { UserTicketsTable.id eq id } }
+          .andWhere { UserTicketsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -170,7 +165,7 @@ class UserTicketRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         UserTicketsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { UserTicketsTable.id eq id }
           .limit(1)
           .any()

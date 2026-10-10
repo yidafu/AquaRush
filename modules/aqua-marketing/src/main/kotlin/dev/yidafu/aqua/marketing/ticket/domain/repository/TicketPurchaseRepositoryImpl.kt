@@ -30,6 +30,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -87,7 +88,7 @@ class TicketPurchaseRepositoryImpl(
     transaction(database) {
       TicketPurchasesTable
         .selectAll()
-        .where { TicketPurchasesTable.activeOnly { TicketPurchasesTable.orderNo eq orderNo } }
+        .andWhere { TicketPurchasesTable.orderNo eq orderNo }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -100,12 +101,10 @@ class TicketPurchaseRepositoryImpl(
     transaction(database) {
       TicketPurchasesTable
         .selectAll()
-        .where {
-          TicketPurchasesTable.activeOnly {
-            (TicketPurchasesTable.userId eq userId) and
-              (TicketPurchasesTable.ticketTypeId eq ticketTypeId) and
-              (TicketPurchasesTable.paymentStatus eq paymentStatus.name)
-          }
+        .andWhere {
+          (TicketPurchasesTable.userId eq userId) and
+            (TicketPurchasesTable.ticketTypeId eq ticketTypeId) and
+            (TicketPurchasesTable.paymentStatus eq paymentStatus.name)
         }.count()
     }
 
@@ -114,7 +113,7 @@ class TicketPurchaseRepositoryImpl(
       transaction(database) {
         TicketPurchasesTable
           .selectAll()
-          .where { TicketPurchasesTable.activeOnly { TicketPurchasesTable.id eq id } }
+          .andWhere { TicketPurchasesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -126,7 +125,7 @@ class TicketPurchaseRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         TicketPurchasesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { TicketPurchasesTable.id eq id }
           .limit(1)
           .any()

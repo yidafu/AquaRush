@@ -22,7 +22,6 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.table.BarrelFeesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -32,6 +31,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -68,7 +68,7 @@ class BarrelFeeRepositoryImpl(
     transaction(database) {
       BarrelFeesTable
         .selectAll()
-        .where { BarrelFeesTable.activeOnly { BarrelFeesTable.specification eq specification } }
+        .andWhere { BarrelFeesTable.specification eq specification }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -77,7 +77,7 @@ class BarrelFeeRepositoryImpl(
     transaction(database) {
       BarrelFeesTable
         .selectAll()
-        .where { BarrelFeesTable.activeOnly { BarrelFeesTable.status eq status.name } }
+        .andWhere { BarrelFeesTable.status eq status.name }
         .orderBy(BarrelFeesTable.sortOrder to SortOrder.ASC, BarrelFeesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -87,7 +87,7 @@ class BarrelFeeRepositoryImpl(
       transaction(database) {
         BarrelFeesTable
           .selectAll()
-          .where { BarrelFeesTable.activeOnly { BarrelFeesTable.id eq id } }
+          .andWhere { BarrelFeesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -108,14 +108,14 @@ class BarrelFeeRepositoryImpl(
         val content =
           BarrelFeesTable
             .selectAll()
-            .where { BarrelFeesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 sortOrder 升序(对齐原 PageRequest Sort),id 破平防跨页重复
             .orderBy(BarrelFeesTable.sortOrder to SortOrder.ASC, BarrelFeesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to BarrelFeesTable.selectAll().where { BarrelFeesTable.activeOnly { condition } }.count()
+        content to BarrelFeesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -126,7 +126,7 @@ class BarrelFeeRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         BarrelFeesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { BarrelFeesTable.id eq id }
           .limit(1)
           .any()

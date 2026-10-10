@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
 import dev.yidafu.aqua.common.domain.table.TicketTypesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -35,6 +34,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -80,7 +80,7 @@ class TicketTypeRepositoryImpl(
     transaction(database) {
       TicketTypesTable
         .selectAll()
-        .where { TicketTypesTable.activeOnly { TicketTypesTable.name eq name } }
+        .andWhere { TicketTypesTable.name eq name }
         .orderBy(TicketTypesTable.id to SortOrder.ASC)
         .limit(1)
         .firstOrNull()
@@ -91,7 +91,7 @@ class TicketTypeRepositoryImpl(
     return transaction(database) {
       TicketTypesTable
         .selectAll()
-        .where { TicketTypesTable.activeOnly { TicketTypesTable.id inList ids } }
+        .andWhere { TicketTypesTable.id inList ids }
         .orderBy(TicketTypesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -102,7 +102,7 @@ class TicketTypeRepositoryImpl(
       transaction(database) {
         TicketTypesTable
           .selectAll()
-          .where { TicketTypesTable.activeOnly { TicketTypesTable.id eq id } }
+          .andWhere { TicketTypesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -112,7 +112,7 @@ class TicketTypeRepositoryImpl(
     transaction(database) {
       TicketTypesTable
         .selectAll()
-        .where { TicketTypesTable.activeOnly { TicketTypesTable.status eq status.name } }
+        .andWhere { TicketTypesTable.status eq status.name }
         .orderBy(TicketTypesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -132,14 +132,14 @@ class TicketTypeRepositoryImpl(
         val content =
           TicketTypesTable
             .selectAll()
-            .where { TicketTypesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(TicketTypesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to TicketTypesTable.selectAll().where { TicketTypesTable.activeOnly { condition } }.count()
+        content to TicketTypesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -150,7 +150,7 @@ class TicketTypeRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         TicketTypesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { TicketTypesTable.id eq id }
           .limit(1)
           .any()

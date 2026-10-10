@@ -29,7 +29,6 @@ import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.domain.table.ReconciliationTasksTable
-import dev.yidafu.aqua.common.domain.table.softDeleteWhere
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
@@ -85,9 +84,9 @@ class ReconciliationRepositoriesImplTest :
       val page = taskRepo.findTasksPaged(ReconciliationTaskType.PAYMENT, null, null, null, PageRequest.of(0, 10))
       page.totalElements shouldBe 1L
 
-      // 软删物理不可见(无 deleteById 入口,由清理任务 softDeleteWhere 演示)
+      // 软删物理不可见(无 deleteById 入口,由清理任务 softDelete 演示)
       transaction(database) {
-        ReconciliationTasksTable.softDeleteWhere { ReconciliationTasksTable.taskId eq "wxpay-20261001" }
+        ReconciliationTasksTable.softDelete { ReconciliationTasksTable.taskId eq "wxpay-20261001" }
       }
       taskRepo.findByTaskId("wxpay-20261001").shouldBeNullTask()
     }

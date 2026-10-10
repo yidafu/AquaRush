@@ -22,13 +22,13 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 import dev.yidafu.aqua.common.domain.model.DepositRecordModel
 import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
 import dev.yidafu.aqua.common.domain.table.DepositRecordsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -68,12 +68,10 @@ class DepositRecordRepositoryImpl(
     transaction(database) {
       DepositRecordsTable
         .selectAll()
-        .where {
-          DepositRecordsTable.activeOnly {
-            (DepositRecordsTable.orderId eq orderId) and (DepositRecordsTable.status eq status.name)
-          }
-        }.orderBy(DepositRecordsTable.id to SortOrder.ASC)
-        .toList()
+        .andWhere { (DepositRecordsTable.orderId eq orderId) and (DepositRecordsTable.status eq status.name) }
+        .orderBy(
+          DepositRecordsTable.id to SortOrder.ASC,
+        ).toList()
     }.map(::toModel)
 
   override fun saveAll(entities: List<DepositRecordModel>): List<DepositRecordModel> =
@@ -83,7 +81,7 @@ class DepositRecordRepositoryImpl(
         val now = LocalDateTime.now()
         val exists =
           DepositRecordsTable
-            .selectAll()
+            .selectAllIncludingDeleted()
             .where { DepositRecordsTable.id eq id }
             .limit(1)
             .any()

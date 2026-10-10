@@ -22,35 +22,20 @@ package dev.yidafu.aqua.common.domain.table
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Query
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.update
 
-// [SoftDeletableTable] 的软删操作扩展(JPA→Exposed 迁移 P3)。
-// 语义与 JPA 侧 @SoftDelete(columnName = "is_deleted") 逐字对齐:
-// - 查询自动附加 is_deleted = false;
-// - 「删除」是 UPDATE ... SET is_deleted = true(P1 钉死:不写 deleted_at/deleted_by)。
-// 使用约定:单表查询用 selectActive/countActive;与聚合表达式、join 多表组合时用 activeOnly
-// 取条件再手动 and(join 场景每个软删表都要各自过滤);软删用 softDeleteWhere。
+// [SoftDeleteFlagTable] 的组合场景软删条件(JPA→Exposed 迁移 P3)。
+//
+// 单表查询**不需要**它:SoftDeleteFlagTable 的 selectAll()/select() 成员已经把
+// `is_deleted = false` 固定在查询入口上,追加条件用 andWhere {} 即可。
+// 只有下列场景需要显式取条件再自己 and:
+// - join:每个参与 join 的软删表都要各自过滤(Exposed 的 Join.joinParts 是 internal,
+//   无法自动枚举参与 join 的表);
+// - 聚合表达式 / groupBy / 子查询里手写 where;
+// - 软删之外的批量 UPDATE ... WHERE(软删本身用 SoftDeleteFlagTable.softDelete {})。
 
-/** 软删过滤条件:`is_deleted = false AND where()`。供 join/聚合/删除等场景组合。 */
-fun SoftDeletableTable.activeOnly(where: () -> Op<Boolean> = { Op.TRUE }): Op<Boolean> {
+/** 软删过滤条件:`is_deleted = false AND where()`。供 join/聚合/子查询组合。 */
+fun SoftDeleteFlagTable.activeOnly(where: () -> Op<Boolean> = { Op.TRUE }): Op<Boolean> {
   val userOp = where()
   val notDeleted = isDeleted.eq(false)
   return if (userOp == Op.TRUE) notDeleted else notDeleted.and(userOp)
 }
-
-/** 单表查询活跃行(自动附加 `is_deleted = false`)。 */
-fun SoftDeletableTable.selectActive(where: () -> Op<Boolean> = { Op.TRUE }): Query = selectAll().where { activeOnly(where) }
-
-/** 活跃行计数(自动附加 `is_deleted = false`)。 */
-fun SoftDeletableTable.countActive(where: () -> Op<Boolean> = { Op.TRUE }): Long =
-  selectAll()
-    .where { activeOnly(where) }
-    .count()
-
-/**
- * 软删:把满足条件的活跃行标记为 `is_deleted = true`,返回受影响行数。
- * 与 JPA `@SoftDelete` / P1 仓储语义一致:不写 deleted_at/deleted_by。
- */
-fun SoftDeletableTable.softDeleteWhere(where: () -> Op<Boolean>): Int = update({ activeOnly(where) }) { it[isDeleted] = true }

@@ -36,6 +36,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -77,11 +78,8 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where {
-          ProductFavoritesTable.activeOnly {
-            (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.productId eq productId)
-          }
-        }.limit(1)
+        .andWhere { (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.productId eq productId) }
+        .limit(1)
         .firstOrNull()
     }?.let(::toModel)
 
@@ -94,7 +92,7 @@ class ProductFavoriteRepositoryImpl(
         val content =
           ProductFavoritesTable
             .selectAll()
-            .where { ProductFavoritesTable.activeOnly { ProductFavoritesTable.userId eq userId } }
+            .andWhere { ProductFavoritesTable.userId eq userId }
             // 排序键即主键 id,天然破平防跨页重复,无需追加次级键
             .orderBy(ProductFavoritesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
@@ -102,7 +100,7 @@ class ProductFavoriteRepositoryImpl(
             .toList()
             .map(::toModel)
         content to
-          ProductFavoritesTable.selectAll().where { ProductFavoritesTable.activeOnly { ProductFavoritesTable.userId eq userId } }.count()
+          ProductFavoritesTable.selectAll().andWhere { ProductFavoritesTable.userId eq userId }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -111,14 +109,14 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where { ProductFavoritesTable.activeOnly { ProductFavoritesTable.productId eq productId } }
+        .andWhere { ProductFavoritesTable.productId eq productId }
         .orderBy(ProductFavoritesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
 
   override fun count(): Long =
     transaction(database) {
-      ProductFavoritesTable.selectAll().where { ProductFavoritesTable.activeOnly() }.count()
+      ProductFavoritesTable.selectAll().count()
     }
 
   override fun save(entity: ProductFavoriteModel): ProductFavoriteModel =
@@ -127,7 +125,7 @@ class ProductFavoriteRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         ProductFavoritesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ProductFavoritesTable.id eq id }
           .limit(1)
           .any()
@@ -157,12 +155,10 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .select(ProductFavoritesTable.productId)
-        .where {
-          ProductFavoritesTable.activeOnly {
-            (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true)
-          }
-        }.orderBy(ProductFavoritesTable.id to SortOrder.ASC)
-        .toList()
+        .andWhere { (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true) }
+        .orderBy(
+          ProductFavoritesTable.id to SortOrder.ASC,
+        ).toList()
     }.map { it[ProductFavoritesTable.productId] }
 
   override fun findFavoriteIdsByUserId(
@@ -174,11 +170,8 @@ class ProductFavoriteRepositoryImpl(
         val content =
           ProductFavoritesTable
             .select(ProductFavoritesTable.productId)
-            .where {
-              ProductFavoritesTable.activeOnly {
-                (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true)
-              }
-            }.orderBy(
+            .andWhere { (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true) }
+            .orderBy(
               ProductFavoritesTable.createdAt to SortOrder.DESC,
               // id 破平防跨页重复:同 createdAt 行在页边界不重不漏
               ProductFavoritesTable.id to SortOrder.DESC,
@@ -189,11 +182,8 @@ class ProductFavoriteRepositoryImpl(
         content to
           ProductFavoritesTable
             .selectAll()
-            .where {
-              ProductFavoritesTable.activeOnly {
-                (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true)
-              }
-            }.count()
+            .andWhere { (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true) }
+            .count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -205,12 +195,10 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where {
-          ProductFavoritesTable.activeOnly {
-            (ProductFavoritesTable.userId eq userId) and
-              (ProductFavoritesTable.productId eq productId) and
-              (ProductFavoritesTable.enable eq true)
-          }
+        .andWhere {
+          (ProductFavoritesTable.userId eq userId) and
+            (ProductFavoritesTable.productId eq productId) and
+            (ProductFavoritesTable.enable eq true)
         }.limit(1)
         .any()
     }
@@ -219,11 +207,8 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where {
-          ProductFavoritesTable.activeOnly {
-            (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true)
-          }
-        }.count()
+        .andWhere { (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true) }
+        .count()
     }
 
   override fun updateEnableStatus(
@@ -248,7 +233,6 @@ class ProductFavoriteRepositoryImpl(
       val distinctUsers = ProductFavoritesTable.userId.countDistinct()
       ProductFavoritesTable
         .select(distinctUsers)
-        .where { ProductFavoritesTable.activeOnly() }
         .first()[distinctUsers]
     }
 
@@ -256,9 +240,8 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where {
-          ProductFavoritesTable.activeOnly { ProductFavoritesTable.createdAt greaterEq startDate }
-        }.count()
+        .andWhere { ProductFavoritesTable.createdAt greaterEq startDate }
+        .count()
     }
 
   /**
@@ -271,8 +254,7 @@ class ProductFavoriteRepositoryImpl(
         ProductFavoritesTable.productId,
         ProductFavoritesTable.productId.count(),
         ProductFavoritesTable.createdAt.max(),
-      ).where { ProductFavoritesTable.activeOnly() }
-      .groupBy(ProductFavoritesTable.productId)
+      ).groupBy(ProductFavoritesTable.productId)
 
   private fun toFavoriteCount(row: ResultRow): ProductFavoriteRepositoryCustom.ProductFavoriteCount =
     ProductFavoriteRepositoryCustom.ProductFavoriteCount(
@@ -322,7 +304,6 @@ class ProductFavoriteRepositoryImpl(
       val distinctProducts = ProductFavoritesTable.productId.countDistinct()
       ProductFavoritesTable
         .select(distinctProducts)
-        .where { ProductFavoritesTable.activeOnly() }
         .first()[distinctProducts]
     }
 
@@ -330,7 +311,6 @@ class ProductFavoriteRepositoryImpl(
     transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where { ProductFavoritesTable.activeOnly() }
         .count()
     }
 
@@ -358,7 +338,7 @@ class ProductFavoriteRepositoryImpl(
     return transaction(database) {
       ProductFavoritesTable
         .selectAll()
-        .where { ProductFavoritesTable.activeOnly { condition } }
+        .andWhere { condition }
         .orderBy(ProductFavoritesTable.id to SortOrder.ASC)
         .limit(limit)
         .toList()
@@ -370,12 +350,11 @@ class ProductFavoriteRepositoryImpl(
   override fun getAverageFavoritesPerUser(): Double =
     transaction(database) {
       val totalFavorites =
-        ProductFavoritesTable.selectAll().where { ProductFavoritesTable.activeOnly() }.count()
+        ProductFavoritesTable.selectAll().count()
       val distinctUsers = ProductFavoritesTable.userId.countDistinct()
       val distinctCount =
         ProductFavoritesTable
           .select(distinctUsers)
-          .where { ProductFavoritesTable.activeOnly() }
           .first()[distinctUsers]
       if (distinctCount > 0) totalFavorites.toDouble() / distinctCount else 0.0
     }

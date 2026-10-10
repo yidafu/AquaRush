@@ -25,7 +25,6 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.table.AdminsTable
 import dev.yidafu.aqua.common.domain.table.OrderOperationsTable
 import dev.yidafu.aqua.common.domain.table.OrdersTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.coalesce
 import org.jetbrains.exposed.v1.core.count
@@ -35,6 +34,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -65,11 +65,9 @@ class StatisticsDeliveryWorkerRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(OrdersTable.deliveryWorkerId)
-          .where {
-            OrdersTable.activeOnly {
-              (OrdersTable.createdAt greaterEq sinceDateTime) and
-                OrdersTable.deliveryWorkerId.isNotNull()
-            }
+          .andWhere {
+            (OrdersTable.createdAt greaterEq sinceDateTime) and
+              OrdersTable.deliveryWorkerId.isNotNull()
           }.withDistinct()
           .toList()
       }.mapNotNull { it[OrdersTable.deliveryWorkerId] }
@@ -79,11 +77,9 @@ class StatisticsDeliveryWorkerRepositoryImpl(
     return transaction(database) {
       AdminsTable
         .select(AdminsTable.id)
-        .where {
-          AdminsTable.activeOnly {
-            AdminsTable.role inList deliveryCapableRoles and
-              (AdminsTable.id inList activeWorkerIds)
-          }
+        .andWhere {
+          AdminsTable.role inList deliveryCapableRoles and
+            (AdminsTable.id inList activeWorkerIds)
         }.toList()
     }.size.toLong()
   }
@@ -92,7 +88,7 @@ class StatisticsDeliveryWorkerRepositoryImpl(
     transaction(database) {
       OrdersTable
         .select(OrdersTable.id)
-        .where { OrdersTable.activeOnly { OrdersTable.status eq OrderModelStatus.DELIVERING.name } }
+        .andWhere { OrdersTable.status eq OrderModelStatus.DELIVERING.name }
         .count()
     }
 
@@ -104,11 +100,9 @@ class StatisticsDeliveryWorkerRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.id)
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
-              (deliveredAt greaterEq dateTime)
-          }
+        .andWhere {
+          (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
+            (deliveredAt greaterEq dateTime)
         }.count()
     }
   }
@@ -124,11 +118,9 @@ class StatisticsDeliveryWorkerRepositoryImpl(
           deliveredAt,
           OrdersTable.deliveryStartedAt,
           OrdersTable.createdAt,
-        ).where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
-              (deliveredAt greaterEq dateTime)
-          }
+        ).andWhere {
+          (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
+            (deliveredAt greaterEq dateTime)
         }.toList()
         .map { row ->
           CompletedOrderTiming(
@@ -164,12 +156,10 @@ class StatisticsDeliveryWorkerRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.deliveryWorkerId, orderCount)
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
-              (deliveredAt greaterEq sinceDateTime) and
-              OrdersTable.deliveryWorkerId.isNotNull()
-          }
+        .andWhere {
+          (OrdersTable.status inList DELIVERED_STATUSES.map { it.name }) and
+            (deliveredAt greaterEq sinceDateTime) and
+            OrdersTable.deliveryWorkerId.isNotNull()
         }.groupBy(OrdersTable.deliveryWorkerId)
         .toList()
         .mapNotNull { row ->

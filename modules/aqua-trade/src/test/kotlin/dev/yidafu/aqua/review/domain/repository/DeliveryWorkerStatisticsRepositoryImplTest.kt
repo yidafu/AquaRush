@@ -28,6 +28,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -69,7 +70,7 @@ class DeliveryWorkerStatisticsRepositoryImplTest :
         transaction(TradePgTestSupport.database) {
           DeliveryWorkerStatisticsTable
             .selectAll()
-            .where { DeliveryWorkerStatisticsTable.deliveryWorkerId eq 5L }
+            .andWhere { DeliveryWorkerStatisticsTable.deliveryWorkerId eq 5L }
             .single()
         }
       row[DeliveryWorkerStatisticsTable.lastUpdated] shouldBe saved.lastUpdated
@@ -197,7 +198,7 @@ class DeliveryWorkerStatisticsRepositoryImplTest :
   })
 
 private fun DeliveryWorkerStatisticsRepositoryImpl.countRows(): Long =
-  transaction(TradePgTestSupport.database) { DeliveryWorkerStatisticsTable.selectAll().count() }
+  transaction(TradePgTestSupport.database) { DeliveryWorkerStatisticsTable.selectAllIncludingDeleted().count() }
 
 /** 直接插行的种子构造(含软删开关与 lastUpdated)。 */
 private fun seedStatistics(

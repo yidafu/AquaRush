@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -55,7 +56,7 @@ class UserNotificationSettingsRepositoryImpl(
       transaction(database) {
         UserNotificationSettingsTable
           .selectAll()
-          .where { UserNotificationSettingsTable.activeOnly { UserNotificationSettingsTable.userId eq userId } }
+          .andWhere { UserNotificationSettingsTable.userId eq userId }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -83,7 +84,7 @@ class UserNotificationSettingsRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         UserNotificationSettingsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { UserNotificationSettingsTable.id eq id }
           .limit(1)
           .any()

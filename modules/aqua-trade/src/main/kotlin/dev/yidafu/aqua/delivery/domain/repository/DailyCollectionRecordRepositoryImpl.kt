@@ -31,6 +31,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -79,10 +80,6 @@ class DailyCollectionRecordRepositoryImpl(
       updatedAt = row[DailyCollectionRecordsTable.updatedAt],
     )
 
-  /** 软删过滤条件:`is_deleted = false AND extra`。 */
-  private fun activeWhere(extra: Op<Boolean> = Op.TRUE): Op<Boolean> =
-    DailyCollectionRecordsTable.isDeleted.eq(false).let { if (extra == Op.TRUE) it else it and extra }
-
   private fun paged(
     extra: Op<Boolean>,
     pageable: Pageable,
@@ -92,14 +89,14 @@ class DailyCollectionRecordRepositoryImpl(
         val content =
           DailyCollectionRecordsTable
             .selectAll()
-            .where { activeWhere(extra) }
+            .andWhere { extra }
             // 原 JPA 无序,id 升序破平防跨页重复
             .orderBy(DailyCollectionRecordsTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to DailyCollectionRecordsTable.selectAll().where { activeWhere(extra) }.count()
+        content to DailyCollectionRecordsTable.selectAll().andWhere { extra }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -111,7 +108,7 @@ class DailyCollectionRecordRepositoryImpl(
       transaction(database) {
         DailyCollectionRecordsTable
           .selectAll()
-          .where { activeWhere(DailyCollectionRecordsTable.id eq id) }
+          .andWhere { DailyCollectionRecordsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -123,7 +120,7 @@ class DailyCollectionRecordRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         DailyCollectionRecordsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DailyCollectionRecordsTable.id eq id }
           .limit(1)
           .any()
@@ -182,9 +179,7 @@ class DailyCollectionRecordRepositoryImpl(
   override fun deleteAll() {
     transaction(database) {
       // 对齐 JPA @SoftDelete 的 deleteAll 改写:物理行保留,仅置软删标记
-      DailyCollectionRecordsTable.update({ DailyCollectionRecordsTable.isDeleted eq false }) {
-        it[isDeleted] = true
-      }
+      DailyCollectionRecordsTable.softDelete { Op.TRUE }
     }
   }
 
@@ -192,7 +187,7 @@ class DailyCollectionRecordRepositoryImpl(
     transaction(database) {
       DailyCollectionRecordsTable
         .selectAll()
-        .where { activeWhere(DailyCollectionRecordsTable.collectionDate eq collectionDate) }
+        .andWhere { DailyCollectionRecordsTable.collectionDate eq collectionDate }
         // 原 JPA 无序,固定 id 升序取稳定插入序
         .orderBy(DailyCollectionRecordsTable.id to SortOrder.ASC)
         .toList()
@@ -210,11 +205,9 @@ class DailyCollectionRecordRepositoryImpl(
     transaction(database) {
       DailyCollectionRecordsTable
         .selectAll()
-        .where {
-          activeWhere(
-            (DailyCollectionRecordsTable.collectionDate greaterEq startDate) and
-              (DailyCollectionRecordsTable.collectionDate lessEq endDate),
-          )
+        .andWhere {
+          (DailyCollectionRecordsTable.collectionDate greaterEq startDate) and
+            (DailyCollectionRecordsTable.collectionDate lessEq endDate)
         }.orderBy(DailyCollectionRecordsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -231,11 +224,9 @@ class DailyCollectionRecordRepositoryImpl(
     transaction(database) {
       DailyCollectionRecordsTable
         .selectAll()
-        .where {
-          activeWhere(
-            (DailyCollectionRecordsTable.deliveryWorkerId eq deliveryWorkerId) and
-              (DailyCollectionRecordsTable.collectionDate eq collectionDate),
-          )
+        .andWhere {
+          (DailyCollectionRecordsTable.deliveryWorkerId eq deliveryWorkerId) and
+            (DailyCollectionRecordsTable.collectionDate eq collectionDate)
         }.limit(1)
         .firstOrNull()
     }?.let(::toModel)

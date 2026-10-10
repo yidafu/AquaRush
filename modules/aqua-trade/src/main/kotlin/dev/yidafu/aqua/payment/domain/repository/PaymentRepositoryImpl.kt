@@ -36,6 +36,7 @@ import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -96,7 +97,7 @@ class PaymentRepositoryImpl(
       transaction(database) {
         PaymentsTable
           .selectAll()
-          .where { PaymentsTable.activeOnly { PaymentsTable.orderId eq orderId } }
+          .andWhere { PaymentsTable.orderId eq orderId }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -107,7 +108,7 @@ class PaymentRepositoryImpl(
       transaction(database) {
         PaymentsTable
           .selectAll()
-          .where { PaymentsTable.activeOnly { PaymentsTable.transactionId eq transactionId } }
+          .andWhere { PaymentsTable.transactionId eq transactionId }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -128,21 +129,17 @@ class PaymentRepositoryImpl(
         }.ifEmpty { listOf(PaymentsTable.id to SortOrder.ASC) }
     val (content, total) =
       transaction(database) {
-        // activeOnly 依赖事务上下文(currentTransaction),条件必须在事务内构造
-        val condition =
-          PaymentsTable.activeOnly {
-            (PaymentsTable.status eq status.name) and (PaymentsTable.expiredAt less expiredAt)
-          }
+        val condition = (PaymentsTable.status eq status.name) and (PaymentsTable.expiredAt less expiredAt)
         val content =
           PaymentsTable
             .selectAll()
-            .where { condition }
+            .andWhere { condition }
             .orderBy(*orders.toTypedArray())
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to PaymentsTable.selectAll().where { condition }.count()
+        content to PaymentsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -154,11 +151,8 @@ class PaymentRepositoryImpl(
     transaction(database) {
       PaymentsTable
         .selectAll()
-        .where {
-          PaymentsTable.activeOnly {
-            (PaymentsTable.createdAt greaterEq startDate) and (PaymentsTable.createdAt lessEq endDate)
-          }
-        }.toList()
+        .andWhere { (PaymentsTable.createdAt greaterEq startDate) and (PaymentsTable.createdAt lessEq endDate) }
+        .toList()
     }.map(::toModel)
 
   override fun findById(id: Long): Optional<PaymentModel> =
@@ -166,7 +160,7 @@ class PaymentRepositoryImpl(
       transaction(database) {
         PaymentsTable
           .selectAll()
-          .where { PaymentsTable.activeOnly { PaymentsTable.id eq id } }
+          .andWhere { PaymentsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -177,7 +171,7 @@ class PaymentRepositoryImpl(
       val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
       val exists =
         PaymentsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { PaymentsTable.id eq id }
           .limit(1)
           .any()

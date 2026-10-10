@@ -29,6 +29,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.data.domain.PageRequest
@@ -61,7 +62,7 @@ class ProductFavoriteRepositoryImplTest :
       repo.findByUserIdAndProductId(1L, pid)!!.enable shouldBe false
       // 主键未变,行数仍为 1
       transaction(ProductPgTestSupport.database) {
-        ProductFavoritesTable.selectAll().where { ProductFavoritesTable.id eq id }.count()
+        ProductFavoritesTable.selectAll().andWhere { ProductFavoritesTable.id eq id }.count()
       } shouldBe 1L
     }
 

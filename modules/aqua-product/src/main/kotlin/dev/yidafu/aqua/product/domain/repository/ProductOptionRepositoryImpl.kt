@@ -30,6 +30,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -65,7 +66,7 @@ class ProductOptionRepositoryImpl(
       transaction(database) {
         ProductOptionsTable
           .selectAll()
-          .where { ProductOptionsTable.activeOnly { ProductOptionsTable.id eq id } }
+          .andWhere { ProductOptionsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -90,7 +91,7 @@ class ProductOptionRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         ProductOptionsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ProductOptionsTable.id eq id }
           .limit(1)
           .any()
@@ -120,7 +121,7 @@ class ProductOptionRepositoryImpl(
     transaction(database) {
       ProductOptionsTable
         .selectAll()
-        .where { ProductOptionsTable.activeOnly { ProductOptionsTable.optionType eq type.name } }
+        .andWhere { ProductOptionsTable.optionType eq type.name }
         .orderBy(
           ProductOptionsTable.sortOrder to SortOrder.ASC,
           ProductOptionsTable.createdAt to SortOrder.ASC,
@@ -131,11 +132,8 @@ class ProductOptionRepositoryImpl(
     transaction(database) {
       ProductOptionsTable
         .selectAll()
-        .where {
-          ProductOptionsTable.activeOnly {
-            (ProductOptionsTable.optionType eq type.name) and (ProductOptionsTable.enabled eq true)
-          }
-        }.orderBy(
+        .andWhere { (ProductOptionsTable.optionType eq type.name) and (ProductOptionsTable.enabled eq true) }
+        .orderBy(
           ProductOptionsTable.sortOrder to SortOrder.ASC,
           ProductOptionsTable.createdAt to SortOrder.ASC,
         ).toList()
@@ -148,11 +146,8 @@ class ProductOptionRepositoryImpl(
     transaction(database) {
       ProductOptionsTable
         .selectAll()
-        .where {
-          ProductOptionsTable.activeOnly {
-            (ProductOptionsTable.optionType eq type.name) and (ProductOptionsTable.optionValue eq value)
-          }
-        }.limit(1)
+        .andWhere { (ProductOptionsTable.optionType eq type.name) and (ProductOptionsTable.optionValue eq value) }
+        .limit(1)
         .firstOrNull()
     }?.let(::toModel)
 
@@ -163,7 +158,7 @@ class ProductOptionRepositoryImpl(
       val maxExpr = ProductOptionsTable.sortOrder.max()
       ProductOptionsTable
         .select(maxExpr)
-        .where { ProductOptionsTable.activeOnly { ProductOptionsTable.optionType eq type.name } }
+        .andWhere { ProductOptionsTable.optionType eq type.name }
         .singleOrNull()
         ?.get(maxExpr)
     }

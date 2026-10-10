@@ -32,6 +32,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -74,7 +75,7 @@ class BarrelPurchaseRepositoryImpl(
     transaction(database) {
       BarrelPurchasesTable
         .selectAll()
-        .where { BarrelPurchasesTable.activeOnly { BarrelPurchasesTable.orderNo eq orderNo } }
+        .andWhere { BarrelPurchasesTable.orderNo eq orderNo }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -83,7 +84,7 @@ class BarrelPurchaseRepositoryImpl(
     transaction(database) {
       BarrelPurchasesTable
         .selectAll()
-        .where { BarrelPurchasesTable.activeOnly { BarrelPurchasesTable.userId eq userId } }
+        .andWhere { BarrelPurchasesTable.userId eq userId }
         .orderBy(BarrelPurchasesTable.createdAt to SortOrder.DESC, BarrelPurchasesTable.id to SortOrder.DESC)
         .limit(1)
         .firstOrNull()
@@ -96,11 +97,8 @@ class BarrelPurchaseRepositoryImpl(
     transaction(database) {
       BarrelPurchasesTable
         .selectAll()
-        .where {
-          BarrelPurchasesTable.activeOnly {
-            (BarrelPurchasesTable.userId eq userId) and (BarrelPurchasesTable.paymentStatus eq paymentStatus.name)
-          }
-        }.limit(1)
+        .andWhere { (BarrelPurchasesTable.userId eq userId) and (BarrelPurchasesTable.paymentStatus eq paymentStatus.name) }
+        .limit(1)
         .any()
     }
 
@@ -109,7 +107,7 @@ class BarrelPurchaseRepositoryImpl(
       transaction(database) {
         BarrelPurchasesTable
           .selectAll()
-          .where { BarrelPurchasesTable.activeOnly { BarrelPurchasesTable.id eq id } }
+          .andWhere { BarrelPurchasesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -130,14 +128,14 @@ class BarrelPurchaseRepositoryImpl(
         val content =
           BarrelPurchasesTable
             .selectAll()
-            .where { BarrelPurchasesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 createdAt 降序(对齐原 PageRequest Sort),id 破平防跨页重复
             .orderBy(BarrelPurchasesTable.createdAt to SortOrder.DESC, BarrelPurchasesTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to BarrelPurchasesTable.selectAll().where { BarrelPurchasesTable.activeOnly { condition } }.count()
+        content to BarrelPurchasesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -148,7 +146,7 @@ class BarrelPurchaseRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         BarrelPurchasesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { BarrelPurchasesTable.id eq id }
           .limit(1)
           .any()

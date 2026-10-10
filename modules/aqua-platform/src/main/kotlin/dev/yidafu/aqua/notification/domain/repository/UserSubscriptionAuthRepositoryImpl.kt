@@ -21,12 +21,12 @@ package dev.yidafu.aqua.notification.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel
 import dev.yidafu.aqua.common.domain.table.UserSubscriptionAuthsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -58,11 +58,9 @@ class UserSubscriptionAuthRepositoryImpl(
       transaction(database) {
         UserSubscriptionAuthsTable
           .selectAll()
-          .where {
-            UserSubscriptionAuthsTable.activeOnly {
-              (UserSubscriptionAuthsTable.userId eq userId) and
-                (UserSubscriptionAuthsTable.templateId eq templateId)
-            }
+          .andWhere {
+            (UserSubscriptionAuthsTable.userId eq userId) and
+              (UserSubscriptionAuthsTable.templateId eq templateId)
           }.limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -72,7 +70,7 @@ class UserSubscriptionAuthRepositoryImpl(
     transaction(database) {
       UserSubscriptionAuthsTable
         .selectAll()
-        .where { UserSubscriptionAuthsTable.activeOnly { UserSubscriptionAuthsTable.userId eq userId } }
+        .andWhere { UserSubscriptionAuthsTable.userId eq userId }
         .toList()
     }.map(::toModel)
 
@@ -82,7 +80,7 @@ class UserSubscriptionAuthRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         UserSubscriptionAuthsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { UserSubscriptionAuthsTable.id eq id }
           .limit(1)
           .any()

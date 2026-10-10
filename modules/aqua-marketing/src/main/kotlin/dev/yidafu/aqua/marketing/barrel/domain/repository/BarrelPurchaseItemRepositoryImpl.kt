@@ -21,12 +21,12 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.table.BarrelPurchaseItemsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -63,7 +63,7 @@ class BarrelPurchaseItemRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         BarrelPurchaseItemsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { BarrelPurchaseItemsTable.id eq id }
           .limit(1)
           .any()
@@ -97,7 +97,7 @@ class BarrelPurchaseItemRepositoryImpl(
     transaction(database) {
       BarrelPurchaseItemsTable
         .selectAll()
-        .where { BarrelPurchaseItemsTable.activeOnly { BarrelPurchaseItemsTable.purchaseId eq purchaseId } }
+        .andWhere { BarrelPurchaseItemsTable.purchaseId eq purchaseId }
         .orderBy(BarrelPurchaseItemsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)

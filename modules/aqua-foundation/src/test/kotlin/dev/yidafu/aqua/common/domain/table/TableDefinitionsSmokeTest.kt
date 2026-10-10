@@ -61,7 +61,7 @@ class TableDefinitionsSmokeTest :
       }
     }
 
-    test("软删可见性:activeOnly 只返回 is_deleted=false 的行") {
+    test("软删可见性:selectAll 只返回 is_deleted=false 的行,IncludingDeleted 可见全部") {
       val now = LocalDateTime.of(2026, 1, 2, 3, 4, 5)
       transaction(FoundationPgTestSupport.database) {
         CustomerGroupsTable.selectAll().toList().shouldBeEmpty()
@@ -83,12 +83,11 @@ class TableDefinitionsSmokeTest :
           it[isDeleted] = true
         }
 
-        CustomerGroupsTable.selectAll().toList().size shouldBe 2
+        CustomerGroupsTable.selectAllIncludingDeleted().toList().size shouldBe 2
 
         val activeRows =
           CustomerGroupsTable
             .selectAll()
-            .where { CustomerGroupsTable.activeOnly() }
             .toList()
         activeRows.size shouldBe 1
         activeRows.single()[CustomerGroupsTable.name] shouldBe "active-group"

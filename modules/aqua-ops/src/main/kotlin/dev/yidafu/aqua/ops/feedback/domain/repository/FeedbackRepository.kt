@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.ops.common.exposed.pageQuery
 import dev.yidafu.aqua.ops.feedback.domain.table.FeedbackTable
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -35,6 +36,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -74,7 +76,7 @@ class FeedbackRepository(
     transaction(database) {
       FeedbackTable
         .selectAll()
-        .where { (FeedbackTable.id eq id) and (FeedbackTable.isDeleted eq false) }
+        .andWhere { (FeedbackTable.id eq id) }
         .singleOrNull()
         ?.let(::toModel)
     }.let { Optional.ofNullable(it) }
@@ -84,7 +86,7 @@ class FeedbackRepository(
     transaction(database) {
       FeedbackTable
         .selectAll()
-        .where { (FeedbackTable.content like "%$content%") and (FeedbackTable.isDeleted eq false) }
+        .andWhere { (FeedbackTable.content like "%$content%") }
         .limit(1)
         .singleOrNull()
         ?.let(::toModel)
@@ -98,8 +100,8 @@ class FeedbackRepository(
     transaction(database) {
       pageQuery(
         buildQuery = {
-          FeedbackTable.selectAll().where {
-            (FeedbackTable.userId eq userId) and (FeedbackTable.isDeleted eq false)
+          FeedbackTable.selectAll().andWhere {
+            (FeedbackTable.userId eq userId)
           }
         },
         // 迁移前的派生查询 findByUserId(userId, pageable) 无显式排序，行为保持一致
@@ -117,9 +119,8 @@ class FeedbackRepository(
     transaction(database) {
       pageQuery(
         buildQuery = {
-          FeedbackTable.selectAll().where {
+          FeedbackTable.selectAll().andWhere {
             buildList {
-              add(FeedbackTable.isDeleted eq false)
               filter.feedbackType?.let { add(FeedbackTable.feedbackType eq it) }
               filter.status?.let { add(FeedbackTable.status eq it) }
               filter.userId?.let { add(FeedbackTable.userId eq it) }
@@ -129,7 +130,8 @@ class FeedbackRepository(
               // 与原 createdAtBetween 一致：两端均为闭区间
               filter.dateFrom?.let { add(FeedbackTable.createdAt greaterEq it) }
               filter.dateTo?.let { add(FeedbackTable.createdAt lessEq it) }
-            }.reduce { a, b -> a and b }
+              // 过滤项可能为空(软删过滤已固定在查询入口),空列表等价于恒真
+            }.reduceOrNull { a, b -> a and b } ?: Op.TRUE
           }
         },
         orderings = listOf(FeedbackTable.createdAt to SortOrder.DESC),
@@ -142,7 +144,6 @@ class FeedbackRepository(
     transaction(database) {
       FeedbackTable
         .selectAll()
-        .where { FeedbackTable.isDeleted eq false }
         .count()
     }
 
@@ -153,7 +154,7 @@ class FeedbackRepository(
           ?: SnowflakeIdGenerator.getInstance().generate().also { feedback.id = it }
       val exists =
         FeedbackTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { FeedbackTable.id eq id }
           .limit(1)
           .any()

@@ -32,6 +32,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -66,7 +67,7 @@ class CustomerGroupRepositoryImpl(
     transaction(database) {
       CustomerGroupsTable
         .selectAll()
-        .where { CustomerGroupsTable.activeOnly { CustomerGroupsTable.name eq name } }
+        .andWhere { CustomerGroupsTable.name eq name }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -75,7 +76,7 @@ class CustomerGroupRepositoryImpl(
     transaction(database) {
       CustomerGroupsTable
         .selectAll()
-        .where { CustomerGroupsTable.activeOnly { CustomerGroupsTable.name eq name } }
+        .andWhere { CustomerGroupsTable.name eq name }
         .limit(1)
         .any()
     }
@@ -85,7 +86,7 @@ class CustomerGroupRepositoryImpl(
       transaction(database) {
         CustomerGroupsTable
           .selectAll()
-          .where { CustomerGroupsTable.activeOnly { CustomerGroupsTable.id eq id } }
+          .andWhere { CustomerGroupsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -95,7 +96,7 @@ class CustomerGroupRepositoryImpl(
     transaction(database) {
       CustomerGroupsTable
         .selectAll()
-        .where { CustomerGroupsTable.activeOnly { CustomerGroupsTable.id eq id } }
+        .andWhere { CustomerGroupsTable.id eq id }
         .limit(1)
         .any()
     }
@@ -105,7 +106,7 @@ class CustomerGroupRepositoryImpl(
     return transaction(database) {
       CustomerGroupsTable
         .selectAll()
-        .where { CustomerGroupsTable.activeOnly { CustomerGroupsTable.id inList ids } }
+        .andWhere { CustomerGroupsTable.id inList ids }
         .orderBy(CustomerGroupsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -124,14 +125,14 @@ class CustomerGroupRepositoryImpl(
         val content =
           CustomerGroupsTable
             .selectAll()
-            .where { CustomerGroupsTable.activeOnly { condition } }
+            .andWhere { condition }
             // 关键词分支对齐原 OrderByCreatedAtDesc;id 破平防跨页重复
             .orderBy(CustomerGroupsTable.createdAt to SortOrder.DESC, CustomerGroupsTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to CustomerGroupsTable.selectAll().where { CustomerGroupsTable.activeOnly { condition } }.count()
+        content to CustomerGroupsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -157,7 +158,7 @@ class CustomerGroupRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         CustomerGroupsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { CustomerGroupsTable.id eq id }
           .limit(1)
           .any()

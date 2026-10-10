@@ -21,13 +21,13 @@ package dev.yidafu.aqua.delivery.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.common.domain.table.DeliveryAreasTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -38,7 +38,7 @@ import java.util.Optional
 
 /**
  * 配送区域仓储实现(JPA→Exposed 迁移 P4)。
- * 每个查询经 [activeOnly] 过滤 is_deleted(语义对齐 @SoftDelete)。
+ * 每个查询经入口 selectAll()/select() 自动过滤 is_deleted(语义对齐 @SoftDelete)。
  */
 @Repository
 class DeliveryAreaRepositoryImpl(
@@ -66,12 +66,10 @@ class DeliveryAreaRepositoryImpl(
     transaction(database) {
       DeliveryAreasTable
         .selectAll()
-        .where {
-          DeliveryAreasTable.activeOnly {
-            (DeliveryAreasTable.province eq province) and
-              (DeliveryAreasTable.city eq city) and
-              (DeliveryAreasTable.district eq district)
-          }
+        .andWhere {
+          (DeliveryAreasTable.province eq province) and
+            (DeliveryAreasTable.city eq city) and
+            (DeliveryAreasTable.district eq district)
         }.limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -80,7 +78,7 @@ class DeliveryAreaRepositoryImpl(
     transaction(database) {
       DeliveryAreasTable
         .selectAll()
-        .where { DeliveryAreasTable.activeOnly { DeliveryAreasTable.isEnabled eq true } }
+        .andWhere { DeliveryAreasTable.isEnabled eq true }
         // 原 JPA 无序,固定 id 升序取稳定插入序
         .orderBy(DeliveryAreasTable.id to SortOrder.ASC)
         .toList()
@@ -91,7 +89,7 @@ class DeliveryAreaRepositoryImpl(
       transaction(database) {
         DeliveryAreasTable
           .selectAll()
-          .where { DeliveryAreasTable.activeOnly { DeliveryAreasTable.id eq id } }
+          .andWhere { DeliveryAreasTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -103,7 +101,7 @@ class DeliveryAreaRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         DeliveryAreasTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DeliveryAreasTable.id eq id }
           .limit(1)
           .any()

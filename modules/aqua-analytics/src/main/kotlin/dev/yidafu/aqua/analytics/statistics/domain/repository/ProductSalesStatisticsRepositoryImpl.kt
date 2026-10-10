@@ -36,6 +36,7 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -62,6 +63,7 @@ class ProductSalesStatisticsRepositoryImpl(
     val revenueSum = OrderItemsTable.totalPriceCents.sum()
 
     return transaction(database) {
+      // 软删豁免:ProductsTable 走 LEFT JOIN 只为取名称(商品已软删时回退"未知商品"),故意不附加 activeOnly
       OrderItemsTable
         .join(OrdersTable, JoinType.INNER, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
         .join(ProductsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.productId eq ProductsTable.id })
@@ -98,7 +100,6 @@ class ProductSalesStatisticsRepositoryImpl(
     transaction(database) {
       ProductsTable
         .select(ProductsTable.id, ProductsTable.name)
-        .where { ProductsTable.activeOnly() }
         .toList()
         .map { row -> ProductInfo(productId = row[ProductsTable.id], productName = row[ProductsTable.name]) }
     }
@@ -108,7 +109,6 @@ class ProductSalesStatisticsRepositoryImpl(
     return transaction(database) {
       ProductsTable
         .select(ProductsTable.status, productCount)
-        .where { ProductsTable.activeOnly() }
         .groupBy(ProductsTable.status)
         .toList()
         .associate { row -> ProductModelStatus.valueOf(row[ProductsTable.status]) to row[productCount] }
@@ -123,7 +123,6 @@ class ProductSalesStatisticsRepositoryImpl(
       val row =
         ProductsTable
           .select(productCount, priceSum, salesSum)
-          .where { ProductsTable.activeOnly() }
           .first()
       ProductStatisticsAggregate(
         totalProducts = row[productCount],
@@ -137,7 +136,7 @@ class ProductSalesStatisticsRepositoryImpl(
     transaction(database) {
       ProductsTable
         .select(ProductsTable.id)
-        .where { ProductsTable.activeOnly { ProductsTable.stockQuantity lessEq threshold.toInt() } }
+        .andWhere { ProductsTable.stockQuantity lessEq threshold.toInt() }
         .count()
     }
 
@@ -152,7 +151,7 @@ class ProductSalesStatisticsRepositoryImpl(
           ProductsTable.name,
           ProductsTable.specification,
           ProductsTable.stockQuantity,
-        ).where { ProductsTable.activeOnly { ProductsTable.stockQuantity lessEq threshold.toInt() } }
+        ).andWhere { ProductsTable.stockQuantity lessEq threshold.toInt() }
         .orderBy(ProductsTable.stockQuantity to SortOrder.ASC, ProductsTable.id to SortOrder.ASC)
         .limit(limit)
         .toList()
@@ -172,6 +171,7 @@ class ProductSalesStatisticsRepositoryImpl(
     val volumeExpr = OrderItemsTable.quantity.sum()
     val revenueExpr = OrderItemsTable.totalPriceCents.sum()
     return transaction(database) {
+      // 软删豁免:ProductsTable 走 LEFT JOIN 只为取名称(商品已软删时回退"未知商品"),故意不附加 activeOnly
       OrderItemsTable
         .join(OrdersTable, JoinType.INNER, additionalConstraint = { OrderItemsTable.orderId eq OrdersTable.id })
         .join(ProductsTable, JoinType.LEFT, additionalConstraint = { OrderItemsTable.productId eq ProductsTable.id })

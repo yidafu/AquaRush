@@ -36,6 +36,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -90,7 +91,7 @@ class ProductRepositoryImpl(
       transaction(database) {
         ProductsTable
           .selectAll()
-          .where { ProductsTable.activeOnly { ProductsTable.id eq id } }
+          .andWhere { ProductsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -100,7 +101,7 @@ class ProductRepositoryImpl(
     transaction(database) {
       ProductsTable
         .selectAll()
-        .where { ProductsTable.activeOnly { ProductsTable.name eq name } }
+        .andWhere { ProductsTable.name eq name }
         .orderBy(ProductsTable.id to SortOrder.ASC)
         .limit(1)
         .firstOrNull()
@@ -111,7 +112,7 @@ class ProductRepositoryImpl(
     return transaction(database) {
       ProductsTable
         .selectAll()
-        .where { ProductsTable.activeOnly { ProductsTable.id inList ids } }
+        .andWhere { ProductsTable.id inList ids }
         .orderBy(ProductsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -137,7 +138,7 @@ class ProductRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         ProductsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ProductsTable.id eq id }
           .limit(1)
           .any()
@@ -193,7 +194,7 @@ class ProductRepositoryImpl(
     transaction(database) {
       ProductsTable
         .selectAll()
-        .where { ProductsTable.activeOnly { ProductsTable.status eq status.name } }
+        .andWhere { ProductsTable.status eq status.name }
         .orderBy(ProductsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -232,14 +233,14 @@ class ProductRepositoryImpl(
         val content =
           ProductsTable
             .selectAll()
-            .where { ProductsTable.activeOnly { condition } }
+            .andWhere { condition }
             // id 破平防跨页重复:同值行在页边界不重不漏
             .orderBy(sortColumn to sortOrder, ProductsTable.id to sortOrder)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to ProductsTable.selectAll().where { ProductsTable.activeOnly { condition } }.count()
+        content to ProductsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }

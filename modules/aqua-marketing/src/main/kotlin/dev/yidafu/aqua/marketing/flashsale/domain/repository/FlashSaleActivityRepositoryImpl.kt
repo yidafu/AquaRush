@@ -22,7 +22,6 @@ package dev.yidafu.aqua.marketing.flashsale.domain.repository
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.table.FlashSaleActivitiesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -37,6 +36,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -76,7 +76,7 @@ class FlashSaleActivityRepositoryImpl(
       transaction(database) {
         FlashSaleActivitiesTable
           .selectAll()
-          .where { FlashSaleActivitiesTable.activeOnly { FlashSaleActivitiesTable.id eq id } }
+          .andWhere { FlashSaleActivitiesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -95,14 +95,14 @@ class FlashSaleActivityRepositoryImpl(
         val content =
           FlashSaleActivitiesTable
             .selectAll()
-            .where { FlashSaleActivitiesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(FlashSaleActivitiesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to FlashSaleActivitiesTable.selectAll().where { FlashSaleActivitiesTable.activeOnly { condition } }.count()
+        content to FlashSaleActivitiesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -113,7 +113,7 @@ class FlashSaleActivityRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         FlashSaleActivitiesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { FlashSaleActivitiesTable.id eq id }
           .limit(1)
           .any()
@@ -153,13 +153,11 @@ class FlashSaleActivityRepositoryImpl(
     transaction(database) {
       FlashSaleActivitiesTable
         .selectAll()
-        .where {
-          FlashSaleActivitiesTable.activeOnly {
-            (FlashSaleActivitiesTable.productId eq productId) and
-              (FlashSaleActivitiesTable.status eq status.name) and
-              (FlashSaleActivitiesTable.validFrom lessEq now) and
-              (FlashSaleActivitiesTable.validTo greaterEq now)
-          }
+        .andWhere {
+          (FlashSaleActivitiesTable.productId eq productId) and
+            (FlashSaleActivitiesTable.status eq status.name) and
+            (FlashSaleActivitiesTable.validFrom lessEq now) and
+            (FlashSaleActivitiesTable.validTo greaterEq now)
         }.orderBy(
           FlashSaleActivitiesTable.validFrom to SortOrder.DESC,
           FlashSaleActivitiesTable.id to SortOrder.DESC,
@@ -177,14 +175,12 @@ class FlashSaleActivityRepositoryImpl(
     transaction(database) {
       FlashSaleActivitiesTable
         .selectAll()
-        .where {
-          FlashSaleActivitiesTable.activeOnly {
-            (FlashSaleActivitiesTable.productId eq productId) and
-              (FlashSaleActivitiesTable.status eq status.name) and
-              (FlashSaleActivitiesTable.validFrom less newValidTo) and
-              (FlashSaleActivitiesTable.validTo greater newValidFrom) and
-              (if (excludeId != null) FlashSaleActivitiesTable.id neq excludeId else Op.TRUE)
-          }
+        .andWhere {
+          (FlashSaleActivitiesTable.productId eq productId) and
+            (FlashSaleActivitiesTable.status eq status.name) and
+            (FlashSaleActivitiesTable.validFrom less newValidTo) and
+            (FlashSaleActivitiesTable.validTo greater newValidFrom) and
+            (if (excludeId != null) FlashSaleActivitiesTable.id neq excludeId else Op.TRUE)
         }.limit(1)
         .any()
     }

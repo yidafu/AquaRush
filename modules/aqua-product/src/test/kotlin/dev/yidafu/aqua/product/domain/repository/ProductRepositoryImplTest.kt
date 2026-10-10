@@ -31,8 +31,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.PageRequest
@@ -108,7 +108,7 @@ class ProductRepositoryImplTest :
       repo.existsById(id) shouldBe false
       val row =
         transaction(ProductPgTestSupport.database) {
-          ProductsTable.selectAll().where { ProductsTable.id eq id }.single()
+          ProductsTable.selectAllIncludingDeleted().where { ProductsTable.id eq id }.single()
         }
       row[ProductsTable.isDeleted] shouldBe true
       row[ProductsTable.deletedAt].shouldNotBeNull()
@@ -127,7 +127,7 @@ class ProductRepositoryImplTest :
 
       val row =
         transaction(ProductPgTestSupport.database) {
-          ProductsTable.selectAll().where { ProductsTable.id eq id }.single()
+          ProductsTable.selectAllIncludingDeleted().where { ProductsTable.id eq id }.single()
         }
       row[ProductsTable.deletedAt] shouldBe sentinel
       row[ProductsTable.isDeleted] shouldBe true
@@ -166,7 +166,7 @@ class ProductRepositoryImplTest :
         transaction(ProductPgTestSupport.database) {
           ProductsTable
             .select(ProductsTable.tags)
-            .where { ProductsTable.id eq savedId }
+            .andWhere { ProductsTable.id eq savedId }
             .single()[ProductsTable.tags]
         }
       rawTags shouldBe """["a","b"]"""

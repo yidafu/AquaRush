@@ -29,6 +29,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -88,7 +89,7 @@ class GroupProductPriceRepositoryImplTest :
       transaction(MarketingPgTestSupport.database) {
         GroupProductPricesTable
           .selectAll()
-          .where { GroupProductPricesTable.customerGroupId eq groupId }
+          .andWhere { GroupProductPricesTable.customerGroupId eq groupId }
           .count() shouldBe 1L
       }
     }
@@ -134,7 +135,7 @@ class GroupProductPriceRepositoryImplTest :
       repo.delete(entity)
       val row =
         transaction(MarketingPgTestSupport.database) {
-          GroupProductPricesTable.selectAll().where { GroupProductPricesTable.id eq id }.single()
+          GroupProductPricesTable.selectAllIncludingDeleted().where { GroupProductPricesTable.id eq id }.single()
         }
       row[GroupProductPricesTable.isDeleted] shouldBe true
       row[GroupProductPricesTable.deletedAt] shouldBe sentinel

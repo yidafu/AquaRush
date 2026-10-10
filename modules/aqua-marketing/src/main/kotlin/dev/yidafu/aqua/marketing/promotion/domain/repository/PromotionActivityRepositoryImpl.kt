@@ -22,7 +22,6 @@ package dev.yidafu.aqua.marketing.promotion.domain.repository
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.table.PromotionActivitiesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -35,6 +34,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -79,7 +79,7 @@ class PromotionActivityRepositoryImpl(
     transaction(database) {
       PromotionActivitiesTable
         .selectAll()
-        .where { PromotionActivitiesTable.activeOnly { PromotionActivitiesTable.name eq name } }
+        .andWhere { PromotionActivitiesTable.name eq name }
         .orderBy(PromotionActivitiesTable.id to SortOrder.ASC)
         .limit(1)
         .firstOrNull()
@@ -90,7 +90,7 @@ class PromotionActivityRepositoryImpl(
     return transaction(database) {
       PromotionActivitiesTable
         .selectAll()
-        .where { PromotionActivitiesTable.activeOnly { PromotionActivitiesTable.id inList ids } }
+        .andWhere { PromotionActivitiesTable.id inList ids }
         .orderBy(PromotionActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -101,7 +101,7 @@ class PromotionActivityRepositoryImpl(
       transaction(database) {
         PromotionActivitiesTable
           .selectAll()
-          .where { PromotionActivitiesTable.activeOnly { PromotionActivitiesTable.id eq id } }
+          .andWhere { PromotionActivitiesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -120,14 +120,14 @@ class PromotionActivityRepositoryImpl(
         val content =
           PromotionActivitiesTable
             .selectAll()
-            .where { PromotionActivitiesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(PromotionActivitiesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to PromotionActivitiesTable.selectAll().where { PromotionActivitiesTable.activeOnly { condition } }.count()
+        content to PromotionActivitiesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -138,7 +138,7 @@ class PromotionActivityRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         PromotionActivitiesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { PromotionActivitiesTable.id eq id }
           .limit(1)
           .any()
@@ -181,12 +181,10 @@ class PromotionActivityRepositoryImpl(
     transaction(database) {
       PromotionActivitiesTable
         .selectAll()
-        .where {
-          PromotionActivitiesTable.activeOnly {
-            (PromotionActivitiesTable.status eq status.name) and
-              (PromotionActivitiesTable.validFrom lessEq now) and
-              (PromotionActivitiesTable.validTo greaterEq now)
-          }
+        .andWhere {
+          (PromotionActivitiesTable.status eq status.name) and
+            (PromotionActivitiesTable.validFrom lessEq now) and
+            (PromotionActivitiesTable.validTo greaterEq now)
         }.orderBy(PromotionActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)

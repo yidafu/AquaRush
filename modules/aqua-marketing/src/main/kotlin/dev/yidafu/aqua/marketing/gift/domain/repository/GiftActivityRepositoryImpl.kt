@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
 import dev.yidafu.aqua.common.domain.table.GiftActivitiesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -37,6 +36,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -82,7 +82,7 @@ class GiftActivityRepositoryImpl(
     return transaction(database) {
       GiftActivitiesTable
         .selectAll()
-        .where { GiftActivitiesTable.activeOnly { GiftActivitiesTable.id inList ids } }
+        .andWhere { GiftActivitiesTable.id inList ids }
         .orderBy(GiftActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -93,7 +93,7 @@ class GiftActivityRepositoryImpl(
       transaction(database) {
         GiftActivitiesTable
           .selectAll()
-          .where { GiftActivitiesTable.activeOnly { GiftActivitiesTable.id eq id } }
+          .andWhere { GiftActivitiesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -112,14 +112,14 @@ class GiftActivityRepositoryImpl(
         val content =
           GiftActivitiesTable
             .selectAll()
-            .where { GiftActivitiesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(GiftActivitiesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to GiftActivitiesTable.selectAll().where { GiftActivitiesTable.activeOnly { condition } }.count()
+        content to GiftActivitiesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -130,7 +130,7 @@ class GiftActivityRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         GiftActivitiesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { GiftActivitiesTable.id eq id }
           .limit(1)
           .any()
@@ -181,12 +181,10 @@ class GiftActivityRepositoryImpl(
     transaction(database) {
       GiftActivitiesTable
         .selectAll()
-        .where {
-          GiftActivitiesTable.activeOnly {
-            (GiftActivitiesTable.status eq status.name) and
-              (GiftActivitiesTable.validFrom lessEq now) and
-              (GiftActivitiesTable.validTo greaterEq now)
-          }
+        .andWhere {
+          (GiftActivitiesTable.status eq status.name) and
+            (GiftActivitiesTable.validFrom lessEq now) and
+            (GiftActivitiesTable.validTo greaterEq now)
         }.orderBy(GiftActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)

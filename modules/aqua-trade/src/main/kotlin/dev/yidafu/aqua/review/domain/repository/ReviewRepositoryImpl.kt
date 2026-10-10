@@ -21,7 +21,6 @@ package dev.yidafu.aqua.review.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.domain.table.ReviewsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -31,6 +30,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -43,7 +43,7 @@ import java.time.LocalDateTime
 
 /**
  * 订单评价仓储实现(JPA→Exposed 迁移 P4,原 QueryDSL 实现整体改写为 Exposed DSL)。
- * 每个查询经 [activeOnly] 过滤 is_deleted(语义对齐 @SoftDelete);
+ * 每个查询经入口 selectAll()/select() 自动过滤 is_deleted(语义对齐 @SoftDelete);
  * 分页 count 与 content 在同一个 [transaction] 内执行;
  * count 使用 Exposed `count()`(替代原 QueryDSL 已废弃的 `fetchCount()`)。
  */
@@ -70,7 +70,7 @@ class ReviewRepositoryImpl(
     transaction(database) {
       ReviewsTable
         .selectAll()
-        .where { ReviewsTable.activeOnly { ReviewsTable.orderId eq orderId } }
+        .andWhere { ReviewsTable.orderId eq orderId }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -79,7 +79,7 @@ class ReviewRepositoryImpl(
     transaction(database) {
       ReviewsTable
         .selectAll()
-        .where { ReviewsTable.activeOnly { ReviewsTable.orderId eq orderId } }
+        .andWhere { ReviewsTable.orderId eq orderId }
         .limit(1)
         .any()
     }
@@ -94,14 +94,14 @@ class ReviewRepositoryImpl(
         val content =
           ReviewsTable
             .selectAll()
-            .where { ReviewsTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 createdAt 降序(对齐原方法名 OrderByCreatedAtDesc),id 降序破平防跨页重复
             .orderBy(ReviewsTable.createdAt to SortOrder.DESC, ReviewsTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to ReviewsTable.selectAll().where { ReviewsTable.activeOnly { condition } }.count()
+        content to ReviewsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -112,7 +112,7 @@ class ReviewRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         ReviewsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ReviewsTable.id eq id }
           .limit(1)
           .any()
@@ -165,14 +165,14 @@ class ReviewRepositoryImpl(
         val content =
           ReviewsTable
             .selectAll()
-            .where { ReviewsTable.activeOnly { condition } }
+            .andWhere { condition }
             // 对齐原 QueryDSL orderBy(createdAt desc),id 降序破平防跨页重复
             .orderBy(ReviewsTable.createdAt to SortOrder.DESC, ReviewsTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to ReviewsTable.selectAll().where { ReviewsTable.activeOnly { condition } }.count()
+        content to ReviewsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }

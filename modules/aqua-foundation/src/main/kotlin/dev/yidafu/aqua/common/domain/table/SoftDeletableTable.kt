@@ -19,32 +19,20 @@
 
 package dev.yidafu.aqua.common.domain.table
 
-import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.javatime.datetime
 
 /**
- * 带软删列的 Exposed 表基类。
+ * 带软删列 + `deleted_at`/`deleted_by` 留痕列的 Exposed 表基类。
  *
- * 语义**必须**与 JPA 侧的 `@SoftDelete(columnName = "is_deleted")` 对齐：Hibernate 会把所有
- * 查询/删除自动改写成 `is_deleted = false` 过滤 + `UPDATE ... SET is_deleted = true`。
- * Exposed 没有这类隐式改写，因此：
- * - 仓储的**每个**查询都要显式带上 [notDeleted]；
- * - 仓储的「删除」要显式写成 `update { it[isDeleted] = true }`。
- * 漏掉任意一处都会让已删数据重新出现在业务查询里（迁移方案 §9 R3）。
+ * 查询过滤、软删、以及各入口的语义见 [SoftDeleteFlagTable]（本类只多两个留痕列）。
+ * 仅 `is_deleted`、DDL 没有留痕列的表请直接继承 [SoftDeleteFlagTable]。
  *
  * 列定义来源：`db/changelog/changes/v1.0.6-add-ops-config-tables.xml` /
  * `v1.0.7-add-ops-notice-store-delivery-fee.xml`（列名、可空性、默认值逐字对齐）。
  */
 abstract class SoftDeletableTable(
   name: String,
-) : Table(name) {
-  /**
-   * 软删标记列，DDL 为 `boolean NOT NULL DEFAULT false`。
-   * 用 clientDefault 而非 default：default 仅生成 DDL,运行时 INSERT 不附加该列;
-   * 而部分环境的 DDL(如 Liquibase defaultValueBoolean)可能未落 DEFAULT,会导致 NULL 约束违反。
-   */
-  val isDeleted = bool("is_deleted").clientDefault { false }
-
+) : SoftDeleteFlagTable(name) {
   /** 软删时间（业务侧留痕，与 [isDeleted] 同时写入）。 */
   val deletedAt = datetime("deleted_at").nullable()
 

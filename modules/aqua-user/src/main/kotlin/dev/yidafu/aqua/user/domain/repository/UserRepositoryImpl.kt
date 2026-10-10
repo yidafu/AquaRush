@@ -22,7 +22,6 @@ package dev.yidafu.aqua.user.domain.repository
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.table.AddressesTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.util.MoneyUtils
@@ -38,6 +37,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -83,7 +83,7 @@ class UserRepositoryImpl(
       transaction(database) {
         UsersTable
           .selectAll()
-          .where { UsersTable.activeOnly { UsersTable.id eq id } }
+          .andWhere { UsersTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -95,13 +95,12 @@ class UserRepositoryImpl(
         val content =
           UsersTable
             .selectAll()
-            .where { UsersTable.activeOnly() }
             .orderBy(UsersTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UsersTable.selectAll().where { UsersTable.activeOnly() }.count()
+        content to UsersTable.selectAll().count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -111,14 +110,14 @@ class UserRepositoryImpl(
     return transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.id inList ids } }
+        .andWhere { UsersTable.id inList ids }
         .toList()
     }.map(::toModel)
   }
 
   override fun count(): Long =
     transaction(database) {
-      UsersTable.selectAll().where { UsersTable.activeOnly() }.count()
+      UsersTable.selectAll().count()
     }
 
   override fun existsById(id: Long): Boolean = findById(id).isPresent
@@ -145,7 +144,7 @@ class UserRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         UsersTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { UsersTable.id eq id }
           .limit(1)
           .any()
@@ -185,7 +184,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.wechatOpenid eq wechatOpenId } }
+        .andWhere { UsersTable.wechatOpenid eq wechatOpenId }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -194,7 +193,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.phone eq phone } }
+        .andWhere { UsersTable.phone eq phone }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -214,13 +213,13 @@ class UserRepositoryImpl(
         val content =
           UsersTable
             .selectAll()
-            .where { UsersTable.activeOnly { condition } }
+            .andWhere { condition }
             .orderBy(UsersTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UsersTable.selectAll().where { UsersTable.activeOnly { condition } }.count()
+        content to UsersTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -235,13 +234,13 @@ class UserRepositoryImpl(
         val content =
           UsersTable
             .selectAll()
-            .where { UsersTable.activeOnly { condition } }
+            .andWhere { condition }
             .orderBy(UsersTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UsersTable.selectAll().where { UsersTable.activeOnly { condition } }.count()
+        content to UsersTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -250,7 +249,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.customerGroupId eq groupId } }
+        .andWhere { UsersTable.customerGroupId eq groupId }
         .toList()
     }.map(::toModel)
 
@@ -264,13 +263,13 @@ class UserRepositoryImpl(
         val content =
           UsersTable
             .selectAll()
-            .where { UsersTable.activeOnly { condition } }
+            .andWhere { condition }
             .orderBy(UsersTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UsersTable.selectAll().where { UsersTable.activeOnly { condition } }.count()
+        content to UsersTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -279,7 +278,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.customerGroupId eq groupId } }
+        .andWhere { UsersTable.customerGroupId eq groupId }
         .count()
     }
 
@@ -287,7 +286,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where { UsersTable.activeOnly { UsersTable.createdAt greater startDate } }
+        .andWhere { UsersTable.createdAt greater startDate }
         .toList()
     }.map(::toModel)
 
@@ -298,11 +297,8 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where {
-          UsersTable.activeOnly {
-            (UsersTable.createdAt greater startDate) and (UsersTable.createdAt less endDate)
-          }
-        }.toList()
+        .andWhere { (UsersTable.createdAt greater startDate) and (UsersTable.createdAt less endDate) }
+        .toList()
     }.map(::toModel)
 
   override fun countByCreatedAtGreaterThanAndCreatedAtLessThan(
@@ -312,11 +308,8 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .selectAll()
-        .where {
-          UsersTable.activeOnly {
-            (UsersTable.createdAt greater startDate) and (UsersTable.createdAt less endDate)
-          }
-        }.count()
+        .andWhere { (UsersTable.createdAt greater startDate) and (UsersTable.createdAt less endDate) }
+        .count()
     }
 
   // ===== UserRepositoryCustom =====
@@ -325,7 +318,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .select(UsersTable.totalSpentCents)
-        .where { UsersTable.activeOnly { UsersTable.id eq userId } }
+        .andWhere { UsersTable.id eq userId }
         .firstOrNull()
     }?.get(UsersTable.totalSpentCents)?.let { MoneyUtils.fromCents(it).toDouble() } ?: 0.0
 
@@ -333,7 +326,7 @@ class UserRepositoryImpl(
     transaction(database) {
       UsersTable
         .select(UsersTable.balanceCents)
-        .where { UsersTable.activeOnly { UsersTable.id eq userId } }
+        .andWhere { UsersTable.id eq userId }
         .firstOrNull()
     }?.get(UsersTable.balanceCents)?.let { MoneyUtils.fromCents(it).toDouble() } ?: 0.0
 
@@ -341,7 +334,7 @@ class UserRepositoryImpl(
     transaction(database) {
       AddressesTable
         .selectAll()
-        .where { AddressesTable.activeOnly { AddressesTable.userId eq userId } }
+        .andWhere { AddressesTable.userId eq userId }
         .count()
     }.toInt()
 
@@ -364,13 +357,13 @@ class UserRepositoryImpl(
         val content =
           UsersTable
             .selectAll()
-            .where { UsersTable.activeOnly { condition } }
+            .andWhere { condition }
             .orderBy(UsersTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UsersTable.selectAll().where { UsersTable.activeOnly { condition } }.count()
+        content to UsersTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }

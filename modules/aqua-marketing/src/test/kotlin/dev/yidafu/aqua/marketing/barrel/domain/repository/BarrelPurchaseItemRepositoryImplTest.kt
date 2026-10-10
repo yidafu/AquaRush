@@ -29,6 +29,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -54,7 +55,7 @@ class BarrelPurchaseItemRepositoryImplTest :
         MarketingPgTestSupport.barrelItem(purchaseId = purchaseId, barrelFeeId = 1L, quantity = 1)
       val row =
         transaction(MarketingPgTestSupport.database) {
-          BarrelPurchaseItemsTable.selectAll().where { BarrelPurchaseItemsTable.id eq id }.single()
+          BarrelPurchaseItemsTable.selectAll().andWhere { BarrelPurchaseItemsTable.id eq id }.single()
         }
       val loaded =
         BarrelPurchaseItemModel(

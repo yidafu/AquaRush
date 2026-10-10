@@ -39,6 +39,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -103,7 +104,7 @@ class NotificationRepositoryImpl(
       val content =
         NotificationsTable
           .selectAll()
-          .where { NotificationsTable.activeOnly { condition } }
+          .andWhere { condition }
           .orderBy(NotificationsTable.createdAt to org.jetbrains.exposed.v1.core.SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
@@ -112,7 +113,7 @@ class NotificationRepositoryImpl(
       val total =
         NotificationsTable
           .selectAll()
-          .where { NotificationsTable.activeOnly { condition } }
+          .andWhere { condition }
           .count()
       content to total
     }
@@ -145,11 +146,8 @@ class NotificationRepositoryImpl(
     transaction(database) {
       NotificationsTable
         .selectAll()
-        .where {
-          NotificationsTable.activeOnly {
-            receiverCondition(receiverType, receiverId) and NotificationsTable.readAt.isNull()
-          }
-        }.count()
+        .andWhere { receiverCondition(receiverType, receiverId) and NotificationsTable.readAt.isNull() }
+        .count()
     }
 
   override fun markAllRead(
@@ -220,7 +218,7 @@ class NotificationRepositoryImpl(
     transaction(database) {
       NotificationsTable
         .selectAll()
-        .where { NotificationsTable.activeOnly { NotificationsTable.idempotencyKey eq idempotencyKey } }
+        .andWhere { NotificationsTable.idempotencyKey eq idempotencyKey }
         .limit(1)
         .any()
     }
@@ -230,7 +228,7 @@ class NotificationRepositoryImpl(
       transaction(database) {
         NotificationsTable
           .selectAll()
-          .where { NotificationsTable.activeOnly { NotificationsTable.id eq id } }
+          .andWhere { NotificationsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -242,7 +240,7 @@ class NotificationRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         NotificationsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { NotificationsTable.id eq id }
           .limit(1)
           .any()

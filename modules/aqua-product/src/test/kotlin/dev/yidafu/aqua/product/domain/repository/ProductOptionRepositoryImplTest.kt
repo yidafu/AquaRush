@@ -30,6 +30,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -72,7 +73,7 @@ class ProductOptionRepositoryImplTest :
       reloaded.sortOrder shouldBe 7
       reloaded.enabled shouldBe false
       transaction(ProductPgTestSupport.database) {
-        ProductOptionsTable.selectAll().where { ProductOptionsTable.id eq id }.count()
+        ProductOptionsTable.selectAll().andWhere { ProductOptionsTable.id eq id }.count()
       } shouldBe 1L
     }
 
@@ -83,7 +84,7 @@ class ProductOptionRepositoryImplTest :
       repo.findById(id).isPresent shouldBe false
       val row =
         transaction(ProductPgTestSupport.database) {
-          ProductOptionsTable.selectAll().where { ProductOptionsTable.id eq id }.single()
+          ProductOptionsTable.selectAllIncludingDeleted().where { ProductOptionsTable.id eq id }.single()
         }
       row[ProductOptionsTable.isDeleted] shouldBe true
       row[ProductOptionsTable.deletedAt].shouldNotBeNull()
@@ -103,7 +104,7 @@ class ProductOptionRepositoryImplTest :
 
       val row =
         transaction(ProductPgTestSupport.database) {
-          ProductOptionsTable.selectAll().where { ProductOptionsTable.id eq id }.single()
+          ProductOptionsTable.selectAllIncludingDeleted().where { ProductOptionsTable.id eq id }.single()
         }
       row[ProductOptionsTable.deletedAt] shouldBe sentinel
       row[ProductOptionsTable.isDeleted] shouldBe true

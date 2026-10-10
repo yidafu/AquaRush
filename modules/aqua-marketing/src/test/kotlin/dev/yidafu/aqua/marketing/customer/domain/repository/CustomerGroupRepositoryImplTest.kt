@@ -29,7 +29,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.PageRequest
@@ -88,7 +87,7 @@ class CustomerGroupRepositoryImplTest :
       repo.findById(id).isPresent shouldBe false
       val row =
         transaction(MarketingPgTestSupport.database) {
-          CustomerGroupsTable.selectAll().where { CustomerGroupsTable.id eq id }.single()
+          CustomerGroupsTable.selectAllIncludingDeleted().where { CustomerGroupsTable.id eq id }.single()
         }
       row[CustomerGroupsTable.isDeleted] shouldBe true
       row[CustomerGroupsTable.deletedAt].shouldNotBeNull()
@@ -101,7 +100,7 @@ class CustomerGroupRepositoryImplTest :
       repo.delete(entity)
       val after =
         transaction(MarketingPgTestSupport.database) {
-          CustomerGroupsTable.selectAll().where { CustomerGroupsTable.id eq id }.single()
+          CustomerGroupsTable.selectAllIncludingDeleted().where { CustomerGroupsTable.id eq id }.single()
         }
       after[CustomerGroupsTable.deletedAt] shouldBe sentinel
       after[CustomerGroupsTable.isDeleted] shouldBe true

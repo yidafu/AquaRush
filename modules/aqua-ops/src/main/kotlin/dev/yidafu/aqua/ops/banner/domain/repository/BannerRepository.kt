@@ -23,6 +23,7 @@ import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.ops.banner.domain.table.BannerTable
 import dev.yidafu.aqua.ops.common.exposed.pageQuery
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -35,6 +36,7 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -75,8 +77,8 @@ class BannerRepository(
     transaction(database) {
       BannerTable
         .selectAll()
-        .where {
-          (BannerTable.id eq id) and (BannerTable.isDeleted eq false)
+        .andWhere {
+          (BannerTable.id eq id)
         }.singleOrNull()
         ?.let(::toModel)
     }.let { Optional.ofNullable(it) }
@@ -86,8 +88,8 @@ class BannerRepository(
     transaction(database) {
       BannerTable
         .selectAll()
-        .where {
-          (BannerTable.sortOrder eq sortOrder) and (BannerTable.isDeleted eq false)
+        .andWhere {
+          (BannerTable.sortOrder eq sortOrder)
         }.singleOrNull()
         ?.let(::toModel)
     }
@@ -98,7 +100,6 @@ class BannerRepository(
       val maxExpr = BannerTable.sortOrder.max()
       BannerTable
         .select(maxExpr)
-        .where { BannerTable.isDeleted eq false }
         .singleOrNull()
         ?.get(maxExpr)
     }
@@ -108,11 +109,10 @@ class BannerRepository(
     transaction(database) {
       BannerTable
         .selectAll()
-        .where {
+        .andWhere {
           (BannerTable.enabled eq true) and
             (BannerTable.startAt.isNull() or BannerTable.startAt.lessEq(now)) and
-            (BannerTable.endAt.isNull() or BannerTable.endAt.greaterEq(now)) and
-            (BannerTable.isDeleted eq false)
+            (BannerTable.endAt.isNull() or BannerTable.endAt.greaterEq(now))
         }.orderBy(BannerTable.sortOrder to SortOrder.ASC)
         .map(::toModel)
     }
@@ -125,7 +125,6 @@ class BannerRepository(
     transaction(database) {
       BannerTable
         .selectAll()
-        .where { BannerTable.isDeleted eq false }
         .orderBy(BannerTable.sortOrder to SortOrder.ASC)
         .forUpdate()
         .map(::toModel)
@@ -139,14 +138,14 @@ class BannerRepository(
     transaction(database) {
       pageQuery(
         buildQuery = {
-          BannerTable.selectAll().where {
+          BannerTable.selectAll().andWhere {
             buildList {
-              add(BannerTable.isDeleted eq false)
               filter.keyword?.takeIf { it.isNotBlank() }?.let { kw ->
                 add(BannerTable.title.lowerCase() like "%${kw.lowercase()}%")
               }
               filter.enabled?.let { add(BannerTable.enabled eq it) }
-            }.reduce { a, b -> a and b }
+              // 过滤项可能为空(软删过滤已固定在查询入口),空列表等价于恒真
+            }.reduceOrNull { a, b -> a and b } ?: Op.TRUE
           }
         },
         orderings = listOf(BannerTable.sortOrder to SortOrder.ASC),
@@ -163,7 +162,7 @@ class BannerRepository(
       val now = LocalDateTime.now()
       val exists =
         BannerTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { BannerTable.id eq id }
           .limit(1)
           .any()

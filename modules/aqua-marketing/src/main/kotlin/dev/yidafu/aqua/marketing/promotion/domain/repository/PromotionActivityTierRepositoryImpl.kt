@@ -27,6 +27,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -60,7 +61,7 @@ class PromotionActivityTierRepositoryImpl(
     transaction(database) {
       PromotionActivityTiersTable
         .selectAll()
-        .where { PromotionActivityTiersTable.activeOnly { PromotionActivityTiersTable.activityId eq activityId } }
+        .andWhere { PromotionActivityTiersTable.activityId eq activityId }
         .orderBy(PromotionActivityTiersTable.sort to SortOrder.ASC, PromotionActivityTiersTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -69,7 +70,7 @@ class PromotionActivityTierRepositoryImpl(
     transaction(database) {
       PromotionActivityTiersTable
         .selectAll()
-        .where { PromotionActivityTiersTable.activeOnly { PromotionActivityTiersTable.activityId eq activityId } }
+        .andWhere { PromotionActivityTiersTable.activityId eq activityId }
         // 原 JPA 无序,取稳定插入序
         .orderBy(PromotionActivityTiersTable.id to SortOrder.ASC)
         .toList()
@@ -98,7 +99,7 @@ class PromotionActivityTierRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         PromotionActivityTiersTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { PromotionActivityTiersTable.id eq id }
           .limit(1)
           .any()

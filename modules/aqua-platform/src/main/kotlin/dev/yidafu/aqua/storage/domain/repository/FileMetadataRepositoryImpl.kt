@@ -22,7 +22,6 @@ package dev.yidafu.aqua.storage.domain.repository
 import dev.yidafu.aqua.common.domain.model.FileMetadata
 import dev.yidafu.aqua.common.domain.model.enums.FileType
 import dev.yidafu.aqua.common.domain.table.FileMetadataTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -39,6 +38,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
@@ -55,7 +55,7 @@ import java.util.Optional
 /**
  * 文件元数据仓储实现(JPA→Exposed 迁移 P3)。
  * FileMetadata 实体无 @SoftDelete 注解 → delete 为硬删;查询仍过滤 is_deleted=false
- * (DDL 有该列且恒为 false,过滤与否等价,统一走 activeOnly 保持一致)。
+ * (DDL 有该列且恒为 false,过滤与否等价,统一走查询入口保持一致)。
  */
 @Repository
 class FileMetadataRepositoryImpl(
@@ -98,7 +98,7 @@ class FileMetadataRepositoryImpl(
       val content =
         FileMetadataTable
           .selectAll()
-          .where { FileMetadataTable.activeOnly { condition } }
+          .andWhere { condition }
           .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
@@ -107,7 +107,7 @@ class FileMetadataRepositoryImpl(
       val total =
         FileMetadataTable
           .selectAll()
-          .where { FileMetadataTable.activeOnly { condition } }
+          .andWhere { condition }
           .count()
       PageImpl(content, pageable, total)
     }
@@ -117,13 +117,14 @@ class FileMetadataRepositoryImpl(
       transaction(database) {
         FileMetadataTable
           .selectAll()
-          .where { FileMetadataTable.activeOnly { FileMetadataTable.id eq id } }
+          .andWhere { FileMetadataTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
     )
 
   override fun delete(entity: FileMetadata) {
+    // 软删豁免:file_metadata 的 is_deleted 恒为 false(见 PlatformTables),业务上就是物理删除
     val id =
       requireNotNull(entity.id) { "FileMetadata.id 不能为空(硬删必须携带主键)" }
     transaction(database) {
@@ -137,7 +138,7 @@ class FileMetadataRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         FileMetadataTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { FileMetadataTable.id eq id }
           .limit(1)
           .any()
@@ -182,7 +183,7 @@ class FileMetadataRepositoryImpl(
       transaction(database) {
         FileMetadataTable
           .selectAll()
-          .where { FileMetadataTable.activeOnly { FileMetadataTable.storagePath eq storagePath } }
+          .andWhere { FileMetadataTable.storagePath eq storagePath }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -193,7 +194,7 @@ class FileMetadataRepositoryImpl(
       transaction(database) {
         FileMetadataTable
           .selectAll()
-          .where { FileMetadataTable.activeOnly { FileMetadataTable.checksum eq checksum } }
+          .andWhere { FileMetadataTable.checksum eq checksum }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -203,7 +204,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.fileType eq fileType.name } }
+        .andWhere { FileMetadataTable.fileType eq fileType.name }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
@@ -217,12 +218,17 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where {
-          FileMetadataTable.activeOnly {
-            if (ownerId == null) FileMetadataTable.ownerId.isNull() else FileMetadataTable.ownerId eq ownerId
+        .andWhere {
+          if (ownerId ==
+            null
+          ) {
+            FileMetadataTable.ownerId.isNull()
+          } else {
+            FileMetadataTable.ownerId eq ownerId
           }
-        }.orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
-        .toList()
+        }.orderBy(
+          FileMetadataTable.createdAt to SortOrder.DESC,
+        ).toList()
     }.map(::toModel)
 
   override fun findByOwnerId(
@@ -242,7 +248,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.isPublic eq isPublic } }
+        .andWhere { FileMetadataTable.isPublic eq isPublic }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
@@ -251,7 +257,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.fileName.lowerCase() like "%${fileName.lowercase()}%" } }
+        .andWhere { FileMetadataTable.fileName.lowerCase() like "%${fileName.lowercase()}%" }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
@@ -265,7 +271,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.extension eq extension } }
+        .andWhere { FileMetadataTable.extension eq extension }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
@@ -274,7 +280,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.createdAt greater createdAt } }
+        .andWhere { FileMetadataTable.createdAt greater createdAt }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
@@ -286,19 +292,16 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where {
-          FileMetadataTable.activeOnly {
-            (FileMetadataTable.createdAt greaterEq startTime) and (FileMetadataTable.createdAt lessEq endTime)
-          }
-        }.orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
-        .toList()
+        .andWhere { (FileMetadataTable.createdAt greaterEq startTime) and (FileMetadataTable.createdAt lessEq endTime) }
+        .orderBy(
+          FileMetadataTable.createdAt to SortOrder.DESC,
+        ).toList()
     }.map(::toModel)
 
   override fun countByFileType(): Array<Array<Any>> =
     transaction(database) {
       FileMetadataTable
         .select(FileMetadataTable.fileType, FileMetadataTable.id.count())
-        .where { FileMetadataTable.activeOnly() }
         .groupBy(FileMetadataTable.fileType)
         .toList()
     }.map { row ->
@@ -311,11 +314,8 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .select(FileMetadataTable.fileSize.sum())
-        .where {
-          FileMetadataTable.activeOnly {
-            if (ownerId == null) FileMetadataTable.ownerId.isNull() else FileMetadataTable.ownerId eq ownerId
-          }
-        }.first()
+        .andWhere { if (ownerId == null) FileMetadataTable.ownerId.isNull() else FileMetadataTable.ownerId eq ownerId }
+        .first()
     }.let { row ->
       (row[FileMetadataTable.fileSize.sum()] as? Number)?.toLong() ?: 0L
     }
@@ -325,7 +325,6 @@ class FileMetadataRepositoryImpl(
       transaction(database) {
         FileMetadataTable
           .select(FileMetadataTable.checksum)
-          .where { FileMetadataTable.activeOnly() }
           .groupBy(FileMetadataTable.checksum)
           .having { FileMetadataTable.id.count() greater 1L }
           .toList()
@@ -334,7 +333,7 @@ class FileMetadataRepositoryImpl(
     return transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { FileMetadataTable.checksum inList duplicateChecksums } }
+        .andWhere { FileMetadataTable.checksum inList duplicateChecksums }
         .orderBy(FileMetadataTable.checksum to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -348,7 +347,7 @@ class FileMetadataRepositoryImpl(
     transaction(database) {
       FileMetadataTable
         .selectAll()
-        .where { FileMetadataTable.activeOnly { toEntityCondition(fileType, ownerId, isPublic) } }
+        .andWhere { toEntityCondition(fileType, ownerId, isPublic) }
         .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)

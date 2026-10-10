@@ -104,7 +104,7 @@ object DeliveryWorkerStatisticsTable : SoftDeletableTable("delivery_worker_stati
  * DDL 仅有 is_deleted(无 deleted_at/deleted_by)—— 不可用 SoftDeletableTable,裸 Table + 自声明软删列;
  * (delivery_worker_id, collection_date) 有 DB 唯一约束。
  */
-object DailyCollectionRecordsTable : Table("daily_collection_records") {
+object DailyCollectionRecordsTable : SoftDeleteFlagTable("daily_collection_records") {
   val id = long("id")
   val deliveryWorkerId = long("delivery_worker_id")
   val collectionDate = date("collection_date")
@@ -120,7 +120,6 @@ object DailyCollectionRecordsTable : Table("daily_collection_records") {
   val notes = varchar("notes", 500).nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
-  val isDeleted = bool("is_deleted").clientDefault { false }
   val calculatedCashAmountCents = long("calculated_cash_amount_cents").default(0L)
   val calculatedQrCodeAmountCents = long("calculated_qr_code_amount_cents").default(0L)
   val calculatedWaterTicketCount = integer("calculated_water_ticket_count").default(0)
@@ -133,10 +132,10 @@ object DailyCollectionRecordsTable : Table("daily_collection_records") {
 
 /**
  * 每日对账记录表(`daily_reconciliations`,17 列)。
- * 同 daily_collection_records:仅 is_deleted → 裸 Table;reconciliation_date 有 DB 唯一约束;
+ * 同 daily_collection_records:仅 is_deleted → SoftDeleteFlagTable(无留痕列);reconciliation_date 有 DB 唯一约束;
  * report_data 在 DDL 与线上库均为 text(实体注解写 json,以 DDL 为准,故用 text 而非 jsonString)。
  */
-object DailyReconciliationsTable : Table("daily_reconciliations") {
+object DailyReconciliationsTable : SoftDeleteFlagTable("daily_reconciliations") {
   val id = long("id")
   val reconciliationDate = date("reconciliation_date")
   val totalCashAmountCents = long("total_cash_amount_cents")
@@ -153,7 +152,6 @@ object DailyReconciliationsTable : Table("daily_reconciliations") {
   val reviewNotes = varchar("review_notes", 500).nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
-  val isDeleted = bool("is_deleted").clientDefault { false }
   override val primaryKey = PrimaryKey(id)
 }
 

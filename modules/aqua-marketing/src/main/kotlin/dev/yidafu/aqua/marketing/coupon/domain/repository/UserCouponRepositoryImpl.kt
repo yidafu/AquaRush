@@ -36,6 +36,7 @@ import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -85,7 +86,7 @@ class UserCouponRepositoryImpl(
     transaction(database) {
       UserCouponsTable
         .selectAll()
-        .where { UserCouponsTable.activeOnly { UserCouponsTable.userId eq userId } }
+        .andWhere { UserCouponsTable.userId eq userId }
         .orderBy(UserCouponsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -97,12 +98,10 @@ class UserCouponRepositoryImpl(
     transaction(database) {
       UserCouponsTable
         .selectAll()
-        .where {
-          UserCouponsTable.activeOnly {
-            (UserCouponsTable.userId eq userId) and (UserCouponsTable.status eq status.name)
-          }
-        }.orderBy(UserCouponsTable.id to SortOrder.ASC)
-        .toList()
+        .andWhere { (UserCouponsTable.userId eq userId) and (UserCouponsTable.status eq status.name) }
+        .orderBy(
+          UserCouponsTable.id to SortOrder.ASC,
+        ).toList()
     }.map(::toModel)
 
   override fun findByUserIdAndStatusIn(
@@ -113,11 +112,9 @@ class UserCouponRepositoryImpl(
     return transaction(database) {
       UserCouponsTable
         .selectAll()
-        .where {
-          UserCouponsTable.activeOnly {
-            (UserCouponsTable.userId eq userId) and
-              (UserCouponsTable.status inList statuses.map { it.name })
-          }
+        .andWhere {
+          (UserCouponsTable.userId eq userId) and
+            (UserCouponsTable.status inList statuses.map { it.name })
         }.orderBy(UserCouponsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -130,11 +127,8 @@ class UserCouponRepositoryImpl(
     transaction(database) {
       UserCouponsTable
         .selectAll()
-        .where {
-          UserCouponsTable.activeOnly {
-            (UserCouponsTable.userId eq userId) and (UserCouponsTable.couponTemplateId eq templateId)
-          }
-        }.count()
+        .andWhere { (UserCouponsTable.userId eq userId) and (UserCouponsTable.couponTemplateId eq templateId) }
+        .count()
     }
 
   override fun countByCouponTemplateIdAndStatus(
@@ -144,11 +138,8 @@ class UserCouponRepositoryImpl(
     transaction(database) {
       UserCouponsTable
         .selectAll()
-        .where {
-          UserCouponsTable.activeOnly {
-            (UserCouponsTable.couponTemplateId eq templateId) and (UserCouponsTable.status eq status.name)
-          }
-        }.count()
+        .andWhere { (UserCouponsTable.couponTemplateId eq templateId) and (UserCouponsTable.status eq status.name) }
+        .count()
     }
 
   override fun findById(id: Long): Optional<UserCouponModel> =
@@ -156,7 +147,7 @@ class UserCouponRepositoryImpl(
       transaction(database) {
         UserCouponsTable
           .selectAll()
-          .where { UserCouponsTable.activeOnly { UserCouponsTable.id eq id } }
+          .andWhere { UserCouponsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -178,14 +169,14 @@ class UserCouponRepositoryImpl(
         val content =
           UserCouponsTable
             .selectAll()
-            .where { UserCouponsTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(UserCouponsTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to UserCouponsTable.selectAll().where { UserCouponsTable.activeOnly { condition } }.count()
+        content to UserCouponsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -196,7 +187,7 @@ class UserCouponRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         UserCouponsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { UserCouponsTable.id eq id }
           .limit(1)
           .any()

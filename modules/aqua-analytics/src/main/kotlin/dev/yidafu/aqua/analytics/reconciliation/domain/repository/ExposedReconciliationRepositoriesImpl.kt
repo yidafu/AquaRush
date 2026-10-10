@@ -30,8 +30,6 @@ import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.domain.table.ReconciliationDiscrepanciesTable
 import dev.yidafu.aqua.common.domain.table.ReconciliationReportsTable
 import dev.yidafu.aqua.common.domain.table.ReconciliationTasksTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
-import dev.yidafu.aqua.common.domain.table.softDeleteWhere
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -44,6 +42,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -58,7 +57,7 @@ import java.time.LocalDateTime
 
 /**
  * 对账域三仓储的 Exposed 实现(JPA→Exposed 迁移 P3)。
- * 表均带 @SoftDelete:查询经 [activeOnly] 过滤;清理类删除用 [softDeleteWhere]
+ * 表均带 @SoftDelete:查询入口(selectAll/select)自动过滤软删;清理类删除用 [softDelete]
  * (语义决策:原 QueryDSL bulk delete 在 Hibernate @SoftDelete 下同样被改写为软删 UPDATE)。
  * save 为 upsert:id 非空且行存在 → 全可变列 update(对齐 JPA merge),否则 INSERT(雪花 id)。
  * report_data/record_details 的 JSON 结构化转换由本层负责(Jackson)。
@@ -71,7 +70,7 @@ class ReconciliationTaskRepositoryImpl(
     transaction(database) {
       ReconciliationTasksTable
         .selectAll()
-        .where { ReconciliationTasksTable.activeOnly { ReconciliationTasksTable.taskId eq taskId } }
+        .andWhere { ReconciliationTasksTable.taskId eq taskId }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -95,7 +94,6 @@ class ReconciliationTaskRepositoryImpl(
     transaction(database) {
       ReconciliationTasksTable
         .selectAll()
-        .where { ReconciliationTasksTable.activeOnly() }
         .orderBy(ReconciliationTasksTable.taskDate to SortOrder.DESC)
         .limit(1)
         .firstOrNull()
@@ -105,7 +103,7 @@ class ReconciliationTaskRepositoryImpl(
     transaction(database) {
       ReconciliationTasksTable
         .selectAll()
-        .where { ReconciliationTasksTable.activeOnly { ReconciliationTasksTable.status eq status.name } }
+        .andWhere { ReconciliationTasksTable.status eq status.name }
         .limit(1)
         .any()
     }
@@ -115,7 +113,6 @@ class ReconciliationTaskRepositoryImpl(
       transaction(database) {
         ReconciliationTasksTable
           .selectAll()
-          .where { ReconciliationTasksTable.activeOnly() }
           .orderBy(ReconciliationTasksTable.taskDate to SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
@@ -126,7 +123,6 @@ class ReconciliationTaskRepositoryImpl(
       transaction(database) {
         ReconciliationTasksTable
           .selectAll()
-          .where { ReconciliationTasksTable.activeOnly() }
           .count()
       }
     return PageImpl(content, pageable, total)
@@ -134,7 +130,7 @@ class ReconciliationTaskRepositoryImpl(
 
   override fun deleteAll() =
     transaction(database) {
-      ReconciliationTasksTable.softDeleteWhere { Op.TRUE }
+      ReconciliationTasksTable.softDelete { Op.TRUE }
     }
 
   override fun save(entity: ReconciliationTaskModel): ReconciliationTaskModel =
@@ -143,7 +139,7 @@ class ReconciliationTaskRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         ReconciliationTasksTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ReconciliationTasksTable.id eq id }
           .limit(1)
           .any()
@@ -208,11 +204,9 @@ class ReconciliationTaskRepositoryImpl(
     transaction(database) {
       ReconciliationTasksTable
         .selectAll()
-        .where {
-          ReconciliationTasksTable.activeOnly {
-            (ReconciliationTasksTable.taskType eq taskType.name) and
-              (ReconciliationTasksTable.status eq status.name)
-          }
+        .andWhere {
+          (ReconciliationTasksTable.taskType eq taskType.name) and
+            (ReconciliationTasksTable.status eq status.name)
         }.count()
     }
 
@@ -228,7 +222,7 @@ class ReconciliationTaskRepositoryImpl(
       transaction(database) {
         ReconciliationTasksTable
           .selectAll()
-          .where { ReconciliationTasksTable.activeOnly({ filter }) }
+          .andWhere({ filter })
           .orderBy(ReconciliationTasksTable.taskDate to SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
@@ -239,7 +233,7 @@ class ReconciliationTaskRepositoryImpl(
       transaction(database) {
         ReconciliationTasksTable
           .selectAll()
-          .where { ReconciliationTasksTable.activeOnly({ filter }) }
+          .andWhere({ filter })
           .count()
       }
     return PageImpl(content, pageable, total)
@@ -263,7 +257,7 @@ class ReconciliationTaskRepositoryImpl(
     transaction(database) {
       ReconciliationTasksTable
         .selectAll()
-        .where { ReconciliationTasksTable.activeOnly(where) }
+        .andWhere(where)
         .toList()
     }.map(::toModel)
 
@@ -299,11 +293,9 @@ class ReconciliationReportRepositoryImpl(
     transaction(database) {
       ReconciliationReportsTable
         .selectAll()
-        .where {
-          ReconciliationReportsTable.activeOnly {
-            (ReconciliationReportsTable.taskId eq taskId) and
-              (ReconciliationReportsTable.reportType eq reportType)
-          }
+        .andWhere {
+          (ReconciliationReportsTable.taskId eq taskId) and
+            (ReconciliationReportsTable.reportType eq reportType)
         }.limit(1)
         .firstOrNull()
     }?.let { toModel(it) }
@@ -315,7 +307,6 @@ class ReconciliationReportRepositoryImpl(
     transaction(database) {
       ReconciliationReportsTable
         .selectAll()
-        .where { ReconciliationReportsTable.activeOnly() }
         .orderBy(ReconciliationReportsTable.generatedAt to SortOrder.DESC)
         .limit(1)
         .firstOrNull()
@@ -328,23 +319,21 @@ class ReconciliationReportRepositoryImpl(
     transaction(database) {
       ReconciliationReportsTable
         .selectAll()
-        .where {
-          ReconciliationReportsTable.activeOnly {
-            (ReconciliationReportsTable.generatedAt greaterEq startDate) and
-              (ReconciliationReportsTable.generatedAt lessEq endDate)
-          }
+        .andWhere {
+          (ReconciliationReportsTable.generatedAt greaterEq startDate) and
+            (ReconciliationReportsTable.generatedAt lessEq endDate)
         }.orderBy(ReconciliationReportsTable.generatedAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
 
   override fun deleteAll(): Int =
     transaction(database) {
-      ReconciliationReportsTable.softDeleteWhere { Op.TRUE }
+      ReconciliationReportsTable.softDelete { Op.TRUE }
     }
 
   override fun deleteReportsBefore(beforeDate: LocalDateTime): Int =
     transaction(database) {
-      ReconciliationReportsTable.softDeleteWhere { ReconciliationReportsTable.generatedAt less beforeDate }
+      ReconciliationReportsTable.softDelete { ReconciliationReportsTable.generatedAt less beforeDate }
     }
 
   override fun countByTaskIdAndReportType(
@@ -354,11 +343,9 @@ class ReconciliationReportRepositoryImpl(
     transaction(database) {
       ReconciliationReportsTable
         .selectAll()
-        .where {
-          ReconciliationReportsTable.activeOnly {
-            (ReconciliationReportsTable.taskId eq taskId) and
-              (ReconciliationReportsTable.reportType eq reportType)
-          }
+        .andWhere {
+          (ReconciliationReportsTable.taskId eq taskId) and
+            (ReconciliationReportsTable.reportType eq reportType)
         }.count()
     }
 
@@ -369,7 +356,7 @@ class ReconciliationReportRepositoryImpl(
       val reportDataJson = objectMapper.writeValueAsString(entity.reportData)
       val exists =
         ReconciliationReportsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ReconciliationReportsTable.id eq id }
           .limit(1)
           .any()
@@ -405,7 +392,7 @@ class ReconciliationReportRepositoryImpl(
     transaction(database) {
       ReconciliationReportsTable
         .selectAll()
-        .where { ReconciliationReportsTable.activeOnly(where) }
+        .andWhere(where)
         .toList()
     }.map(::toModel)
 
@@ -461,7 +448,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
     transaction(database) {
       ReconciliationDiscrepanciesTable
         .selectAll()
-        .where { ReconciliationDiscrepanciesTable.activeOnly { ReconciliationDiscrepanciesTable.id eq id } }
+        .andWhere { ReconciliationDiscrepanciesTable.id eq id }
         .limit(1)
         .firstOrNull()
     }.let { java.util.Optional.ofNullable(it?.let(::toModel)) }
@@ -473,7 +460,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
       val detailsJson = entity.recordDetails?.let { objectMapper.writeValueAsString(it) }
       val exists =
         ReconciliationDiscrepanciesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { ReconciliationDiscrepanciesTable.id eq id }
           .limit(1)
           .any()
@@ -511,11 +498,9 @@ class ReconciliationDiscrepancyRepositoryImpl(
     transaction(database) {
       ReconciliationDiscrepanciesTable
         .selectAll()
-        .where {
-          ReconciliationDiscrepanciesTable.activeOnly {
-            (ReconciliationDiscrepanciesTable.taskId eq taskId) and
-              (ReconciliationDiscrepanciesTable.status eq DiscrepancyStatus.UNRESOLVED.name)
-          }
+        .andWhere {
+          (ReconciliationDiscrepanciesTable.taskId eq taskId) and
+            (ReconciliationDiscrepanciesTable.status eq DiscrepancyStatus.UNRESOLVED.name)
         }.count()
     }
 
@@ -523,7 +508,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
     transaction(database) {
       ReconciliationDiscrepanciesTable
         .select(ReconciliationDiscrepanciesTable.discrepancyType, ReconciliationDiscrepanciesTable.id.count())
-        .where { ReconciliationDiscrepanciesTable.activeOnly { ReconciliationDiscrepanciesTable.taskId eq taskId } }
+        .andWhere { ReconciliationDiscrepanciesTable.taskId eq taskId }
         .groupBy(ReconciliationDiscrepanciesTable.discrepancyType)
         .toList()
     }.map { row ->
@@ -537,23 +522,21 @@ class ReconciliationDiscrepancyRepositoryImpl(
     transaction(database) {
       ReconciliationDiscrepanciesTable
         .selectAll()
-        .where {
-          ReconciliationDiscrepanciesTable.activeOnly {
-            (ReconciliationDiscrepanciesTable.createdAt greaterEq startDate) and
-              (ReconciliationDiscrepanciesTable.createdAt lessEq endDate)
-          }
+        .andWhere {
+          (ReconciliationDiscrepanciesTable.createdAt greaterEq startDate) and
+            (ReconciliationDiscrepanciesTable.createdAt lessEq endDate)
         }.orderBy(ReconciliationDiscrepanciesTable.createdAt to SortOrder.DESC)
         .toList()
     }.map(::toModel)
 
   override fun deleteAll(): Int =
     transaction(database) {
-      ReconciliationDiscrepanciesTable.softDeleteWhere { Op.TRUE }
+      ReconciliationDiscrepanciesTable.softDelete { Op.TRUE }
     }
 
   override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int =
     transaction(database) {
-      ReconciliationDiscrepanciesTable.softDeleteWhere {
+      ReconciliationDiscrepanciesTable.softDelete {
         (ReconciliationDiscrepanciesTable.status eq DiscrepancyStatus.RESOLVED.name) and
           (ReconciliationDiscrepanciesTable.resolvedAt less beforeDate)
       }
@@ -569,7 +552,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
       transaction(database) {
         ReconciliationDiscrepanciesTable
           .selectAll()
-          .where { ReconciliationDiscrepanciesTable.activeOnly({ filter }) }
+          .andWhere({ filter })
           .orderBy(ReconciliationDiscrepanciesTable.createdAt to SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
@@ -580,7 +563,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
       transaction(database) {
         ReconciliationDiscrepanciesTable
           .selectAll()
-          .where { ReconciliationDiscrepanciesTable.activeOnly({ filter }) }
+          .andWhere({ filter })
           .count()
       }
     return PageImpl(content, pageable, total)
@@ -600,7 +583,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
     transaction(database) {
       ReconciliationDiscrepanciesTable
         .selectAll()
-        .where { ReconciliationDiscrepanciesTable.activeOnly(where) }
+        .andWhere(where)
         .toList()
     }.map(::toModel)
 

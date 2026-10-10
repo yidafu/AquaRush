@@ -21,7 +21,6 @@ package dev.yidafu.aqua.trade.common.exposed
 
 import dev.yidafu.aqua.common.domain.table.DeliveryAreasTable
 import dev.yidafu.aqua.common.domain.table.DeliveryTrajectoriesTable
-import dev.yidafu.aqua.common.domain.table.selectActive
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
@@ -39,7 +38,7 @@ import java.time.LocalDateTime
  * 1. [TradePgTestSupport.reset] 的 `SchemaUtils.create` 生成的 DDL 在 PG 上可执行(13 张表);
  * 2. 裸表读写往返;
  * 3. `SoftDeletableTable.isDeleted` 的 clientDefault 在 PG 上自动写入 false,
- *    以及 [selectActive] 软删可见性语义。
+ *    以及软删可见性语义(selectAll 自动过滤 / selectAllIncludingDeleted 可见已删行)。
  */
 class TradePgSchemaSmokeTest :
   FunSpec({
@@ -79,16 +78,16 @@ class TradePgSchemaSmokeTest :
           it[createdAt] = now
           it[updatedAt] = now
         }
-        DeliveryAreasTable.selectActive { DeliveryAreasTable.id eq areaId }.count() shouldBe 1
+        DeliveryAreasTable.countActive { DeliveryAreasTable.id eq areaId } shouldBe 1
 
-        // 3) 软删后 selectActive 不可见,裸 select 仍可见(对齐 @SoftDelete 语义)
+        // 3) 软删后默认入口不可见;selectAllIncludingDeleted 仍可见(对齐 @SoftDelete 语义)
         DeliveryAreasTable.update({ DeliveryAreasTable.id eq areaId }) {
           it[isDeleted] = true
           it[deletedAt] = now
         }
-        DeliveryAreasTable.selectActive { DeliveryAreasTable.id eq areaId }.count() shouldBe 0
+        DeliveryAreasTable.countActive { DeliveryAreasTable.id eq areaId } shouldBe 0
         DeliveryAreasTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DeliveryAreasTable.id eq areaId }
           .count() shouldBe 1
       }

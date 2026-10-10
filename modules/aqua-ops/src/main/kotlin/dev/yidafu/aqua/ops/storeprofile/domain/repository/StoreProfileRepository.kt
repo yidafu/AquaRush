@@ -22,9 +22,9 @@ package dev.yidafu.aqua.ops.storeprofile.domain.repository
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import dev.yidafu.aqua.ops.storeprofile.domain.table.StoreProfileTable
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -52,7 +52,7 @@ class StoreProfileRepository(
     transaction(database) {
       StoreProfileTable
         .selectAll()
-        .where { (StoreProfileTable.id eq id) and (StoreProfileTable.isDeleted eq false) }
+        .andWhere { (StoreProfileTable.id eq id) }
         .singleOrNull()
         ?.let(::toModel)
     }.let { Optional.ofNullable(it) }
@@ -65,7 +65,7 @@ class StoreProfileRepository(
           ?: error("StoreProfileModel.id 必须在保存前赋值(单行配置固定 id=${SINGLETON_ID})")
       val exists =
         StoreProfileTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { StoreProfileTable.id eq id }
           .limit(1)
           .any()
@@ -105,7 +105,7 @@ class StoreProfileRepository(
     }
 
   /**
-   * 原生硬删除（绕过软删除）：软删行仍占用 SINGLETON_ID，重新保存会撞主键（测试复位用）。
+   * 软删豁免:原生硬删除（绕过软删除）：软删行仍占用 SINGLETON_ID，重新保存会撞主键（测试复位用）。
    * Exposed 的 `deleteAll` 天然是物理删除，无需再写原生 SQL（见 DeliveryFeeRuleRepository.hardDeleteAll）。
    */
   fun hardDeleteAll() {

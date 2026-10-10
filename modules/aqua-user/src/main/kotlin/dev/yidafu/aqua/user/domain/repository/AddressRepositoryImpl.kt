@@ -34,6 +34,7 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -74,7 +75,7 @@ class AddressRepositoryImpl(
       updatedAt = row[AddressesTable.updatedAt],
     )
 
-  private fun selectAllWhere(condition: () -> Op<Boolean>) = AddressesTable.selectAll().where { AddressesTable.activeOnly(condition) }
+  private fun selectAllWhere(condition: () -> Op<Boolean>) = AddressesTable.selectAll().andWhere(condition)
 
   override fun findById(id: Long): Optional<AddressModel> =
     Optional.ofNullable(
@@ -107,7 +108,7 @@ class AddressRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         AddressesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { AddressesTable.id eq id }
           .limit(1)
           .any()

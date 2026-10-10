@@ -72,6 +72,7 @@ These invariants must always hold — see `claude/architecture.md` for rationale
 10. **禁止数据表的全量查询**: every list/statistics query for an API must paginate + filter; no `findAll()` / unbounded `SELECT` — use batch/cursor for exports and jobs.
 11. React components are functional with TypeScript annotations, never class components.
 12. Every new `.kt` file needs the AGPL copyright header (ktlint `header-rule` is enforced by `./gradlew check`). Add it with `python3 scripts/add-copyright.py --dirs <dir>` (idempotent) or copy an existing header.
+13. **软删查询走入口**:软删表(`SoftDeleteFlagTable`/`SoftDeletableTable`)的 `selectAll()`/`select()` 已自动带 `is_deleted = false`,追加条件用 `andWhere {}`(再 `.where {}` 会抛 `WHERE clause is specified twice`);读已删行只能走 `selectAllIncludingDeleted()`;join/聚合用 `activeOnly {}` 并逐表过滤;软删用 `softDelete {}`。守卫测试 `SoftDeleteQueryConventionTest`。
 
 ## Commits
 

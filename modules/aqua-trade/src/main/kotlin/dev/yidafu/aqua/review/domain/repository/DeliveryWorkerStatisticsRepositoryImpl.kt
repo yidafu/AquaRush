@@ -21,7 +21,6 @@ package dev.yidafu.aqua.review.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import dev.yidafu.aqua.common.domain.table.DeliveryWorkerStatisticsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.Op
@@ -33,6 +32,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -47,7 +47,7 @@ import java.time.LocalDateTime
 
 /**
  * 送水员评价统计仓储实现(JPA→Exposed 迁移 P4,原 QueryDSL 实现整体改写为 Exposed DSL)。
- * 每个查询经 [activeOnly] 过滤 is_deleted(语义对齐 @SoftDelete);
+ * 每个查询经入口 selectAll()/select() 自动过滤 is_deleted(语义对齐 @SoftDelete);
  * count 使用 Exposed `count()`(替代原 QueryDSL 已废弃的 `fetchCount()`);
  * 聚合口径(平均分/计数条件)与原 QueryDSL 逐条对齐。
  *
@@ -80,7 +80,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     transaction(database) {
       DeliveryWorkerStatisticsTable
         .selectAll()
-        .where { DeliveryWorkerStatisticsTable.activeOnly { DeliveryWorkerStatisticsTable.deliveryWorkerId eq deliveryWorkerId } }
+        .andWhere { DeliveryWorkerStatisticsTable.deliveryWorkerId eq deliveryWorkerId }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -91,7 +91,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         DeliveryWorkerStatisticsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DeliveryWorkerStatisticsTable.id eq id }
           .limit(1)
           .any()
@@ -144,7 +144,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
         val content =
           DeliveryWorkerStatisticsTable
             .selectAll()
-            .where { DeliveryWorkerStatisticsTable.activeOnly { condition } }
+            .andWhere { condition }
             .orderBy(
               primarySort,
               DeliveryWorkerStatisticsTable.lastUpdated to SortOrder.DESC,
@@ -153,7 +153,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to DeliveryWorkerStatisticsTable.selectAll().where { DeliveryWorkerStatisticsTable.activeOnly { condition } }.count()
+        content to DeliveryWorkerStatisticsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -203,11 +203,9 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     transaction(database) {
       DeliveryWorkerStatisticsTable
         .selectAll()
-        .where {
-          DeliveryWorkerStatisticsTable.activeOnly {
-            (DeliveryWorkerStatisticsTable.averageRating greaterEq BigDecimal.valueOf(minRating)) and
-              (DeliveryWorkerStatisticsTable.totalReviews greaterEq minReviews)
-          }
+        .andWhere {
+          (DeliveryWorkerStatisticsTable.averageRating greaterEq BigDecimal.valueOf(minRating)) and
+            (DeliveryWorkerStatisticsTable.totalReviews greaterEq minReviews)
         }.count()
     }
 
@@ -216,7 +214,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     return transaction(database) {
       DeliveryWorkerStatisticsTable
         .select(avgExpr)
-        .where { DeliveryWorkerStatisticsTable.activeOnly { DeliveryWorkerStatisticsTable.totalReviews greaterEq minReviews } }
+        .andWhere { DeliveryWorkerStatisticsTable.totalReviews greaterEq minReviews }
         .firstOrNull()
         ?.get(avgExpr)
     }?.toDouble()

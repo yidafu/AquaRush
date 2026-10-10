@@ -28,6 +28,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -216,7 +217,7 @@ class PaymentRepositoryImplTest :
       repo.claimExpired(id, now) shouldBe 1
 
       transaction(db) {
-        val row = PaymentsTable.selectAll().where { PaymentsTable.id eq id }.first()
+        val row = PaymentsTable.selectAll().andWhere { PaymentsTable.id eq id }.first()
         row[PaymentsTable.status] shouldBe PaymentStatus.EXPIRED.name
         row[PaymentsTable.version] shouldBe 1L
         row[PaymentsTable.updatedAt] shouldBe now

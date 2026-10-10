@@ -31,6 +31,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -87,10 +88,6 @@ class DailyReconciliationRepositoryImpl(
     )
   }
 
-  /** 软删过滤条件:`is_deleted = false AND extra`。 */
-  private fun activeWhere(extra: Op<Boolean> = Op.TRUE): Op<Boolean> =
-    DailyReconciliationsTable.isDeleted.eq(false).let { if (extra == Op.TRUE) it else it and extra }
-
   private fun paged(
     extra: Op<Boolean>,
     pageable: Pageable,
@@ -100,14 +97,14 @@ class DailyReconciliationRepositoryImpl(
         val content =
           DailyReconciliationsTable
             .selectAll()
-            .where { activeWhere(extra) }
+            .andWhere { extra }
             // 原 JPA 无序,id 升序破平防跨页重复
             .orderBy(DailyReconciliationsTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to DailyReconciliationsTable.selectAll().where { activeWhere(extra) }.count()
+        content to DailyReconciliationsTable.selectAll().andWhere { extra }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -119,7 +116,7 @@ class DailyReconciliationRepositoryImpl(
       transaction(database) {
         DailyReconciliationsTable
           .selectAll()
-          .where { activeWhere(DailyReconciliationsTable.id eq id) }
+          .andWhere { DailyReconciliationsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -132,7 +129,7 @@ class DailyReconciliationRepositoryImpl(
       val reportDataJson = entity.reportData?.let { objectMapper.writeValueAsString(it) }
       val exists =
         DailyReconciliationsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { DailyReconciliationsTable.id eq id }
           .limit(1)
           .any()
@@ -179,9 +176,7 @@ class DailyReconciliationRepositoryImpl(
   override fun deleteAll() {
     transaction(database) {
       // 对齐 JPA @SoftDelete 的 deleteAll 改写:物理行保留,仅置软删标记
-      DailyReconciliationsTable.update({ DailyReconciliationsTable.isDeleted eq false }) {
-        it[isDeleted] = true
-      }
+      DailyReconciliationsTable.softDelete { Op.TRUE }
     }
   }
 
@@ -189,7 +184,7 @@ class DailyReconciliationRepositoryImpl(
     transaction(database) {
       DailyReconciliationsTable
         .selectAll()
-        .where { activeWhere(DailyReconciliationsTable.reconciliationDate eq reconciliationDate) }
+        .andWhere { DailyReconciliationsTable.reconciliationDate eq reconciliationDate }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -201,11 +196,9 @@ class DailyReconciliationRepositoryImpl(
     transaction(database) {
       DailyReconciliationsTable
         .selectAll()
-        .where {
-          activeWhere(
-            (DailyReconciliationsTable.reconciliationDate greaterEq startDate) and
-              (DailyReconciliationsTable.reconciliationDate lessEq endDate),
-          )
+        .andWhere {
+          (DailyReconciliationsTable.reconciliationDate greaterEq startDate) and
+            (DailyReconciliationsTable.reconciliationDate lessEq endDate)
         }.orderBy(DailyReconciliationsTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)

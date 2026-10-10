@@ -22,7 +22,6 @@ package dev.yidafu.aqua.marketing.coupon.domain.repository
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.table.CouponTemplatesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -33,6 +32,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -87,7 +87,7 @@ class CouponTemplateRepositoryImpl(
     transaction(database) {
       CouponTemplatesTable
         .selectAll()
-        .where { CouponTemplatesTable.activeOnly { CouponTemplatesTable.name eq name } }
+        .andWhere { CouponTemplatesTable.name eq name }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -96,7 +96,7 @@ class CouponTemplateRepositoryImpl(
     transaction(database) {
       CouponTemplatesTable
         .selectAll()
-        .where { CouponTemplatesTable.activeOnly { CouponTemplatesTable.status eq status.name } }
+        .andWhere { CouponTemplatesTable.status eq status.name }
         .orderBy(CouponTemplatesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -106,7 +106,7 @@ class CouponTemplateRepositoryImpl(
       transaction(database) {
         CouponTemplatesTable
           .selectAll()
-          .where { CouponTemplatesTable.activeOnly { CouponTemplatesTable.id eq id } }
+          .andWhere { CouponTemplatesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -117,7 +117,7 @@ class CouponTemplateRepositoryImpl(
     return transaction(database) {
       CouponTemplatesTable
         .selectAll()
-        .where { CouponTemplatesTable.activeOnly { CouponTemplatesTable.id inList ids } }
+        .andWhere { CouponTemplatesTable.id inList ids }
         .orderBy(CouponTemplatesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -138,14 +138,14 @@ class CouponTemplateRepositoryImpl(
         val content =
           CouponTemplatesTable
             .selectAll()
-            .where { CouponTemplatesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(CouponTemplatesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to CouponTemplatesTable.selectAll().where { CouponTemplatesTable.activeOnly { condition } }.count()
+        content to CouponTemplatesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -156,7 +156,7 @@ class CouponTemplateRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         CouponTemplatesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { CouponTemplatesTable.id eq id }
           .limit(1)
           .any()

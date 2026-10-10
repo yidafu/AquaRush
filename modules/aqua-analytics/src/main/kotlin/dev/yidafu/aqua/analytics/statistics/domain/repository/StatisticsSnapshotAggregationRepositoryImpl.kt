@@ -56,6 +56,7 @@ import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -83,7 +84,7 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(OrdersTable.status, OrdersTable.deliveryWorkerId, orderCount, amountSum)
-          .where { OrdersTable.activeOnly { OrdersTable.createdAt greaterEq window.start and (OrdersTable.createdAt less window.end) } }
+          .andWhere { OrdersTable.createdAt greaterEq window.start and (OrdersTable.createdAt less window.end) }
           .groupBy(OrdersTable.status, OrdersTable.deliveryWorkerId)
           .toList()
           .associate { row ->
@@ -162,7 +163,7 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         UsersTable
           .select(UsersTable.id.count())
-          .where { UsersTable.activeOnly { UsersTable.createdAt greaterEq window.start and (UsersTable.createdAt less window.end) } }
+          .andWhere { UsersTable.createdAt greaterEq window.start and (UsersTable.createdAt less window.end) }
           .first()[UsersTable.id.count()]
       }
     val loginUserCount =
@@ -185,10 +186,8 @@ class StatisticsSnapshotAggregationRepositoryImpl(
     return transaction(database) {
       PaymentRefundsTable
         .select(PaymentRefundsTable.status, PaymentRefundsTable.refundType, refundCount, amountSum)
-        .where {
-          PaymentRefundsTable.activeOnly {
-            PaymentRefundsTable.processedAt greaterEq window.start and (PaymentRefundsTable.processedAt less window.end)
-          }
+        .andWhere {
+          PaymentRefundsTable.processedAt greaterEq window.start and (PaymentRefundsTable.processedAt less window.end)
         }.groupBy(PaymentRefundsTable.status, PaymentRefundsTable.refundType)
         .toList()
         .map { row ->
@@ -216,12 +215,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(orderCount, amountSum)
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status eq "COMPLETED") and
-              (OrdersTable.completedAt greaterEq window.start) and
-              (OrdersTable.completedAt less window.end)
-          }
+        .andWhere {
+          (OrdersTable.status eq "COMPLETED") and
+            (OrdersTable.completedAt greaterEq window.start) and
+            (OrdersTable.completedAt less window.end)
         }.toList()
         .map { row ->
           DailyRevenueFactModel(statDate = date, orderCount = row[orderCount], amountCents = row.longOf(amountSum))
@@ -279,16 +276,14 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(orderDate, distinctOrders, couponSum, promotionSum, firstOrderSum)
-          .where {
-            OrdersTable.activeOnly {
-              (OrdersTable.createdAt greaterEq window.start) and
-                (OrdersTable.createdAt less window.end) and
-                (
-                  OrdersTable.couponDiscountCents greater 0L or
-                    (OrdersTable.promotionDiscountCents greater 0L) or
-                    (OrdersTable.firstOrderDiscountCents greater 0L)
-                )
-            }
+          .andWhere {
+            (OrdersTable.createdAt greaterEq window.start) and
+              (OrdersTable.createdAt less window.end) and
+              (
+                OrdersTable.couponDiscountCents greater 0L or
+                  (OrdersTable.promotionDiscountCents greater 0L) or
+                  (OrdersTable.firstOrderDiscountCents greater 0L)
+              )
           }.groupBy(orderDate)
           .toList()
           .associate { row ->
@@ -302,12 +297,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         UserCouponsTable
           .select(couponDate, couponCount)
-          .where {
-            UserCouponsTable.activeOnly {
-              (UserCouponsTable.status eq UserCouponStatus.USED.name) and
-                (UserCouponsTable.usedAt greaterEq window.start) and
-                (UserCouponsTable.usedAt less window.end)
-            }
+          .andWhere {
+            (UserCouponsTable.status eq UserCouponStatus.USED.name) and
+              (UserCouponsTable.usedAt greaterEq window.start) and
+              (UserCouponsTable.usedAt less window.end)
           }.groupBy(couponDate)
           .toList()
           .associate { row -> row[couponDate]!!.toLocalDate() to row[couponCount] }
@@ -318,12 +311,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         TicketPurchasesTable
           .select(paidDate, salesCount, salesRevenue)
-          .where {
-            TicketPurchasesTable.activeOnly {
-              (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
-                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
-                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
-            }
+          .andWhere {
+            (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
+              (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
+              (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
           }.groupBy(paidDate)
           .toList()
           .associate { row -> row[paidDate]!!.toLocalDate() to SalesAgg(row.longOf(salesCount), row.longOf(salesRevenue)) }
@@ -334,12 +325,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         UserTicketsTable
           .select(ticketUsedDate, redeemedCount)
-          .where {
-            UserTicketsTable.activeOnly {
-              (UserTicketsTable.status eq UserTicketStatus.USED.name) and
-                (UserTicketsTable.usedAt greaterEq window.start) and
-                (UserTicketsTable.usedAt less window.end)
-            }
+          .andWhere {
+            (UserTicketsTable.status eq UserTicketStatus.USED.name) and
+              (UserTicketsTable.usedAt greaterEq window.start) and
+              (UserTicketsTable.usedAt less window.end)
           }.groupBy(ticketUsedDate)
           .toList()
           .associate { row -> row[ticketUsedDate]!!.toLocalDate() to row[redeemedCount] }
@@ -433,12 +422,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         UserCouponsTable
           .select(couponUsedDate, UserCouponsTable.couponTemplateId, couponCount)
-          .where {
-            UserCouponsTable.activeOnly {
-              (UserCouponsTable.status eq UserCouponStatus.USED.name) and
-                (UserCouponsTable.usedAt greaterEq window.start) and
-                (UserCouponsTable.usedAt less window.end)
-            }
+          .andWhere {
+            (UserCouponsTable.status eq UserCouponStatus.USED.name) and
+              (UserCouponsTable.usedAt greaterEq window.start) and
+              (UserCouponsTable.usedAt less window.end)
           }.groupBy(couponUsedDate, UserCouponsTable.couponTemplateId)
           .toList()
           .mapNotNull { row ->
@@ -510,12 +497,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         TicketPurchasesTable
           .select(paidDate, TicketPurchasesTable.ticketTypeId, salesCount, salesRevenue)
-          .where {
-            TicketPurchasesTable.activeOnly {
-              (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
-                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
-                (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
-            }
+          .andWhere {
+            (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PAID.name) and
+              (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) greaterEq window.start) and
+              (coalesce(TicketPurchasesTable.paidAt, TicketPurchasesTable.createdAt) less window.end)
           }.groupBy(paidDate, TicketPurchasesTable.ticketTypeId)
           .toList()
           .mapNotNull { row ->
@@ -528,12 +513,10 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         UserTicketsTable
           .select(ticketUsedDate, UserTicketsTable.ticketTypeId, redeemedCount)
-          .where {
-            UserTicketsTable.activeOnly {
-              (UserTicketsTable.status eq UserTicketStatus.USED.name) and
-                (UserTicketsTable.usedAt greaterEq window.start) and
-                (UserTicketsTable.usedAt less window.end)
-            }
+          .andWhere {
+            (UserTicketsTable.status eq UserTicketStatus.USED.name) and
+              (UserTicketsTable.usedAt greaterEq window.start) and
+              (UserTicketsTable.usedAt less window.end)
           }.groupBy(ticketUsedDate, UserTicketsTable.ticketTypeId)
           .toList()
           .mapNotNull { row ->
@@ -578,13 +561,11 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(orderDate, activityIdColumn, distinctOrders, discountSum)
-          .where {
-            OrdersTable.activeOnly {
-              (OrdersTable.createdAt greaterEq window.start) and
-                (OrdersTable.createdAt less window.end) and
-                activityIdColumn.isNotNull() and
-                (discountColumn greater 0L)
-            }
+          .andWhere {
+            (OrdersTable.createdAt greaterEq window.start) and
+              (OrdersTable.createdAt less window.end) and
+              activityIdColumn.isNotNull() and
+              (discountColumn greater 0L)
           }.groupBy(orderDate, activityIdColumn)
           .toList()
           .mapNotNull { row ->
@@ -610,11 +591,11 @@ class StatisticsSnapshotAggregationRepositoryImpl(
   override fun findEarliestSourceDate(): LocalDate? {
     val orderEarliest =
       transaction(database) {
-        OrdersTable.select(OrdersTable.createdAt.min()).where { OrdersTable.activeOnly() }.first()[OrdersTable.createdAt.min()]
+        OrdersTable.select(OrdersTable.createdAt.min()).first()[OrdersTable.createdAt.min()]
       }
     val userEarliest =
       transaction(database) {
-        UsersTable.select(UsersTable.createdAt.min()).where { UsersTable.activeOnly() }.first()[UsersTable.createdAt.min()]
+        UsersTable.select(UsersTable.createdAt.min()).first()[UsersTable.createdAt.min()]
       }
     val loginEarliest =
       transaction(database) {
@@ -624,9 +605,7 @@ class StatisticsSnapshotAggregationRepositoryImpl(
       transaction(database) {
         PaymentRefundsTable
           .select(PaymentRefundsTable.processedAt.min())
-          .where {
-            PaymentRefundsTable.activeOnly()
-          }.first()[PaymentRefundsTable.processedAt.min()]
+          .first()[PaymentRefundsTable.processedAt.min()]
       }
 
     val candidates: List<LocalDateTime> =

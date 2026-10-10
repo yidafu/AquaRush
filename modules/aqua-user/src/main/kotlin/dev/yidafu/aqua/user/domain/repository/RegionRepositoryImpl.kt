@@ -21,7 +21,6 @@ package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.table.RegionsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -30,6 +29,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -53,7 +53,7 @@ class RegionRepositoryImpl(
       updatedAt = row[RegionsTable.updatedAt],
     )
 
-  private fun selectAllWhere(condition: () -> Op<Boolean>) = RegionsTable.selectAll().where { RegionsTable.activeOnly(condition) }
+  private fun selectAllWhere(condition: () -> Op<Boolean>) = RegionsTable.selectAll().andWhere(condition)
 
   override fun findRootRegions(level: Int): List<RegionModel> =
     transaction(database) {
@@ -143,7 +143,7 @@ class RegionRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         RegionsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { RegionsTable.id eq id }
           .limit(1)
           .any()

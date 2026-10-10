@@ -21,12 +21,12 @@ package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.table.OrderItemsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -61,7 +61,7 @@ class OrderItemRepositoryImpl(
     transaction(database) {
       OrderItemsTable
         .selectAll()
-        .where { OrderItemsTable.activeOnly { OrderItemsTable.orderId eq orderId } }
+        .andWhere { OrderItemsTable.orderId eq orderId }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrderItemsTable.id to SortOrder.ASC)
         .toList()
@@ -71,7 +71,7 @@ class OrderItemRepositoryImpl(
     transaction(database) {
       OrderItemsTable
         .selectAll()
-        .where { OrderItemsTable.activeOnly { OrderItemsTable.productId eq productId } }
+        .andWhere { OrderItemsTable.productId eq productId }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrderItemsTable.id to SortOrder.ASC)
         .toList()
@@ -85,7 +85,7 @@ class OrderItemRepositoryImpl(
         val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
         val exists =
           OrderItemsTable
-            .selectAll()
+            .selectAllIncludingDeleted()
             .where { OrderItemsTable.id eq id }
             .limit(1)
             .any()

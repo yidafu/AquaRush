@@ -57,6 +57,7 @@ import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -75,7 +76,7 @@ import java.util.Optional
  * 订单仓储实现(JPA→Exposed 迁移 P4:原 957 行 QueryDSL 实现整体重写为 Exposed DSL)。
  *
  * 口径约定(与原实现逐方法对照):
- * - 读侧一律 activeOnly 过滤 is_deleted(等价原 JPA @SoftDelete 附加谓词);
+ * - 读侧入口(selectAll/select)一律自动过滤 is_deleted(等价原 JPA @SoftDelete 附加谓词);
  * - 枚举列存 .name、读 valueOf;金额 Long 分;
  * - 分页 count 与 content 同一事务;业务排序 + id 破平(原 JPA 无序处已在 KDoc 注明);
  * - 「已送达」口径锚点 = COALESCE(delivery_confirmed_at, completed_at),状态含
@@ -177,14 +178,14 @@ class OrderRepositoryImpl(
   }
 
   // ========================================================================
-  // OrderRepository(简单派生查询,全部 activeOnly 过滤软删)
+  // OrderRepository(简单派生查询,入口 selectAll() 自动过滤软删)
   // ========================================================================
 
   override fun findByOrderNo(orderNo: String): OrderModel? =
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.orderNo eq orderNo } }
+        .andWhere { OrdersTable.orderNo eq orderNo }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -196,11 +197,8 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.userId eq userId) and (OrdersTable.clientRequestId eq clientRequestId)
-          }
-        }.limit(1)
+        .andWhere { (OrdersTable.userId eq userId) and (OrdersTable.clientRequestId eq clientRequestId) }
+        .limit(1)
         .firstOrNull()
     }?.let(::toModel)
 
@@ -208,7 +206,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.userId eq userId } }
+        .andWhere { OrdersTable.userId eq userId }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
@@ -221,11 +219,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name)
-          }
-        }
+        .andWhere { (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name) }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
@@ -238,11 +232,8 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name)
-          }
-        }.limit(1)
+        .andWhere { (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name) }
+        .limit(1)
         .any()
     }
 
@@ -250,7 +241,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        .andWhere { OrdersTable.status eq status.name }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
@@ -260,7 +251,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        .andWhere { OrdersTable.status eq status.name }
         .orderBy(OrdersTable.createdAt to SortOrder.ASC, OrdersTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -271,20 +262,17 @@ class OrderRepositoryImpl(
     pageable: Pageable,
   ): Page<OrderModel> =
     transaction(database) {
-      val condition =
-        OrdersTable.activeOnly {
-          (OrdersTable.status eq status.name) and (OrdersTable.deliveryStartedAt less before)
-        }
+      val condition = (OrdersTable.status eq status.name) and (OrdersTable.deliveryStartedAt less before)
       val content =
         OrdersTable
           .selectAll()
-          .where { condition }
+          .andWhere { condition }
           .orderBy(*pageableOrderings(pageable).toTypedArray())
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { condition }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
 
   override fun findByStatusAndDeliveryConfirmedAtBefore(
@@ -293,27 +281,24 @@ class OrderRepositoryImpl(
     pageable: Pageable,
   ): Page<OrderModel> =
     transaction(database) {
-      val condition =
-        OrdersTable.activeOnly {
-          (OrdersTable.status eq status.name) and (OrdersTable.deliveryConfirmedAt less before)
-        }
+      val condition = (OrdersTable.status eq status.name) and (OrdersTable.deliveryConfirmedAt less before)
       val content =
         OrdersTable
           .selectAll()
-          .where { condition }
+          .andWhere { condition }
           .orderBy(*pageableOrderings(pageable).toTypedArray())
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { condition }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
 
   override fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel> =
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.deliveryWorkerId eq deliveryWorkerId } }
+        .andWhere { OrdersTable.deliveryWorkerId eq deliveryWorkerId }
         .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -322,7 +307,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.addressId eq addressId } }
+        .andWhere { OrdersTable.addressId eq addressId }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
@@ -332,7 +317,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        .andWhere { OrdersTable.status eq status.name }
         .count()
     }
 
@@ -341,7 +326,7 @@ class OrderRepositoryImpl(
       transaction(database) {
         OrdersTable
           .selectAll()
-          .where { OrdersTable.activeOnly { OrdersTable.id eq id } }
+          .andWhere { OrdersTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -351,7 +336,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { OrdersTable.id inList ids } }
+        .andWhere { OrdersTable.id inList ids }
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -361,7 +346,7 @@ class OrderRepositoryImpl(
       val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
       val exists =
         OrdersTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { OrdersTable.id eq id }
           .limit(1)
           .any()
@@ -517,18 +502,16 @@ class OrderRepositoryImpl(
     val pageable = PageRequest.of(page, size, springSort)
 
     return transaction(database) {
-      // activeOnly 内部含 Expression.equals(→toString→需方言上下文),必须在事务内构造
-      val whereOp = OrdersTable.activeOnly { condition }
       val content =
         OrdersTable
           .selectAll()
-          .where { whereOp }
+          .andWhere { condition }
           .orderBy(sortColumn to direction, OrdersTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { whereOp }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
@@ -545,17 +528,16 @@ class OrderRepositoryImpl(
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
 
     return transaction(database) {
-      val whereOp = OrdersTable.activeOnly { condition }
       val content =
         OrdersTable
           .selectAll()
-          .where { whereOp }
+          .andWhere { condition }
           .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { whereOp }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
@@ -573,17 +555,16 @@ class OrderRepositoryImpl(
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
 
     return transaction(database) {
-      val whereOp = OrdersTable.activeOnly { condition }
       val content =
         OrdersTable
           .selectAll()
-          .where { whereOp }
+          .andWhere { condition }
           .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { whereOp }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
@@ -599,18 +580,18 @@ class OrderRepositoryImpl(
       val sumExpr = OrdersTable.totalAmountCents.sum()
       OrdersTable
         .select(sumExpr)
-        .where { OrdersTable.activeOnly { buildCondition() } }
+        .andWhere { buildCondition() }
         .firstOrNull()
         ?.longOf(sumExpr)
         ?: 0L
     }
 
-  /** 计数:COUNT(*),activeOnly 过滤软删;条件构造在事务内。 */
+  /** 计数:COUNT(*),入口 selectAll() 自动过滤软删;条件构造在事务内。 */
   private fun countWhere(buildCondition: () -> Op<Boolean>): Long =
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where { OrdersTable.activeOnly { buildCondition() } }
+        .andWhere { buildCondition() }
         .count()
     }
 
@@ -697,12 +678,12 @@ class OrderRepositoryImpl(
       val total =
         OrdersTable
           .selectAll()
-          .where { OrdersTable.activeOnly { condition } }
+          .andWhere { condition }
           .count()
       val content =
         OrdersTable
           .selectAll()
-          .where { OrdersTable.activeOnly { condition } }
+          .andWhere { condition }
           // 与原实现一致:送达时间升序、id 降序破平
           .orderBy(DeliveredAtExpr() to SortOrder.ASC, OrdersTable.id to SortOrder.DESC)
           .offset(pageable.offset)
@@ -718,7 +699,7 @@ class OrderRepositoryImpl(
     return transaction(database) {
       OrdersTable
         .select(OrdersTable.status, statusCount)
-        .where { OrdersTable.activeOnly { OrdersTable.userId eq userId } }
+        .andWhere { OrdersTable.userId eq userId }
         .groupBy(OrdersTable.status)
         .toList()
         .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
@@ -804,11 +785,7 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.createdAt greater startDate) and (OrdersTable.createdAt less endDate)
-          }
-        }
+        .andWhere { (OrdersTable.createdAt greater startDate) and (OrdersTable.createdAt less endDate) }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
         .toList()
@@ -822,12 +799,10 @@ class OrderRepositoryImpl(
     transaction(database) {
       OrdersTable
         .selectAll()
-        .where {
-          OrdersTable.activeOnly {
-            (OrdersTable.status inList statuses.map { it.name }) and
-              (OrdersTable.createdAt greater startDate) and
-              (OrdersTable.createdAt less endDate)
-          }
+        .andWhere {
+          (OrdersTable.status inList statuses.map { it.name }) and
+            (OrdersTable.createdAt greater startDate) and
+            (OrdersTable.createdAt less endDate)
         }
         // 原 JPA 无序,按 id 升序破平
         .orderBy(OrdersTable.id to SortOrder.ASC)
@@ -853,7 +828,7 @@ class OrderRepositoryImpl(
         OrdersTable.couponId inSubQuery
           UserCouponsTable
             .select(UserCouponsTable.id)
-            .where { UserCouponsTable.activeOnly { UserCouponsTable.couponTemplateId eq criteria.refId } }
+            .andWhere { UserCouponsTable.couponTemplateId eq criteria.refId }
 
       MarketingUsageKind.GIFT_ACTIVITY ->
         OrdersTable.id inSubQuery
@@ -873,11 +848,9 @@ class OrderRepositoryImpl(
             OrdersTable.id inSubQuery
               OrderItemsTable
                 .select(OrderItemsTable.orderId)
-                .where {
-                  OrderItemsTable.activeOnly {
-                    (OrderItemsTable.productId eq productId) and
-                      (OrderItemsTable.unitPriceCents eq unitPriceCents)
-                  }
+                .andWhere {
+                  (OrderItemsTable.productId eq productId) and
+                    (OrderItemsTable.unitPriceCents eq unitPriceCents)
                 }
           )
       }
@@ -890,18 +863,18 @@ class OrderRepositoryImpl(
   ): Page<OrderModel> {
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
     return transaction(database) {
-      // marketingUsageCondition 含子查询 activeOnly(需事务上下文),在事务内构造
+      // marketingUsageCondition 含子查询(需事务上下文),在事务内构造
       val condition = marketingUsageCondition(criteria)
       val content =
         OrdersTable
           .selectAll()
-          .where { OrdersTable.activeOnly { condition } }
+          .andWhere { condition }
           .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      content to OrdersTable.selectAll().where { OrdersTable.activeOnly { condition } }.count()
+      content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
@@ -916,7 +889,7 @@ class OrderRepositoryImpl(
       val sumExpr = amountColumn.sum()
       OrdersTable
         .select(sumExpr)
-        .where { OrdersTable.activeOnly { buildCondition() } }
+        .andWhere { buildCondition() }
         .firstOrNull()
         ?.longOf(sumExpr)
         ?: 0L
@@ -973,21 +946,15 @@ class OrderRepositoryImpl(
         transaction(database) {
           OrderItemsTable
             .select(OrderItemsTable.productId, OrderItemsTable.unitPriceCents, quantitySum)
-            .where {
-              OrderItemsTable.activeOnly {
-                (OrderItemsTable.productId eq productId) and
-                  (OrderItemsTable.unitPriceCents eq unitPriceCents) and
-                  (
-                    OrderItemsTable.orderId inSubQuery
-                      OrdersTable
-                        .select(OrdersTable.id)
-                        .where {
-                          OrdersTable.activeOnly {
-                            (OrdersTable.createdAt greaterEq validFrom) and (OrdersTable.createdAt less validTo)
-                          }
-                        }
-                  )
-              }
+            .andWhere {
+              (OrderItemsTable.productId eq productId) and
+                (OrderItemsTable.unitPriceCents eq unitPriceCents) and
+                (
+                  OrderItemsTable.orderId inSubQuery
+                    OrdersTable
+                      .select(OrdersTable.id)
+                      .andWhere { (OrdersTable.createdAt greaterEq validFrom) and (OrdersTable.createdAt less validTo) }
+                )
             }.groupBy(OrderItemsTable.productId, OrderItemsTable.unitPriceCents)
             .toList()
             .map { row ->

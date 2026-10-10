@@ -30,6 +30,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.data.domain.PageRequest
@@ -134,13 +135,13 @@ class BarrelFeeRepositoryImplTest :
 
       val row =
         transaction(MarketingPgTestSupport.database) {
-          BarrelFeesTable.selectAll().where { BarrelFeesTable.id eq id }.single()
+          BarrelFeesTable.selectAll().andWhere { BarrelFeesTable.id eq id }.single()
         }
       row[BarrelFeesTable.createdAt] shouldBe created
       (row[BarrelFeesTable.updatedAt] > created) shouldBe true
     }
 
-    test("save 对已软删行仍可更新(存在判定用非 activeOnly)") {
+    test("save 对已软删行仍可更新(存在判定用 selectAllIncludingDeleted)") {
       val id = MarketingPgTestSupport.barrelFee(specification = "已删", deleted = true)
       val loaded = repo.findById(id).orElse(null)
       // findById 过滤软删 → 不可见;直接构造实体按 id 更新
@@ -150,7 +151,7 @@ class BarrelFeeRepositoryImplTest :
       // 行仍软删,更新分支命中(不会插入重复行)
       val row =
         transaction(MarketingPgTestSupport.database) {
-          BarrelFeesTable.selectAll().where { BarrelFeesTable.id eq id }.single()
+          BarrelFeesTable.selectAllIncludingDeleted().where { BarrelFeesTable.id eq id }.single()
         }
       row[BarrelFeesTable.isDeleted] shouldBe true
       row[BarrelFeesTable.priceCents] shouldBe 1L

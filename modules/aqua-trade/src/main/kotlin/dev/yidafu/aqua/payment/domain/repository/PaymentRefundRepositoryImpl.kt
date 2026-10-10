@@ -21,7 +21,6 @@ package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
@@ -39,6 +38,7 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.sum
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -85,23 +85,21 @@ class PaymentRefundRepositoryImpl(
       deletedBy = row[PaymentRefundsTable.deletedBy],
     )
 
-  /** 聚合/对账窗口条件(原 buildWhereClause):processed_at 闭区间 + COMPLETED + 未软删。 */
+  /** 聚合/对账窗口条件(原 buildWhereClause):processed_at 闭区间 + COMPLETED;软删由查询入口过滤。 */
   private fun completedInWindow(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Op<Boolean> =
-    PaymentRefundsTable.activeOnly {
-      (PaymentRefundsTable.status eq RefundStatus.COMPLETED.name) and
-        (PaymentRefundsTable.processedAt greaterEq startDate) and
-        (PaymentRefundsTable.processedAt lessEq endDate)
-    }
+    (PaymentRefundsTable.status eq RefundStatus.COMPLETED.name) and
+      (PaymentRefundsTable.processedAt greaterEq startDate) and
+      (PaymentRefundsTable.processedAt lessEq endDate)
 
   override fun findById(id: Long): Optional<PaymentRefundModel> =
     Optional.ofNullable(
       transaction(database) {
         PaymentRefundsTable
           .selectAll()
-          .where { PaymentRefundsTable.activeOnly { PaymentRefundsTable.id eq id } }
+          .andWhere { PaymentRefundsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -112,7 +110,7 @@ class PaymentRefundRepositoryImpl(
       val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
       val exists =
         PaymentRefundsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { PaymentRefundsTable.id eq id }
           .limit(1)
           .any()
@@ -168,7 +166,7 @@ class PaymentRefundRepositoryImpl(
     return transaction(database) {
       PaymentRefundsTable
         .select(amountSum)
-        .where { completedInWindow(startDate, endDate) }
+        .andWhere { completedInWindow(startDate, endDate) }
         .first()
         .longOf(amountSum)
     }
@@ -184,7 +182,7 @@ class PaymentRefundRepositoryImpl(
     return transaction(database) {
       PaymentRefundsTable
         .select(dayExpr, amountSum)
-        .where { completedInWindow(startDate, endDate) }
+        .andWhere { completedInWindow(startDate, endDate) }
         .groupBy(dayExpr)
         .toList()
         .associate { row -> row[dayExpr].toLocalDate() to row.longOf(amountSum) }
@@ -209,14 +207,14 @@ class PaymentRefundRepositoryImpl(
         val content =
           PaymentRefundsTable
             .selectAll()
-            .where { PaymentRefundsTable.activeOnly { condition } }
+            .andWhere { condition }
             // 创建时间倒序(同原 Pageable 语义),id 破平防跨页重复
             .orderBy(PaymentRefundsTable.createdAt to SortOrder.DESC, PaymentRefundsTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to PaymentRefundsTable.selectAll().where { PaymentRefundsTable.activeOnly { condition } }.count()
+        content to PaymentRefundsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -231,19 +229,18 @@ class PaymentRefundRepositoryImpl(
 
     val (content, total) =
       transaction(database) {
-        // activeOnly 依赖事务上下文,条件必须在事务内构造
         val condition = completedInWindow(startDate, endDate)
         val content =
           PaymentRefundsTable
             .selectAll()
-            .where { condition }
+            .andWhere { condition }
             // 退款成功时间倒序(与原 QueryDSL 一致),id 破平防跨页重复
             .orderBy(PaymentRefundsTable.processedAt to SortOrder.DESC, PaymentRefundsTable.id to SortOrder.DESC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to PaymentRefundsTable.selectAll().where { condition }.count()
+        content to PaymentRefundsTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }

@@ -28,6 +28,7 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -65,11 +66,9 @@ class GroupProductPriceRepositoryImpl(
     transaction(database) {
       GroupProductPricesTable
         .selectAll()
-        .where {
-          GroupProductPricesTable.activeOnly {
-            (GroupProductPricesTable.customerGroupId eq groupId) and
-              (GroupProductPricesTable.productId eq productId)
-          }
+        .andWhere {
+          (GroupProductPricesTable.customerGroupId eq groupId) and
+            (GroupProductPricesTable.productId eq productId)
         }.limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -78,7 +77,7 @@ class GroupProductPriceRepositoryImpl(
     transaction(database) {
       GroupProductPricesTable
         .selectAll()
-        .where { GroupProductPricesTable.activeOnly { GroupProductPricesTable.customerGroupId eq groupId } }
+        .andWhere { GroupProductPricesTable.customerGroupId eq groupId }
         .orderBy(GroupProductPricesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -94,14 +93,14 @@ class GroupProductPriceRepositoryImpl(
         val content =
           GroupProductPricesTable
             .selectAll()
-            .where { GroupProductPricesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(GroupProductPricesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to GroupProductPricesTable.selectAll().where { GroupProductPricesTable.activeOnly { condition } }.count()
+        content to GroupProductPricesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -133,13 +132,14 @@ class GroupProductPriceRepositoryImpl(
       val existingRow =
         if (entity.id != null) {
           GroupProductPricesTable
-            .selectAll()
+            .selectAllIncludingDeleted()
             .where { GroupProductPricesTable.id eq entity.id!! }
             .limit(1)
             .firstOrNull()
         } else {
+          // 业务键可能命中已软删行(命中即复活),存在性判定必须含已删行
           GroupProductPricesTable
-            .selectAll()
+            .selectAllIncludingDeleted()
             .where {
               (GroupProductPricesTable.customerGroupId eq entity.customerGroupId) and
                 (GroupProductPricesTable.productId eq entity.productId)

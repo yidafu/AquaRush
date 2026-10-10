@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.table.AdminsTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -35,6 +34,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -81,7 +81,7 @@ class AdminRepositoryImpl(
       transaction(database) {
         AdminsTable
           .selectAll()
-          .where { AdminsTable.activeOnly { AdminsTable.id eq id } }
+          .andWhere { AdminsTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -89,7 +89,7 @@ class AdminRepositoryImpl(
 
   override fun existsById(id: Long): Boolean = findById(id).isPresent
 
-  override fun count(): Long = transaction(database) { AdminsTable.selectAll().where { AdminsTable.activeOnly() }.count() }
+  override fun count(): Long = transaction(database) { AdminsTable.selectAll().count() }
 
   override fun deleteById(id: Long) {
     transaction(database) {
@@ -118,7 +118,7 @@ class AdminRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         AdminsTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { AdminsTable.id eq id }
           .limit(1)
           .any()
@@ -176,7 +176,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.username eq username } }
+        .andWhere { AdminsTable.username eq username }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -185,7 +185,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.userId eq userId } }
+        .andWhere { AdminsTable.userId eq userId }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -197,11 +197,8 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where {
-          AdminsTable.activeOnly {
-            (AdminsTable.username eq username) and (AdminsTable.role eq role.name)
-          }
-        }.limit(1)
+        .andWhere { (AdminsTable.username eq username) and (AdminsTable.role eq role.name) }
+        .limit(1)
         .firstOrNull()
     }?.let(::toModel)
 
@@ -209,7 +206,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.phone eq phone } }
+        .andWhere { AdminsTable.phone eq phone }
         .limit(1)
         .firstOrNull()
     }?.let(::toModel)
@@ -218,7 +215,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.role eq role.name } }
+        .andWhere { AdminsTable.role eq role.name }
         .toList()
     }.map(::toModel)
 
@@ -244,13 +241,13 @@ class AdminRepositoryImpl(
       val content =
         AdminsTable
           .selectAll()
-          .where { AdminsTable.activeOnly(condition) }
+          .andWhere(condition)
           .orderBy(AdminsTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      val total = AdminsTable.selectAll().where { AdminsTable.activeOnly(condition) }.count()
+      val total = AdminsTable.selectAll().andWhere(condition).count()
       PageImpl(content, pageable, total)
     }
   }
@@ -263,7 +260,7 @@ class AdminRepositoryImpl(
     return transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.role inList roles.map { it.name } } }
+        .andWhere { AdminsTable.role inList roles.map { it.name } }
         .orderBy(AdminsTable.id to SortOrder.ASC)
         .limit(limit)
         .toList()
@@ -275,7 +272,7 @@ class AdminRepositoryImpl(
     return transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.role inList roles.map { it.name } } }
+        .andWhere { AdminsTable.role inList roles.map { it.name } }
         .count()
     }
   }
@@ -287,7 +284,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.onlineStatus eq status.name } }
+        .andWhere { AdminsTable.onlineStatus eq status.name }
         .orderBy(AdminsTable.id to SortOrder.ASC)
         .limit(limit)
         .toList()
@@ -297,7 +294,7 @@ class AdminRepositoryImpl(
     transaction(database) {
       AdminsTable
         .selectAll()
-        .where { AdminsTable.activeOnly { AdminsTable.role eq role.name } }
+        .andWhere { AdminsTable.role eq role.name }
         .count()
     }
 
@@ -327,13 +324,13 @@ class AdminRepositoryImpl(
       val content =
         AdminsTable
           .selectAll()
-          .where { AdminsTable.activeOnly(condition) }
+          .andWhere(condition)
           .orderBy(AdminsTable.id to SortOrder.ASC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
           .map(::toModel)
-      val total = AdminsTable.selectAll().where { AdminsTable.activeOnly(condition) }.count()
+      val total = AdminsTable.selectAll().andWhere(condition).count()
       PageImpl(content, pageable, total)
     }
 

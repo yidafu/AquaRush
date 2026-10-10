@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.domain.model.enums.NoticeType
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.ops.common.exposed.pageQuery
 import dev.yidafu.aqua.ops.notice.domain.table.NoticeTable
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -36,6 +37,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -71,11 +73,10 @@ class NoticeRepository(
     transaction(database) {
       NoticeTable
         .selectAll()
-        .where {
+        .andWhere {
           (NoticeTable.status eq NoticeStatus.PUBLISHED) and
             (NoticeTable.startAt.isNull() or NoticeTable.startAt.lessEq(now)) and
-            (NoticeTable.endAt.isNull() or NoticeTable.endAt.greaterEq(now)) and
-            (NoticeTable.isDeleted eq false)
+            (NoticeTable.endAt.isNull() or NoticeTable.endAt.greaterEq(now))
         }.orderBy(
           NoticeTable.pinned to SortOrder.DESC,
           NoticeTable.publishedAt to SortOrder.DESC_NULLS_LAST,
@@ -87,7 +88,7 @@ class NoticeRepository(
     transaction(database) {
       NoticeTable
         .selectAll()
-        .where { (NoticeTable.id eq id) and (NoticeTable.isDeleted eq false) }
+        .andWhere { (NoticeTable.id eq id) }
         .singleOrNull()
         ?.let(::toModel)
     }.let { Optional.ofNullable(it) }
@@ -100,15 +101,15 @@ class NoticeRepository(
     transaction(database) {
       pageQuery(
         buildQuery = {
-          NoticeTable.selectAll().where {
+          NoticeTable.selectAll().andWhere {
             buildList {
-              add(NoticeTable.isDeleted eq false)
               filter.keyword?.takeIf { it.isNotBlank() }?.let { kw ->
                 add(NoticeTable.title.lowerCase() like "%${kw.lowercase()}%")
               }
               filter.type?.let { add(NoticeTable.type eq it) }
               filter.status?.let { add(NoticeTable.status eq it) }
-            }.reduce { a, b -> a and b }
+              // 过滤项可能为空(软删过滤已固定在查询入口),空列表等价于恒真
+            }.reduceOrNull { a, b -> a and b } ?: Op.TRUE
           }
         },
         orderings =
@@ -127,7 +128,7 @@ class NoticeRepository(
     transaction(database) {
       NoticeTable
         .selectAll()
-        .where { (NoticeTable.isDeleted eq false) and (NoticeTable.title eq title) }
+        .andWhere { (NoticeTable.title eq title) }
         .orderBy(NoticeTable.createdAt to SortOrder.DESC)
         .limit(1)
         .firstOrNull()
@@ -140,7 +141,7 @@ class NoticeRepository(
           ?: SnowflakeIdGenerator.getInstance().generate().also { notice.id = it }
       val exists =
         NoticeTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { NoticeTable.id eq id }
           .limit(1)
           .any()

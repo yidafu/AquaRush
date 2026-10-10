@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
 import dev.yidafu.aqua.common.domain.table.FirstOrderActivitiesTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -40,6 +39,7 @@ import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -84,7 +84,7 @@ class FirstOrderActivityRepositoryImpl(
     return transaction(database) {
       FirstOrderActivitiesTable
         .selectAll()
-        .where { FirstOrderActivitiesTable.activeOnly { FirstOrderActivitiesTable.id inList ids } }
+        .andWhere { FirstOrderActivitiesTable.id inList ids }
         .orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -95,7 +95,7 @@ class FirstOrderActivityRepositoryImpl(
       transaction(database) {
         FirstOrderActivitiesTable
           .selectAll()
-          .where { FirstOrderActivitiesTable.activeOnly { FirstOrderActivitiesTable.id eq id } }
+          .andWhere { FirstOrderActivitiesTable.id eq id }
           .limit(1)
           .firstOrNull()
       }?.let(::toModel),
@@ -114,14 +114,14 @@ class FirstOrderActivityRepositoryImpl(
         val content =
           FirstOrderActivitiesTable
             .selectAll()
-            .where { FirstOrderActivitiesTable.activeOnly { condition } }
+            .andWhere { condition }
             // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
             .orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map(::toModel)
-        content to FirstOrderActivitiesTable.selectAll().where { FirstOrderActivitiesTable.activeOnly { condition } }.count()
+        content to FirstOrderActivitiesTable.selectAll().andWhere { condition }.count()
       }
     return PageImpl(content, pageable, total)
   }
@@ -132,7 +132,7 @@ class FirstOrderActivityRepositoryImpl(
       val now = LocalDateTime.now()
       val exists =
         FirstOrderActivitiesTable
-          .selectAll()
+          .selectAllIncludingDeleted()
           .where { FirstOrderActivitiesTable.id eq id }
           .limit(1)
           .any()
@@ -181,12 +181,10 @@ class FirstOrderActivityRepositoryImpl(
     transaction(database) {
       FirstOrderActivitiesTable
         .selectAll()
-        .where {
-          FirstOrderActivitiesTable.activeOnly {
-            (FirstOrderActivitiesTable.status eq status.name) and
-              (FirstOrderActivitiesTable.validFrom lessEq now) and
-              (FirstOrderActivitiesTable.validTo greaterEq now)
-          }
+        .andWhere {
+          (FirstOrderActivitiesTable.status eq status.name) and
+            (FirstOrderActivitiesTable.validFrom lessEq now) and
+            (FirstOrderActivitiesTable.validTo greaterEq now)
         }.orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
         .toList()
     }.map(::toModel)
@@ -200,14 +198,12 @@ class FirstOrderActivityRepositoryImpl(
     transaction(database) {
       FirstOrderActivitiesTable
         .selectAll()
-        .where {
-          FirstOrderActivitiesTable.activeOnly {
-            (FirstOrderActivitiesTable.productId eq productId) and
-              (FirstOrderActivitiesTable.activityType eq activityType.name) and
-              (FirstOrderActivitiesTable.status eq status.name) and
-              (FirstOrderActivitiesTable.validFrom lessEq now) and
-              (FirstOrderActivitiesTable.validTo greaterEq now)
-          }
+        .andWhere {
+          (FirstOrderActivitiesTable.productId eq productId) and
+            (FirstOrderActivitiesTable.activityType eq activityType.name) and
+            (FirstOrderActivitiesTable.status eq status.name) and
+            (FirstOrderActivitiesTable.validFrom lessEq now) and
+            (FirstOrderActivitiesTable.validTo greaterEq now)
         }.orderBy(
           FirstOrderActivitiesTable.validFrom to SortOrder.DESC,
           FirstOrderActivitiesTable.id to SortOrder.DESC,
@@ -226,15 +222,13 @@ class FirstOrderActivityRepositoryImpl(
     transaction(database) {
       FirstOrderActivitiesTable
         .selectAll()
-        .where {
-          FirstOrderActivitiesTable.activeOnly {
-            (FirstOrderActivitiesTable.productId eq productId) and
-              (FirstOrderActivitiesTable.activityType eq activityType.name) and
-              (FirstOrderActivitiesTable.status eq status.name) and
-              (FirstOrderActivitiesTable.validFrom less newValidTo) and
-              (FirstOrderActivitiesTable.validTo greater newValidFrom) and
-              (if (excludeId != null) FirstOrderActivitiesTable.id neq excludeId else Op.TRUE)
-          }
+        .andWhere {
+          (FirstOrderActivitiesTable.productId eq productId) and
+            (FirstOrderActivitiesTable.activityType eq activityType.name) and
+            (FirstOrderActivitiesTable.status eq status.name) and
+            (FirstOrderActivitiesTable.validFrom less newValidTo) and
+            (FirstOrderActivitiesTable.validTo greater newValidFrom) and
+            (if (excludeId != null) FirstOrderActivitiesTable.id neq excludeId else Op.TRUE)
         }.limit(1)
         .any()
     }

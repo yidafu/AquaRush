@@ -22,13 +22,13 @@ package dev.yidafu.aqua.analytics.statistics.domain.repository
 import dev.yidafu.aqua.analytics.common.exposed.dateTrunc
 import dev.yidafu.aqua.common.domain.table.OrdersTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
-import dev.yidafu.aqua.common.domain.table.activeOnly
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.stereotype.Repository
@@ -55,11 +55,9 @@ class StatisticsUserRepositoryImpl(
     return transaction(database) {
       UsersTable
         .select(dateExpr, userCount)
-        .where {
-          UsersTable.activeOnly {
-            (UsersTable.createdAt greaterEq startDateTime) and
-              (UsersTable.createdAt less endDateTime)
-          }
+        .andWhere {
+          (UsersTable.createdAt greaterEq startDateTime) and
+            (UsersTable.createdAt less endDateTime)
         }.groupBy(dateExpr)
         .toList()
         .associate { row -> row[dateExpr]!!.toLocalDate() to row[userCount] }
@@ -70,7 +68,7 @@ class StatisticsUserRepositoryImpl(
     transaction(database) {
       UsersTable
         .select(UsersTable.id)
-        .where { UsersTable.activeOnly { UsersTable.createdAt greaterEq dateTime } }
+        .andWhere { UsersTable.createdAt greaterEq dateTime }
         .count()
     }
 
@@ -80,7 +78,7 @@ class StatisticsUserRepositoryImpl(
       transaction(database) {
         OrdersTable
           .select(OrdersTable.userId)
-          .where { OrdersTable.activeOnly { OrdersTable.createdAt greaterEq dateTime } }
+          .andWhere { OrdersTable.createdAt greaterEq dateTime }
           .withDistinct()
           .toList()
       }.map { it[OrdersTable.userId] }
@@ -90,7 +88,7 @@ class StatisticsUserRepositoryImpl(
     return transaction(database) {
       UsersTable
         .select(UsersTable.id)
-        .where { UsersTable.activeOnly { UsersTable.id inList activeUserIds } }
+        .andWhere { UsersTable.id inList activeUserIds }
         .count()
     }
   }
