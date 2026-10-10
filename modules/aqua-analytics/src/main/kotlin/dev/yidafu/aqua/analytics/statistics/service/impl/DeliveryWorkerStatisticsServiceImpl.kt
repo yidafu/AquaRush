@@ -89,7 +89,7 @@ class DeliveryWorkerStatisticsServiceImpl(
   override fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerRankingItemDTO> {
     val today = LocalDate.now()
 
-    // 今日完成单数按送水员分组(业绩口径 R-ORD-11:待确认收货+已完成,按送达时间归属;
+    // 今日完成单数按送水员分组(业绩口径 R-ORD-11:已完成,按 completed_at(送达时间)归属;
     // P3 迁移:原 QueryDSL 查询搬入 StatisticsDeliveryWorkerRepository)
     val todayOrderCounts =
       statisticsDeliveryWorkerRepository.countTodayCompletedOrdersByWorker(today.atStartOfDay())

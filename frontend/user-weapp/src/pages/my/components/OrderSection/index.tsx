@@ -8,7 +8,6 @@ interface OrderStats {
   pendingPayment: number
   pendingDelivery: number
   delivering: number
-  awaitingConfirmation: number
   completed: number
   afterSales: number
 }
@@ -43,12 +42,6 @@ const OrderSection: React.FC<OrderSectionProps> = ({ orderStats, onOrderNavigati
       label: '配送中',
       count: orderStats.delivering,
       type: 'delivering'
-    },
-    {
-      icon: '/assets/icons/order/check-circle',
-      label: '待收货',
-      count: orderStats.awaitingConfirmation,
-      type: 'awaiting_confirmation'
     }
   ]
 

@@ -210,10 +210,9 @@ class OrderQueryServiceImplTest :
       every {
         orderRepository.findByDeliveryWorkerIdAndStatusIn(
           deliveryWorkerId = 3L,
-          // R-ORD-11:历史订单含 待确认收货(已送达未确认),与已完成/已取消/已退款并列
+          // R-ORD-11 送达即完成:历史订单 = 终态三态(已完成/已取消/已退款)
           statuses =
             listOf(
-              OrderModelStatus.AWAITING_CONFIRMATION,
               OrderModelStatus.COMPLETED,
               OrderModelStatus.CANCELLED,
               OrderModelStatus.REFUNDED,

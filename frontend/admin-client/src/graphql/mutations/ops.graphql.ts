@@ -132,6 +132,11 @@ export const SAVE_DELIVERY_FEE_RULE_MUTATION = gql`
     saveDeliveryFeeRule(input: $input) {
       freeFloorLimit
       surchargeCents
+      tiers {
+        fromFloor
+        toFloor
+        feeCents
+      }
       updatedAt
     }
   }

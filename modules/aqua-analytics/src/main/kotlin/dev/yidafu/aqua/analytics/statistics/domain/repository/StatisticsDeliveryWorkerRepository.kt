@@ -63,7 +63,7 @@ interface StatisticsDeliveryWorkerRepository {
   fun findEarliestAssignedAtByOrderIds(orderIds: List<Long>): Map<Long, LocalDateTime>
 
   /**
-   * 今日各送水员完成单数(R-ORD-11:待确认收货+已完成,按送达时间归属,送水员非空)。
+   * 今日各送水员完成单数(R-ORD-11:已完成,按 completed_at(送达时间)归属,送水员非空)。
    * 原实现位于 DeliveryWorkerStatisticsServiceImpl 内的 QueryDSL 查询(P3 迁移时搬入仓储)。
    */
   fun countTodayCompletedOrdersByWorker(sinceDateTime: LocalDateTime): Map<Long, Int>

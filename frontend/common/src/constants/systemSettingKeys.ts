@@ -19,7 +19,6 @@ export const SystemSettingKeys = {
   DELIVERY_SLOT_EVENING_START: 'delivery_slot_evening_start',
   DELIVERY_SLOT_EVENING_END: 'delivery_slot_evening_end',
   DISPATCH_TIMEOUT_REMINDER_MINUTES: 'dispatch_timeout_reminder_minutes', // 派单超时提醒(分钟)
-  AUTO_CONFIRM_RECEIPT_DAYS: 'auto_confirm_receipt_days', // 自动确认收货(天)
 
   // 库存预警参数组(F-SYS-003,R-PRO-02)
   LOW_STOCK_THRESHOLD: 'low_stock_threshold', // 低库存阈值(件),默认 10

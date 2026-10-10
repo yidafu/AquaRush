@@ -20,7 +20,6 @@ interface OrderStats {
   pendingPayment: number
   pendingDelivery: number
   delivering: number
-  awaitingConfirmation: number
   completed: number
   afterSales: number
 }
@@ -34,7 +33,6 @@ const MyPage: React.FC = () => {
     pendingPayment: 0,
     pendingDelivery: 0,
     delivering: 0,
-    awaitingConfirmation: 0,
     completed: 0,
     afterSales: 0
   })
@@ -113,7 +111,6 @@ const MyPage: React.FC = () => {
             pendingPayment: 0,
             pendingDelivery: 0,
             delivering: 0,
-            awaitingConfirmation: 0,
             completed: 0,
             afterSales: 0
           })
@@ -188,7 +185,6 @@ const MyPage: React.FC = () => {
         pendingPayment: stats.pendingPayment,
         pendingDelivery: stats.pendingDispatch + stats.pendingDelivery,
         delivering: stats.delivering,
-        awaitingConfirmation: stats.awaitingConfirmation,
         completed: stats.completed,
         afterSales: stats.refunded
       })
@@ -314,7 +310,6 @@ const MyPage: React.FC = () => {
             pendingPayment: 0,
             pendingDelivery: 0,
             delivering: 0,
-            awaitingConfirmation: 0,
             completed: 0,
             afterSales: 0
           })

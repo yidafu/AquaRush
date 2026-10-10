@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.domain.table
 
 import dev.yidafu.aqua.common.domain.table.SoftDeletableTable
+import dev.yidafu.aqua.common.domain.table.jsonString
 import org.jetbrains.exposed.v1.javatime.datetime
 
 /**
@@ -32,6 +33,7 @@ object DeliveryFeeRuleTable : SoftDeletableTable("delivery_fee_rules") {
   val id = long("id")
   val freeFloorLimit = integer("free_floor_limit").default(4)
   val surchargeCents = long("surcharge_cents").default(200L)
+  val tiers = jsonString("tiers").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
 

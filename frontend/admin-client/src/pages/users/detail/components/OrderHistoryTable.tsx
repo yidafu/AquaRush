@@ -16,8 +16,6 @@ const getStatusColor = (status: OrderStatus) => {
       return 'processing';
     case OrderStatus.DELIVERING:
       return 'processing';
-    case OrderStatus.AWAITING_CONFIRMATION:
-      return 'processing';
     case OrderStatus.COMPLETED:
       return 'success';
     case OrderStatus.CANCELLED:
@@ -37,8 +35,6 @@ const getStatusText = (status: OrderStatus) => {
       return '待配送';
     case OrderStatus.DELIVERING:
       return '配送中';
-    case OrderStatus.AWAITING_CONFIRMATION:
-      return '待收货';
     case OrderStatus.COMPLETED:
       return '已完成';
     case OrderStatus.CANCELLED:

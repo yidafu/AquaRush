@@ -21,6 +21,7 @@ package dev.yidafu.aqua.ops.deliveryfeerule.service.impl
 
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.domain.model.DeliveryFeeTier
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.repository.DeliveryFeeRuleRepository
@@ -49,14 +50,20 @@ class DeliveryFeeRuleMutationServiceImpl(
     val existing = deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).orElse(null)
     val before = existing?.let { ruleSnapshot(it) }
 
+    val tiers =
+      input.tiers.map { tier ->
+        DeliveryFeeTier(fromFloor = tier.fromFloor, toFloor = tier.toFloor, feeCents = tier.feeCents)
+      }
     val rule =
       existing?.apply {
         freeFloorLimit = input.freeFloorLimit
         surchargeCents = input.surchargeCents
+        this.tiers = tiers
       } ?: DeliveryFeeRuleModel(
         id = DeliveryFeeRuleRepository.SINGLETON_ID,
         freeFloorLimit = input.freeFloorLimit,
         surchargeCents = input.surchargeCents,
+        tiers = tiers,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
@@ -75,7 +82,8 @@ class DeliveryFeeRuleMutationServiceImpl(
   }
 
   /**
-   * 运费金额校验(R-MON-01 以分存储计算):免费楼层 ≥ 0、加价 0-999 元(≤2 位小数,前端以分提交)
+   * 运费校验(R-MON-01/02):免费楼层 ≥ 0、兜底单档 0-999 元;
+   * 档位 tiers 非空、按楼层升序、区间不重叠、起始楼层 > 免费楼层、末档 toFloor 可空(不封顶)。
    */
   private fun validateFee(input: SaveDeliveryFeeRuleInput) {
     if (input.freeFloorLimit < 0) {
@@ -84,11 +92,40 @@ class DeliveryFeeRuleMutationServiceImpl(
     if (input.surchargeCents < 0 || input.surchargeCents > 99_900) {
       throw IllegalArgumentException("运费金额无效")
     }
+    val tiers = input.tiers
+    if (tiers.isEmpty()) {
+      throw IllegalArgumentException("档位不能为空(至少一档)")
+    }
+    var prevFrom = 0
+    var prevTo: Int? = null
+    for (tier in tiers) {
+      val toFloor = tier.toFloor
+      if (toFloor != null && toFloor < tier.fromFloor) {
+        throw IllegalArgumentException("档位结束楼层不能小于起始楼层")
+      }
+      if (tier.fromFloor <= prevFrom) {
+        throw IllegalArgumentException("档位须按起始楼层严格升序")
+      }
+      prevTo?.let {
+        if (tier.fromFloor <= it) {
+          throw IllegalArgumentException("档位区间不可重叠")
+        }
+      }
+      if (tier.fromFloor <= input.freeFloorLimit) {
+        throw IllegalArgumentException("档位起始楼层须大于免费楼层")
+      }
+      prevFrom = tier.fromFloor
+      prevTo = tier.toFloor
+    }
+    if (prevTo != null) {
+      throw IllegalArgumentException("最后一档结束楼层须留空(不封顶)")
+    }
   }
 
   private fun ruleSnapshot(rule: DeliveryFeeRuleModel): Map<String, Any?> =
     linkedMapOf(
       "freeFloorLimit" to rule.freeFloorLimit,
       "surchargeCents" to rule.surchargeCents,
+      "tiers" to rule.tiers,
     )
 }

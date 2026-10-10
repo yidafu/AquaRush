@@ -81,7 +81,7 @@ data class OrderModel(
   var isSelfCollect: Boolean = false,
   var paymentType: PaymentType? = null,
   var deliveryStartedAt: LocalDateTime? = null,
-  var deliveryConfirmedAt: LocalDateTime? = null,
+  var assignedAt: LocalDateTime? = null,
   var completedAt: LocalDateTime? = null,
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),

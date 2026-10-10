@@ -72,4 +72,10 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V341DropDeliveryAddresses", logicalFilePath = "db/changelog/changes/v3.4.1-drop-delivery-addresses.xml")
     // outbox 分区化:转按半年 RANGE 分区,配合滚动维护 DETACH 归档
     include(file = "db/changelog/changes/V342PartitionOutboxEvents", logicalFilePath = "db/changelog/changes/v3.4.2-partition-outbox-events.xml")
+    // B2 订单 7 态(裁决结构 #2):存量 AWAITING_CONFIRMATION 终态化 + 删 delivery_confirmed_at
+    include(file = "db/changelog/changes/V343FinalizeAwaitingOrders", logicalFilePath = "db/changelog/changes/v3.4.3-finalize-awaiting-orders.xml")
+    // B2 缺陷 #9:派单/抢单时间补列(履约时长锚点)
+    include(file = "db/changelog/changes/V344AddOrdersAssignedAt", logicalFilePath = "db/changelog/changes/v3.4.4-add-orders-assigned-at.xml")
+    // B2 配送费分档(结构 #6,R-MON-02):tiers 档位列 + 默认三档回填
+    include(file = "db/changelog/changes/V345AddDeliveryFeeTiers", logicalFilePath = "db/changelog/changes/v3.4.5-add-delivery-fee-tiers.xml")
   })

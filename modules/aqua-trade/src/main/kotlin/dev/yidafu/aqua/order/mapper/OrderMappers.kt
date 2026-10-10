@@ -68,7 +68,6 @@ fun OrderModelStatus.toGraphQL(): OrderStatusG =
     OrderModelStatus.PENDING_DISPATCH -> OrderStatusG.PENDING_DISPATCH
     OrderModelStatus.PENDING_DELIVERY -> OrderStatusG.PENDING_DELIVERY
     OrderModelStatus.DELIVERING -> OrderStatusG.DELIVERING
-    OrderModelStatus.AWAITING_CONFIRMATION -> OrderStatusG.AWAITING_CONFIRMATION
     OrderModelStatus.COMPLETED -> OrderStatusG.COMPLETED
     OrderModelStatus.CANCELLED -> OrderStatusG.CANCELLED
     OrderModelStatus.REFUNDED -> OrderStatusG.REFUNDED
@@ -79,7 +78,6 @@ fun OrderModelStatus.toGraphQL(): OrderStatusG =
  */
 fun OrderStatusG.toDomain(): OrderModelStatus =
   when (this) {
-    OrderStatusG.AWAITING_CONFIRMATION -> OrderModelStatus.AWAITING_CONFIRMATION
     OrderStatusG.CANCELLED -> OrderModelStatus.CANCELLED
     OrderStatusG.COMPLETED -> OrderModelStatus.COMPLETED
     OrderStatusG.DELIVERING -> OrderModelStatus.DELIVERING
@@ -127,7 +125,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): OrderVo =
     isSelfCollect = isSelfCollect,
     paymentType = paymentType?.toGraphQL(),
     deliveryStartedAt = deliveryStartedAt,
-    deliveryConfirmedAt = deliveryConfirmedAt,
+    assignedAt = assignedAt,
     completedAt = completedAt,
     remark = remark,
     // 配送备注(完成配送时配送员填写,随 completeDelivery 落库 —— R-ORD-07)

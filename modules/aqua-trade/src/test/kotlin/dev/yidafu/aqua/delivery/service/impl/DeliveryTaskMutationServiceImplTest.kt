@@ -53,7 +53,7 @@ import io.mockk.verify
  * - R-ORD-07 完成配送服务端硬校验:照片非空、收款方式必选(自提/水票核销豁免);
  * - R-ORD-08 派单约束:离线送水工不可派。
  *
- * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),配送员即账号行,
+ * 送水员档案并入 admins 单表后(spec/prd/07-user.md §F-USR-021),配送员即账号行,
  * workerId 即账号 id,校验走 AdminService。
  */
 class DeliveryTaskMutationServiceImplTest :
@@ -106,8 +106,10 @@ class DeliveryTaskMutationServiceImplTest :
 
       val assigned = service.assignDeliveryWorker(1L, 1L, 1L, false)
 
-      assigned.status shouldBe OrderModelStatus.DELIVERING
+      // 缺陷 #9(2026-10 与抢单口径统一):派单 → 待配送,并记 assigned_at
+      assigned.status shouldBe OrderModelStatus.PENDING_DELIVERY
       assigned.deliveryWorkerId shouldBe 1L
+      assigned.assignedAt.shouldNotBeNull()
     }
     test("assign rejects non pending dispatch orders") {
       listOf(
@@ -159,14 +161,13 @@ class DeliveryTaskMutationServiceImplTest :
 
       val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
 
-      // 非自提订单:完成配送 → 待确认收货(R-ORD-11),completedAt 不置(营收待确认后计入)
-      completed.status shouldBe OrderModelStatus.AWAITING_CONFIRMATION
+      // 非自提订单:完成配送 → 已完成(R-ORD-11 送达即完成,completed_at=送达时间即时计入营收)
+      completed.status shouldBe OrderModelStatus.COMPLETED
       completed.paymentType shouldBe PaymentType.WATER_TICKET
-      completed.deliveryConfirmedAt.shouldNotBeNull()
-      completed.completedAt shouldBe null
+      completed.completedAt.shouldNotBeNull()
       (completed.deliveryPhotos != null) shouldBe true
       verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
-      verify(exactly = 0) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
+      verify(exactly = 1) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
     }
     test("complete delivery allows self collect without payment type") {
       val selfCollectOrder =
@@ -180,7 +181,6 @@ class DeliveryTaskMutationServiceImplTest :
 
       // 自提订单:控制权当场转移,完成配送 → 已完成并即时计入营收(R-ORD-09/11)
       completed.status shouldBe OrderModelStatus.COMPLETED
-      completed.deliveryConfirmedAt.shouldNotBeNull()
       completed.completedAt.shouldNotBeNull()
       verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
       verify(exactly = 1) { eventPublishService.publishOrderCompleted(1L, 100L, 1L) }
@@ -194,7 +194,7 @@ class DeliveryTaskMutationServiceImplTest :
 
       val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, "放门口")
 
-      completed.status shouldBe OrderModelStatus.AWAITING_CONFIRMATION
+      completed.status shouldBe OrderModelStatus.COMPLETED
       completed.deliveryRemark shouldBe "放门口"
     }
     test("complete delivery rejects non delivering order") {

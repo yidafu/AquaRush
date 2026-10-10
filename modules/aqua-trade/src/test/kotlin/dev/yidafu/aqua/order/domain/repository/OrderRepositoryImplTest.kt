@@ -48,9 +48,8 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 横切问题(见迁移报告):SourceTables.OrdersTable.status 定义为 varchar(20),短于枚举
- * AWAITING_CONFIRMATION(21 字符)—— 生产 changelog 未见加宽记录。
- * 测试库在建表后放宽列宽,以覆盖该状态的写入/查询路径。
+ * 横切问题(见迁移报告):SourceTables.OrdersTable.status 表定义与 DDL 初值可能短于长枚举名,
+ * 测试库在建表后统一放宽列宽,避免历史长状态名写入被拒(7 态迁移后仍保留为防御)。
  */
 private const val RELAX_ORDERS_STATUS_SQL = "ALTER TABLE orders ALTER COLUMN status TYPE varchar(32)"
 
@@ -74,7 +73,6 @@ private fun seedOrder(
   createdAt: LocalDateTime = LocalDateTime.of(2026, 5, 1, 10, 0),
   updatedAt: LocalDateTime = createdAt,
   deliveryStartedAt: LocalDateTime? = null,
-  deliveryConfirmedAt: LocalDateTime? = null,
   completedAt: LocalDateTime? = null,
   promotionActivityId: Long? = null,
   promotionDiscountCents: Long = 0L,
@@ -85,16 +83,11 @@ private fun seedOrder(
   deleted: Boolean = false,
 ): Long {
   transaction(TradePgTestSupport.database) {
-    // 横切问题绕过(见迁移报告):OrdersTable.status 表定义 varchar(20) 短于
-    // AWAITING_CONFIRMATION(21),Exposed 写前校验(与列宽无关的客户端 require)会拒绝;
-    // 测试库已 ALTER 放宽列宽,此处先插占位状态、再用裸 SQL 写入目标状态。
-    val insertStatus =
-      if (status == OrderModelStatus.AWAITING_CONFIRMATION) OrderModelStatus.PENDING_DISPATCH else status
     OrdersTable.insert {
       it[OrdersTable.id] = id
       it[OrdersTable.orderNo] = orderNo
       it[OrdersTable.userId] = userId
-      it[OrdersTable.status] = insertStatus.name
+      it[OrdersTable.status] = status.name
       it[OrdersTable.totalAmountCents] = amountCents
       it[OrdersTable.deliveryFeeCents] = 0L
       it[OrdersTable.depositAmountCents] = 0L
@@ -116,14 +109,10 @@ private fun seedOrder(
       it[OrdersTable.createdAt] = createdAt
       it[OrdersTable.updatedAt] = updatedAt
       it[OrdersTable.deliveryStartedAt] = deliveryStartedAt
-      it[OrdersTable.deliveryConfirmedAt] = deliveryConfirmedAt
       it[OrdersTable.completedAt] = completedAt
     }
     if (deleted) {
       OrdersTable.update({ OrdersTable.id eq id }) { it[isDeleted] = true }
-    }
-    if (status == OrderModelStatus.AWAITING_CONFIRMATION) {
-      exec("UPDATE orders SET status = 'AWAITING_CONFIRMATION' WHERE id = $id")
     }
   }
   return id
@@ -323,37 +312,6 @@ class OrderRepositoryImplTest :
       page1.content shouldHaveSize 1
       // 无 sort → 默认 id 升序破平,跨页不重不漏
       (page0.content + page1.content).map { it.id } shouldContainExactly listOf(o1, o2, o3)
-    }
-
-    test("findByStatusAndDeliveryConfirmedAtBefore:严格早于截止 + 传入 Sort(id ASC)") {
-      val deadline = LocalDateTime.of(2026, 5, 20, 0, 0)
-      val o1 =
-        seedOrder(
-          status = OrderModelStatus.AWAITING_CONFIRMATION,
-          deliveryConfirmedAt = deadline.minusDays(4),
-        )
-      val o2 =
-        seedOrder(
-          status = OrderModelStatus.AWAITING_CONFIRMATION,
-          deliveryConfirmedAt = deadline.minusDays(1),
-        )
-      seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION, deliveryConfirmedAt = deadline) // 边界不含
-      seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION) // 未送达
-      seedOrder(status = OrderModelStatus.COMPLETED, deliveryConfirmedAt = deadline.minusDays(2)) // 状态不符
-
-      val page =
-        repo.findByStatusAndDeliveryConfirmedAtBefore(
-          OrderModelStatus.AWAITING_CONFIRMATION,
-          deadline,
-          PageRequest.of(
-            0,
-            10,
-            org.springframework.data.domain.Sort
-              .by("id"),
-          ),
-        )
-      page.totalElements shouldBe 2L
-      page.content.map { it.id } shouldContainExactly listOf(o1, o2)
     }
 
     test("findByDeliveryWorkerIdOrderByCreatedAtDesc:倒序 + id 破平") {
@@ -570,52 +528,32 @@ class OrderRepositoryImplTest :
     }
 
     // ================================================================
-    // 「已送达」口径(COALESCE(delivery_confirmed_at, completed_at))
+    // 「已送达」口径(R-ORD-11 送达即完成:状态=COMPLETED,锚点=completed_at)
     // ================================================================
 
-    test("countDeliveredByDateRange:含待确认/已完成 + completedAt 回退 + 配送员过滤") {
+    test("countDeliveredByDateRange:已完成按 completed_at 窗口 + 配送员过滤(R-ORD-11 送达即完成)") {
       val start = LocalDateTime.of(2026, 8, 1, 0, 0)
       val end = LocalDateTime.of(2026, 8, 2, 0, 0)
-      // 待确认收货,按送达时间锚定
-      seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
-        deliveryConfirmedAt = start.plusHours(1),
-        completedAt = null,
-        deliveryWorkerId = 11L,
-      )
-      // 已完成,deliveryConfirmedAt 有值 → 按送达时间
       seedOrder(
         status = OrderModelStatus.COMPLETED,
-        deliveryConfirmedAt = start.plusHours(2),
-        completedAt = end.plusDays(5),
+        completedAt = start.plusHours(1),
         deliveryWorkerId = 11L,
       )
-      // 历史数据 deliveryConfirmedAt 为 null → 回退 completedAt
       seedOrder(
         status = OrderModelStatus.COMPLETED,
-        deliveryConfirmedAt = null,
+        completedAt = start.plusHours(2),
+        deliveryWorkerId = 11L,
+      )
+      seedOrder(
+        status = OrderModelStatus.COMPLETED,
         completedAt = start.plusHours(3),
         deliveryWorkerId = 12L,
       )
-      seedOrder(status = OrderModelStatus.DELIVERING, deliveryConfirmedAt = start.plusHours(4)) // 状态不符
-      seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
-        deliveryConfirmedAt = end, // 开上界不含
-        completedAt = null,
-      )
-      seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
-        deliveryConfirmedAt = start.minusSeconds(1), // 闭下界外
-        completedAt = null,
-      )
-      seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
-        deliveryConfirmedAt = start.plusHours(5),
-        completedAt = null,
-        deleted = true,
-      )
-      // 送达与完成时间都为 null → 不进任何窗口
-      seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION, deliveryConfirmedAt = null, completedAt = null)
+      seedOrder(status = OrderModelStatus.DELIVERING, completedAt = start.plusHours(4)) // 状态不符
+      seedOrder(status = OrderModelStatus.COMPLETED, completedAt = end) // 开上界不含
+      seedOrder(status = OrderModelStatus.COMPLETED, completedAt = start.minusSeconds(1)) // 闭下界外
+      seedOrder(status = OrderModelStatus.COMPLETED, completedAt = start.plusHours(5), deleted = true)
+      seedOrder(status = OrderModelStatus.COMPLETED, completedAt = null) // 无完成时间不进窗口
 
       repo.countDeliveredByDateRange(start, end, null) shouldBe 3L
       repo.countDeliveredByDateRange(start, end, 11L) shouldBe 2L
@@ -627,22 +565,19 @@ class OrderRepositoryImplTest :
       val start = LocalDateTime.of(2026, 8, 3, 0, 0)
       val end = LocalDateTime.of(2026, 8, 4, 0, 0)
       seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
+        status = OrderModelStatus.COMPLETED,
         amountCents = 111L,
-        deliveryConfirmedAt = start.plusMinutes(30),
-        completedAt = null,
+        completedAt = start.plusMinutes(30),
       )
       seedOrder(
         status = OrderModelStatus.COMPLETED,
         amountCents = 222L,
-        deliveryConfirmedAt = null,
         completedAt = start.plusMinutes(40),
       )
       seedOrder(
         status = OrderModelStatus.COMPLETED,
         amountCents = 444L,
-        deliveryConfirmedAt = end, // 窗外
-        completedAt = null,
+        completedAt = end, // 窗外
       )
 
       repo.sumDeliveredAmountCentsByDateRange(start, end, null) shouldBe 333L
@@ -654,17 +589,16 @@ class OrderRepositoryImplTest :
       val end = LocalDateTime.of(2026, 8, 6, 0, 0)
       val w = 21L
       seedOrder(
-        status = OrderModelStatus.AWAITING_CONFIRMATION,
+        status = OrderModelStatus.COMPLETED,
         paymentType = PaymentType.CASH,
         amountCents = 1000L,
-        deliveryConfirmedAt = start.plusHours(1),
+        completedAt = start.plusHours(1),
         deliveryWorkerId = w,
       )
       seedOrder(
         status = OrderModelStatus.COMPLETED,
         paymentType = PaymentType.CASH,
         amountCents = 2000L,
-        deliveryConfirmedAt = null,
         completedAt = start.plusHours(2),
         deliveryWorkerId = w,
       )
@@ -672,14 +606,14 @@ class OrderRepositoryImplTest :
         status = OrderModelStatus.COMPLETED,
         paymentType = PaymentType.QR_CODE,
         amountCents = 5000L,
-        deliveryConfirmedAt = start.plusHours(3),
+        completedAt = start.plusHours(3),
         deliveryWorkerId = w,
       )
       seedOrder(
         status = OrderModelStatus.COMPLETED,
         paymentType = PaymentType.CASH,
         amountCents = 7000L,
-        deliveryConfirmedAt = start.plusHours(4),
+        completedAt = start.plusHours(4),
         deliveryWorkerId = w + 1, // 其他配送员
       )
 
@@ -694,24 +628,22 @@ class OrderRepositoryImplTest :
       none[1] shouldBe 0L
     }
 
-    test("findDeliveredOrdersByDateRange:送达时间升序/id 降序分页 + count 同口径") {
+    test("findDeliveredOrdersByDateRange:完成时间升序/id 降序分页 + count 同口径") {
       val start = LocalDateTime.of(2026, 8, 7, 0, 0)
       val end = LocalDateTime.of(2026, 8, 8, 0, 0)
       val t1 = start.plusHours(1)
       val t2 = start.plusHours(2)
       val t3 = start.plusHours(3)
-      val late = seedOrder(status = OrderModelStatus.COMPLETED, deliveryConfirmedAt = t3, completedAt = null)
-      val early = seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION, deliveryConfirmedAt = t1, completedAt = null)
-      val mid = seedOrder(status = OrderModelStatus.COMPLETED, deliveryConfirmedAt = t2, completedAt = null)
-      seedOrder(status = OrderModelStatus.COMPLETED, deliveryConfirmedAt = end, completedAt = null) // 窗外
+      val late = seedOrder(status = OrderModelStatus.COMPLETED, completedAt = t3)
+      val early = seedOrder(status = OrderModelStatus.COMPLETED, completedAt = t1)
+      val mid = seedOrder(status = OrderModelStatus.COMPLETED, completedAt = t2)
+      seedOrder(status = OrderModelStatus.COMPLETED, completedAt = end) // 窗外
 
       val p0 = repo.findDeliveredOrdersByDateRange(null, start, end, PageRequest.of(0, 2))
       p0.totalElements shouldBe 3L
       p0.content.map { it.id } shouldContainExactly listOf(early, mid)
       val p1 = repo.findDeliveredOrdersByDateRange(null, start, end, PageRequest.of(1, 2))
       p1.content.map { it.id } shouldContainExactly listOf(late)
-      // 按配送员过滤
-      repo.findDeliveredOrdersByDateRange(999L, start, end, PageRequest.of(0, 10)).totalElements shouldBe 0L
     }
 
     test("countOrdersByUserIdGroupByStatus:分组计数,缺失状态不计,软删不计") {
@@ -1005,28 +937,6 @@ class OrderRepositoryImplTest :
       // 空候选集合 → 0
       val emptyCandidates = seedOrder(status = OrderModelStatus.PENDING_PAYMENT)
       repo.cancelAtomically(emptyCandidates, emptyList(), now) shouldBe 0
-    }
-
-    test("confirmReceiptAtomically:仅待确认可确认,写 completedAt/updatedAt,重复确认返回 0") {
-      val id = seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION)
-      val confirmAt = LocalDateTime.of(2026, 12, 2, 9, 30)
-
-      repo.confirmReceiptAtomically(id, confirmAt) shouldBe 1
-      val completed = repo.findById(id).orElse(null).shouldNotBeNull()
-      completed.status shouldBe OrderModelStatus.COMPLETED
-      completed.completedAt shouldBe confirmAt
-      completed.updatedAt shouldBe confirmAt
-
-      // 幂等:已完成再确认 → 0
-      repo.confirmReceiptAtomically(id, confirmAt.plusMinutes(1)) shouldBe 0
-      // 非待确认状态 → 0
-      val pendingId = seedOrder(status = OrderModelStatus.DELIVERING)
-      repo.confirmReceiptAtomically(pendingId, confirmAt) shouldBe 0
-      // 软删行不可确认 → 0
-      val deletedId = seedOrder(status = OrderModelStatus.AWAITING_CONFIRMATION, deleted = true)
-      repo.confirmReceiptAtomically(deletedId, confirmAt) shouldBe 0
-      // 不存在的 id → 0
-      repo.confirmReceiptAtomically(999_999_998L, confirmAt) shouldBe 0
     }
   })
 

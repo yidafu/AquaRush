@@ -96,22 +96,6 @@ interface OrderMutationService {
   ): OrderModel?
 
   /**
-   * 用户确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,
-   * 置完成时间(completedAt=确认时间)并按确认时间计入营收;
-   * 原子认领保证与系统自动确认并发互斥、只生效一次。
-   */
-  fun confirmReceipt(
-    orderId: Long,
-    userId: Long,
-  ): OrderModel?
-
-  /**
-   * 系统自动确认收货(R-ORD-11):送达 N 天(系统配置 auto_confirm_receipt_days,默认 7)未确认,
-   * 待确认收货 → 已完成,按自动确认时间计入营收;幂等(已确认则跳过)。
-   */
-  fun autoConfirmReceipt(orderId: Long)
-
-  /**
    * 确认订单计价预览(F-ORD-023,PRD 10-marketing.md §R-MKT-02/07/08):
    * 委托促销引擎纯计算,无副作用;返回完整费用明细(单价/水票核销/满减/优惠券/封顶)。
    */

@@ -3,7 +3,7 @@ import { gql } from '@apollo/client';
 /**
  * 订单列表页(OrdersPage)单页查询:
  * 一次请求取回「订单分页 + 在线配送员(批量派单下拉)」,满足
- * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const ORDERS_PAGE_DATA_QUERY = gql`
   query OrdersPageData($input: OrderListInput) {
@@ -64,7 +64,7 @@ export const ORDERS_PAGE_DATA = 'OrdersPageData';
 /**
  * 订单详情页(OrderDetailPage)单页查询:
  * 一次请求取回「订单详情 + 在线配送员(派单下拉)+ 操作记录时间线」,满足
- * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * AGENTS.md 规则 7 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
  */
 export const ORDER_DETAIL_PAGE_DATA_QUERY = gql`
   query OrderDetailPageData($orderId: PrimaryId!) {
@@ -119,7 +119,6 @@ export const ORDER_DETAIL_PAGE_DATA_QUERY = gql`
       isSelfCollect
       paymentType
       deliveryStartedAt
-      deliveryConfirmedAt
       completedAt
       remark
       createdAt

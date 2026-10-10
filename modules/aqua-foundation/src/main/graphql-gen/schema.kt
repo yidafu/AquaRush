@@ -1460,7 +1460,29 @@ data class DeliveryAreaVo(
 data class DeliveryFeeRuleVo(
     val freeFloorLimit: kotlin.Int,
     val surchargeCents: kotlin.Long,
+    val tiers: kotlin.collections.List<DeliveryFeeTierVo>?,
     val updatedAt: java.time.LocalDateTime?
+)
+
+data class DeliveryFeeTierInput(
+    @field:Min(value = 0, message = "档位金额无效")
+    @field:Max(value = 99900, message = "档位金额无效")
+    val feeCents: kotlin.Long,
+    @field:Min(value = 1, message = "档位起始楼层至少为1")
+    val fromFloor: kotlin.Int,
+    val toFloor: kotlin.Int? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["feeCents"] as kotlin.Long,
+      args["fromFloor"] as kotlin.Int,
+      args["toFloor"] as kotlin.Int?
+  )
+}
+
+data class DeliveryFeeTierVo(
+    val feeCents: kotlin.Long,
+    val fromFloor: kotlin.Int,
+    val toFloor: kotlin.Int?
 )
 
 data class DeliveryLoginInput(
@@ -2398,13 +2420,6 @@ data class MutationConfirmDailyCollectionArgs(
       ConfirmDailyCollectionInput(args["input"] as Map<String, Any>)
   )
 }
-data class MutationConfirmReceiptArgs(
-    val orderId: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
-  )
-}
 data class MutationCreateAddressArgs(
     val input: AddressInput
 ) {
@@ -3201,7 +3216,6 @@ data class Mutation(
     val claimCoupon: UserCouponVo,
     val completeDelivery: OrderVo,
     val confirmDailyCollection: DailyCollectionRecordVo,
-    val confirmReceipt: OrderVo,
     val createAddress: AddressVo,
     val createAdmin: AdminVo,
     val createAdminAddress: AddressVo,
@@ -3303,7 +3317,6 @@ data class Mutation(
 )
 
 data class MyOrderStatisticsVo(
-    val awaitingConfirmation: kotlin.Int,
     val cancelled: kotlin.Int,
     val completed: kotlin.Int,
     val delivering: kotlin.Int,
@@ -3653,7 +3666,6 @@ data class OrderStatisticsVo(
 )
 
 enum class OrderStatus(val label: String) {
-      AWAITING_CONFIRMATION("AWAITING_CONFIRMATION"),
       CANCELLED("CANCELLED"),
       COMPLETED("COMPLETED"),
       DELIVERING("DELIVERING"),
@@ -3697,11 +3709,11 @@ data class OrderValueBucketStatisticVo(
 data class OrderVo(
     val address: AddressVo?,
     val amountCents: kotlin.Long,
+    val assignedAt: java.time.LocalDateTime?,
     val completedAt: java.time.LocalDateTime?,
     val couponDiscountCents: kotlin.Long?,
     val couponName: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
-    val deliveryConfirmedAt: java.time.LocalDateTime?,
     val deliveryFeeCents: kotlin.Long,
     val deliveryPhotoReviewRemark: kotlin.String?,
     val deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus?,
@@ -5621,11 +5633,14 @@ data class SaveDeliveryFeeRuleInput(
     val freeFloorLimit: kotlin.Int,
     @field:Min(value = 0, message = "运费金额无效")
     @field:Max(value = 99900, message = "运费金额无效")
-    val surchargeCents: kotlin.Long
+    val surchargeCents: kotlin.Long,
+    val tiers: kotlin.collections.List<DeliveryFeeTierInput>
 ) {
+  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["freeFloorLimit"] as kotlin.Int,
-      args["surchargeCents"] as kotlin.Long
+      args["surchargeCents"] as kotlin.Long,
+      args["tiers"]!!.let { tiers -> (tiers as List<Map<String, Any>>).map { DeliveryFeeTierInput(it) } }
   )
 }
 

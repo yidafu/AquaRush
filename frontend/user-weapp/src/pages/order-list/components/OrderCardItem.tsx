@@ -16,7 +16,6 @@ interface OrderCardItemProps {
   order: OrderItem
   onPay: (order: OrderItem) => void
   onCancel: (order: OrderItem) => void
-  onConfirmReceipt: (order: OrderItem) => void
   onReorder: (order: OrderItem) => void
   onClick: (order: OrderItem) => void
 }
@@ -25,9 +24,9 @@ interface OrderCardItemProps {
  * 订单列表卡片(F-ORD-004 多商品:首件 + 「等N件」):
  * 状态头 + 首件商品(命中营销价划线目录价,AC-ORD-002-09 —— R-MKT-01/02) +
  * 收货地址 + 营销优惠标签行(AC-ORD-002-10 —— R-MKT-07/08) +
- * 底部实付金额 + 按状态操作按钮(待确认收货 = 确认收货,R-ORD-11)
+ * 底部实付金额 + 按状态操作按钮(送达即完成,无确认收货 —— PRD R-ORD-11 2026-10 简化)
  */
-const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, onConfirmReceipt, onReorder, onClick }) => {
+const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, onReorder, onClick }) => {
 
   /**
    * 订单层总优惠(分)= 满减/折扣 + 优惠券 + 首单立减 + 水票抵扣(R-MKT-07/08 叠加,「已优惠」口径)
@@ -174,31 +173,6 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
             >
               查看详情
             </AtButton>
-          )}
-
-          {order.status === OrderStatus.AWAITING_CONFIRMATION && (
-            <>
-              <AtButton
-                trackTarget="order-confirm-receipt"
-                trackElementType="button"
-                trackElementText="确认收货"
-                trackProps={{ orderId: order.id }}
-                onClick={() => onConfirmReceipt(order)}
-                type='primary'
-                size='small'
-                className='action-button primary'
-              >
-                确认收货
-              </AtButton>
-              <AtButton
-                type='secondary'
-                size='small'
-                onClick={() => onClick(order)}
-                className='action-button'
-              >
-                查看详情
-              </AtButton>
-            </>
           )}
 
           {order.status === OrderStatus.COMPLETED && (

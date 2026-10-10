@@ -95,8 +95,8 @@ class DeliveryOrderQueryServiceImpl(
 
     // Use unified repository method to query statistics from database
     val totalOrders = orderRepository.countOrdersByDateRange(startOfDay, endOfDay, workerId, null).toInt()
-    // 已完成/业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属 ——
-    // 送水工业绩按送达即时计入,不受用户确认收货延迟影响
+    // 已完成/业绩口径(R-ORD-11):含 已完成,按 completed_at(送达时间)归属 ——
+    // 送水工业绩按送达即时计入,送达即计入
     val completedOrders = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, workerId).toInt()
     val unfinishedOrders =
       orderRepository
@@ -139,7 +139,7 @@ class DeliveryOrderQueryServiceImpl(
       val startOfDay = date.atStartOfDay()
       val endOfDay = date.plusDays(1).atStartOfDay()
 
-      // 业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属
+      // 业绩口径(R-ORD-11):含 已完成,按 completed_at(送达时间)归属
       val orderCount = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, workerId).toInt()
       val earningCents = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, workerId)
 

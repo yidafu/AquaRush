@@ -37,10 +37,7 @@ import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Expression
-import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
-import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.QueryBuilder
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -55,7 +52,6 @@ import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.core.like
 import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.core.sum
-import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -79,8 +75,8 @@ import java.util.Optional
  * - 读侧入口(selectAll/select)一律自动过滤 is_deleted(等价原 JPA @SoftDelete 附加谓词);
  * - 枚举列存 .name、读 fromValue(显式 when 穷举);金额 Long 分;
  * - 分页 count 与 content 同一事务;业务排序 + id 破平(原 JPA 无序处已在 KDoc 注明);
- * - 「已送达」口径锚点 = COALESCE(delivery_confirmed_at, completed_at),状态含
- *   AWAITING_CONFIRMATION + COMPLETED(R-ORD-11 送水工业绩,历史 completed_at 回退);
+ * - 「已送达」口径锚点 = completed_at,状态 = COMPLETED(R-ORD-11 2026-10 简化:送达即完成,
+ *   存量待确认收货已由 V343 终态化,原 COALESCE(delivery_confirmed_at, completed_at) 双列回退移除);
  * - cancel/confirm 原子方法为单条条件 UPDATE,行数=1 成功 / 0 失败(乐观锁 CAS);
  * - 原 JPA EAGER 关联字段 user/address/deliveryWorker 不装载(null),列值经
  *   userId/addressId/deliveryWorkerId 提供,由服务层/Resolver 联查补全。
@@ -127,7 +123,7 @@ class OrderRepositoryImpl(
       isSelfCollect = row[OrdersTable.isSelfCollect],
       paymentType = row[OrdersTable.paymentType]?.let { PaymentType.fromValue(it) },
       deliveryStartedAt = row[OrdersTable.deliveryStartedAt],
-      deliveryConfirmedAt = row[OrdersTable.deliveryConfirmedAt],
+      assignedAt = row[OrdersTable.assignedAt],
       completedAt = row[OrdersTable.completedAt],
       createdAt = row[OrdersTable.createdAt],
       updatedAt = row[OrdersTable.updatedAt],
@@ -141,24 +137,8 @@ class OrderRepositoryImpl(
   /** 从聚合 ResultRow 取 SUM/COUNT 数值并转 Long(表达式类型为 Number 族投影,空值回退 0)。 */
   private fun ResultRow.longOf(expr: Expression<*>): Long = (this[expr] as? Number)?.toLong() ?: 0L
 
-  /**
-   * 「已送达」时间锚点 `COALESCE(delivery_confirmed_at, completed_at)`
-   * —— 原 QueryDSL `coalesce(...)` 表达式的 Exposed 等价物(两参,历史数据回退 completedAt)。
-   */
-  private class DeliveredAtExpr : ExpressionWithColumnType<LocalDateTime>() {
-    override val columnType: IColumnType<LocalDateTime> = JavaLocalDateTimeColumnType()
-
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
-      queryBuilder.append("COALESCE(")
-      OrdersTable.deliveryConfirmedAt.toQueryBuilder(queryBuilder)
-      queryBuilder.append(", ")
-      OrdersTable.completedAt.toQueryBuilder(queryBuilder)
-      queryBuilder.append(")")
-    }
-  }
-
-  /** 「已送达」状态集合(待确认收货 + 已完成,R-ORD-11 送水工业绩口径)。 */
-  private fun deliveredStatusNames(): List<String> = listOf(OrderModelStatus.AWAITING_CONFIRMATION.name, OrderModelStatus.COMPLETED.name)
+  /** 「已送达」状态集合(= 已完成,R-ORD-11 2026-10 简化后送达即完成,送水工业绩口径)。 */
+  private fun deliveredStatusNames(): List<String> = listOf(OrderModelStatus.COMPLETED.name)
 
   /** Pageable 排序 → Exposed 排序;原 JPA 无序时默认 id 升序破平(未知属性忽略)。 */
   private fun pageableOrderings(pageable: Pageable): List<Pair<Expression<*>, SortOrder>> {
@@ -275,25 +255,6 @@ class OrderRepositoryImpl(
       content to OrdersTable.selectAll().andWhere { condition }.count()
     }.let { (content, total) -> PageImpl(content, pageable, total) }
 
-  override fun findByStatusAndDeliveryConfirmedAtBefore(
-    status: OrderModelStatus,
-    before: LocalDateTime,
-    pageable: Pageable,
-  ): Page<OrderModel> =
-    transaction(database) {
-      val condition = (OrdersTable.status eq status.name) and (OrdersTable.deliveryConfirmedAt less before)
-      val content =
-        OrdersTable
-          .selectAll()
-          .andWhere { condition }
-          .orderBy(*pageableOrderings(pageable).toTypedArray())
-          .offset(pageable.offset)
-          .limit(pageable.pageSize)
-          .toList()
-          .map(::toModel)
-      content to OrdersTable.selectAll().andWhere { condition }.count()
-    }.let { (content, total) -> PageImpl(content, pageable, total) }
-
   override fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel> =
     transaction(database) {
       OrdersTable
@@ -387,7 +348,7 @@ class OrderRepositoryImpl(
           it[isSelfCollect] = entity.isSelfCollect
           it[paymentType] = entity.paymentType?.name
           it[deliveryStartedAt] = entity.deliveryStartedAt
-          it[deliveryConfirmedAt] = entity.deliveryConfirmedAt
+          it[assignedAt] = entity.assignedAt
           it[completedAt] = entity.completedAt
           it[remark] = entity.remark
           it[deliveryRemark] = entity.deliveryRemark
@@ -431,7 +392,7 @@ class OrderRepositoryImpl(
           it[isSelfCollect] = entity.isSelfCollect
           it[paymentType] = entity.paymentType?.name
           it[deliveryStartedAt] = entity.deliveryStartedAt
-          it[deliveryConfirmedAt] = entity.deliveryConfirmedAt
+          it[assignedAt] = entity.assignedAt
           it[completedAt] = entity.completedAt
           it[OrdersTable.createdAt] = entity.createdAt
           it[updatedAt] = entity.updatedAt
@@ -622,7 +583,7 @@ class OrderRepositoryImpl(
   }
 
   // ========================================================================
-  // 「已送达」口径聚合(R-ORD-11:COALESCE(delivery_confirmed_at, completed_at) 时间锚点)
+  // 「已送达」口径聚合(R-ORD-11 2026-10 简化:状态=COMPLETED,时间锚点=completed_at 即送达时间)
   // ========================================================================
 
   private fun deliveredWindowCondition(
@@ -630,7 +591,7 @@ class OrderRepositoryImpl(
     end: LocalDateTime,
     deliveryWorkerId: Long?,
   ): Op<Boolean> {
-    val deliveredAt = DeliveredAtExpr()
+    val deliveredAt = OrdersTable.completedAt
     var condition: Op<Boolean> =
       (OrdersTable.status inList deliveredStatusNames()) and
         (deliveredAt greaterEq start) and (deliveredAt less end)
@@ -656,7 +617,7 @@ class OrderRepositoryImpl(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Array<Long> {
-    val deliveredAt = DeliveredAtExpr()
+    val deliveredAt = OrdersTable.completedAt
     val condition: Op<Boolean> =
       (OrdersTable.deliveryWorkerId eq deliveryWorkerId) and
         (OrdersTable.status inList deliveredStatusNames()) and
@@ -685,7 +646,7 @@ class OrderRepositoryImpl(
           .selectAll()
           .andWhere { condition }
           // 与原实现一致:送达时间升序、id 降序破平
-          .orderBy(DeliveredAtExpr() to SortOrder.ASC, OrdersTable.id to SortOrder.DESC)
+          .orderBy(OrdersTable.completedAt to SortOrder.ASC, OrdersTable.id to SortOrder.DESC)
           .offset(pageable.offset)
           .limit(pageable.pageSize)
           .toList()
@@ -987,22 +948,6 @@ class OrderRepositoryImpl(
       }) {
         it[status] = OrderModelStatus.CANCELLED.name
         it[updatedAt] = now
-      }
-    }
-
-  override fun confirmReceiptAtomically(
-    id: Long,
-    completedAt: LocalDateTime,
-  ): Int =
-    transaction(database) {
-      OrdersTable.update({
-        OrdersTable.activeOnly {
-          (OrdersTable.id eq id) and (OrdersTable.status eq OrderModelStatus.AWAITING_CONFIRMATION.name)
-        }
-      }) {
-        it[status] = OrderModelStatus.COMPLETED.name
-        it[OrdersTable.completedAt] = completedAt
-        it[updatedAt] = completedAt
       }
     }
 

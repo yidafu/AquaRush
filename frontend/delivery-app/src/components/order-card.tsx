@@ -17,7 +17,7 @@ export interface OrderCardData {
   status?: string;
   isSelfCollect?: boolean;
   createdAt?: string | null;
-  deliveryConfirmedAt?: string | null;
+  completedAt?: string | null;
   address?: {
     receiverName?: string | null;
     phone?: string | null;
@@ -85,8 +85,8 @@ export function OrderCard({ order, type = 'history', onAccept, onStartDelivery }
         {order.deliveryWorker?.name ? (
           <OrderInfoRow label="配送员" value={order.deliveryWorker.name} />
         ) : null}
-        {type === 'history' && order.deliveryConfirmedAt ? (
-          <OrderInfoRow label="完成时间" value={formatDateTime(order.deliveryConfirmedAt)} />
+        {type === 'history' && order.completedAt ? (
+          <OrderInfoRow label="完成时间" value={formatDateTime(order.completedAt)} />
         ) : null}
 
         <OrderInfoRow

@@ -141,7 +141,7 @@ interface OrderQueryService {
   ): Long
 
   /**
-   * 统计日期窗口内「已送达」订单数（送水工业绩口径，含待确认收货与已完成）
+   * 统计日期窗口内「已送达」订单数（送水工业绩口径，= 已完成）
    */
   fun countDeliveredByDateRange(
     startOfDay: LocalDateTime,

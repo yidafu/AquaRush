@@ -54,12 +54,12 @@ const OPERATION_CONFIG: Record<string, { icon: React.ReactNode; color: string; l
   ORDER_CONFIRMED: {
     icon: <CheckCircleOutlined />,
     color: 'green',
-    label: '用户确认收货',
+    label: '用户确认收货(历史)',
   },
   AUTO_CONFIRMED: {
     icon: <CheckCircleOutlined />,
     color: 'green',
-    label: '系统自动确认收货',
+    label: '系统自动确认收货(历史)',
   },
   ORDER_COMPLETED: {
     icon: <CheckCircleOutlined />,

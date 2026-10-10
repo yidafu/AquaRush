@@ -420,39 +420,6 @@ class OrderService {
   }
 
   /**
-   * 确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,按确认时间计入营收;
-   * 送达 N 天未确认由系统自动签收(配置 auto_confirm_receipt_days,默认 7)
-   */
-  public async confirmReceipt(orderId: string): Promise<ProductServiceResult<OrderVo>> {
-    const mutation = `
-      mutation ConfirmReceipt($orderId: PrimaryId!) {
-        confirmReceipt(orderId: $orderId) {
-          id
-          orderNo
-          status
-          completedAt
-        }
-      }
-    `
-
-    try {
-      const response = await networkManager.mutate<{ confirmReceipt: OrderVo }>(
-        mutation,
-        { orderId }
-      )
-      return {
-        success: true,
-        data: response.confirmReceipt
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: this.extractError(error, '确认收货失败')
-      }
-    }
-  }
-
-  /**
    * 催单(F-ORD-008):仅本人配送中订单;服务端防抖,短时间重复点击仅一次生效
    */
   public async urgeOrder(orderId: string): Promise<ProductServiceResult<boolean>> {

@@ -160,28 +160,6 @@ class ClientOrderMutationResolver(
   }
 
   /**
-   * 确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,按确认时间计入营收;
-   * 送达 N 天未确认由系统自动签收(ReceiptAutoConfirmScheduler,配置 auto_confirm_receipt_days 默认 7)。
-   */
-  @MutationMapping
-  @PreAuthorize("isAuthenticated()")
-  fun confirmReceipt(
-    @Argument orderId: Long,
-    @AuthenticationPrincipal principal: UserPrincipal,
-  ): OrderVo {
-    val order =
-      orderQueryApiService.findById(orderId)
-        ?: throw NotFoundException("订单不存在: $orderId")
-    if (order.userId != principal.id) {
-      throw BadRequestException("无权操作此订单")
-    }
-    val confirmed =
-      orderMutationService.confirmReceipt(orderId, principal.id)
-        ?: throw BadRequestException("订单不存在或无权操作")
-    return confirmed.toGraphQL()
-  }
-
-  /**
    * 订单评价(F-ORD-007,R-EVL-01):仅本人已完成订单;一单一评;评分计入送水工统计。
    * deliveryWorkerId 由服务端按订单解析,忽略前端传入。
    */

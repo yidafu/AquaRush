@@ -304,7 +304,7 @@ class StatisticsDeliveryWorkerRepositoryImplTest :
       Seed.order(deliveryWorkerId = w1, status = "COMPLETED", createdAt = base.plusHours(7), deleted = true)
 
       val map = repo.countTodayCompletedOrdersByWorker(base)
-      map[w1] shouldBe 1L // 软删订单不计入;AWAITING_CONFIRMATION 超 orders.status DDL varchar(20)(存量限制),此处仅用 COMPLETED 验证分组
+      map[w1] shouldBe 1L // 软删订单不计入;分组按 COMPLETED 验证(7 态迁移后无待确认收货)
     }
   })
 

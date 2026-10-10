@@ -99,18 +99,21 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest(
     }
     test("saveDeliveryFeeRule rejects invalid amount") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
-      val json = postGraphql("mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000}) { freeFloorLimit } }")
+      val json =
+        postGraphql(
+          "mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000, " +
+            "tiers: [{fromFloor: 5, toFloor: 6, feeCents: 200}, {fromFloor: 7, toFloor: null, feeCents: 800}]}) { freeFloorLimit } }",
+        )
       json.contains("\"errors\"") shouldBe true
     }
     test("saveDeliveryFeeRule writes audit") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
       val json =
         postGraphql(
-          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200}) { freeFloorLimit } }""",
+          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200, tiers: [{fromFloor: 5, toFloor: 6, feeCents: 200}, {fromFloor: 7, toFloor: 9, feeCents: 500}, {fromFloor: 10, toFloor: null, feeCents: 800}]}) { freeFloorLimit } }""",
         )
-      !json.contains("\"errors\"") shouldBe true
-
       val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_DELIVERY_FEE_RULE_SAVE)
+      !json.contains("\"errors\"") shouldBe true
       audits.isNotEmpty() shouldBe true
       audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true } shouldBe true
     }

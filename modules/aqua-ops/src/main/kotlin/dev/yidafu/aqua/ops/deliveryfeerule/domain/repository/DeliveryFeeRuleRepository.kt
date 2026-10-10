@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.domain.model.DeliveryFeeTier
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.table.DeliveryFeeRuleTable
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
@@ -31,6 +32,8 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.stereotype.Repository
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.readValue
 import java.util.Optional
 
 /**
@@ -46,6 +49,9 @@ class DeliveryFeeRuleRepository(
   companion object {
     /** 单行配置固定主键 */
     const val SINGLETON_ID = 1L
+
+    /** tiers 档位列(DL json)序列化器;解析失败按 null 处理(计价回退单档 surchargeCents) */
+    private val tierMapper = jacksonObjectMapper()
   }
 
   fun findById(id: Long): Optional<DeliveryFeeRuleModel> =
@@ -74,6 +80,7 @@ class DeliveryFeeRuleRepository(
         DeliveryFeeRuleTable.update({ DeliveryFeeRuleTable.id eq id }) {
           it[freeFloorLimit] = rule.freeFloorLimit
           it[surchargeCents] = rule.surchargeCents
+          it[tiers] = rule.tiers?.let { list -> tierMapper.writeValueAsString(list) }
           it[deletedAt] = rule.deletedAt
           it[deletedBy] = rule.deletedBy
           it[updatedAt] = now
@@ -85,6 +92,7 @@ class DeliveryFeeRuleRepository(
           it[isDeleted] = false // 显式写入：Exposed 的 default() 不会进 INSERT 语句，而 DDL 的 NOT NULL 无兜底
           it[freeFloorLimit] = rule.freeFloorLimit
           it[surchargeCents] = rule.surchargeCents
+          it[tiers] = rule.tiers?.let { list -> tierMapper.writeValueAsString(list) }
           it[deletedAt] = rule.deletedAt
           it[deletedBy] = rule.deletedBy
           it[createdAt] = rule.createdAt
@@ -111,9 +119,17 @@ class DeliveryFeeRuleRepository(
       id = row[DeliveryFeeRuleTable.id],
       freeFloorLimit = row[DeliveryFeeRuleTable.freeFloorLimit],
       surchargeCents = row[DeliveryFeeRuleTable.surchargeCents],
+      tiers = row[DeliveryFeeRuleTable.tiers]?.let(::parseTiers),
       deletedAt = row[DeliveryFeeRuleTable.deletedAt],
       deletedBy = row[DeliveryFeeRuleTable.deletedBy],
       createdAt = row[DeliveryFeeRuleTable.createdAt],
       updatedAt = row[DeliveryFeeRuleTable.updatedAt],
     )
+
+  /** 解析档位 JSON;空串/坏数据回退 null(计价走单档兜底)。 */
+  private fun parseTiers(json: String): List<DeliveryFeeTier>? =
+    runCatching {
+      val list: List<DeliveryFeeTier> = tierMapper.readValue(json)
+      list.ifEmpty { null }
+    }.getOrNull()
 }

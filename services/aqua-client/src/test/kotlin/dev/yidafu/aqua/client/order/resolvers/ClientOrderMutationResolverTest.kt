@@ -158,26 +158,6 @@ class ClientOrderMutationResolverTest :
 
       shouldThrow<NotFoundException> { resolver.cancelOrder(1L, principal) }
     }
-    test("confirmReceiptConfirmsOwnOrder") {
-      every { orderQueryApiService.findById(1L) } returns order(status = OrderModelStatus.AWAITING_CONFIRMATION)
-      val completed = order(status = OrderModelStatus.COMPLETED)
-      every { orderMutationService.confirmReceipt(1L, 1L) } returns completed
-
-      val result = resolver.confirmReceipt(1L, principal)
-
-      result.status.name shouldBe OrderModelStatus.COMPLETED.name
-      verify(exactly = 1) { orderMutationService.confirmReceipt(1L, 1L) }
-    }
-    test("confirmReceiptRejectsForeignOrder") {
-      every { orderQueryApiService.findById(1L) } returns order(userId = 99L)
-
-      shouldThrow<BadRequestException> { resolver.confirmReceipt(1L, principal) }
-    }
-    test("confirmReceiptNotFoundThrows") {
-      every { orderQueryApiService.findById(1L) } returns null
-
-      shouldThrow<NotFoundException> { resolver.confirmReceipt(1L, principal) }
-    }
     test("createReviewUsesPrincipalUserId") {
       every { reviewMutationService.createReview(any(), any()) } answers {
         val req = secondArg<CreateReviewRequest>()

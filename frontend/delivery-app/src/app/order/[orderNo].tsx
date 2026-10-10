@@ -117,7 +117,6 @@ export default function OrderDetailScreen() {
         }
       });
     } else if (
-      order.status === 'AWAITING_CONFIRMATION' ||
       order.status === 'COMPLETED' ||
       order.status === 'CANCELLED' ||
       order.status === 'REFUNDED'
@@ -316,9 +315,9 @@ export default function OrderDetailScreen() {
   }
 
   const cancelledOrRefunded = order.status === 'CANCELLED' || order.status === 'REFUNDED';
+  // 已送达(配送完成):送达即完成,COMPLETED 为送水工视角终态(PRD R-ORD-11 2026-10 简化)
   const isCompleted = order.status === 'COMPLETED';
-  // 已送达(配送完成):待确认收货(用户待签收,R-ORD-11)与已完成均为送水工视角终态
-  const isDelivered = order.status === 'AWAITING_CONFIRMATION' || isCompleted;
+  const isDelivered = isCompleted;
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>

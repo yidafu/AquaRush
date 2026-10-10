@@ -87,7 +87,7 @@ export function ReconciliationOrderDetailSheet({
   return (
     <BottomSheet visible={visible} onClose={onClose} title={`对账逐单明细 · ${reconciliationDate ?? ''}`}>
       <ThemedText type="caption" themeColor="textSecondary" style={styles.hint}>
-        当日已送达订单流水(含待确认收货/已完成),与日报系统计算值同源,共 {total} 单
+        当日已送达订单流水(已完成),与日报系统计算值同源,共 {total} 单
       </ThemedText>
 
       {loading ? (

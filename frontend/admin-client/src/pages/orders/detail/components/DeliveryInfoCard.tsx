@@ -34,7 +34,7 @@ const DeliveryInfoCard: React.FC = () => {
             {formatDateTime(order.deliveryStartedAt)}
           </Descriptions.Item>
           <Descriptions.Item label="送达时间">
-            {formatDateTime(order.deliveryConfirmedAt)}
+            {formatDateTime(order.completedAt)}
           </Descriptions.Item>
         </Descriptions>
       ) : (

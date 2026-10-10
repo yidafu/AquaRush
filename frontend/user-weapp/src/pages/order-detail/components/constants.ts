@@ -47,7 +47,6 @@ export type OrderStatusKey =
   | 'pending_payment'
   | 'pending_delivery'
   | 'delivering'
-  | 'awaiting_confirmation'
   | 'completed'
   | 'cancelled'
 

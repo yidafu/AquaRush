@@ -49,7 +49,6 @@ export interface OrderStatusFlags {
   isPendingPayment: boolean
   isPendingDelivery: boolean
   isDelivering: boolean
-  isAwaitingConfirmation: boolean
   isCompleted: boolean
   isCancelledOrRefunded: boolean
 }
@@ -66,7 +65,6 @@ export const statusFlagsOf = (status: OrderStatus): OrderStatusFlags => ({
   isPendingPayment: status === OrderStatus.PENDING_PAYMENT,
   isPendingDelivery: status === OrderStatus.PENDING_DISPATCH || status === OrderStatus.PENDING_DELIVERY,
   isDelivering: status === OrderStatus.DELIVERING,
-  isAwaitingConfirmation: status === OrderStatus.AWAITING_CONFIRMATION,
   isCompleted: status === OrderStatus.COMPLETED,
   isCancelledOrRefunded: status === OrderStatus.CANCELLED || status === OrderStatus.REFUNDED,
 })
@@ -83,17 +81,9 @@ export const buildOrderTimeline = (order: OrderVo): OrderTimelineView[] => {
   if (order.deliveryStartedAt) {
     timeline.push({ time: order.deliveryStartedAt, title: '开始配送', content: '配送员正在配送中', icon: 'delivery-started', tone: 'success' })
   }
-  // 已送达(送达时间,待确认收货 —— R-ORD-11)
-  if (order.deliveryConfirmedAt) {
-    timeline.push({
-      time: order.deliveryConfirmedAt,
-      title: '已送达',
-      content: order.status === OrderStatus.AWAITING_CONFIRMATION ? '商品已送达,请确认收货' : '商品已送达',
-      icon: 'delivered',
-      tone: 'success',
-    })
-  }
+  // 已送达(送达时间;送达即完成 —— PRD R-ORD-11 2026-10 简化,无独立待确认收货态)
   if (order.completedAt) {
+    timeline.push({ time: order.completedAt, title: '已送达', content: '商品已送达', icon: 'delivered', tone: 'success' })
     timeline.push({ time: order.completedAt, title: '订单完成', content: '订单已完成', icon: 'completed', tone: 'success' })
   }
   return timeline

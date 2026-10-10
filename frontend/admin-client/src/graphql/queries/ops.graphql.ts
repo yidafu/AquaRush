@@ -131,6 +131,11 @@ export const GET_DELIVERY_FEE_RULE_QUERY = gql`
     deliveryFeeRule {
       freeFloorLimit
       surchargeCents
+      tiers {
+        fromFloor
+        toFloor
+        feeCents
+      }
       updatedAt
     }
   }

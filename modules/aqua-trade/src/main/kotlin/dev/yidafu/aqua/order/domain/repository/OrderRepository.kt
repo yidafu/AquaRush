@@ -77,18 +77,6 @@ interface OrderRepository {
     pageable: Pageable,
   ): Page<OrderModel>
 
-  /**
-   * 分页查询已送达且送达时间早于截止时刻的待确认收货订单(R-ORD-11 自动签收扫描用,
-   * 分页游标,禁止全表,CLAUDE.md 规则 13):status=AWAITING_CONFIRMATION 且
-   * delivery_confirmed_at < 截止时刻(送达 N 天未确认)。
-   * 排序口径同 [findByStatusAndDeliveryStartedAtBefore](调用方传 Sort by id ASC)。
-   */
-  fun findByStatusAndDeliveryConfirmedAtBefore(
-    status: OrderModelStatus,
-    before: LocalDateTime,
-    pageable: Pageable,
-  ): Page<OrderModel>
-
   fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
 
   fun findByAddressId(addressId: Long): List<OrderModel>
@@ -171,15 +159,14 @@ interface OrderRepository {
   ): Long
 
   // ========================================================================
-  // 「已送达」口径聚合(R-ORD-11 确认收货与营收确认):送水工业绩/收款日报/对账专用,
-  // 含 待确认收货(AWAITING_CONFIRMATION)与 已完成(COMPLETED),时间锚点 = 送达时间
-  // (deliveryConfirmedAt,历史数据为 null 时回退 completedAt)——业绩按送达即时计入,
-  // 不受用户确认延迟影响;与营收口径(仅 COMPLETED 按 completedAt,见 08-statistics.md)区分。
+  // 「已送达」口径聚合(R-ORD-11 2026-10 简化):送水工业绩/收款日报/对账专用,
+  // 状态 = COMPLETED、时间锚点 = completed_at(= 送达时间,送达即完成即时计入)——
+  // 与营收口径(仅 COMPLETED 按 completed_at)同源同锚,见 08-statistics.md。
   // ========================================================================
 
   /**
-   * 统计日期窗口内「已送达」订单数(送水工业绩口径,含待确认收货与已完成):
-   * COALESCE(delivery_confirmed_at, completed_at) ∈ [startOfDay, endOfDay)。
+   * 统计日期窗口内「已送达」订单数(送水工业绩口径 = 已完成):
+   * status=COMPLETED 且 completed_at ∈ [startOfDay, endOfDay)。
    */
   fun countDeliveredByDateRange(
     startOfDay: LocalDateTime,
@@ -197,7 +184,7 @@ interface OrderRepository {
   ): Long
 
   /**
-   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径,含待确认收货与已完成):
+   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径 = 已完成):
    * 返回 [订单数, 金额合计(分)];窗口口径同 [countDeliveredByDateRange]。
    */
   fun countAndSumDeliveredByPaymentType(
@@ -208,10 +195,10 @@ interface OrderRepository {
   ): Array<Long>
 
   /**
-   * 分页查询日期窗口内「已送达」订单明细(对账逐单明细,含待确认收货与已完成):
-   * 按送达时间(deliveryConfirmedAt,回退 completedAt)过滤,可指定送水工;
+   * 分页查询日期窗口内「已送达」订单明细(对账逐单明细 = 已完成):
+   * 按 completed_at(送达时间)过滤,可指定送水工;
    * 排序 = 送达时间升序、id 降序(与原实现一致);count 与 content 同一事务。
-   * 供 G29 对账详情逐单差异明细使用,禁止全量拉取(CLAUDE.md 规则 13)。
+   * 供 G29 对账详情逐单差异明细使用,禁止全量拉取(AGENTS.md 规则 10)。
    */
   fun findDeliveredOrdersByDateRange(
     deliveryWorkerId: Long?,
@@ -335,17 +322,6 @@ interface OrderRepository {
     id: Long,
     statuses: Collection<OrderModelStatus>,
     now: LocalDateTime,
-  ): Int
-
-  /**
-   * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
-   * 单条条件 UPDATE:仅「待确认收货」状态可置「已完成」并写入完成时间
-   * (completedAt=确认时间,营收按此归属,updatedAt 同步),返回受影响行数
-   * (1=认领成功,0=已被用户/系统并发确认或状态已流转);WHERE 同带 activeOnly(口径同 [cancelAtomically])。
-   */
-  fun confirmReceiptAtomically(
-    id: Long,
-    completedAt: LocalDateTime,
   ): Int
 
   /**

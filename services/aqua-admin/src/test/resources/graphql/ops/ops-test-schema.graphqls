@@ -198,7 +198,14 @@ type StoreProfileVo {
 type DeliveryFeeRuleVo {
   freeFloorLimit: Int!
   surchargeCents: Long!
+  tiers: [DeliveryFeeTierVo!]
   updatedAt: LocalDateTime
+}
+
+type DeliveryFeeTierVo {
+  fromFloor: Int!
+  toFloor: Int
+  feeCents: Long!
 }
 
 input NoticeListInput {
@@ -240,4 +247,11 @@ input SaveStoreProfileInput {
 input SaveDeliveryFeeRuleInput {
   freeFloorLimit: Int!
   surchargeCents: Long!
+  tiers: [DeliveryFeeTierInput!]!
+}
+
+input DeliveryFeeTierInput {
+  fromFloor: Int!
+  toFloor: Int
+  feeCents: Long!
 }

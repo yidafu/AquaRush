@@ -5,7 +5,7 @@ import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 
-// 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单与确认,保存即生效
+// 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单提醒,保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);已生成订单不受影响(快照原则,R-SYS-01)
 
 interface SlotConfig {
@@ -45,7 +45,6 @@ interface OrderConfigValues {
   paymentTimeoutMinutes?: number;
   immediateMinutes?: number;
   dispatchTimeoutReminderMinutes?: number;
-  autoConfirmReceiptDays?: number;
   slots: Record<string, { enabled: boolean; range?: [Dayjs, Dayjs] }>;
 }
 
@@ -87,7 +86,6 @@ const SystemOrderConfig: React.FC = () => {
       paymentTimeoutMinutes: numberValue(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES),
       immediateMinutes: numberValue(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES),
       dispatchTimeoutReminderMinutes: numberValue(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES),
-      autoConfirmReceiptDays: numberValue(SystemSettingKeys.AUTO_CONFIRM_RECEIPT_DAYS),
       slots: slotValues,
     });
   }, [data, form]);
@@ -104,7 +102,6 @@ const SystemOrderConfig: React.FC = () => {
     pushNumber(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES, values.paymentTimeoutMinutes);
     pushNumber(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES, values.immediateMinutes);
     pushNumber(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES, values.dispatchTimeoutReminderMinutes);
-    pushNumber(SystemSettingKeys.AUTO_CONFIRM_RECEIPT_DAYS, values.autoConfirmReceiptDays);
     for (const slot of SLOTS) {
       const slotValue = values.slots?.[slot.label];
       if (!slotValue) continue;
@@ -190,7 +187,7 @@ const SystemOrderConfig: React.FC = () => {
             }
           </Form.List>
 
-          <Divider plain>派单与确认</Divider>
+          <Divider plain>派单提醒</Divider>
           <Form.Item
             name="dispatchTimeoutReminderMinutes"
             label="派单超时提醒(分钟)"
@@ -198,14 +195,6 @@ const SystemOrderConfig: React.FC = () => {
           >
             <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
-          <Form.Item
-            name="autoConfirmReceiptDays"
-            label="自动确认收货(天)"
-            rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
-          >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
-          </Form.Item>
-
           <Form.Item>
             <Space>
               <Button type="primary" onClick={handleSave} loading={saving} disabled={!canWrite}>

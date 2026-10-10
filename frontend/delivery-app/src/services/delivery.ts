@@ -137,7 +137,6 @@ export const getOrderDetail = (orderNo: string) => {
         remark
         createdAt
         deliveryStartedAt
-        deliveryConfirmedAt
         paymentType
         deliveryPhotos
         # 配送备注(完成配送时配送员填写,R-ORD-07;完成态「配送信息」卡回显)
@@ -260,7 +259,6 @@ export const completeDelivery = (
       completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType, remark: $remark) {
         id
         status
-        deliveryConfirmedAt
       }
     }
   `,
@@ -346,7 +344,7 @@ export const getDeliveryWorkerHistoryOrders = (
           status
           isSelfCollect
           createdAt
-          deliveryConfirmedAt
+          completedAt
           user {
             nickname
             phone

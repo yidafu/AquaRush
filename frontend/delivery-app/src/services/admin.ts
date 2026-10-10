@@ -170,7 +170,7 @@ export const getAdminOrders = (options: AdminOrderListOptions = {}) => {
           status
           isSelfCollect
           createdAt
-          deliveryConfirmedAt
+          completedAt
           user {
             nickname
             phone

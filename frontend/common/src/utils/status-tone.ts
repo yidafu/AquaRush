@@ -1,7 +1,7 @@
 /**
  * 状态标签(label)tone 体系 —— 三端状态「状态 → 颜色」的唯一来源
  *
- * 权威定义:docs/ui-design-system.md §2.2(10% tint 底 + 状态色文字)。
+ * 权威定义:spec/design/ui-design-system.md §2.2(10% tint 底 + 状态色文字)。
  * 本模块只承载语义 tone 与 tint 色对,不含任何平台实现:
  * - admin-client 经 `toneToAntDColor`(AntD preset 色名)渲染;
  * - user-weapp 经 `StatusTag` 组件 + `--status-*` CSS 变量渲染(值由同步守卫测试锁定本模块);
@@ -27,13 +27,12 @@ export const STATUS_TONE_COLORS: Record<StatusTone, { text: string; bg: string }
   accent: { text: '#FF5436', bg: 'rgba(255, 84, 54, 0.10)' },
 }
 
-/** 订单状态 → tone(§2.2:待付款 warning / 待派单·待配送 info / 配送中·待确认收货 success / 已完成 neutral / 已取消·已退款 error) */
+/** 订单状态 → tone(§2.2:待付款 warning / 待派单·待配送 info / 配送中 success / 已完成 neutral / 已取消·已退款 error) */
 export const ORDER_STATUS_TONE: Record<OrderStatus, StatusTone> = {
   [OrderStatus.PENDING_PAYMENT]: 'warning',
   [OrderStatus.PENDING_DISPATCH]: 'info',
   [OrderStatus.PENDING_DELIVERY]: 'info',
   [OrderStatus.DELIVERING]: 'success',
-  [OrderStatus.AWAITING_CONFIRMATION]: 'success',
   [OrderStatus.COMPLETED]: 'neutral',
   [OrderStatus.CANCELLED]: 'error',
   [OrderStatus.REFUNDED]: 'error',

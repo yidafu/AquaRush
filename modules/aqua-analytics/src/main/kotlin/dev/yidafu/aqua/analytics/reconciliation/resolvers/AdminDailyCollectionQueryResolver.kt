@@ -73,7 +73,7 @@ class AdminDailyCollectionQueryResolver(
 
   /**
    * 分页查询收款记录(后台收银对账列表)
-   * 支持按收款日期/送水工筛选;不传筛选条件时返回全部(分页,禁止全量拉取 —— CLAUDE.md 规则 13)
+   * 支持按收款日期/送水工筛选;不传筛选条件时返回全部(分页,禁止全量拉取 —— AGENTS.md 规则 10)
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
@@ -205,7 +205,7 @@ class AdminDailyCollectionQueryResolver(
       amountCents = order.amountCents,
       paymentType = order.paymentType?.let { it.toGraphQL() },
       status = order.status.toGraphQL(),
-      deliveredAt = order.deliveryConfirmedAt ?: order.completedAt,
+      deliveredAt = order.completedAt,
     )
 
   /**

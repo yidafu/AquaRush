@@ -165,10 +165,12 @@ class OrderMutationServiceImpl(
   }
 
   /**
-   * 配送费计算(R-MON-02 楼层口径,PRD 12-operations-config.md §F-OPS-005):
+   * 配送费计算(R-MON-02 楼层分档,2026-10 修订;PRD 12-operations-config.md §F-OPS-005):
    * - 自提订单免运费(无配送行为,楼层不参与判定);
    * - 收货楼层为空(平房/无楼层信息)免运费;
-   * - 楼层 > 免费楼层(默认4)时一次性加收 surchargeCents(默认2元),不随层数累加。
+   * - 楼层 > 免费楼层(默认4)时按所在档位加收 tiers 对应金额
+   *   (默认「免费楼层以上 2 层内 +2 元 / 再上 3 层 +5 元 / 更高 +8 元」);
+   * - tiers 未配置时回退兜底单档 surchargeCents(兼容存量行)。
    * 金额以分存储与服务端计算(R-MON-01);规则配置变更即时生效,已生成订单不受影响(运费按下单时快照)。
    */
   private fun computeDeliveryFee(
@@ -182,7 +184,11 @@ class OrderMutationServiceImpl(
     if (floor == null || floor <= rule.freeFloorLimit) {
       return 0
     }
-    return rule.surchargeCents
+    val tier =
+      rule.tiers?.firstOrNull { tier ->
+        floor >= tier.fromFloor && (tier.toFloor == null || floor <= tier.toFloor!!)
+      }
+    return tier?.feeCents ?: rule.surchargeCents
   }
 
   /**
@@ -502,10 +508,6 @@ class OrderMutationServiceImpl(
       throw BadRequestException("订单配送中，无法取消")
     }
 
-    if (order.status == OrderModelStatus.AWAITING_CONFIRMATION) {
-      throw BadRequestException("订单已送达待确认收货，无法取消")
-    }
-
     // 2. 如果订单已支付，需要退款（先处理库存恢复，退款在支付服务中处理）
     // 已支付订单位于「待派单」(支付成功回调 R-ORD-01 状态机);兼容历史「待配送」已支付数据
     var shouldRefund = false
@@ -632,112 +634,6 @@ class OrderMutationServiceImpl(
     return order
   }
 
-  /**
-   * 用户确认收货(R-ORD-11,仅本人):待确认收货 → 已完成;
-   * 置完成时间(completedAt=确认时间,营收按确认时间归属,PRD 08-statistics.md §域级口径);
-   * 原子认领(状态 CAS)保证与系统自动确认并发互斥、只生效一次;
-   * 操作时间线留痕 ORDER_CONFIRMED 并发布 ORDER_COMPLETED 事件(通知域「订单完成」)。
-   */
-  @Transactional
-  override fun confirmReceipt(
-    orderId: Long,
-    userId: Long,
-  ): OrderModel? {
-    val order = orderRepository.findById(orderId).orElse(null) ?: return null
-
-    // 仅本人订单
-    if (order.userId != userId) {
-      return null
-    }
-    if (order.status == OrderModelStatus.COMPLETED) {
-      return order // 已确认/已完成,幂等返回
-    }
-    if (order.status != OrderModelStatus.AWAITING_CONFIRMATION) {
-      throw BadRequestException("订单状态不正确,仅待确认收货的订单可确认收货")
-    }
-
-    // 原子认领:待确认收货 → 已完成 + 完成时间;0 行 = 已被并发确认(用户重复点击/系统自动确认),幂等跳过
-    val now = LocalDateTime.now()
-    val claimed = orderRepository.confirmReceiptAtomically(orderId, now)
-    if (claimed == 0) {
-      return orderQueryService.getOrderById(orderId)
-    }
-
-    // 操作时间线:用户确认收货
-    orderOperationService.recordOperation(
-      orderId = orderId,
-      operationType = OrderOperationType.ORDER_CONFIRMED,
-      operatorType = OperatorType.USER,
-      operatorId = userId,
-      description = "用户确认收货",
-    )
-
-    // 发布订单完成事件(订单完成通知 + 营收确认节点)
-    eventPublishService.publishOrderCompleted(
-      orderId = orderId,
-      userId = order.userId,
-      deliveryWorkerId = order.deliveryWorkerId ?: 0L,
-    )
-
-    // 业务日志(F-LOG-003 ORDER 域):确认收货
-    bizLogger.logOrderOperation(
-      orderId = orderId,
-      operation = "ORDER_CONFIRMED",
-      result = "SUCCESS",
-      userId = userId,
-      additionalData = mapOf("confirmedAt" to now.toString()),
-    )
-
-    logger.info("User $userId confirmed receipt of order $orderId")
-
-    return orderQueryService.getOrderById(orderId)
-  }
-
-  /**
-   * 系统自动确认收货(R-ORD-11):送达 N 天(系统配置 auto_confirm_receipt_days,默认 7)未确认自动签收;
-   * 幂等 —— 已确认/已流转直接跳过;与用户确认并发由原子认领互斥,只生效一次。
-   */
-  @Transactional
-  override fun autoConfirmReceipt(orderId: Long) {
-    val order = orderRepository.findById(orderId).orElse(null) ?: return
-    if (order.status != OrderModelStatus.AWAITING_CONFIRMATION) {
-      return // 已确认/已流转,幂等跳过
-    }
-
-    val now = LocalDateTime.now()
-    val claimed = orderRepository.confirmReceiptAtomically(orderId, now)
-    if (claimed == 0) {
-      return // 已被并发确认(用户/其他调度),跳过
-    }
-
-    // 操作时间线:系统自动确认(OperatorType.SYSTEM)
-    orderOperationService.recordOperation(
-      orderId = orderId,
-      operationType = OrderOperationType.AUTO_CONFIRMED,
-      operatorType = OperatorType.SYSTEM,
-      operatorId = null,
-      description = "系统自动确认收货(送达超时未确认)",
-    )
-
-    // 发布订单完成事件(营收确认节点)
-    eventPublishService.publishOrderCompleted(
-      orderId = orderId,
-      userId = order.userId,
-      deliveryWorkerId = order.deliveryWorkerId ?: 0L,
-    )
-
-    // 业务日志(F-LOG-003 ORDER 域):自动确认收货
-    bizLogger.logOrderOperation(
-      orderId = orderId,
-      operation = "ORDER_AUTO_CONFIRMED",
-      result = "SUCCESS",
-      userId = order.userId,
-      additionalData = mapOf("confirmedAt" to now.toString()),
-    )
-
-    logger.info("Auto confirmed receipt of order $orderId (delivered at {}, confirmed at {})", order.deliveryConfirmedAt, now)
-  }
-
   @Transactional
   override fun updateOrderStatus(
     orderId: Long,
@@ -801,8 +697,6 @@ class OrderMutationServiceImpl(
         // 用户/管理员取消(已支付) → 已取消(触发退款流程);退款审核通过 → 已退款
         OrderModelStatus.PENDING_DISPATCH -> setOf(OrderModelStatus.CANCELLED)
         OrderModelStatus.CANCELLED -> setOf(OrderModelStatus.REFUNDED)
-        // 后台兜底:管理员可代确认收货(待确认收货 → 已完成,R-ORD-11)
-        OrderModelStatus.AWAITING_CONFIRMATION -> setOf(OrderModelStatus.COMPLETED)
         else -> emptySet()
       }
     if (to !in allowed) {

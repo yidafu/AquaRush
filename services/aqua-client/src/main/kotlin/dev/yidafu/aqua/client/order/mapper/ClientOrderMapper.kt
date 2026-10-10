@@ -57,7 +57,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): OrderVo =
     isSelfCollect = isSelfCollect,
     paymentType = paymentType?.let { it.toGraphQL() },
     deliveryStartedAt = deliveryStartedAt,
-    deliveryConfirmedAt = deliveryConfirmedAt,
+    assignedAt = assignedAt,
     completedAt = completedAt,
     remark = remark,
     // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转)

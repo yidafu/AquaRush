@@ -124,8 +124,7 @@ const OrderListPage: React.FC = () => {
       all: 0,
       pending_payment: 1,
       pending_delivery: 2,
-      delivering: 3,
-      awaiting_confirmation: 4
+      delivering: 3
     }
     const initialTab = typeof tabParam === 'string' && tabParam in TAB_INDEX_MAP ? TAB_INDEX_MAP[tabParam] : 0
     setCurrentTab(initialTab)
@@ -257,32 +256,6 @@ const OrderListPage: React.FC = () => {
     })
   }, [showToastMessage])
 
-  /**
-   * 确认收货(R-ORD-11,仅本人):待确认收货订单卡片操作;
-   * 确认后按确认时间计入营收,送达 7 天未确认由系统自动签收
-   */
-  const handleConfirmReceipt = useCallback((order: OrderItem) => {
-    Taro.showModal({
-      title: '确认收货',
-      content: '请确认已收到本次配送的商品。确认后订单完成,7 天内未确认将自动签收。',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            const result = await OrderService.getInstance().confirmReceipt(order.id)
-            if (!result.success) {
-              throw new Error(result.error?.message || '确认收货失败')
-            }
-            showToastMessage('确认收货成功', 'success')
-            refresh()
-          } catch (error) {
-            console.error('确认收货失败:', error)
-            showToastMessage(error instanceof Error ? error.message : '确认收货失败', 'error')
-          }
-        }
-      }
-    })
-  }, [refresh, showToastMessage])
-
   return (
     <View className='order-list-page'>
       <OrderTabs current={currentTab} onChange={handleTabChange} />
@@ -306,7 +279,6 @@ const OrderListPage: React.FC = () => {
                 order={order}
                 onPay={handlePayment}
                 onCancel={handleCancelOrder}
-                onConfirmReceipt={handleConfirmReceipt}
                 onReorder={handleReorder}
                 onClick={handleOrderClick}
               />

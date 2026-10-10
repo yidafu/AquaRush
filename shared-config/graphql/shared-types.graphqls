@@ -44,14 +44,13 @@ directive @max(
 ) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 # Enum types - Common across all services
-# 订单状态(R-ORD-11 确认收货与营收确认):AWAITING_CONFIRMATION=已送达待用户确认收货,
-# 用户确认或送达 N 天(配置 auto_confirm_receipt_days,默认 7)系统自动确认后进入 COMPLETED 并计入营收
+# 订单状态(R-ORD-11,2026-10 简化后 7 态):送达即完成(completed_at=送达时间,即时计入营收),
+# 原「待确认收货 + 送达 N 天自动确认」中间态已废(PRD v0.27,代码随 B2 对齐)
 enum OrderStatus {
   PENDING_PAYMENT
   PENDING_DISPATCH
   PENDING_DELIVERY
   DELIVERING
-  AWAITING_CONFIRMATION
   COMPLETED
   CANCELLED
   REFUNDED
@@ -145,8 +144,8 @@ enum OrderOperationType {
   DELIVERY_ASSIGNED      # 配送员分配
   DELIVERY_STARTED       # 开始配送
   DELIVERY_COMPLETED     # 配送完成
-  ORDER_CONFIRMED        # 用户确认收货(待确认收货→已完成 —— R-ORD-11)
-  AUTO_CONFIRMED         # 系统自动确认收货(送达 N 天未确认自动签收 —— R-ORD-11)
+  ORDER_CONFIRMED        # 用户确认收货(历史留痕——2026-10 前存量操作记录,该流转已废 R-ORD-11)
+  AUTO_CONFIRMED         # 系统自动确认收货(历史留痕——同上,自动确认调度已移除)
   ORDER_COMPLETED        # 订单完成
   REFUND_INITIATED       # 退款发起
   REFUND_COMPLETED       # 退款完成
@@ -344,9 +343,9 @@ type OrderVo {
   paymentType: PaymentType
   # 开始配送时间
   deliveryStartedAt: LocalDateTime
-  # 配送确认时间
-  deliveryConfirmedAt: LocalDateTime
-  # 订单完成时间
+  # 派单/抢单时间(缺陷 #9 补列,履约时长起点)
+  assignedAt: LocalDateTime
+  # 订单完成时间(=送达时间,营收/日报/对账锚点 R-ORD-11)
   completedAt: LocalDateTime
   # 订单备注
   remark: String
@@ -2466,10 +2465,25 @@ type StoreProfileVo {
 type DeliveryFeeRuleVo {
   # 免费楼层(楼层 ≤ 该值免运费)
   freeFloorLimit: Int!
-  # 超出免费楼层的一次性加价(分,0-99900)
+  # 超出免费楼层的兜底单档加价(分,0-99900;仅 tiers 为空时参与计价)
   surchargeCents: Long!
+  # 楼层档位(R-MON-02 分档,按楼层升序;空=未配置分档,计价回退 surchargeCents)
+  tiers: [DeliveryFeeTierVo!]
   # 更新时间
   updatedAt: LocalDateTime
+}
+
+# 配送费档位(R-MON-02 分档计费:楼层 ∈ [fromFloor,toFloor] 加收 feeCents;toFloor=null 不封顶)
+type DeliveryFeeTierVo {
+  fromFloor: Int!
+  toFloor: Int
+  feeCents: Long!
+}
+
+input DeliveryFeeTierInput {
+  fromFloor: Int! @min(value: 1, message: "档位起始楼层至少为1")
+  toFloor: Int
+  feeCents: Long! @min(value: 0, message: "档位金额无效") @max(value: 99900, message: "档位金额无效")
 }
 
 # ==================== 营销域(MKT,PRD 10-marketing.md) ====================

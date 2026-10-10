@@ -53,8 +53,8 @@ object OrdersTable : SoftDeletableTable("orders") {
   val firstOrderDiscountCents = long("first_order_discount_cents").default(0L)
   val addressId = long("address_id")
 
-  // 30 而非 DDL 初值 20:枚举 AWAITING_CONFIRMATION 21 字符超宽(Exposed 客户端强校验
-  // 会拒绝写入),changelog V300 已同步加宽生产列。
+  // 30 为历史列宽(V300 曾为 21 字符的 AWAITING_CONFIRMATION 加宽,该状态已随 7 态迁移删除,
+  // 列宽保留不再回缩)
   val status = varchar("status", 30)
   val paymentMethod = varchar("payment_method", 20).nullable()
   val paymentTransactionId = varchar("payment_transaction_id", 128).nullable()
@@ -69,7 +69,7 @@ object OrdersTable : SoftDeletableTable("orders") {
   val isSelfCollect = bool("is_self_collect").default(false)
   val paymentType = varchar("payment_type", 20).nullable()
   val deliveryStartedAt = datetime("delivery_started_at").nullable()
-  val deliveryConfirmedAt = datetime("delivery_confirmed_at").nullable()
+  val assignedAt = datetime("assigned_at").nullable()
   val completedAt = datetime("completed_at").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")

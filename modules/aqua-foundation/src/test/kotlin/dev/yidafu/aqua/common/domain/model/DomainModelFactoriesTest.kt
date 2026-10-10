@@ -150,7 +150,6 @@ class DomainModelFactoriesTest :
     test("SystemSettingKeys should expose key constants") {
       SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES shouldBe "payment_timeout_minutes"
       SystemSettingKeys.LOW_STOCK_THRESHOLD shouldBe "low_stock_threshold"
-      SystemSettingKeys.AUTO_CONFIRM_RECEIPT_DAYS shouldBe "auto_confirm_receipt_days"
       SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED.startsWith("delivery_slot") shouldBe true
     }
   })

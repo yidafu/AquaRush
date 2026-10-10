@@ -384,7 +384,7 @@ class StatisticsServiceImplTest :
       result.pendingDispatch shouldBe 0L
       result.pendingDelivery shouldBe 0L
     }
-    test("getOrderStatusDistribution zero-fills all statuses (G37,R-ORD-11 8 态)") {
+    test("getOrderStatusDistribution zero-fills all statuses (G37,R-ORD-11 7 态)") {
       every { statisticsOrderRepository.countOrdersGroupByStatus(any(), any()) } returns
         mapOf(
           OrderModelStatus.COMPLETED to 5L,
@@ -397,10 +397,9 @@ class StatisticsServiceImplTest :
       result.first { it.status == OrderModelStatus.COMPLETED }.count shouldBe 5L
       result.first { it.status == OrderModelStatus.CANCELLED }.count shouldBe 2L
       result.filter { it.count > 0L }.sumOf { it.count } shouldBe 7L
-      // 未出现的状态补零(含 R-ORD-11 新增的待确认收货)
+      // 未出现的状态补零(7 态)
       result.first { it.status == OrderModelStatus.PENDING_PAYMENT }.count shouldBe 0L
       result.first { it.status == OrderModelStatus.REFUNDED }.count shouldBe 0L
-      result.first { it.status == OrderModelStatus.AWAITING_CONFIRMATION }.count shouldBe 0L
     }
     test("getOrderStatusDistribution reads historical segment from facts (G37 状态分布快照化)") {
       every { dailyUserFactRepository.findFirstByOrderByStatDateAsc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 1))

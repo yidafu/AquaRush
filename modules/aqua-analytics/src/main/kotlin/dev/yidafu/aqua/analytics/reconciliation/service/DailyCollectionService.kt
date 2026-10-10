@@ -64,8 +64,8 @@ class DailyCollectionService(
 
   /**
    * 获取配送员今日按支付类型的收款统计
-   * 从已送达的订单中按支付类型统计(含待确认收货 + 已完成,R-ORD-11 ——
-   * 收款在送达当场发生,按送达时间计入,不受用户确认收货延迟影响)
+   * 从已送达的订单中按支付类型统计(= 已完成,R-ORD-11 ——
+   * 收款在送达当场发生,按 completed_at 计入,送达即计入)
    */
   fun getTodayPaymentStats(
     deliveryWorkerId: Long,
@@ -113,7 +113,7 @@ class DailyCollectionService(
   }
 
   /**
-   * 获取配送员今日订单统计（系统自动计算,已送达口径含待确认收货,R-ORD-11）
+   * 获取配送员今日订单统计（系统自动计算,已送达口径=已完成,R-ORD-11）
    */
   fun getTodayOrderStats(
     deliveryWorkerId: Long,
@@ -173,7 +173,7 @@ class DailyCollectionService(
     // 获取按支付类型的收款统计
     val paymentStats = getTodayPaymentStats(deliveryWorkerId, collectionDate)
 
-    // 统计已送达订单数量和金额(含待确认收货 + 已完成,按送达时间,R-ORD-11)
+    // 统计已送达订单数量和金额(= 已完成,按送达时间,R-ORD-11)
     val orderCount = orderQueryService.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
 
     val orderAmountCents = orderQueryService.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
@@ -464,7 +464,7 @@ class DailyCollectionService(
   }
 
   /**
-   * 分页查询收款记录(后台收银对账列表,CLAUDE.md 规则 13):
+   * 分页查询收款记录(后台收银对账列表,AGENTS.md 规则 10):
    * 支持按收款日期/送水工筛选,恒按收款日期倒序 + 送水工升序。
    */
   fun getCollectionsPage(
@@ -489,7 +489,7 @@ class DailyCollectionService(
   }
 
   /**
-   * 分页查询对账记录(后台/送水工端,CLAUDE.md 规则 13):恒按对账日期倒序。
+   * 分页查询对账记录(后台/送水工端,AGENTS.md 规则 10):恒按对账日期倒序。
    */
   fun getReconciliationsPage(
     page: Int,
@@ -533,7 +533,7 @@ class DailyCollectionService(
 
   /**
    * 分页查询对账日期窗口内「已送达」订单明细(G29 逐单差异明细):
-   * 订单流水按送达时间口径(含待确认收货 + 已完成),与日报系统计算值同源。
+   * 订单流水按送达时间口径(= 已完成),与日报系统计算值同源。
    */
   fun getReconciliationOrderDetails(
     reconciliationDate: LocalDate,

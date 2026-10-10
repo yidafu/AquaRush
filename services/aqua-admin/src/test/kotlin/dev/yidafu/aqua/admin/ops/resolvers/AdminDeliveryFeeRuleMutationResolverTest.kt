@@ -21,6 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeTierInput
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import io.kotest.core.spec.style.FunSpec
@@ -51,7 +52,17 @@ class AdminDeliveryFeeRuleMutationResolverTest :
       // Given
       every { deliveryFeeRuleMutationService.saveDeliveryFeeRule(1L, "admin", any()) } returns
         DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
-      val input = SaveDeliveryFeeRuleInput(freeFloorLimit = 4, surchargeCents = 200)
+      val input =
+        SaveDeliveryFeeRuleInput(
+          freeFloorLimit = 4,
+          surchargeCents = 200,
+          tiers =
+            listOf(
+              DeliveryFeeTierInput(feeCents = 200, fromFloor = 5, toFloor = 6),
+              DeliveryFeeTierInput(feeCents = 500, fromFloor = 7, toFloor = 9),
+              DeliveryFeeTierInput(feeCents = 800, fromFloor = 10, toFloor = null),
+            ),
+        )
 
       // When
       val result = resolver.saveDeliveryFeeRule(input, principal())

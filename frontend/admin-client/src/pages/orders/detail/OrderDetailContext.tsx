@@ -60,7 +60,6 @@ export interface OrderDetailData {
   deliveryPhotoReviewRemark?: string;
   isSelfCollect: boolean;
   deliveryStartedAt?: string;
-  deliveryConfirmedAt?: string;
   completedAt?: string;
   remark?: string;
   createdAt: string;

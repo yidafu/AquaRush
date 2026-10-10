@@ -856,7 +856,20 @@ export type DeliveryAreaVo = {
 export type DeliveryFeeRuleVo = {
   readonly freeFloorLimit: Scalars['Int']['output'];
   readonly surchargeCents: Scalars['Long']['output'];
+  readonly tiers?: Maybe<ReadonlyArray<DeliveryFeeTierVo>>;
   readonly updatedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+};
+
+export type DeliveryFeeTierInput = {
+  readonly feeCents: Scalars['Long']['input'];
+  readonly fromFloor: Scalars['Int']['input'];
+  readonly toFloor?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DeliveryFeeTierVo = {
+  readonly feeCents: Scalars['Long']['output'];
+  readonly fromFloor: Scalars['Int']['output'];
+  readonly toFloor?: Maybe<Scalars['Int']['output']>;
 };
 
 export type DeliveryLoginInput = {
@@ -1481,7 +1494,6 @@ export type Mutation = {
   readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: OrderVo;
   readonly confirmDailyCollection: DailyCollectionRecordVo;
-  readonly confirmReceipt: OrderVo;
   readonly createAddress: AddressVo;
   readonly createAdmin: AdminVo;
   readonly createAdminAddress: AddressVo;
@@ -1631,11 +1643,6 @@ export type MutationCompleteDeliveryArgs = {
 
 export type MutationConfirmDailyCollectionArgs = {
   input: ConfirmDailyCollectionInput;
-};
-
-
-export type MutationConfirmReceiptArgs = {
-  orderId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -2148,7 +2155,6 @@ export type MutationUrgeOrderArgs = {
 };
 
 export type MyOrderStatisticsVo = {
-  readonly awaitingConfirmation: Scalars['Int']['output'];
   readonly cancelled: Scalars['Int']['output'];
   readonly completed: Scalars['Int']['output'];
   readonly delivering: Scalars['Int']['output'];
@@ -2407,7 +2413,6 @@ export type OrderStatisticsVo = {
 };
 
 export enum OrderStatus {
-  AWAITING_CONFIRMATION = 'AWAITING_CONFIRMATION',
   CANCELLED = 'CANCELLED',
   COMPLETED = 'COMPLETED',
   DELIVERING = 'DELIVERING',
@@ -2444,11 +2449,11 @@ export type OrderValueBucketStatisticVo = {
 export type OrderVo = {
   readonly address?: Maybe<AddressVo>;
   readonly amountCents: Scalars['Long']['output'];
+  readonly assignedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly completedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly couponDiscountCents?: Maybe<Scalars['Long']['output']>;
   readonly couponName?: Maybe<Scalars['String']['output']>;
   readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly deliveryConfirmedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly deliveryFeeCents: Scalars['Long']['output'];
   readonly deliveryPhotoReviewRemark?: Maybe<Scalars['String']['output']>;
   readonly deliveryPhotoReviewStatus?: Maybe<DeliveryPhotoReviewStatus>;
@@ -3745,6 +3750,7 @@ export type SalesReportVo = {
 export type SaveDeliveryFeeRuleInput = {
   readonly freeFloorLimit: Scalars['Int']['input'];
   readonly surchargeCents: Scalars['Long']['input'];
+  readonly tiers: ReadonlyArray<DeliveryFeeTierInput>;
 };
 
 export type SaveGroupProductPricesInput = {

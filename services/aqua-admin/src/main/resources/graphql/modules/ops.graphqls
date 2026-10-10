@@ -228,6 +228,8 @@ input SaveStoreProfileInput {
 input SaveDeliveryFeeRuleInput {
   # 免费楼层(楼层 ≤ 该值免运费,≥0)
   freeFloorLimit: Int! @min(value: 0, message: "免费楼层不能小于0")
-  # 超出免费楼层的一次性加价(分,0-99900)
+  # 兜底单档加价(分,0-99900;仅 tiers 为空时参与计价,保留兼容)
   surchargeCents: Long! @min(value: 0, message: "运费金额无效") @max(value: 99900, message: "运费金额无效")
+  # 楼层档位(R-MON-02 分档,必填:升序、区间不重叠、起始楼层 > 免费楼层;空数组不允许)
+  tiers: [DeliveryFeeTierInput!]!
 }

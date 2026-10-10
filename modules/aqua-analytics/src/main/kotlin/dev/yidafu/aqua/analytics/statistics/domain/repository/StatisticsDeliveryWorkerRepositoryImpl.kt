@@ -21,18 +21,14 @@ package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
-import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.table.AdminsTable
-import dev.yidafu.aqua.common.domain.table.OrderOperationsTable
 import dev.yidafu.aqua.common.domain.table.OrdersTable
 import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.coalesce
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.min
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
@@ -42,8 +38,7 @@ import java.time.LocalDateTime
 
 /**
  * 送水员统计仓储实现(JPA→Exposed 迁移 P3)。
- * 口径与原 QueryDSL 版一致(R-ORD-11):业绩「已送达」= 待确认收货 + 已完成,
- * 按送达时间(deliveryConfirmedAt 回退 completedAt)归属。
+ * 口径(R-ORD-11 2026-10 简化):业绩「已送达」= 已完成,按 completed_at(= 送达时间)归属。
  * ResultRow 取值全部在事务闭包内(聚合表达式 hashCode 依赖事务上下文)。
  */
 @Repository
@@ -51,9 +46,8 @@ class StatisticsDeliveryWorkerRepositoryImpl(
   private val database: Database,
 ) : StatisticsDeliveryWorkerRepository {
   companion object {
-    /** 送水工业绩「已送达」状态集合(待确认收货 + 已完成,R-ORD-11) */
-    private val DELIVERED_STATUSES =
-      listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
+    /** 送水工业绩「已送达」状态集合(R-ORD-11 送达即完成:仅已完成) */
+    private val DELIVERED_STATUSES = listOf(OrderModelStatus.COMPLETED)
   }
 
   override fun countTodayActiveWorkers(sinceDateTime: LocalDateTime): Long {
@@ -93,9 +87,8 @@ class StatisticsDeliveryWorkerRepositoryImpl(
     }
 
   override fun countCompletedOrdersSince(dateTime: LocalDateTime): Long {
-    // 今日完成/业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属 ——
-    // 送水工业绩按送达即时计入,不受用户确认收货延迟影响
-    val deliveredAt = coalesce(OrdersTable.deliveryConfirmedAt, OrdersTable.completedAt)
+    // 今日完成/业绩口径(R-ORD-11):已完成,按 completed_at(送达时间)归属,送达即时计入
+    val deliveredAt = OrdersTable.completedAt
 
     return transaction(database) {
       OrdersTable
@@ -108,8 +101,8 @@ class StatisticsDeliveryWorkerRepositoryImpl(
   }
 
   override fun findCompletedOrderTimingsSince(dateTime: LocalDateTime): List<CompletedOrderTiming> {
-    // 履约时长终点 = 送达时间(deliveryConfirmedAt,历史数据为 null 时回退 completedAt)
-    val deliveredAt = coalesce(OrdersTable.deliveryConfirmedAt, OrdersTable.completedAt)
+    // 履约时长终点 = 送达时间(= completed_at,R-ORD-11 送达即完成)
+    val deliveredAt = OrdersTable.completedAt
 
     return transaction(database) {
       OrdersTable
@@ -136,22 +129,20 @@ class StatisticsDeliveryWorkerRepositoryImpl(
   override fun findEarliestAssignedAtByOrderIds(orderIds: List<Long>): Map<Long, LocalDateTime> {
     if (orderIds.isEmpty()) return emptyMap()
 
-    // 派单时间 = 各订单最早 DELIVERY_ASSIGNED 操作时间(管理员派单/送水员接单均记录该操作)
-    val createdAtExpr = OrderOperationsTable.createdAt.min()
+    // 派单时间 = orders.assigned_at(缺陷 #9 补列,V344 已从历史 DELIVERY_ASSIGNED 操作回填;
+    // 新写入由 assignDeliveryWorker/batchAssignOrders/acceptDelivery 直接落列)
     return transaction(database) {
-      OrderOperationsTable
-        .select(OrderOperationsTable.orderId, createdAtExpr)
+      OrdersTable
+        .select(OrdersTable.id, OrdersTable.assignedAt)
         .where {
-          (OrderOperationsTable.orderId inList orderIds) and
-            (OrderOperationsTable.operationType eq OrderOperationType.DELIVERY_ASSIGNED.name)
-        }.groupBy(OrderOperationsTable.orderId)
-        .toList()
-        .associate { row -> row[OrderOperationsTable.orderId] to row[createdAtExpr]!! }
+          (OrdersTable.id inList orderIds) and (OrdersTable.assignedAt.isNotNull())
+        }.toList()
+        .associate { row -> row[OrdersTable.id] to row[OrdersTable.assignedAt]!! }
     }
   }
 
   override fun countTodayCompletedOrdersByWorker(sinceDateTime: LocalDateTime): Map<Long, Int> {
-    val deliveredAt = coalesce(OrdersTable.deliveryConfirmedAt, OrdersTable.completedAt)
+    val deliveredAt = OrdersTable.completedAt
     val orderCount = OrdersTable.id.count()
     return transaction(database) {
       OrdersTable

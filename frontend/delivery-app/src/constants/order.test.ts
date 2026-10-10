@@ -20,7 +20,6 @@ describe('order 常量', () => {
       PENDING_DISPATCH: '待派单',
       PENDING_DELIVERY: '待配送',
       DELIVERING: '配送中',
-      AWAITING_CONFIRMATION: '待收货',
       COMPLETED: '已完成',
       CANCELLED: '已取消',
       REFUNDED: '已退款',
@@ -28,7 +27,7 @@ describe('order 常量', () => {
   });
 
   it('ORDER_STEPS 配送进度顺序正确', () => {
-    expect(ORDER_STEPS).toEqual(['待派单', '待配送', '配送中', '待收货', '已完成']);
+    expect(ORDER_STEPS).toEqual(['待派单', '待配送', '配送中', '已完成']);
   });
 
   it('OPERATION_TYPE_MAP / PAYMENT_TYPE_LABELS 文案完整', () => {
@@ -47,8 +46,7 @@ describe('getCurrentStep', () => {
     expect(getCurrentStep('PENDING_DISPATCH')).toBe(0);
     expect(getCurrentStep('PENDING_DELIVERY')).toBe(1);
     expect(getCurrentStep('DELIVERING')).toBe(2);
-    expect(getCurrentStep('AWAITING_CONFIRMATION')).toBe(3);
-    expect(getCurrentStep('COMPLETED')).toBe(4);
+    expect(getCurrentStep('COMPLETED')).toBe(3);
   });
 
   it('未知/异常状态回退到第 0 步', () => {

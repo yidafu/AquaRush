@@ -17,14 +17,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.order.config
-
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Configuration
+package dev.yidafu.aqua.common.domain.model
 
 /**
- * 自动确认收货扫描配置注册(R-ORD-11)。
+ * 配送费档位(R-MON-02 分档计费,2026-10 由统一一次性加价改为楼层分档):
+ * 楼层 ∈ [fromFloor, toFloor](toFloor=null 表示不封顶)时加收 feeCents(分)。
+ * 档位按楼层升序、区间不重叠(服务层保存时校验)。
  */
-@Configuration
-@EnableConfigurationProperties(ReceiptAutoConfirmProperties::class)
-class ReceiptAutoConfirmConfig
+data class DeliveryFeeTier(
+  val fromFloor: Int,
+  val toFloor: Int? = null,
+  val feeCents: Long,
+)

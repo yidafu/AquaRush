@@ -5,8 +5,7 @@ enum class OrderModelStatus {
   PENDING_DISPATCH, // 待分配
   PENDING_DELIVERY, // 待配送
   DELIVERING, // 配送中
-  AWAITING_CONFIRMATION, // 待确认收货(已送达,等待用户确认签收;送达 N 天未确认自动签收 —— R-ORD-11)
-  COMPLETED, // 已完成(用户确认收货或系统自动确认后,计入营收)
+  COMPLETED, // 已完成(送达即完成,completed_at=送达时间,即时计入营收 —— R-ORD-11 2026-10 简化)
   CANCELLED, // 已取消
   REFUNDED, // 已退款
   ;
@@ -18,7 +17,6 @@ enum class OrderModelStatus {
         "PENDING_DISPATCH" -> PENDING_DISPATCH
         "PENDING_DELIVERY" -> PENDING_DELIVERY
         "DELIVERING" -> DELIVERING
-        "AWAITING_CONFIRMATION" -> AWAITING_CONFIRMATION
         "COMPLETED" -> COMPLETED
         "CANCELLED" -> CANCELLED
         "REFUNDED" -> REFUNDED

@@ -21,6 +21,7 @@ package dev.yidafu.aqua.ops.deliveryfeerule.mapper
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRuleVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeTierVo
 
 /**
  * 配送费规则映射器:域实体 → GraphQL 类型
@@ -30,5 +31,13 @@ fun DeliveryFeeRuleModel.toGraphQL(): DeliveryFeeRuleVo =
   DeliveryFeeRuleVo(
     freeFloorLimit = freeFloorLimit,
     surchargeCents = surchargeCents,
+    tiers =
+      tiers?.map { tier ->
+        DeliveryFeeTierVo(
+          fromFloor = tier.fromFloor,
+          toFloor = tier.toFloor,
+          feeCents = tier.feeCents,
+        )
+      },
     updatedAt = updatedAt,
   )
