@@ -24,11 +24,15 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.service.LoginLockService
+import dev.yidafu.aqua.user.service.WeChatAuthException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
@@ -44,12 +48,14 @@ class AdminAuthServiceTest :
     val jwtTokenService: JwtTokenService = mockk(relaxed = true)
     val authenticationManager: AuthenticationManager = mockk(relaxed = true)
     val authenticationConfiguration: AuthenticationConfiguration = mockk(relaxed = true)
+    val loginLockService: LoginLockService = mockk(relaxed = true)
     val bizLogger: BizLogger = mockk(relaxed = true)
     val service =
       AdminAuthServiceImpl(
         adminRepository,
         jwtTokenService,
         authenticationConfiguration,
+        loginLockService,
         bizLogger,
       )
 
@@ -92,5 +98,21 @@ class AdminAuthServiceTest :
       val response = service.authenticate("admin", "pass")
 
       response.userInfo.avatar.shouldBeNull()
+    }
+    test("锁定期内直接拒绝,不进入密码校验(AC-SYS-004-02)") {
+      every { loginLockService.lockedRemainingSeconds("locked_admin") } returns 120L
+
+      // 锁定路径直接抛锁定文案;若进入密码校验则消息为 Authentication failed/Invalid...,可区分
+      val exception = shouldThrow<WeChatAuthException> { service.authenticate("locked_admin", "wrong") }
+
+      exception.message!!.contains("账号已锁定") shouldBe true
+      verify(exactly = 0) { loginLockService.clear("locked_admin") }
+    }
+    test("密码校验通过清零失败计数") {
+      mockLoginSuccess(admin(null))
+
+      service.authenticate("admin", "pass")
+
+      verify { loginLockService.clear("admin") }
     }
   })

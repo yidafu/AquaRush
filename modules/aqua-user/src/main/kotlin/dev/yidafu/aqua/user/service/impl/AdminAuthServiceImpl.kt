@@ -8,6 +8,7 @@ import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.service.LoginLockService
 import dev.yidafu.aqua.user.service.WeChatAuthException
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -25,18 +26,38 @@ class AdminAuthServiceImpl(
   private val adminRepository: AdminRepository,
   private val jwtTokenService: JwtTokenService,
   private val authenticationConfiguration: AuthenticationConfiguration,
+  private val loginLockService: LoginLockService,
   private val bizLogger: BizLogger,
 ) : AdminAuthService {
   private val logger = LoggerFactory.getLogger(AdminAuthServiceImpl::class.java)
 
   /**
    * Authenticate admin user with username and password
+   * 登录失败锁定(PRD 11-system-settings.md §F-SYS-004,AC-SYS-004-02):
+   * 锁定期内直接拒绝;密码错误达阈值后锁定;登录成功清零。
    */
   @Transactional
   override fun authenticate(
     username: String,
     password: String,
   ): LoginResponse {
+    // 锁定检查置于 try 外:锁定拒绝不计入失败次数(不延长锁定)
+    val lockedSeconds = loginLockService.lockedRemainingSeconds(username)
+    if (lockedSeconds > 0) {
+      val lockedMinutes = (lockedSeconds + 59) / 60
+      logger.warn("Admin login rejected by lockout: username={}, remainingSeconds={}", username, lockedSeconds)
+      bizLogger.logLogin(
+        userId = "0",
+        username = username,
+        loginMethod = "PASSWORD",
+        success = false,
+        operation = "LOGIN_FAILED",
+        additionalData = mapOf("error" to "ACCOUNT_LOCKED", "lockedSeconds" to lockedSeconds),
+      )
+      throw WeChatAuthException("账号已锁定,请 $lockedMinutes 分钟后重试")
+    }
+
+    var credentialsVerified = false
     try {
       val authenticationManager = authenticationConfiguration.authenticationManager
       // Authenticate user
@@ -44,6 +65,9 @@ class AdminAuthServiceImpl(
         authenticationManager.authenticate(
           UsernamePasswordAuthenticationToken(username, password),
         )
+      credentialsVerified = true
+      // 密码校验通过:清零失败计数
+      loginLockService.clear(username)
 
       SecurityContextHolder.getContext().authentication = authentication
 
@@ -111,6 +135,10 @@ class AdminAuthServiceImpl(
       throw WeChatAuthException("账号已停用，请联系管理员")
     } catch (e: Exception) {
       logger.error("Admin authentication failed", e)
+      // 密码校验失败计数(达阈值锁定);认证通过后的后续步骤异常不计入
+      if (!credentialsVerified) {
+        loginLockService.recordFailure(username)
+      }
       // 记录登录失败日志
       bizLogger.logLogin(
         userId = "0",
