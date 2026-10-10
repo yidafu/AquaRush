@@ -18,7 +18,7 @@
     <div class="chips">
       <span class="chip">F-COL-002</span>
       <span class="chip chip-ok">已实现</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -27,7 +27,7 @@
     <!-- ============ 手机 1：对账列表 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 对账列表</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -114,7 +114,7 @@
     <!-- ============ 手机 2：差异申诉弹层 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 差异申诉弹层</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -164,7 +164,7 @@
     <!-- ============ 手机 3：对账详情下钻 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态三 · 对账详情下钻（逐单明细）</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -238,7 +238,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>「我的」页「对账记录」→ reconciliation-records。</p>
         <p><strong>跳转：</strong>点击卡片 → 对账详情下钻（当日已送达订单流水，逐单差异明细）。</p>
       </div>
@@ -275,7 +275,7 @@
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
         <p>差异金额正负与超容差需<strong>红色强调</strong>，容差内用绿色；系统预计算与填报值须显式并列。</p>
-        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（<code>--d-primary</code>），申诉用 error 色。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（<code>--brand</code>），申诉用 error 色。</p>
         <p>仅本人可见（R-AUTH-02）；申诉说明为必填追溯依据，提交防重复点击。</p>
       </div>
     </div>

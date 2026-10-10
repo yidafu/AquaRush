@@ -18,7 +18,7 @@
     <div class="chips">
       <span class="chip">F-NTF-004</span>
       <span class="chip chip-ok">已实现</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -27,7 +27,7 @@
     <!-- ============ 手机 1：消息列表 + 实时推送横幅 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 消息列表 + 实时推送横幅</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -121,10 +121,10 @@
 
             <!-- 实时推送横幅 -->
             <div style="position:absolute;left:16px;right:16px;top:104px;z-index:30">
-              <div class="card" style="margin:0;padding:12px 14px;background:var(--d-card-2);display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+              <div class="card" style="margin:0;padding:12px 14px;background:var(--bg);display:flex;gap:10px;align-items:center;box-shadow:var(--sh-modal)">
                 <span class="tag tag-assign" style="flex:0 0 auto">新订单</span>
                 <span class="f-aux grow ellipsis t-main">阳光花园 B 座 902 有新订单可抢单</span>
-                <span class="f-note" style="color:var(--d-primary-dark)">去抢单</span>
+                <span class="f-note" style="color:var(--brand)">去抢单</span>
               </div>
             </div>
 
@@ -137,7 +137,7 @@
     <!-- ============ 手机 2：空态 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 空态</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -178,7 +178,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>「我的」页 / 任务页消息入口 + 未读角标。</p>
         <p><strong>跳转：</strong>点击消息 → 标已读 → 跳转任务详情 / 订单详情。</p>
       </div>
@@ -214,7 +214,7 @@
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
         <p>未读高亮与角标实时联动；与实时推送同源（推送即时触达、消息中心可回溯）。</p>
-        <p>送水工端<strong>完全不出现强调橙</strong>：类型标签用 <code>.tag-assign</code> 蓝系，未读点用 error 色；横幅动作文字走 <code>--d-primary-dark</code>。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：类型标签用 <code>.tag-assign</code> 蓝系，未读点用 error 色；横幅动作文字走 <code>--brand</code>。</p>
         <p>新订单广播需醒目但不得重复渲染；离线不丢消息；仅本人可见。</p>
       </div>
     </div>

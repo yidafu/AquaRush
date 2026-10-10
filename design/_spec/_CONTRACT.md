@@ -95,7 +95,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 | 用途 | 用色 |
 | --- | --- |
 | 交互主色（导航、TabBar 选中、Grid 图标、主按钮、开关、单选复选、进度） | `var(--weui-BRAND)` 品牌蓝 |
-| **所有金额（价格 / 优惠 / 合计 / 余额）** | `var(--weui-price)` 微信电商红 `#FA5151` |
+| **所有金额（价格 / 优惠 / 合计）** | `var(--weui-price)` 微信电商红 `#FA5151` |
 | 链接 / 「查看更多」「查看全部」 | `var(--weui-LINK)` `#576B95` |
 | 危险 / 删除 / 警示 | `var(--weui-RED)` |
 | 提示 / 待办 | `var(--weui-ORANGE)` |
@@ -219,10 +219,13 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 - 侧边栏菜单**每页都要渲染完整菜单**（便于评审导航一致性），当前页加 `.on`。
 - 内容区固定从「页面标题区 `.page-title`」开始。
 
-### 3.3 送水工端 App（暗色，375 宽，高度自适应）
+### 3.3 送水工端 App（亮色，375 宽，高度自适应）
+
+> 送水工端（delivery-app）为 **Expo React Native 应用，默认亮色**（与设计系统 `docs/ui-design-system.md` §2 的「亮/暗双模式」一致，稿子出亮色默认态）。
+> `ui.css` 里保留了 `.phone.dark` 夜间模式作用域作为可选能力，**页面默认不使用**。
 
 ```html
-<div class="phone dark">
+<div class="phone">
   <div class="phone-screen">
     <div class="statusbar">
       <span>9:41</span>
@@ -231,7 +234,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
     <div class="app">
       <div class="navbar"><span>页面标题</span></div>
       <div class="app-scroll">…</div>
-      <div class="tabbar dark">…</div>
+      <div class="tabbar">…</div>
       <div class="home-indicator"></div>
     </div>
   </div>

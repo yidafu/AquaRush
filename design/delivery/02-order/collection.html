@@ -19,7 +19,7 @@
       <span class="chip">F-ORD-011</span>
       <span class="chip">F-COL-001</span>
       <span class="chip chip-plain">PRD 未给 · 按语境拟定</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -28,7 +28,7 @@
     <!-- ============ 手机 1：选择收款方式（现金） ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 选择收款方式（现金找零）</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -111,7 +111,7 @@
     <!-- ============ 手机 2：水票核销 / 扫码收款 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 水票核销 + 扫码收款码</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -144,7 +144,7 @@
                   <span class="card-title sm">水票核销</span>
                   <span class="tag tag-brand">扫码核销</span>
                 </div>
-                <div style="width:100%;height:120px;border-radius:12px;background:var(--d-card-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--d-text-sub)">
+                <div style="width:100%;height:120px;border-radius:12px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text-sub)">
                   <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3zM19 19h1v1h-1z"/></svg>
                   <span class="f-note">请让用户出示水票核销码</span>
                 </div>
@@ -156,7 +156,7 @@
                   <span class="card-title sm">扫码收款</span>
                   <span class="f-note t-sub">展示收款码</span>
                 </div>
-                <div style="width:170px;height:170px;margin:4px auto;border-radius:12px;background:var(--d-card-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--d-text-sub)">
+                <div style="width:170px;height:170px;margin:4px auto;border-radius:12px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text-sub)">
                   <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3zM19 19h1v1h-1z"/></svg>
                   <span class="f-note">AquaRush 收款码</span>
                 </div>
@@ -180,7 +180,7 @@
     <!-- ============ 手机 3：收款成功 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态三 · 收款成功</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -229,7 +229,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>订单详情「收款方式」区 / 完成配送前置步骤。</p>
         <p><strong>跳转：</strong>收款成功后返回订单详情继续「完成配送」；收款额计入每日收款日报。</p>
         <p><strong>来源说明：PRD 未给本页独立规格，页面结构与文案按「订单收款方式」与「每日收款」相关条目按语境拟定（标注于 chips：PRD 未给 · 按语境拟定）。</strong></p>
@@ -266,7 +266,7 @@
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
-        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「确认收款 / 完成配送」走品牌蓝（<code>--d-primary</code>），找零提示用品牌蓝高亮，异常用 error 色。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「确认收款 / 完成配送」走品牌蓝（<code>--brand</code>），找零提示用品牌蓝高亮，异常用 error 色。</p>
         <p>金额统一「¥xx.xx」两位小数（分转元）；收款码 / 核销码为占位块，标注「收款码展示」。</p>
         <p>本页细节 PRD 未明确，均按语境拟定；正式实现以统一取价 / 收款口径为准，禁止与日报金额手拼不一致。</p>
       </div>

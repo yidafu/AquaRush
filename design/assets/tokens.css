@@ -26,6 +26,7 @@
   --text-weak: #B8B8B8;
   --border: rgba(0, 0, 0, 0.06);
   --border-strong: rgba(0, 0, 0, 0.12);
+  --on-brand: #FFFFFF;       /* 品牌渐变 / 深色底上的前景色 */
 
   /* —— 语义色 —— */
   --success: #52C41A;

@@ -254,9 +254,6 @@ body {
 }
 .tabbar .tab svg { width: 22px; height: 22px; }
 .tabbar .tab.active { color: var(--brand); }
-.tabbar.dark { background: rgba(28, 30, 33, .96); border-top-color: var(--d-border); }
-.tabbar.dark .tab { color: #7C838C; }
-.tabbar.dark .tab.active { color: var(--d-primary); }
 
 /* 安全区 / Home Indicator */
 .home-indicator {
@@ -269,11 +266,14 @@ body {
 }
 .phone.dark .home-indicator::after { background: rgba(255, 255, 255, .8); }
 
-/* 送水工端暗色屏幕 */
+/* 送水工端（delivery-app）默认亮色；.dark 为设计系统允许的「可选夜间模式」 */
 .phone.dark .phone-screen { background: var(--d-bg); color: var(--d-text); }
 .phone.dark .statusbar { color: var(--d-text); }
 .phone.dark .navbar { color: var(--d-text); }
 .phone.dark .navbar .capsule { display: none; }
+.phone.dark .tabbar { background: rgba(28, 30, 33, .96); border-top-color: var(--d-border); }
+.phone.dark .tabbar .tab { color: #7C838C; }
+.phone.dark .tabbar .tab.active { color: var(--d-primary); }
 
 /* ==========================================================================
    3. 通用组件（三端共用）
@@ -850,35 +850,47 @@ body {
 .desc-item .v.num { font-family: var(--font-num); font-weight: 600; }
 
 /* ==========================================================================
-   5. 送水工端（RN 暗色）
+   5. 送水工端（delivery-app · 默认亮色；.phone.dark 为可选夜间模式）
    ========================================================================== */
 
 .task-card {
-  background: var(--d-card); border-radius: 14px; padding: var(--s4);
+  background: var(--card); border-radius: var(--r-card); padding: var(--s4);
   display: flex; flex-direction: column; gap: 10px; margin-bottom: var(--s3);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
+  box-shadow: var(--sh-card);
 }
 .task-card .tc-head { display: flex; align-items: center; justify-content: space-between; }
-.task-card .addr { color: var(--d-text); font-size: var(--fs-body); font-weight: 600; display: flex; gap: 6px; }
-.task-card .addr svg { width: 16px; height: 16px; color: var(--d-primary); flex: 0 0 16px; margin-top: 3px; }
-.task-card .meta { color: var(--d-text-sub); font-size: var(--fs-aux); }
+.task-card .addr { color: var(--text); font-size: var(--fs-body); font-weight: 600; display: flex; gap: 6px; }
+.task-card .addr svg { width: 16px; height: 16px; color: var(--brand); flex: 0 0 16px; margin-top: 3px; }
+.task-card .meta { color: var(--text-sub); font-size: var(--fs-aux); }
 .task-card .foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
 .seg {
-  display: flex; background: var(--d-card-2); border-radius: 10px; padding: 3px;
+  display: flex; background: rgba(0, 0, 0, .05); border-radius: 10px; padding: 3px;
 }
 .seg .s {
   flex: 1; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; gap: 5px;
-  font-size: var(--fs-aux); color: var(--d-text-sub);
+  font-size: var(--fs-aux); color: var(--text-sub);
 }
-.seg .s.on { background: var(--d-primary-tint); color: var(--d-primary-dark); font-weight: 600; }
+.seg .s.on { background: var(--brand-tint); color: var(--brand-dark); font-weight: 600; }
 .seg .s .cnt {
   min-width: 17px; height: 17px; border-radius: 9px; padding: 0 5px;
-  background: rgba(255, 255, 255, .12); font-size: 10px; display: flex;
+  background: rgba(0, 0, 0, .06); font-size: 10px; display: flex;
   align-items: center; justify-content: center;
 }
-.seg .s.on .cnt { background: var(--d-primary); color: #101418; }
+.seg .s.on .cnt { background: var(--brand); color: #fff; }
 
+/* 夜间模式（可选）：覆盖上面的亮色默认值 */
+.phone.dark .task-card { background: var(--d-card); box-shadow: 0 4px 16px rgba(0, 0, 0, .35); }
+.phone.dark .task-card .addr { color: var(--d-text); }
+.phone.dark .task-card .addr svg { color: var(--d-primary); }
+.phone.dark .task-card .meta { color: var(--d-text-sub); }
+.phone.dark .seg { background: var(--d-card-2); }
+.phone.dark .seg .s { color: var(--d-text-sub); }
+.phone.dark .seg .s.on { background: var(--d-primary-tint); color: var(--d-primary-dark); }
+.phone.dark .seg .s .cnt { background: rgba(255, 255, 255, .12); }
+.phone.dark .seg .s.on .cnt { background: var(--d-primary); color: #101418; }
+
+/* 夜间模式（可选）：通用组件在 .phone.dark 下的覆盖 */
 .phone.dark .card { background: var(--d-card); box-shadow: 0 4px 16px rgba(0, 0, 0, .35); }
 .phone.dark .list { background: var(--d-card); box-shadow: 0 4px 16px rgba(0, 0, 0, .35); }
 .phone.dark .list-item { border-bottom-color: var(--d-border); }

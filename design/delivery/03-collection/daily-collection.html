@@ -18,7 +18,7 @@
     <div class="chips">
       <span class="chip">F-COL-001</span>
       <span class="chip chip-ok">已实现</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -27,7 +27,7 @@
     <!-- ============ 手机 1：录入 + 差异比对 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 录入与差异比对</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -123,7 +123,7 @@
     <!-- ============ 手机 2：金额差异确认弹窗 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 金额差异确认弹窗</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -175,7 +175,7 @@
     <!-- ============ 手机 3：提交成功态 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态三 · 提交成功</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -229,7 +229,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>「我的」页「每日收款」/ 工作台快捷入口「提交日报」→ daily-collection。</p>
         <p><strong>跳转：</strong>提交成功刷新本地状态为「已提交」，由管理员在后台确认 / 驳回。</p>
       </div>
@@ -269,7 +269,7 @@
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
         <p>金额差异必须<strong>显式对比展示</strong>（系统预计算 vs 人工填报），差异项高亮；差异说明为超容差提交的必填项。</p>
-        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（<code>--d-primary</code>），差异超限用 error 色，容差内用绿色。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（<code>--brand</code>），差异超限用 error 色，容差内用绿色。</p>
         <p>提交按钮需防重复点击（幂等）；三栏全零需拦截；金额统一「¥xx.xx」两位小数。</p>
       </div>
     </div>

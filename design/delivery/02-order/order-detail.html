@@ -22,7 +22,7 @@
       <span class="chip chip-partial">F-ORD-029 部分</span>
       <span class="chip chip-plan">F-ORD-028 规划</span>
       <span class="chip chip-goal">目标形态</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -31,7 +31,7 @@
     <!-- ============ 手机 1：待配送 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 待配送</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -133,7 +133,7 @@
     <!-- ============ 手机 2：配送中 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 配送中（未拍照，完成配送禁用）</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -213,7 +213,7 @@
                   <span class="f-note" style="color:var(--error)">必拍 ≥ 1 张</span>
                 </div>
                 <div class="row gap3">
-                  <div style="width:76px;height:76px;border-radius:8px;border:1px dashed var(--d-border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--d-text-sub)">
+                  <div style="width:76px;height:76px;border-radius:8px;border:1px dashed var(--border-strong);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-sub)">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.6-2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/></svg>
                     <span class="f-note">拍照</span>
                   </div>
@@ -245,7 +245,7 @@
     <!-- ============ 手机 3：已完成 + 转单弹层 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态三 · 已完成 + 转单弹层</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -324,7 +324,7 @@
                   <div class="list-item">
                     <div class="li-ico">赵</div>
                     <div class="grow">
-                      <div class="f-body t-main" style="color:var(--d-text-sub)">赵磊（休息中）</div>
+                      <div class="f-body t-main" style="color:var(--text-sub)">赵磊（休息中）</div>
                       <div class="f-note t-sub">忙碌 · 当前 3 单</div>
                     </div>
                     <span class="check"></span>
@@ -352,7 +352,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>任务列表点击任务卡。</p>
         <p><strong>跳转：</strong>「修改地址信息」→ 修改地址信息弹层（F-ORD-024）；「导航」→ 第三方地图（F-ORD-029）；「转单」→ 转单弹层（F-ORD-028）；电话图标 → <code>tel:</code> 拨号。</p>
       </div>
@@ -399,7 +399,7 @@
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
         <p>完成配送为<strong>硬校验</strong>（照片 ≥ 1 张 + 收款方式必选），未满足不得提交；送达即完成，不得出现「待确认收货」中间态。</p>
-        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「开始配送 / 完成配送」走品牌蓝（暗色 <code>--d-primary</code>），禁用态置灰，异常用 error 色。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「开始配送 / 完成配送」走品牌蓝（品牌蓝 <code>--brand</code>），禁用态置灰，异常用 error 色。</p>
         <p><strong>规划中缺口：</strong>转单 F-ORD-028（G84，规划中，chip-plan）；一键导航 F-ORD-029（G85，地图已具备 / 唤起导航未集成，chip-partial）。两处目标形态以 <code>.tag-goal</code> 标注。</p>
       </div>
     </div>

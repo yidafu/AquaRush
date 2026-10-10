@@ -19,7 +19,7 @@
       <span class="chip">F-ORD-012</span>
       <span class="chip chip-ok">已实现</span>
       <span class="chip">F-PRO-005</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -28,7 +28,7 @@
     <!-- ============ 手机 1：已选商品（正常态） ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 已选商品</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -125,7 +125,7 @@
     <!-- ============ 手机 2：商品选择弹层 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 商品选择弹层</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -146,7 +146,7 @@
                   <span class="f-note t-brand">更换</span>
                 </div>
                 <div class="row gap3">
-                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--d-border);display:flex;align-items:center;justify-content:center;color:var(--d-text-sub)">
+                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;color:var(--text-sub)">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
                   </div>
                   <div class="grow">
@@ -161,7 +161,7 @@
               <div class="sheet" style="max-height:76%;overflow:auto">
                 <div class="sheet-title">选择商品</div>
                 <div class="input" style="margin-bottom:12px">
-                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--d-text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
                   <span class="ph">搜索商品名称</span>
                 </div>
                 <div class="list">
@@ -202,7 +202,7 @@
     <!-- ============ 手机 3：搜索空结果 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态三 · 搜索空结果</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -223,7 +223,7 @@
                   <span class="f-note t-brand">更换</span>
                 </div>
                 <div class="row gap3">
-                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--d-border);display:flex;align-items:center;justify-content:center;color:var(--d-text-sub)">
+                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;color:var(--text-sub)">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
                   </div>
                   <div class="grow">
@@ -238,7 +238,7 @@
               <div class="sheet" style="max-height:76%;overflow:auto">
                 <div class="sheet-title">选择商品</div>
                 <div class="input" style="margin-bottom:12px">
-                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--d-text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
                   <span class="t-main">农夫山泉大桶水</span>
                 </div>
                 <div class="empty">
@@ -260,7 +260,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>工作台快捷入口「代客下单」/ 任务列表悬浮按钮。</p>
         <p><strong>跳转：</strong>提交成功后 1.5s 返回；订单落入「待派单」。</p>
       </div>
@@ -298,7 +298,7 @@
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
-        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（暗色 <code>--d-primary</code>）。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（品牌蓝 <code>--brand</code>）。</p>
         <p>商品图一律 <code>.thumb</code> 占位并标注「实拍图」；不得使用卡通插画风；金额「¥xx.xx」两位小数。</p>
         <p>手动改价为订单层兜底（目标形态，单价链「手动实收价」未接入统一取价服务）；同一时刻仅一次提交（防重）。</p>
       </div>

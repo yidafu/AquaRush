@@ -18,7 +18,7 @@
     <div class="chips">
       <span class="chip">F-COL-003</span>
       <span class="chip chip-ok">已实现</span>
-      <span class="chip chip-plain">delivery-app · 暗色</span>
+      <span class="chip chip-plain">delivery-app · 亮色</span>
     </div>
   </header>
 
@@ -27,7 +27,7 @@
     <!-- ============ 手机 1：今日 ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态一 · 今日</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -38,7 +38,7 @@
             <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
               <div class="row between" style="width:100%">
                 <span>数据统计</span>
-                <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
+                <svg class="ico" viewBox="0 0 24 24" style="color:var(--text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
               </div>
             </div>
 
@@ -95,17 +95,17 @@
                 <div class="hbar">
                   <div class="hr">
                     <span class="nm">现金</span>
-                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:67%"></span></span>
+                    <span class="track" ><span class="fill" style="width:67%"></span></span>
                     <span class="vl">¥240.00</span>
                   </div>
                   <div class="hr">
                     <span class="nm">扫码</span>
-                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:33%"></span></span>
+                    <span class="track" ><span class="fill" style="width:33%"></span></span>
                     <span class="vl">¥118.00</span>
                   </div>
                   <div class="hr">
                     <span class="nm">水票</span>
-                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:12%"></span></span>
+                    <span class="track" ><span class="fill" style="width:12%"></span></span>
                     <span class="vl">3 张</span>
                   </div>
                 </div>
@@ -123,7 +123,7 @@
               </div>
             </div>
 
-            <div class="tabbar dark">
+            <div class="tabbar">
               <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>工作台</div>
               <div class="tab"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>任务</div>
               <div class="tab active"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>日报</div>
@@ -138,7 +138,7 @@
     <!-- ============ 手机 2：本周（空数据） ============ -->
     <div class="col gap3">
       <span class="f-note t-sub bold">状态二 · 本周（无数据）</span>
-      <div class="phone dark">
+      <div class="phone">
         <div class="phone-screen">
           <div class="statusbar">
             <span>9:41</span>
@@ -149,7 +149,7 @@
             <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
               <div class="row between" style="width:100%">
                 <span>数据统计</span>
-                <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
+                <svg class="ico" viewBox="0 0 24 24" style="color:var(--text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
               </div>
             </div>
 
@@ -189,7 +189,7 @@
               </div>
             </div>
 
-            <div class="tabbar dark">
+            <div class="tabbar">
               <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>工作台</div>
               <div class="tab"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>任务</div>
               <div class="tab active"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>日报</div>
@@ -206,7 +206,7 @@
 
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮色）</p>
         <p><strong>入口：</strong>底部 TabBar「日报」/ 工作台统计区。</p>
         <p><strong>跳转：</strong>订单明细列表入口 → 历史订单（对应时间 Tab）；统计卡点击 → 历史订单对应 Tab。</p>
       </div>
@@ -242,9 +242,9 @@
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
-        <p>数值与图表统一走品牌蓝（<code>--d-primary</code> / <code>--brand</code> 梯度）；<strong>禁用强调橙</strong>，涨跌同色系不引入橙。</p>
+        <p>数值与图表统一走品牌蓝（<code>--brand</code> / <code>--brand-light</code> 梯度）；<strong>禁用强调橙</strong>，涨跌同色系不引入橙。</p>
         <p>柱状图与横向占比条高度 / 宽度按真实占比等比例；数值用等宽字体。</p>
-        <p>图表容器在暗色下轨道底改用 <code>--d-card-2</code>，保证可见性；信息密度优先，触达 ≥ 44px。</p>
+        <p>图表容器图表轨道底色 <code>--bg</code>，保证白卡上可见；信息密度优先，触达 ≥ 44px。</p>
       </div>
     </div>
 
