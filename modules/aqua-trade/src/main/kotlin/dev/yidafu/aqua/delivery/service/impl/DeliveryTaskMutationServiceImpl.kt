@@ -31,6 +31,7 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
@@ -325,6 +326,8 @@ class DeliveryTaskMutationServiceImpl(
     // 更新订单状态
     order.status = if (order.isSelfCollect) OrderModelStatus.COMPLETED else OrderModelStatus.AWAITING_CONFIRMATION
     order.deliveryPhotos = jsonHelper.createArrayNode(deliveryPhotos).toString()
+    // 送达即入核验队列(裁决缺陷 #10,G23/F-ORD-021):显式置 PENDING 待核验
+    order.deliveryPhotoReviewStatus = DeliveryPhotoReviewStatus.PENDING
     // 电子票核销订单:未指定收款方式时自动记为「水票」(R-COL-04,PRD 10-marketing.md §F-MKT-007)
     val resolvedPaymentType = paymentType ?: if (order.ticketRedeemCount > 0) PaymentType.WATER_TICKET else null
     // 收款方式必选(R-ORD-07):非自提订单未选择收款方式且无水票核销 → 拦截;自提订单默认已收款(R-ORD-09)
