@@ -3,7 +3,7 @@
 | 文档信息 | 内容 |
 | --- | --- |
 | 文档名称 | AquaRush 送水小程序产品需求文档 |
-| 版本 | v0.33(新增微信支付对账:R-PAY-04/F-ORD-031,权限码目录 42 码) |
+| 版本 | v0.35(依行业惯例调研报告 v2 对齐:G77/G83 暂缓、新增 G94~G97、未规划备查小节、引入 [暂缓] 状态) |
 | 编写日期 | 2026-08-09 |
 | 文档状态 | 草稿(待评审) |
 | 覆盖范围 | 用户端小程序 / 送水工端独立 App(delivery-app,React Native + Expo) / 管理后台(三端) |
@@ -47,10 +47,11 @@
 | 2026-10-10 | v0.32 | **事件传输迁移 Transactional Outbox(去外部 MQ 依赖,架构决策)**:单体双进程(aqua-admin/aqua-client)共享 PostgreSQL `outbox_events` 表替代 Artemis/JMS——发布与业务写同事务(原子性,失败回滚业务);点对点行 `subscriber IS NULL` 经 `FOR UPDATE SKIP LOCKED` 单次认领,广播(`broadcast-events` WS 推送)按订阅 admin/client 各写一行;延迟投递(`PAYMENT_EXPIRY_CHECK`,R-ORD-04)改 `next_run_at` 到期认领(行为不变,`PaymentExpiryScheduler` 兜底不变);消费失败指数退避重试(默认 8 次)→ `DEAD` + 健康指标 DOWN 告警(无 redrive API);彻底移除 Artemis 依赖(broker/broker.xml/artemis 目录/spring-jms/嵌入式 broker,集成测试不再起 Artemis);同步更新 04-order.md(R-ORD-04/F-ORD-010 现状)、13-notification.md(F-NTF-003 现状)、14-misc.md(G44/轨迹流程)、claude/architecture.md、claude/messaging-cache-wechat.md;设计文档 docs/compose/spec/outbox-messaging.md | - |
 | 2026-10-10 | v0.33 | **新增微信支付对账(资金安全,G93 立项)**:以微信支付官方账单(T-1 交易账单 + 退款账单)为基准与本地支付/退款记录逐笔比对(短款/长款/金额不一致/状态不一致四类差异),差异人工处置闭环、重跑幂等留痕——规则 R-PAY-04(04-order.md §2.2)、管理后台功能 F-ORD-031 支付对账页(§3.5,规划中,挂「支付管理」导航);R-PAY-02 缺口「退款结果异步查询/退款回调对账」由 R-PAY-04 承接;权限码目录新增 PAYMENT_RECONCILIATION_READ/EXECUTE(40→42 码,超管 42/管理员 37,后台角色权限矩阵同步);02-business-flows.md 增对账流程、06-collection.md §4 增与日报对账的边界说明、08-statistics.md F-STA-002 开放问题收敛、14-misc.md(缺口 G93/路线图/核心实体/附录 C);技术设计 docs/tech-design/07-payment-reconciliation.md(新卷) | - |
 | 2026-10-10 | v0.34 | **outbox 表分区归档(避免临时消息堆积导致慢查询,架构修订)**:`outbox_events` 改为 PostgreSQL RANGE 分区表(分区键 `created_at`,每 6 个月一区,分区名 `outbox_events_YYYYHn`,V342 迁移重建并保留存量数据、主键改 `(id, created_at)`);原「DONE 保留 7 天分批删除」(`done-retention-days`/`deleteDoneBefore`)整体移除,改为每日 04:40 滚动维护(`OutboxPartitionScheduler`):补建当前+下一半区、分区结束满 30 天(`aqua.outbox.partition-retention-days=30`)的整区 `DETACH` 并改名 `outbox_events_archive_YYYYHn` 归档保留(数据不丢、主表恒小,事务级 advisory lock 串行化 admin/client 双实例);DEAD 行随分区进归档表(置 DEAD 时健康告警仍即时),排查走归档表;同步 messaging README、claude/architecture.md;设计文档 docs/compose/spec/outbox-messaging.md | - |
+| 2026-10-11 | v0.35 | **按《送水(桶装水)小程序行业惯例功能调研报告 v2》(2026-10-10,11 具名来源)对齐 PRD**:① **决策对齐**——周期订购(F-ORD-026/G77)与企业客户下单(F-ORD-027/G83)按 2026-10-10 产品决策**移入暂缓档**(自路线图 P1/P2 移除,域文件状态标 [暂缓]);② **新增状态标记 [暂缓]**(决策缓做,保留编号不进当期排期,区别于「本期不做」),状态标记三变四;③ **决策安排实现 4 项**(报告 v2 新识别行业惯例,均为 P2 排期待定)——接单超时预警(F-NTF-008/R-NTF-07,13-notification.md)、订单联系方式隐私保护/号码保护(F-ORD-032/R-ORD-17,04-order.md)、起送门槛与距离阶梯运费(F-OPS-005 扩充/R-OPS-03,12-operations-config.md)、水票运营策略(引流票/复购激活/单次上限,R-MKT-08 修订,10-marketing.md);缺口登记 **G94~G97**;④ **未规划备查项小节**(14-misc.md,不占编号):拼团/砍价秒杀/邀请裂变/推广码佣金/水质报告/健康内容/配件商城/来电弹屏/自提用户端入口/投诉工单/订单状态离线队列/改收款授权留痕/供应商对接简化(入库登记自动加库存,2026-10-10 评审)/**订单小票打印(本轮决策暂不实现,随企业月结暂缓一并再评估)**;⑤ 路线图注记报告 v2 建议分层(收口型 G65/G75/G76/G78+G62 为最小见效路径,建议非决策);营销玩法预留注记补「拼团/秒杀/砍价/分销渠道码 2026-10-10 评审明确低优先」。同步更新 01/02/03/04/10/12/13/14 | - |
 
 ### 阅读约定
 
-- 每个功能条目带实现状态标记:`[已实现]`(功能完整可用)、`[部分实现]`(界面或部分链路已通,数据为模拟或链路未闭合)、`[规划中]`(当前无实现,按目标形态设计,UI 标注「目标形态」)。
+- 每个功能条目带实现状态标记:`[已实现]`(功能完整可用)、`[部分实现]`(界面或部分链路已通,数据为模拟或链路未闭合)、`[规划中]`(当前无实现,按目标形态设计,UI 标注「目标形态」)、`[暂缓]`(2026-10-11 新增:已有决策明确缓做,保留编号与设计**不进当期排期**,勿重复立项)。
 - 功能条目编号 `F-域-序号`,业务规则编号 `R-域-序号`,验收用例编号 `AC-域-F序号-序号`,缺口编号 `G-序号`;可在开发排期、测试用例中引用。
 - 页面标题(浏览器标签页)由前端统一管理(admin-client 用 react-helmet-async 按路由设置),属实现细节,PRD 不在页面布局中逐页描述「标题区」。
 - 状态标记反映当前 `refactor/unify-module-structure` 分支工作区状态,重构完成后需复查校准。
@@ -75,7 +76,7 @@
 | 文档 | 域范围 | 功能编号 | 业务规则 |
 | --- | --- | --- | --- |
 | [03-product.md](03-product.md) | 商品域 | F-PRO-001~012 | R-PRO-01~05、R-MON-03 |
-| [04-order.md](04-order.md) | 订单域 | F-ORD-001~014、020~031 | R-ORD-01~16、R-PAY-01~04、R-MON-02、R-EVL-01 |
+| [04-order.md](04-order.md) | 订单域 | F-ORD-001~014、020~032(F-ORD-026/027 暂缓) | R-ORD-01~17、R-PAY-01~04、R-MON-02、R-EVL-01 |
 | [05-address-delivery.md](05-address-delivery.md) | 地址与配送域 | F-ADR-001~003、010~013、020~022 | R-ADR-01~04 |
 | [06-collection.md](06-collection.md) | 收银与对账域 | F-COL-001~003、010~012 | R-COL-01~05 |
 | [07-user.md](07-user.md) | 用户与账户域 | F-USR-001~006、010~011、020~023 | R-AUTH-01~03 |
@@ -83,14 +84,14 @@
 | [09-platform-logs.md](09-platform-logs.md) | 平台与日志域 | F-LOG-001~003 | — |
 | [10-marketing.md](10-marketing.md) | 营销域 | F-MKT-001~012(预留 013+) | R-MKT-01~13 |
 | [11-system-settings.md](11-system-settings.md) | 系统设置域 | F-SYS-001~006(预留 007+) | R-SYS-01~03 |
-| [12-operations-config.md](12-operations-config.md) | 运营配置域 | F-OPS-001~005(预留 006+) | R-OPS-01~02 |
-| [13-notification.md](13-notification.md) | 通知与消息域 | F-NTF-001~007(预留 008+) | R-NTF-01~06 |
+| [12-operations-config.md](12-operations-config.md) | 运营配置域 | F-OPS-001~005(预留 006+) | R-OPS-01~03 |
+| [13-notification.md](13-notification.md) | 通知与消息域 | F-NTF-001~008(预留 009+) | R-NTF-01~07 |
 
 ### 公共规范与附录
 
 | 文档 | 内容 | 对应原章节 |
 | --- | --- | --- |
-| [14-misc.md](14-misc.md) | 数据需求要点、异常处理与边界场景、现状缺口登记(G01-G92)与阶段路线图、非功能需求、通用/端到端验收(AC-E2E-01~03)、附录(页面清单/术语表/代码对应) | 第 7-11 章、附录 A/C/D |
+| [14-misc.md](14-misc.md) | 数据需求要点、异常处理与边界场景、现状缺口登记(G01-G97,含暂缓档 G77/G83 与备查项)与阶段路线图、非功能需求、通用/端到端验收(AC-E2E-01~03)、附录(页面清单/术语表/代码对应) | 第 7-11 章、附录 A/C/D |
 
 ---
 
@@ -113,7 +114,7 @@
 
 ### 约定
 
-- 状态标记仅三种:`[已实现]` / `[部分实现]` / `[规划中]`;
-- 新增功能须登记编号与状态,不得跳过编号直接编写;新增缺口按序追加至 14-misc.md(当前已至 G92,新增从 G93 起),并在对应域文件补记关联;
+- 状态标记仅四种:`[已实现]` / `[部分实现]` / `[规划中]` / `[暂缓]`(2026-10-11 新增,决策缓做不排期);
+- 新增功能须登记编号与状态,不得跳过编号直接编写;新增缺口按序追加至 14-misc.md(当前已至 G97,新增从 G98 起),并在对应域文件补记关联;未规划/低优先项不占编号,登记于 14-misc.md §未规划备查项;
 - 开发在提交信息、测试用例中引用功能编号,形成"PRD → 开发 → 测试"追踪链;
 - PRD 管业务规则与验收,技术文档管实现细节,两者通过 14-misc.md §附录 C(代码对应)的路径互引,不互相复制。
