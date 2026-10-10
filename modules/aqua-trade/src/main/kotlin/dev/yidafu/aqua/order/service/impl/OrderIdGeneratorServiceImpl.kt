@@ -25,22 +25,8 @@ class OrderIdGeneratorServiceImpl : OrderIdGeneratorService {
   private val formatter = DateTimeFormatter.ofPattern("yyMMdd")
 
   constructor() {
-    val dbFile = java.io.File("./order-id-sequence.db").absoluteFile
-    val db =
-      DBMaker
-        .fileDB(dbFile)
-        .fileMmapEnable()
-        .fileMmapPreclearDisable()
-        // Disable file locking so a JVM killed before closeOnJvmShutdown
-        // can run (SIGKILL, OOM, etc.) cannot leave a stale OS-level lock
-        // that blocks the next startup. This service is single-instance.
-        .fileLockDisable()
-        .closeOnJvmShutdown()
-        .make()
-
-    orderIdDb = db
-
-    sequenceMap = db.hashMap("order_sequence", Serializer.STRING, Serializer.LONG).createOrOpen()
+    orderIdDb = fileBackedDb
+    sequenceMap = fileBackedSequenceMap
   }
 
   // 测试注入：使用传入的 MapDB 实例，不打开文件型存储
@@ -55,8 +41,43 @@ class OrderIdGeneratorServiceImpl : OrderIdGeneratorService {
   // 订单序列号存储，使用日期作为key
   private val sequenceMap: ConcurrentMap<String, Long>
 
-  // 用于测试: 使用传入的DB实例
   companion object {
+    /**
+     * **进程级单例**的文件型 MapDB。
+     *
+     * 为什么必须是单例：同一 JVM 里可能同时存在多个 Spring 上下文（服务集成测试会缓存
+     * 数十个上下文），每个上下文都会实例化本服务。若每个实例各自 `DBMaker.fileDB()`
+     * 打开同一个文件，多个 MapDB 实例会在 `fileLockDisable()` 下以 mmap 同时持有它，
+     * 写出损坏的 header —— 之后任何上下文启动都抛
+     * `DBException$DataCorruption: Header checksum broken`。因为
+     * `order-id-sequence.db` 被 `.gitignore` 忽略，全新 clone 首次跑 admin 集成测试
+     * 必然踩到（此前靠本机遗留的一个「健康」文件掩盖了问题）。
+     *
+     * 生产只有一个 Spring 上下文，单例语义与原来完全一致。
+     *
+     * 若确实遇到 header 损坏（例如上一次 JVM 被 SIGKILL）：不要用
+     * `checksumHeaderBypass()` 绕过 —— 那会让序列号回退、可能生成重复订单号。
+     * 该文件只是本机序列号缓存，直接删除即可，服务会重新建库。
+     */
+    private val fileBackedDb: DB by lazy {
+      val dbFile = java.io.File("./order-id-sequence.db").absoluteFile
+      DBMaker
+        .fileDB(dbFile)
+        .fileMmapEnable()
+        .fileMmapPreclearDisable()
+        // Disable file locking so a JVM killed before closeOnJvmShutdown
+        // can run (SIGKILL, OOM, etc.) cannot leave a stale OS-level lock
+        // that blocks the next startup. This service is single-instance.
+        .fileLockDisable()
+        .closeOnJvmShutdown()
+        .make()
+    }
+
+    private val fileBackedSequenceMap: ConcurrentMap<String, Long> by lazy {
+      fileBackedDb.hashMap("order_sequence", Serializer.STRING, Serializer.LONG).createOrOpen()
+    }
+
+    // 用于测试: 使用传入的DB实例
     fun createWithDb(db: DB): OrderIdGeneratorServiceImpl = OrderIdGeneratorServiceImpl(db)
   }
 
