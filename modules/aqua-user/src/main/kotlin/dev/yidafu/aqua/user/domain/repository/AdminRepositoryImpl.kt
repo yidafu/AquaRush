@@ -32,11 +32,16 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.Optional
@@ -70,15 +75,6 @@ class AdminRepositoryImpl(
       lastLoginAt = row[AdminsTable.lastLoginAt],
       updatedAt = row[AdminsTable.updatedAt],
     )
-
-  override fun findAll(): List<AdminModel> =
-    transaction(database) {
-      AdminsTable
-        .selectAll()
-        .where { AdminsTable.activeOnly() }
-        .orderBy(AdminsTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
 
   override fun findById(id: Long): Optional<AdminModel> =
     Optional.ofNullable(
@@ -226,12 +222,50 @@ class AdminRepositoryImpl(
         .toList()
     }.map(::toModel)
 
-  override fun findAllByRoleIn(roles: Collection<AdminRoleModel>): List<AdminModel> {
+  override fun findAllByRoleIn(
+    roles: Collection<AdminRoleModel>,
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<AdminModel> {
+    if (roles.isEmpty()) return PageImpl(emptyList(), pageable, 0)
+    return transaction(database) {
+      val roleNames = roles.map { it.name }
+      val trimmed = keyword?.trim().orEmpty()
+      val condition: () -> Op<Boolean> = {
+        val byRole = AdminsTable.role inList roleNames
+        if (trimmed.isEmpty()) {
+          byRole
+        } else {
+          val pattern = "%$trimmed%"
+          byRole and
+            ((AdminsTable.username like pattern) or (AdminsTable.realName like pattern) or (AdminsTable.phone like pattern))
+        }
+      }
+      val content =
+        AdminsTable
+          .selectAll()
+          .where { AdminsTable.activeOnly(condition) }
+          .orderBy(AdminsTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      val total = AdminsTable.selectAll().where { AdminsTable.activeOnly(condition) }.count()
+      PageImpl(content, pageable, total)
+    }
+  }
+
+  override fun findAllByRoleIn(
+    roles: Collection<AdminRoleModel>,
+    limit: Int,
+  ): List<AdminModel> {
     if (roles.isEmpty()) return emptyList()
     return transaction(database) {
       AdminsTable
         .selectAll()
         .where { AdminsTable.activeOnly { AdminsTable.role inList roles.map { it.name } } }
+        .orderBy(AdminsTable.id to SortOrder.ASC)
+        .limit(limit)
         .toList()
     }.map(::toModel)
   }
@@ -246,11 +280,16 @@ class AdminRepositoryImpl(
     }
   }
 
-  override fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel> =
+  override fun findByOnlineStatus(
+    status: DeliverWorkerModelStatus,
+    limit: Int,
+  ): List<AdminModel> =
     transaction(database) {
       AdminsTable
         .selectAll()
         .where { AdminsTable.activeOnly { AdminsTable.onlineStatus eq status.name } }
+        .orderBy(AdminsTable.id to SortOrder.ASC)
+        .limit(limit)
         .toList()
     }.map(::toModel)
 
@@ -266,7 +305,37 @@ class AdminRepositoryImpl(
 
   override fun existsByPhone(phone: String): Boolean = findByPhone(phone) != null
 
-  override fun findAllAdmins(): List<AdminModel> = findAll()
+  override fun findAllAdmins(
+    keyword: String?,
+    role: AdminRoleModel?,
+    pageable: Pageable,
+  ): Page<AdminModel> =
+    transaction(database) {
+      val trimmed = keyword?.trim().orEmpty()
+      val keywordCondition: Op<Boolean> =
+        if (trimmed.isEmpty()) {
+          Op.TRUE
+        } else {
+          val pattern = "%$trimmed%"
+          (AdminsTable.username like pattern) or
+            (AdminsTable.realName like pattern) or
+            (AdminsTable.phone like pattern)
+        }
+      val condition: () -> Op<Boolean> = {
+        if (role == null) keywordCondition else keywordCondition and (AdminsTable.role eq role.name)
+      }
+      val content =
+        AdminsTable
+          .selectAll()
+          .where { AdminsTable.activeOnly(condition) }
+          .orderBy(AdminsTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      val total = AdminsTable.selectAll().where { AdminsTable.activeOnly(condition) }.count()
+      PageImpl(content, pageable, total)
+    }
 
   override fun findAdminById(id: Long): AdminModel? = findById(id).orElse(null)
 }

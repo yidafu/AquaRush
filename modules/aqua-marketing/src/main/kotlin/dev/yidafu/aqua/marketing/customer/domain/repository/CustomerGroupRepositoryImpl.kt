@@ -100,15 +100,6 @@ class CustomerGroupRepositoryImpl(
         .any()
     }
 
-  override fun findAll(): List<CustomerGroupModel> =
-    transaction(database) {
-      CustomerGroupsTable
-        .selectAll()
-        .where { CustomerGroupsTable.activeOnly() }
-        .orderBy(CustomerGroupsTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAllById(ids: List<Long>): List<CustomerGroupModel> {
     if (ids.isEmpty()) return emptyList()
     return transaction(database) {

@@ -34,6 +34,4 @@ class CustomerGroupQueryApiServiceImpl(
   override fun findById(id: Long): CustomerGroupModel? = customerGroupRepository.findById(id).orElse(null)
 
   override fun findByIds(ids: List<Long>): List<CustomerGroupModel> = customerGroupRepository.findAllById(ids)
-
-  override fun findAll(): List<CustomerGroupModel> = customerGroupRepository.findAll()
 }

@@ -30,8 +30,8 @@ import java.util.Optional
  * 查询过滤 is_deleted,delete 软删;当前生效活动查询见 [PromotionActivityRepositoryCustom]。
  */
 interface PromotionActivityRepository : PromotionActivityRepositoryCustom {
-  /** 存量接口遗留的无界查询(违反规则 10,后台 seed/活动 id 反查存量使用;不新增调用)。 */
-  fun findAll(): List<PromotionActivityModel>
+  /** 按活动名查找(测试/运营按名定位;取 1 条)。 */
+  fun findByName(name: String): PromotionActivityModel?
 
   fun findAllById(ids: List<Long>): List<PromotionActivityModel>
 

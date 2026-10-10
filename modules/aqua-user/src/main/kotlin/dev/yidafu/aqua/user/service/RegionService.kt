@@ -199,7 +199,8 @@ class RegionService(
       }
 
       else -> {
-        regionRepository.findAll()
+        // 无过滤条件时只返回省级,避免整表进内存(AGENTS.md 规则 10)
+        regionRepository.findRootRegions(1)
       }
     }
 

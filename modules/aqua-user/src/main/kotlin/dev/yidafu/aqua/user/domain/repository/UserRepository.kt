@@ -72,8 +72,6 @@ interface UserRepository : UserRepositoryCustom {
   fun findById(id: Long): Optional<UserModel>
 
   /** 存量接口遗留的无界查询(违反规则 10,仅 DebugJwtController 存量使用;不新增调用)。 */
-  fun findAll(): List<UserModel>
-
   fun findAll(pageable: Pageable): Page<UserModel>
 
   fun findAllById(ids: List<Long>): List<UserModel>

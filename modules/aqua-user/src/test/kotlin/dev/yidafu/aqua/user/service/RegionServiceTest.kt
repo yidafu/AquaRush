@@ -241,17 +241,16 @@ class RegionServiceTest :
       val exception = shouldThrow<AquaException> { regionService.deleteRegion("440000") }
       exception.message!!.contains("存在子地区") shouldBe true
     }
-    test("getRegions should return all regions when no parameters provided") {
+    test("getRegions should return root provinces when no parameters provided(规则 10:不再整表返回)") {
       // Given
-      val allRegions = listOf(createSampleProvince(), createSampleCity(), createSampleDistrict())
-      every { regionRepository.findAll() } returns allRegions
+      every { regionRepository.findRootRegions(1) } returns listOf(createSampleProvince())
 
       // When
       val result = regionService.getRegions(null, null)
 
       // Then
-      result.size shouldBe 3
-      verify { regionRepository.findAll() }
+      result.size shouldBe 1
+      verify { regionRepository.findRootRegions(1) }
     }
     test("getRegions should return regions by level") {
       // Given

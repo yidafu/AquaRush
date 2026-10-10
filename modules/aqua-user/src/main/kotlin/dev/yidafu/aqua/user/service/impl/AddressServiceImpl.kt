@@ -179,11 +179,6 @@ class AddressServiceImpl(
   override fun saveAll(addresses: List<AddressModel>): List<AddressModel> = addressRepository.saveAll(addresses)
 
   /**
-   * 获取所有地址 (管理员功能)
-   */
-  override fun findAllAddresses(): List<AddressModel> = addressRepository.findAll()
-
-  /**
    * 根据ID删除地址 (管理员功能，不校验userId)
    */
   @CacheEvict(

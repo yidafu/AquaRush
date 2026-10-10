@@ -24,6 +24,7 @@ import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
@@ -44,7 +45,6 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.ceil
 
 @Service
 @Transactional
@@ -241,12 +241,12 @@ class ProductFavoriteServiceImpl(
 
   /**
    * Get all products favorite statistics
+   *
+   * 规则 10:总数走 SQL 聚合(`count(distinct product_id)` / `count(*)`),不再把整个收藏聚合读进内存。
    */
   override fun getAllProductsFavoriteStats(): AllProductsFavoriteStats {
-    val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
-
-    val totalProducts = mostFavorited.size.toLong()
-    val totalFavorites = mostFavorited.sumOf { it.favoriteCount }
+    val totalProducts = productFavoriteRepository.countFavoritedProducts()
+    val totalFavorites = productFavoriteRepository.countTotalFavorites()
     val averageFavoritesPerProduct =
       if (totalProducts > 0) {
         totalFavorites.toFloat() / totalProducts
@@ -263,83 +263,66 @@ class ProductFavoriteServiceImpl(
 
   /**
    * Get product favorite statistics for each product
+   *
+   * 规则 10:Top-N 由 SQL limit 决定,商品名批量按 id 取(`findAllById`),不再整表进内存。
    */
   override fun getProductFavoriteStats(): List<ProductFavoriteStat> {
-    val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
-    val allProducts = productRepository.findAll()
+    val mostFavorited = productFavoriteRepository.findTopFavoritedProducts(PRODUCT_FAVORITE_STATS_LIMIT)
+    if (mostFavorited.isEmpty()) return emptyList()
+    val productsById = productRepository.findAllById(mostFavorited.map { it.productId }).associateBy { it.id }
 
-    return mostFavorited
-      .map { favoriteCount ->
-        val product = allProducts.find { it.id == favoriteCount.productId }
-        ProductFavoriteStat(
-          productId = favoriteCount.productId,
-          productName = product?.name ?: "未知商品",
-          favoriteCount = favoriteCount.favoriteCount,
-        )
-      }.sortedByDescending { it.favoriteCount }
-      .take(10)
+    return mostFavorited.map { favoriteCount ->
+      ProductFavoriteStat(
+        productId = favoriteCount.productId,
+        productName = productsById[favoriteCount.productId]?.name ?: UNKNOWN_PRODUCT_NAME,
+        favoriteCount = favoriteCount.favoriteCount,
+      )
+    }
   }
 
   /**
    * Get products sorted by favorite count with pagination
+   *
+   * 规则 10:分组/过滤(minFavorites → HAVING)/排序/分页全部下推 SQL;商品与最后收藏时间
+   * 一次批量取(原实现是「全量聚合 + 内存切页 + 逐商品 N+1 查询」)。
    */
   override fun getProductsByFavorites(
     page: Int,
     size: Int,
     minFavorites: Int?,
   ): ProductFavoriteVoPage {
-    val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "favoriteCount"))
+    val pageable = PageRequest.of(page, size)
+    val favoritesPage =
+      productFavoriteRepository.findMostFavoritedProducts(
+        pageable = pageable,
+        minFavorites = minFavorites?.toLong()?.takeIf { it > 0 },
+      )
 
-    val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
-
-    val filtered =
-      if (minFavorites != null) {
-        mostFavorited.filter { it.favoriteCount >= minFavorites }
-      } else {
-        mostFavorited
-      }
-
-    val totalElements = filtered.size.toLong()
-    val totalPages = ceil(totalElements.toDouble() / size).toInt()
-    val start = page * size
-    val end = minOf(start + size, filtered.size)
-    val pagedItems =
-      if (start < filtered.size) {
-        filtered.subList(start, end)
-      } else {
-        emptyList()
-      }
+    val productsById =
+      productRepository
+        .findAllById(favoritesPage.content.map { it.productId })
+        .associateBy { it.id }
 
     val list =
-      pagedItems
-        .map { item ->
-          val product = productRepository.findById(item.productId)
-          val favoriteCount = item.favoriteCount
-
-          if (product.isEmpty) {
-            return@map null
-          }
-
-          val lastFavorites = productFavoriteRepository.findByProductId(item.productId)
-          val lastFavoritedAt = lastFavorites.maxByOrNull { it.createdAt }?.createdAt
-
-          ProductFavoriteItem(
-            product = convertToGraphQLProduct(product.get()),
-            favoriteCount = favoriteCount,
-            lastFavoritedAt = lastFavoritedAt ?: LocalDateTime.now(),
-          )
-        }.filterNotNull()
+      favoritesPage.content.mapNotNull { item ->
+        val product = productsById[item.productId] ?: return@mapNotNull null
+        ProductFavoriteItem(
+          product = convertToGraphQLProduct(product),
+          favoriteCount = item.favoriteCount,
+          lastFavoritedAt = item.lastFavoritedAt ?: LocalDateTime.now(),
+        )
+      }
 
     return ProductFavoriteVoPage(
       list = list,
       pageInfo =
         PageInfo(
-          total = totalElements.toInt(),
+          total = favoritesPage.totalElements.toInt(),
           pageSize = size,
           pageNum = page,
-          hasNext = (page + 1) * size < totalElements,
+          hasNext = favoritesPage.hasNext(),
           hasPrevious = page > 0,
-          totalPages = totalPages,
+          totalPages = favoritesPage.totalPages,
         ),
     )
   }
@@ -388,35 +371,15 @@ class ProductFavoriteServiceImpl(
    * Export favorites data to CSV/Excel format
    */
   override fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesResult {
-    val favorites =
-      productFavoriteRepository.findFavoritesForExport(
-        input.userId,
-        input.productIds?.toList(),
-        input.dateFrom,
-        input.dateTo,
-      )
-
-    if (favorites.isEmpty()) {
-      return ExportFavoritesResult(
-        success = false,
-        message = "No data found for the given criteria",
-        downloadUrl = null,
-        fileName = "",
-        fileSize = 0,
-        recordCount = 0,
-        expiresAt = LocalDateTime.now().plusDays(1),
-      )
-    }
-
     val outputStream = ByteArrayOutputStream()
+    var recordCount = 0
 
     when (input.format) {
       ExportFormat.CSV -> {
         outputStream.use { os ->
-          val writer = os.writer()
           val printer =
             CSVPrinter(
-              writer,
+              os.writer(),
               CSVFormat.DEFAULT.withHeader(
                 "ID",
                 "User ID",
@@ -427,29 +390,26 @@ class ProductFavoriteServiceImpl(
                 "Created At",
               ),
             )
-
-          favorites.forEach { favorite ->
-            val user = userService.findById(favorite.userId)
-            val product = productRepository.findById(favorite.productId).orElse(null)
-
-            printer.printRecord(
-              favorite.id,
-              favorite.userId,
-              user?.nickname ?: "",
-              favorite.productId,
-              product?.name ?: "",
-              product?.price ?: 0,
-              favorite.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-            )
-          }
-
+          recordCount =
+            forEachFavoriteBatch(input) { batch, users, products ->
+              batch.forEach { favorite ->
+                printer.printRecord(
+                  favorite.id,
+                  favorite.userId,
+                  users[favorite.userId]?.nickname ?: "",
+                  favorite.productId,
+                  products[favorite.productId]?.name ?: "",
+                  products[favorite.productId]?.price ?: 0,
+                  favorite.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                )
+              }
+            }
           printer.flush()
         }
       }
 
       ExportFormat.EXCEL -> {
         val workbook = XSSFWorkbook()
-
         val sheet = workbook.createSheet("用户收藏数据")
 
         sheet.setColumnWidth(0, 4000)
@@ -503,46 +463,46 @@ class ProductFavoriteServiceImpl(
           cell.cellStyle = headerStyle
         }
 
-        favorites.forEachIndexed { index, favorite ->
-          val dataRow = sheet.createRow(index + 3)
-          val user = userService.findById(favorite.userId)
-          val product = productRepository.findById(favorite.productId).orElse(null)
-
-          val values =
-            arrayOf(
-              favorite.id?.toString() ?: "",
-              favorite.userId.toString(),
-              user?.nickname ?: "",
-              favorite.productId.toString(),
-              product?.name ?: "",
-              (product?.price ?: 0).toString(),
-              favorite.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-            )
-
-          values.forEachIndexed { colIndex, value ->
-            val cell = dataRow.createCell(colIndex)
-            cell.setCellValue(value)
-            cell.cellStyle = dataStyle
+        var rowIndex = 3
+        recordCount =
+          forEachFavoriteBatch(input) { batch, users, products ->
+            batch.forEach { favorite ->
+              val dataRow = sheet.createRow(rowIndex++)
+              val values =
+                arrayOf(
+                  favorite.id?.toString() ?: "",
+                  favorite.userId.toString(),
+                  users[favorite.userId]?.nickname ?: "",
+                  favorite.productId.toString(),
+                  products[favorite.productId]?.name ?: "",
+                  (products[favorite.productId]?.price ?: 0).toString(),
+                  favorite.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                )
+              values.forEachIndexed { colIndex, value ->
+                val cell = dataRow.createCell(colIndex)
+                cell.setCellValue(value)
+                cell.cellStyle = dataStyle
+              }
+            }
           }
-        }
 
-        val summaryRow = sheet.createRow(favorites.size + 5)
+        val summaryRow = sheet.createRow(recordCount + 5)
         val summaryCell = summaryRow.createCell(0)
-        summaryCell.setCellValue("总计: ${favorites.size} 条记录")
+        summaryCell.setCellValue("总计: $recordCount 条记录")
         val summaryStyle = workbook.createCellStyle()
         val summaryFont = workbook.createFont()
         summaryFont.bold = true
         summaryFont.fontHeightInPoints = 11
         summaryStyle.setFont(summaryFont)
         summaryCell.cellStyle = summaryStyle
-        sheet.addMergedRegion(CellRangeAddress(favorites.size + 5, favorites.size + 5, 0, 2))
+        sheet.addMergedRegion(CellRangeAddress(recordCount + 5, recordCount + 5, 0, 2))
 
-        val metadataRow = sheet.createRow(favorites.size + 7)
+        val metadataRow = sheet.createRow(recordCount + 7)
         val metadataCell = metadataRow.createCell(0)
         val exportInfo = "导出时间: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}"
         metadataCell.setCellValue(exportInfo)
         metadataCell.cellStyle = dataStyle
-        sheet.addMergedRegion(CellRangeAddress(favorites.size + 7, favorites.size + 7, 0, 6))
+        sheet.addMergedRegion(CellRangeAddress(recordCount + 7, recordCount + 7, 0, 6))
 
         workbook.write(outputStream)
         workbook.close()
@@ -551,6 +511,18 @@ class ProductFavoriteServiceImpl(
       ExportFormat.JSON -> {
         throw BadRequestException("JSON export not yet implemented")
       }
+    }
+
+    if (recordCount == 0) {
+      return ExportFavoritesResult(
+        success = false,
+        message = "No data found for the given criteria",
+        downloadUrl = null,
+        fileName = "",
+        fileSize = 0,
+        recordCount = 0,
+        expiresAt = LocalDateTime.now().plusDays(1),
+      )
     }
 
     val fileExtension =
@@ -571,9 +543,47 @@ class ProductFavoriteServiceImpl(
       downloadUrl = "/api/exports/$fileName",
       fileName = fileName,
       fileSize = fileSize,
-      recordCount = favorites.size,
+      recordCount = recordCount,
       expiresAt = expiresAt,
     )
+  }
+
+  /**
+   * 按 keyset 游标分批扫描收藏数据(每批 [EXPORT_BATCH_SIZE] 条),批内批量取用户/商品名称。
+   * 返回导出行数。AGENTS.md 规则 10:导出必须分批/流式,禁止整表读入内存。
+   */
+  private inline fun forEachFavoriteBatch(
+    input: ExportFavoritesInput,
+    consume: (
+      batch: List<ProductFavoriteModel>,
+      users: Map<Long, UserModel>,
+      products: Map<Long, ProductModel>,
+    ) -> Unit,
+  ): Int {
+    var afterId: Long? = null
+    var total = 0
+    while (true) {
+      val batch =
+        productFavoriteRepository.findFavoritesForExport(
+          userId = input.userId,
+          productIds = input.productIds?.toList(),
+          dateFrom = input.dateFrom,
+          dateTo = input.dateTo,
+          afterId = afterId,
+          limit = EXPORT_BATCH_SIZE,
+        )
+      if (batch.isEmpty()) break
+      val users = userService.findByIds(batch.map { it.userId }.distinct()).associateBy { requireNotNull(it.id) }
+      val products =
+        productRepository
+          .findAllById(batch.map { it.productId }.distinct())
+          .associateBy { requireNotNull(it.id) }
+      consume(batch, users, products)
+      total += batch.size
+      afterId = batch.last().id
+      if (batch.size < EXPORT_BATCH_SIZE) break
+    }
+    return total
   }
 
   // Private helper methods
@@ -581,4 +591,15 @@ class ProductFavoriteServiceImpl(
   private fun convertToGraphQLProduct(product: ProductModel): Product = product.toGraphQL()
 
   private fun convertProductStatus(status: ProductStatus): ProductStatus = status
+
+  private companion object {
+    /** 收藏排行展示条数(SQL 侧 limit,避免全量聚合进内存 —— AGENTS.md 规则 10) */
+    const val PRODUCT_FAVORITE_STATS_LIMIT = 10
+
+    /** 商品已删除/不存在时的展示占位 */
+    const val UNKNOWN_PRODUCT_NAME = "未知商品"
+
+    /** 导出分批大小(keyset 游标) */
+    const val EXPORT_BATCH_SIZE = 1000
+  }
 }

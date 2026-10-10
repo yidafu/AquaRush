@@ -4,10 +4,8 @@ import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
-import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
@@ -190,34 +188,6 @@ class ProductServiceImpl(
     query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel> = productRepository.searchProducts(query, pageable)
-
-  fun getProductStatistics(): ProductStatistics {
-    val allProducts = productRepository.findAll()
-    val onlineProducts = allProducts.filter { it.status == ProductModelStatus.ONLINE }
-    val offlineProducts = allProducts.filter { it.status == ProductModelStatus.OFFLINE }
-    // 低库存阈值由系统参数提供(F-SYS-003,R-PRO-02),缺省 10
-    val lowStockThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L)
-    val lowStockProducts = allProducts.filter { it.stock <= lowStockThreshold }
-    val outOfStockProducts = allProducts.filter { it.status == ProductModelStatus.OUT_OF_STOCK }.size
-
-    val totalValue = allProducts.sumOf { it.price }
-    val averagePrice = if (allProducts.isNotEmpty()) totalValue / allProducts.size else 0L
-
-    return ProductStatistics(
-      totalProducts = allProducts.size,
-      onlineProducts = onlineProducts.size,
-      offlineProducts = offlineProducts.size,
-      lowStockProducts = lowStockProducts.size,
-      outOfStockProducts = outOfStockProducts,
-      totalValueCents = totalValue,
-      averagePriceCents = averagePrice,
-      productRanking = emptyList(),
-      favoriteStatistics = emptyList(),
-      totalSales = 0,
-      totalFavorites = 0,
-      stockWarningItems = emptyList(),
-    )
-  }
 
   // Sales volume tracking
   @Transactional

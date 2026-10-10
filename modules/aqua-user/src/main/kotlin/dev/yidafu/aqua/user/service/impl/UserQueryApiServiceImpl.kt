@@ -33,8 +33,6 @@ import java.time.LocalDateTime
 class UserQueryApiServiceImpl(
   private val userRepository: UserRepository,
 ) : UserQueryApiService {
-  override fun findAll(): List<UserModel> = userRepository.findAll()
-
   override fun countAll(): Long = userRepository.count()
 
   override fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)

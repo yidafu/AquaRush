@@ -62,7 +62,6 @@ class UserRepositoryImplTest :
       val keep = UserExposedH2TestSupport.user()
       UserExposedH2TestSupport.user(deleted = true)
 
-      repo.findAll() shouldHaveSize 1
       repo.findAll(PageRequest.of(0, 10)).totalElements shouldBe 1L
       repo.count() shouldBe 1L
       repo.existsById(keep) shouldBe true
@@ -79,7 +78,7 @@ class UserRepositoryImplTest :
 
     test("findByWechatOpenId/findByPhone/existsByWechatOpenId") {
       UserExposedH2TestSupport.user()
-      val found = repo.findAll().first()
+      val found = repo.findAll(PageRequest.of(0, 10)).content.first()
       repo.findByWechatOpenId("openid-x") shouldBe null
       repo.findByWechatOpenId(found.wechatOpenId).shouldNotBeNull()
       repo.findByPhone(found.phone!!).shouldNotBeNull()

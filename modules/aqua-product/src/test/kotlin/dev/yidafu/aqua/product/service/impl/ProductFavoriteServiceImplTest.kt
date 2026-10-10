@@ -191,8 +191,8 @@ class ProductFavoriteServiceImplTest :
       val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 5L
-      every { productFavoriteRepository.findMostFavoritedProducts() } returns listOf(count)
-      every { productRepository.findAll() } returns listOf(product(1L))
+      every { productFavoriteRepository.findTopFavoritedProducts(10) } returns listOf(count)
+      every { productRepository.findAllById(listOf(1L)) } returns listOf(product(1L))
 
       val stats = service.getProductFavoriteStats()
 
@@ -202,9 +202,9 @@ class ProductFavoriteServiceImplTest :
       stats[0].favoriteCount shouldBe 5L
     }
     test("getAllProductsFavoriteStats aggregates favorites") {
-      val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
-      every { count.favoriteCount } returns 4L
-      every { productFavoriteRepository.findMostFavoritedProducts() } returns listOf(count)
+      // 规则 10:总数与总收藏数走 SQL 聚合,不读全量聚合结果
+      every { productFavoriteRepository.countFavoritedProducts() } returns 1L
+      every { productFavoriteRepository.countTotalFavorites() } returns 4L
 
       val stats = service.getAllProductsFavoriteStats()
 
@@ -254,7 +254,7 @@ class ProductFavoriteServiceImplTest :
       result.failureCount shouldBe 1
     }
     test("exportFavorites returns failure when no data") {
-      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any()) } returns emptyList()
+      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any(), any(), any()) } returns emptyList()
 
       val result = service.exportFavorites(ExportFavoritesInput(format = ExportFormat.CSV))
 
@@ -263,7 +263,7 @@ class ProductFavoriteServiceImplTest :
     }
     test("exportFavorites exports csv") {
       val favorite = ProductFavoriteModel(userId = 1L, productId = 1L, enable = true)
-      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any()) } returns listOf(favorite)
+      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any(), any(), any()) } returns listOf(favorite)
       every { productRepository.findById(any()) } returns Optional.empty()
 
       val result = service.exportFavorites(ExportFavoritesInput(format = ExportFormat.CSV, includeProductInfo = false))
@@ -276,7 +276,7 @@ class ProductFavoriteServiceImplTest :
         .uppercase() shouldBe ExportFormat.CSV.name
     }
     test("exportFavorites returns failure when no data with date range") {
-      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any()) } returns emptyList()
+      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any(), any(), any()) } returns emptyList()
 
       val result =
         service.exportFavorites(
@@ -302,10 +302,11 @@ class ProductFavoriteServiceImplTest :
       val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 3L
-      every { productFavoriteRepository.findMostFavoritedProducts() } returns listOf(count)
-      every { productRepository.findById(1L) } returns Optional.of(product(1L))
-      every { productFavoriteRepository.findByProductId(1L) } returns
-        listOf(ProductFavoriteModel(userId = 1L, productId = 1L, createdAt = LocalDateTime.of(2025, 6, 1, 10, 0)))
+      every {
+        productFavoriteRepository.findMostFavoritedProducts(PageRequest.of(0, 10), 1L)
+      } returns PageImpl(listOf(count), PageRequest.of(0, 10), 1L)
+      every { productRepository.findAllById(listOf(1L)) } returns listOf(product(1L))
+      every { count.lastFavoritedAt } returns LocalDateTime.of(2025, 6, 1, 10, 0)
 
       val vo = service.getProductsByFavorites(page = 0, size = 10, minFavorites = 1)
 
@@ -319,8 +320,13 @@ class ProductFavoriteServiceImplTest :
       val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 1L
-      every { productFavoriteRepository.findMostFavoritedProducts() } returns listOf(count)
-      every { productRepository.findById(1L) } returns Optional.of(product(1L))
+      every {
+        productFavoriteRepository.findMostFavoritedProducts(PageRequest.of(5, 10), 5L)
+      } returns PageImpl(emptyList(), PageRequest.of(5, 10), 0L)
+      every {
+        productFavoriteRepository.findMostFavoritedProducts(PageRequest.of(0, 10), 1L)
+      } returns PageImpl(listOf(count), PageRequest.of(0, 10), 1L)
+      every { productRepository.findAllById(listOf(1L)) } returns listOf(product(1L))
 
       val empty = service.getProductsByFavorites(page = 5, size = 10, minFavorites = 5)
 
@@ -337,8 +343,10 @@ class ProductFavoriteServiceImplTest :
       val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 99L
       every { count.favoriteCount } returns 2L
-      every { productFavoriteRepository.findMostFavoritedProducts() } returns listOf(count)
-      every { productRepository.findById(99L) } returns Optional.empty()
+      every {
+        productFavoriteRepository.findMostFavoritedProducts(PageRequest.of(0, 10), null)
+      } returns PageImpl(listOf(count), PageRequest.of(0, 10), 1L)
+      every { productRepository.findAllById(listOf(99L)) } returns emptyList()
 
       val vo = service.getProductsByFavorites(page = 0, size = 10, minFavorites = null)
 
@@ -347,7 +355,7 @@ class ProductFavoriteServiceImplTest :
     }
     test("exportFavorites exports excel") {
       val favorite = ProductFavoriteModel(userId = 1L, productId = 1L, enable = true)
-      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any()) } returns listOf(favorite)
+      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any(), any(), any()) } returns listOf(favorite)
       every { productRepository.findById(any()) } returns Optional.empty()
 
       val result = service.exportFavorites(ExportFavoritesInput(format = ExportFormat.EXCEL))
@@ -358,7 +366,7 @@ class ProductFavoriteServiceImplTest :
     }
     test("exportFavorites json throws") {
       val favorite = ProductFavoriteModel(userId = 1L, productId = 1L, enable = true)
-      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any()) } returns listOf(favorite)
+      every { productFavoriteRepository.findFavoritesForExport(any(), any(), any(), any(), any(), any()) } returns listOf(favorite)
 
       shouldThrow<BadRequestException> { service.exportFavorites(ExportFavoritesInput(format = ExportFormat.JSON)) }
     }

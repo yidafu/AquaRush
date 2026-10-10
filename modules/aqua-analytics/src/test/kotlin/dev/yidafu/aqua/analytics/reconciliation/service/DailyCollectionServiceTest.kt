@@ -344,11 +344,6 @@ class DailyCollectionServiceTest :
 
       service.getCollectionsByDate(1L, date) shouldBe emptyList()
     }
-    test("getAllCollections delegates and guards empty") {
-      every { dailyCollectionQuery.findAll() } returns emptyList()
-
-      service.getAllCollections() shouldBe emptyList()
-    }
     test("getCollectionsByDateRange delegates") {
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 30)
@@ -401,11 +396,6 @@ class DailyCollectionServiceTest :
 
       service.getReconciliationByDate(date) shouldBe expected
       service.getReconciliationByDate(LocalDate.of(2020, 1, 1)).shouldBeNull()
-    }
-    test("getAllReconciliations delegates and guards empty") {
-      every { dailyReconciliationQuery.findAll() } returns emptyList()
-
-      service.getAllReconciliations() shouldBe emptyList()
     }
     test("getReconciliationsPage pages all records") {
       val expected: Page<DailyReconciliationModel> = PageImpl(listOf(DailyReconciliationModel()))

@@ -57,11 +57,6 @@ class UserQueryApiServiceImplTest :
       userRepository = mockk(relaxed = true)
       service = UserQueryApiServiceImpl(userRepository)
     }
-    test("findAll should delegate to repository") {
-      every { userRepository.findAll() } returns listOf(user(1L), user(2L))
-      service.findAll().size shouldBe 2
-      verify { userRepository.findAll() }
-    }
     test("countAll should delegate to count") {
       every { userRepository.count() } returns 5L
       service.countAll() shouldBe 5L

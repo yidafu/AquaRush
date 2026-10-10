@@ -93,14 +93,14 @@ class NoticeRepositoryTest :
       repository.findActiveNotices(now).map { it.title } shouldBe listOf("置顶已发布", "普通已发布")
     }
 
-    test("delete 后 findById/findAll/findPage 均过滤") {
+    test("delete 后 findById/findByTitle/findPage 均过滤") {
       ExposedH2TestSupport.reset()
       val saved = repository.save(notice("待删除"))
 
       repository.delete(saved)
 
       repository.findById(saved.id!!).isPresent shouldBe false
-      repository.findAll() shouldBe emptyList()
+      repository.findByTitle("待删除") shouldBe null
       repository.findPage(NoticeFilter(), PageRequest.of(0, 10)).totalElements shouldBe 0
     }
 

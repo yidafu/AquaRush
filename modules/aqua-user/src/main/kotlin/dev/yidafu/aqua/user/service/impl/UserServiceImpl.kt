@@ -42,6 +42,8 @@ class UserServiceImpl(
 ) : UserService {
   override fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)
 
+  override fun findByIds(ids: List<Long>): List<UserModel> = userRepository.findAllById(ids)
+
   override fun findByWechatOpenId(wechatOpenId: String): UserModel? = userRepository.findByWechatOpenId(wechatOpenId)
 
   @Transactional

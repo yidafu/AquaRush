@@ -122,15 +122,16 @@ class NoticeRepository(
       )
     }
 
-  /** 全量(含软删过滤)。管理后台集成测试做种子数据存在性判断用。 */
-  fun findAll(): List<NoticeModel> =
+  /** 按标题查找(测试/运营按标题定位;取 1 条)。 */
+  fun findByTitle(title: String): NoticeModel? =
     transaction(database) {
       NoticeTable
         .selectAll()
-        .where { NoticeTable.isDeleted eq false }
+        .where { (NoticeTable.isDeleted eq false) and (NoticeTable.title eq title) }
         .orderBy(NoticeTable.createdAt to SortOrder.DESC)
-        .map(::toModel)
-    }
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   fun save(notice: NoticeModel): NoticeModel =
     transaction(database) {

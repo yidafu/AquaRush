@@ -132,11 +132,6 @@ class RegionRepositoryImpl(
         .toList()
     }.map(::toModel)
 
-  override fun findAll(): List<RegionModel> =
-    transaction(database) {
-      selectAllWhere { Op.TRUE }.orderBy(RegionsTable.code to SortOrder.ASC).toList()
-    }.map(::toModel)
-
   override fun findById(id: Long): RegionModel? =
     transaction(database) {
       selectAllWhere { RegionsTable.id eq id }.limit(1).firstOrNull()

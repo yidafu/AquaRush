@@ -40,9 +40,6 @@ interface FileMetadataRepository : FileMetadataRepositoryCustom {
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: FileMetadata): FileMetadata
 
-  /** 存量接口遗留的无界查询(违反规则 10,由调用方 StorageService 内部使用;不新增调用)。 */
-  fun findAll(): List<FileMetadata>
-
   fun findAll(pageable: Pageable): Page<FileMetadata>
 
   /**

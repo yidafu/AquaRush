@@ -98,13 +98,31 @@ interface ProductFavoriteRepositoryCustom {
   data class ProductFavoriteCount(
     val productId: Long,
     val favoriteCount: Long,
+    /** 该商品最后一次被收藏的时间(SQL `max(created_at)`,避免逐商品再查明细)。 */
+    val lastFavoritedAt: LocalDateTime? = null,
   )
 
   /**
-   * Find most favorited products
-   * @return list of ProductFavoriteCount containing [productId, favoriteCount]
+   * 按收藏数分页查询(SQL 侧 group by + having + limit/offset;收藏数降序,商品 id 升序破平)。
+   * @param pageable 分页参数
+   * @param minFavorites 最少收藏数过滤(null=不过滤,下推到 HAVING)
+   * @return 当前页 + 分组总数(禁止在内存里切页)
    */
-  fun findMostFavoritedProducts(): List<ProductFavoriteCount>
+  fun findMostFavoritedProducts(
+    pageable: Pageable,
+    minFavorites: Long? = null,
+  ): Page<ProductFavoriteCount>
+
+  /**
+   * 取收藏数最高的 [limit] 个商品(SQL 侧 limit,统计展示用)
+   */
+  fun findTopFavoritedProducts(limit: Int): List<ProductFavoriteCount>
+
+  /** 有收藏记录的商品数(SQL `count(distinct product_id)`) */
+  fun countFavoritedProducts(): Long
+
+  /** 收藏总条数(SQL `count(*)`) */
+  fun countTotalFavorites(): Long
 
   // Export methods
 
@@ -121,6 +139,8 @@ interface ProductFavoriteRepositoryCustom {
     productIds: List<Long>?,
     dateFrom: LocalDateTime?,
     dateTo: LocalDateTime?,
+    afterId: Long?,
+    limit: Int,
   ): List<ProductFavoriteModel>
 
   // Statistics for specific periods

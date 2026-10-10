@@ -48,7 +48,7 @@ class PromotionActivityRepositoryImplTest :
         .orElse(null)
         .shouldNotBeNull()
         .name shouldBe "满减A"
-      repo.findAll() shouldHaveSize 1
+      repo.findByName("满减A")!!.id shouldBe saved.id
       repo.findAllById(listOf(saved.id!!, 999L)) shouldHaveSize 1
       repo.findAllById(emptyList()) shouldHaveSize 0
     }
@@ -70,7 +70,8 @@ class PromotionActivityRepositoryImplTest :
       MarketingExposedH2TestSupport.promotionActivity(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
-      repo.findAll() shouldHaveSize 1
+      repo.findByName("存活")!!.id shouldBe keep
+      repo.findByName("已删") shouldBe null
       repo.findAllById(listOf(keep)) shouldHaveSize 1
     }
 

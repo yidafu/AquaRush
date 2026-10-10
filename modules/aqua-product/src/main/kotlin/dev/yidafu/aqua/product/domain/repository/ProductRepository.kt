@@ -33,8 +33,8 @@ interface ProductRepository : ProductRepositoryCustom {
 
   fun findById(id: Long): Optional<ProductModel>
 
-  /** 存量接口遗留的无界查询(违反规则 10,statistics/收藏分析存量使用;不新增调用)。 */
-  fun findAll(): List<ProductModel>
+  /** 按商品名精确查找(取 1 条;名称为业务唯一语义,DDL 未建唯一索引)。 */
+  fun findByName(name: String): ProductModel?
 
   fun findAllById(ids: List<Long>): List<ProductModel>
 

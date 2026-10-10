@@ -50,9 +50,6 @@ interface RegionRepository : RegionRepositoryCustom {
 
   fun findByLevelOrderByCode(level: Int): List<RegionModel>
 
-  // ===== 基础操作(JpaRepository 显式化)=====
-  fun findAll(): List<RegionModel>
-
   fun findById(id: Long): RegionModel?
 
   fun save(entity: RegionModel): RegionModel

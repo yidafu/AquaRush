@@ -317,11 +317,6 @@ class DailyCollectionService(
   ): List<DailyCollectionRecordModel> = dailyCollectionQuery.findByCollectionDate(collectionDate).ifEmpty { emptyList() }
 
   /**
-   * 获取所有收款记录（管理员用）
-   */
-  fun getAllCollections(): List<DailyCollectionRecordModel> = dailyCollectionQuery.findAll().ifEmpty { emptyList() }
-
-  /**
    * 获取指定日期范围的所有收款记录
    */
   fun getCollectionsByDateRange(
@@ -334,11 +329,6 @@ class DailyCollectionService(
    */
   fun getReconciliationByDate(reconciliationDate: LocalDate): DailyReconciliationModel? =
     dailyReconciliationQuery.findByReconciliationDate(reconciliationDate)
-
-  /**
-   * 获取所有对账记录
-   */
-  fun getAllReconciliations(): List<DailyReconciliationModel> = dailyReconciliationQuery.findAll().ifEmpty { emptyList() }
 
   /**
    * 定时任务：执行每日对账

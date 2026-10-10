@@ -38,9 +38,6 @@ interface CustomerGroupRepository {
 
   fun existsById(id: Long): Boolean
 
-  /** 存量接口遗留的无界查询(违反规则 10,分组全量名册存量使用;不新增调用)。 */
-  fun findAll(): List<CustomerGroupModel>
-
   fun findAllById(ids: List<Long>): List<CustomerGroupModel>
 
   /** 后台分组分页:name 关键词(大小写不敏感);固定 createdAt 降序、id 破平。 */

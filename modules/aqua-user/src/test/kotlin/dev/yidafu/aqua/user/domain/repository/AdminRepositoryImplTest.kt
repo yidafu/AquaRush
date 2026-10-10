@@ -28,6 +28,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import org.springframework.data.domain.PageRequest
 
 class AdminRepositoryImplTest :
   FunSpec({
@@ -43,7 +44,7 @@ class AdminRepositoryImplTest :
         .orElse(null)
         .shouldNotBeNull()
         .username shouldBe "admin1"
-      repo.findAll() shouldHaveSize 1
+      repo.findAllAdmins(null, null, PageRequest.of(0, 10)).totalElements shouldBe 1L
       repo.existsById(saved.id!!) shouldBe true
       repo.count() shouldBe 1L
     }
@@ -63,10 +64,10 @@ class AdminRepositoryImplTest :
       val a = UserExposedH2TestSupport.admin()
       UserExposedH2TestSupport.admin()
       repo.deleteById(a)
-      repo.findAll() shouldHaveSize 1
+      repo.findAllAdmins(null, null, PageRequest.of(0, 10)).totalElements shouldBe 1L
 
       repo.deleteAll()
-      repo.findAll() shouldHaveSize 0
+      repo.findAllAdmins(null, null, PageRequest.of(0, 10)).totalElements shouldBe 0L
     }
 
     test("按用户名/手机/角色/在线状态查询") {
@@ -81,8 +82,19 @@ class AdminRepositoryImplTest :
       repo.existsByPhone("13999991111") shouldBe true
       repo.findByRole(AdminRoleModel.ADMIN) shouldHaveSize 1
       repo.countByRole(AdminRoleModel.ADMIN) shouldBe 1L
-      repo.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) shouldHaveSize 1
-      repo.findAllAdmins() shouldHaveSize 2
+      repo.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE, 100) shouldHaveSize 1
+      repo.findAllAdmins(null, null, PageRequest.of(0, 10)).totalElements shouldBe 2L
+      // 关键字/角色过滤下推 SQL
+      repo
+        .findAllAdmins("w1", null, PageRequest.of(0, 10))
+        .content
+        .single()
+        .username shouldBe "w1"
+      repo
+        .findAllAdmins(null, AdminRoleModel.ADMIN, PageRequest.of(0, 10))
+        .content
+        .single()
+        .username shouldBe "boss"
       repo.findAdminById(999L) shouldBe null
     }
 
@@ -91,9 +103,10 @@ class AdminRepositoryImplTest :
       UserExposedH2TestSupport.admin(role = "ADMIN")
 
       val roles = listOf(AdminRoleModel.DELIVERY_WORKER, AdminRoleModel.ADMIN)
-      repo.findAllByRoleIn(roles) shouldHaveSize 2
+      repo.findAllByRoleIn(roles, 100) shouldHaveSize 2
+      repo.findAllByRoleIn(roles, null, PageRequest.of(0, 10)).totalElements shouldBe 2L
       repo.countByRoleIn(roles) shouldBe 2L
-      repo.findAllByRoleIn(emptyList()) shouldHaveSize 0
+      repo.findAllByRoleIn(emptyList(), 100) shouldHaveSize 0
       repo.countByRoleIn(emptyList()) shouldBe 0L
     }
 

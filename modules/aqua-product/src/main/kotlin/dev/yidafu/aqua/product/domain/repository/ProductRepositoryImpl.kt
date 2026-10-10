@@ -96,14 +96,15 @@ class ProductRepositoryImpl(
       }?.let(::toModel),
     )
 
-  override fun findAll(): List<ProductModel> =
+  override fun findByName(name: String): ProductModel? =
     transaction(database) {
       ProductsTable
         .selectAll()
-        .where { ProductsTable.activeOnly() }
+        .where { ProductsTable.activeOnly { ProductsTable.name eq name } }
         .orderBy(ProductsTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   override fun findAllById(ids: List<Long>): List<ProductModel> {
     if (ids.isEmpty()) return emptyList()
