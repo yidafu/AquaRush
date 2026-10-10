@@ -746,8 +746,22 @@ class OrderMutationServiceImpl(
     val order = orderQueryService.getOrderById(orderId)
     val beforeStatus = order.status
     validateTransition(beforeStatus, status)
+    // 状态谓词条件更新(裁决结构 #9 ①):WHERE id + 读到的当前状态,0 行 = 并发已流转,
+    // 抛状态冲突而非覆盖他人写入(原读-改-存无守卫,存在丢失更新窗口)
+    val updated =
+      orderRepository.updateStatusAtomically(
+        id = orderId,
+        from = beforeStatus,
+        to = status,
+        now = LocalDateTime.now(),
+      )
+    if (updated == 0) {
+      throw BadRequestException(
+        "订单状态冲突:当前状态已被其他操作变更,无法从 ${beforeStatus.name} 流转为 ${status.name},请刷新后重试",
+      )
+    }
     order.status = status
-    val saved = orderRepository.save(order)
+    val saved = order
 
     // 业务日志(F-LOG-003 ORDER 域):记录状态流转
     val (operatorId, operatorName) = bizLogger.resolveOperator()

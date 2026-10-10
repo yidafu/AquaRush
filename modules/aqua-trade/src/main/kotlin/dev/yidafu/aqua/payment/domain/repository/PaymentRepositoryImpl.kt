@@ -51,7 +51,8 @@ import java.util.Optional
 /**
  * 支付单仓储实现(JPA→Exposed 迁移 P4,替代原 QueryDSL 实现 + PaymentSpecifications 组装)。
  * 查询过滤 is_deleted([PaymentsTable.activeOnly]);金额一律 Long 分;
- * [claimExpired] 为单条条件 UPDATE(原子,幂等且互斥),WHERE 同样带 activeOnly。
+ * [claimExpired] 为单条条件 UPDATE(原子,幂等且互斥),WHERE 同样带 activeOnly;
+ * version 仅由 [save] 按 JPA @Version 语义递增(无消费方比对),claim 路径不触碰。
  */
 @Repository
 class PaymentRepositoryImpl(
@@ -230,7 +231,8 @@ class PaymentRepositoryImpl(
         }
       }) {
         it[status] = PaymentStatus.EXPIRED.name
-        it[version] = PaymentsTable.version + 1L
+        // version 不在此递增(裁决结构 #9 ②):全仓无人读 version 做 CAS 比对,递增属装饰;
+        // 防重领由 WHERE 状态谓词(PENDING + 已到期)原子保证,不引入 version 比对的新行为风险
         it[updatedAt] = now
       }
     }

@@ -211,7 +211,7 @@ class PaymentRepositoryImplTest :
       page1.hasNext() shouldBe false
     }
 
-    test("claimExpired 成功:PENDING 且已到期 → EXPIRED,version +1,updatedAt = now") {
+    test("claimExpired 成功:PENDING 且已到期 → EXPIRED,version 不变,updatedAt = now") {
       val id = seedPayment(id = 910060L, status = PaymentStatus.PENDING, expiredAt = now.minusMinutes(1))
 
       repo.claimExpired(id, now) shouldBe 1
@@ -219,7 +219,8 @@ class PaymentRepositoryImplTest :
       transaction(db) {
         val row = PaymentsTable.selectAll().andWhere { PaymentsTable.id eq id }.first()
         row[PaymentsTable.status] shouldBe PaymentStatus.EXPIRED.name
-        row[PaymentsTable.version] shouldBe 1L
+        // 防重领由状态谓词原子保证,version 无人比对、不在此递增(裁决结构 #9 ②)
+        row[PaymentsTable.version] shouldBe 0L
         row[PaymentsTable.updatedAt] shouldBe now
       }
     }

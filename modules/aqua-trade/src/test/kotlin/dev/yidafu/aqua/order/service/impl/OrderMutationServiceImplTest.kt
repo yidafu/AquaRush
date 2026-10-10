@@ -375,20 +375,36 @@ class OrderMutationServiceImplTest :
     test("update order status allows cancel from pending payment") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
       every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      every { orderRepository.updateStatusAtomically(1L, any(), any(), any()) } returns 1
 
       val updated = service.updateOrderStatus(1L, OrderModelStatus.CANCELLED)
 
       updated.status shouldBe OrderModelStatus.CANCELLED
+      verify(exactly = 1) {
+        orderRepository.updateStatusAtomically(1L, OrderModelStatus.PENDING_PAYMENT, OrderModelStatus.CANCELLED, any())
+      }
+      verify(exactly = 0) { orderRepository.save(any()) }
     }
     test("update order status allows refunded from cancelled") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.CANCELLED)
       every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      every { orderRepository.updateStatusAtomically(1L, any(), any(), any()) } returns 1
 
       val updated = service.updateOrderStatus(1L, OrderModelStatus.REFUNDED)
 
       updated.status shouldBe OrderModelStatus.REFUNDED
+    }
+    test("update order status rejects when CAS claim lost (状态谓词条件更新, 裁决结构 #9)") {
+      // 读到 PENDING_PAYMENT,但写入前已被并发流转 → 条件 UPDATE 0 行 → 抛状态冲突
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+      every { orderQueryService.getOrderById(1L) } returns order
+      every { orderRepository.updateStatusAtomically(1L, any(), any(), any()) } returns 0
+
+      val exception = shouldThrow<BadRequestException> { service.updateOrderStatus(1L, OrderModelStatus.CANCELLED) }
+
+      exception.message!!.contains("状态冲突") shouldBe true
+      // 冲突时不落库,不覆盖并发写入
+      verify(exactly = 0) { orderRepository.save(any()) }
     }
     test("update order status rejects illegal transition") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
@@ -454,7 +470,7 @@ class OrderMutationServiceImplTest :
     test("update order status allows admin confirm from awaiting confirmation (R-ORD-11)") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION)
       every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      every { orderRepository.updateStatusAtomically(1L, any(), any(), any()) } returns 1
 
       val updated = service.updateOrderStatus(1L, OrderModelStatus.COMPLETED)
 

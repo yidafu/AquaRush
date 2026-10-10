@@ -347,4 +347,16 @@ interface OrderRepository {
     id: Long,
     completedAt: LocalDateTime,
   ): Int
+
+  /**
+   * 状态谓词条件更新(裁决结构 #9 ①:updateOrderStatus 原为读-改-存无守卫,存在并发丢更新):
+   * 单条条件 UPDATE:仅当前状态为 [from] 时置 [to](同步 updatedAt),返回受影响行数
+   * (1=流转成功,0=当前状态已非 [from],并发流转/状态不符);WHERE 同带 activeOnly(口径同 [cancelAtomically])。
+   */
+  fun updateStatusAtomically(
+    id: Long,
+    from: OrderModelStatus,
+    to: OrderModelStatus,
+    now: LocalDateTime,
+  ): Int
 }
