@@ -5,6 +5,7 @@ import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.exception.InsufficientStockException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -171,17 +172,14 @@ class ProductServiceImpl(
     productId: Long,
     quantity: Int,
   ): Boolean {
-    val product = productRepository.findById(productId).orElse(null)
-    return if (product != null && product.stock >= quantity) {
-      product.stock -= quantity
-      if (product.stock == 0) {
-        product.status = ProductModelStatus.OUT_OF_STOCK
-      }
-      productRepository.save(product)
-      true
-    } else {
-      false
+    // 原子条件 UPDATE(设计红线 #5,裁决缺陷 #2):0 行 = 库存不足或商品不存在,
+    // 杜绝读-改-写并发超卖;不足时抛库存不足异常(由调用方事务整体回滚)
+    val affected = productRepository.decreaseStockIfAvailable(productId, quantity)
+    if (affected > 0) {
+      return true
     }
+    val product = productRepository.findById(productId).orElse(null) ?: return false
+    throw InsufficientStockException("商品 ${product.name} 库存不足(当前库存 ${product.stock},需求 $quantity 件)")
   }
 
   override fun productsPaginated(

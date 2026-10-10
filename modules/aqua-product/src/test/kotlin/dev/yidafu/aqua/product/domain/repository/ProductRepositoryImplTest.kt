@@ -291,4 +291,36 @@ class ProductRepositoryImplTest :
       repo.findByName("删") shouldBe null
       repo.findByName("不存在") shouldBe null
     }
+
+    test("decreaseStockIfAvailable 扣减成功:原子条件 UPDATE,扣到 0 置 OUT_OF_STOCK") {
+      val id = ProductPgTestSupport.product(name = "扣减", stock = 5)
+
+      repo.decreaseStockIfAvailable(id, 3) shouldBe 1
+      val partial = repo.findById(id).orElse(null).shouldNotBeNull()
+      partial.stock shouldBe 2
+      partial.status shouldBe ProductModelStatus.ONLINE
+
+      // 扣减归零 → 缺货状态(裁决缺陷 #2,与旧读-改-写语义一致)
+      repo.decreaseStockIfAvailable(id, 2) shouldBe 1
+      val zero = repo.findById(id).orElse(null).shouldNotBeNull()
+      zero.stock shouldBe 0
+      zero.status shouldBe ProductModelStatus.OUT_OF_STOCK
+    }
+
+    test("decreaseStockIfAvailable 库存不足:0 行且库存原值保留(无部分写入,超卖窗口封死)") {
+      val id = ProductPgTestSupport.product(name = "不足", stock = 2)
+
+      repo.decreaseStockIfAvailable(id, 5) shouldBe 0
+
+      val reloaded = repo.findById(id).orElse(null).shouldNotBeNull()
+      reloaded.stock shouldBe 2
+      reloaded.status shouldBe ProductModelStatus.ONLINE
+    }
+
+    test("decreaseStockIfAvailable 商品不存在/已软删均返回 0") {
+      val deleted = ProductPgTestSupport.product(name = "已删", stock = 5, deleted = true)
+
+      repo.decreaseStockIfAvailable(999_999L, 1) shouldBe 0
+      repo.decreaseStockIfAvailable(deleted, 1) shouldBe 0
+    }
   })

@@ -60,4 +60,15 @@ interface ProductRepository {
     query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel>
+
+  /**
+   * 原子扣减库存(设计红线 #5 / AC-ORD-001-10,裁决缺陷 #2):
+   * 单条条件 UPDATE `SET stock_quantity = stock_quantity - ? WHERE id = ? AND stock_quantity >= ?`
+   * (带软删过滤),封死读-改-写超卖窗口;扣减后库存为 0 时同事务置 OUT_OF_STOCK。
+   * 返回受影响行数:1=扣减成功,0=库存不足或商品不存在(调用方决定抛错或回退)。
+   */
+  fun decreaseStockIfAvailable(
+    productId: Long,
+    quantity: Int,
+  ): Int
 }
