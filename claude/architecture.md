@@ -6,7 +6,7 @@
 
 The project follows a clean multi-module architecture. Modules (`modules/`) hold domain logic, services (`services/`) are the deployable application entry points:
 
-- **aqua-foundation**: Shared infrastructure — `common/` (caching MapDB, GraphQL config, messaging/Artemis, security, id generation, exceptions), `api/` (cross-module service interfaces and DTOs), `logging/` (structured logging with correlation IDs; API/user-action/business log models and mappers live here)
+- **aqua-foundation**: Shared infrastructure — `common/` (caching MapDB, GraphQL config, messaging/Transactional Outbox, security, id generation, exceptions), `api/` (cross-module service interfaces and DTOs), `logging/` (structured logging with correlation IDs; API/user-action/business log models and mappers live here)
 - **aqua-user**: User management, authentication (JWT), addresses, WeChat integration
 - **aqua-product**: Product catalog and inventory management
 - **aqua-trade**: Order processing, delivery worker management, payment (WeChat Pay), reviews — each as a sub-domain (`order/`, `delivery/`, `payment/`, `review/`)
@@ -73,11 +73,11 @@ Modules are structured with clear dependency hierarchy:
 
 > 本节的跨模块 repository 直连、ops/marketing 依赖隔离、foundation 反向依赖与模块循环依赖由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.ModuleDependencyTest`（规则 P1–P4）。正向约定（跨模块数据访问须经 `api/service` 等）与 admin/client 豁免范围仍靠评审（admin/client 直连模块 repository 属计划内豁免，services 非领域模块）。
 
-**Event-Driven Architecture with Artemis MQ**:
-- Domain events are published via ActiveMQ Artemis
-- Embedded Artemis broker for simplified deployment
-- Message persistence for reliability
-- Configurable retry mechanism with exponential backoff
+**Event-Driven Architecture with Transactional Outbox**:
+- Domain events are written to the shared `outbox_events` table in the same transaction as the business write (no external MQ dependency)
+- aqua-admin and aqua-client both poll the table: point-to-point rows (`subscriber IS NULL`) are claimed once via `FOR UPDATE SKIP LOCKED`; broadcast rows are fanned out per subscriber (`admin`/`client`)
+- Delayed delivery (`PAYMENT_EXPIRY_CHECK`) via future `next_run_at`; reliability via bounded retries with exponential backoff, `DEAD` parking + health alarm after exhaustion
+- Spec: `docs/compose/spec/outbox-messaging.md`
 
 **Caching System**:
 - Spring Cache + MapDB integration for high-performance local caching
@@ -152,7 +152,7 @@ Primary configuration in `services/aqua-admin/src/main/resources/application.yml
 - WeChat Mini Program integration (app-id, app-secret)
 - WeChat Pay v3 configuration with certificate management
 - JWT authentication settings
-- Messaging system configuration (Artemis/Memory/Outbox strategies)
+- Messaging system configuration (`aqua.messaging` publish switch / `aqua.outbox` poller settings)
 - GraphQL endpoint configuration
 - Jackson serialization settings
 

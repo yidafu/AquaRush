@@ -2,13 +2,14 @@
 
 > Imported by the root `CLAUDE.md`. Cross-cutting backend patterns for domain events, caching, and WeChat integration.
 
-## Event Processing
+## Event Processing (Transactional Outbox)
 
-When adding new domain events:
+事件传输基于共享 PostgreSQL 的 transactional outbox(`outbox_events` 表,无外部 MQ;
+spec: `docs/compose/spec/outbox-messaging.md`)。当添加新领域事件:
 1. Define event in the appropriate domain module
-2. Publish event via SimplifiedEventPublishService using Artemis MQ
-3. Create event handler to consume from Artemis queue
-4. Add retry logic for idempotent processing
+2. Publish event via SimplifiedEventPublishService — inserts an outbox row in the caller's transaction (atomic with the business write; failure rolls back the business transaction)
+3. Create an `OutboxDestinationHandler` for the target queue — `OutboxPoller` claims due rows per destination (`FOR UPDATE SKIP LOCKED`, point-to-point rows competed by both services, broadcast rows fanned out per subscriber) and dispatches; failures retry with exponential backoff, then park as `DEAD` (health indicator reports DOWN)
+4. Handlers must be idempotent (at-least-once delivery)
 
 ## Cache Usage
 
@@ -41,11 +42,12 @@ Use namespaces for cache isolation and configure appropriate TTL based on data v
   生产置 `WECHAT_PAY_MOCK_ENABLED=false`。
 - 回调端点:`POST /api/pay/notify`(aqua-client,permitAll),必须透传原始报文与 wechatpay-* 头;
   验签/金额校验失败返回 500 FAIL 由微信重试;重复回调/已取消订单返回成功但不流转状态。
-- 支付超时:R-ORD-04,延迟消息(MQ)为主触发 + 定时扫表兜底,仅 admin 服务处理——
-  创建/重置待支付记录时发布 `PAYMENT_EXPIRY_CHECK` 延迟消息(Artemis
-  `AMQ_SCHEDULED_DELIVERY_TIME`=expiredAt,投递到独立队列 `payment-expiry-events`),
-  到期后由 `PaymentExpiryCheckConsumer`(`@AdminService`,client 不消费)触发
-  `handlePaymentTimeout` 自动取消并恢复库存;`PaymentExpiryScheduler`(`@AdminService`,
+- 支付超时:R-ORD-04,延迟 outbox 事件(主触发) + 定时扫表兜底,仅 admin 服务处理——
+  创建/重置待支付记录时发布 `PAYMENT_EXPIRY_CHECK` 延迟事件(outbox 行
+  `next_run_at = expireAt`,`aqua.outbox.destinations` 仅 admin 订阅
+  `payment-expiry-events`),到期后由 `PaymentExpiryCheckConsumer` 触发
+  `handlePaymentTimeout` 自动取消并恢复库存(处理失败由 outbox 指数退避重试,
+  消费端幂等由 CAS 认领保证);`PaymentExpiryScheduler`(`@AdminService`,
   默认 5 分钟,分页游标扫描)兜底;幂等与互斥由 `payments.version` 乐观锁 CAS 认领
   (`claimExpired`:PENDING 且到期 → EXPIRED, version+1)保证,并发触发仅一方生效;
   用户/管理员手动取消与支付超时并发防重复恢复库存:订单级乐观锁 CAS 认领
