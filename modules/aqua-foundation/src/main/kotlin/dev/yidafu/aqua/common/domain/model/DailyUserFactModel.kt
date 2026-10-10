@@ -19,13 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -35,29 +28,11 @@ import java.time.LocalDateTime
  * - new_user_count:当日新增用户数(users.created_at 归属)
  * - login_user_count:当日登录用户数(USER_LOGIN 日志按 userId 去重)
  */
-@Entity
-@Table(
-  name = "daily_user_facts",
-  uniqueConstraints = [UniqueConstraint(columnNames = ["stat_date"])],
-)
 data class DailyUserFactModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "stat_date", nullable = false)
   var statDate: LocalDate = LocalDate.now(),
-  @Column(name = "new_user_count", nullable = false)
   var newUserCount: Long = 0,
-  @Column(name = "login_user_count", nullable = false)
   var loginUserCount: Long = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)

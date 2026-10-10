@@ -13,7 +13,8 @@ schema {
 # Admin-specific Query Schema
 type Query {
   # Admin queries - Admin only
-  admins: [Admin!]!
+  admins(keyword: String, role: String, page: Int = 0, size: Int = 20): AdminVOPage!
+  admin(id: PrimaryId!): Admin
   admin(id: PrimaryId!): Admin
 
   # User management - Admin only
@@ -21,13 +22,12 @@ type Query {
   user(id: PrimaryId!): User
 
   # Delivery Worker queries
-  deliveryWorkers: [DeliveryWorker!]!
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
   onlineDeliveryWorkers: [DeliveryWorker!]!
   deliveryWorker(id: PrimaryId!): DeliveryWorker
 
   # Addresses (for admin management)
   userAddresses(userId: Long): [Address!]!
-  addresses: [Address!]!
   address(id: PrimaryId!): Address
   searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [Address!]!
   searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
@@ -128,7 +128,7 @@ type Query {
   regions(level: Int, parentCode: String): [Region!]!
   region(code: String!): Region
   # 获取所有地区数据，用于前端构建树形结构
-  allRegions: [Region!]!
+  regions(parentCode: String): [Region!]!
 
   # Admin review queries
   reviews(
@@ -261,6 +261,22 @@ type BatchImportAddressesResult {
 # 地址分页
 type AddressVOPage {
   content: [Address!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type AdminVOPage {
+  content: [Admin!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type DeliveryWorkerVOPage {
+  content: [DeliveryWorker!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

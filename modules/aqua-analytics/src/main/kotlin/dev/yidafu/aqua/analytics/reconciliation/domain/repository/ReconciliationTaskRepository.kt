@@ -47,8 +47,6 @@ interface ReconciliationTaskRepository {
 
   fun existsByStatus(status: ReconciliationTaskStatus): Boolean
 
-  fun findAll(): List<ReconciliationTaskModel>
-
   /** 语义对齐 @SoftDelete 下的 JpaRepository.deleteAll:全表软删(UPDATE is_deleted=true)。 */
   fun deleteAll(): Int
 

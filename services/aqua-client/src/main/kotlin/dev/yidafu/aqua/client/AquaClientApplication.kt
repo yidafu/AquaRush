@@ -23,9 +23,9 @@ import dev.yidafu.aqua.common.cache.CacheAutoConfiguration
 import dev.yidafu.aqua.storage.config.StorageProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.transaction.annotation.EnableTransactionManagement
 import java.util.TimeZone
 
 @SpringBootApplication(
@@ -35,12 +35,8 @@ import java.util.TimeZone
   exclude = [CacheAutoConfiguration::class],
 )
 @EnableScheduling
+@EnableTransactionManagement
 @EnableConfigurationProperties(StorageProperties::class)
-@EntityScan(
-  basePackages = [
-    "dev.yidafu.aqua",
-  ],
-)
 class AquaClientApplication
 
 fun main(args: Array<String>) {

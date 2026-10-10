@@ -29,13 +29,15 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | undefined>();
   const [range, setRange] = useState<[string | null, string | null]>([null, null]);
 
-  // 送水员列表(在线优先排序)
-  const { data: workersData, loading: workersLoading } = useQuery<{ deliveryWorkers: readonly DeliveryWorker[] }>(
-    GET_DELIVERY_WORKERS_QUERY,
-    { fetchPolicy: 'cache-and-network' },
-  );
+  // 送水员列表(在线优先排序);分页接口取一页(下拉用,上限 100)
+  const { data: workersData, loading: workersLoading } = useQuery<{
+    deliveryWorkers: { content: readonly DeliveryWorker[]; totalElements: number };
+  }>(GET_DELIVERY_WORKERS_QUERY, {
+    variables: { keyword: null, role: null, page: 0, size: 100 },
+    fetchPolicy: 'cache-and-network',
+  });
   const workers = useMemo(() => {
-    const list = [...(workersData?.deliveryWorkers ?? [])];
+    const list = [...(workersData?.deliveryWorkers?.content ?? [])];
     list.sort((a, b) => (a.onlineStatus === 'ONLINE' ? -1 : 1) - (b.onlineStatus === 'ONLINE' ? -1 : 1));
     return list;
   }, [workersData]);

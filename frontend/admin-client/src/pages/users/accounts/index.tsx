@@ -33,7 +33,7 @@ import type { AccountRow, EditingAdmin, EditingWorker } from './types';
 
 /**
  * 账号管理(管理员管理与送水员管理合并,PRD/07-user.md §F-USR-020/021):
- * - 数据源按登录角色切换:超管查 admins(全部账号,含送水员);普通管理员查 deliveryWorkers(配送能力角色),
+ * - 数据源按登录角色切换:超管查 admins(账号分页列表,含送水员);普通管理员查 deliveryWorkers(配送能力角色),
  *   权限隔离以 PERMISSION_ADMIN_USER_* / PERMISSION_DELIVERY_WORKER_* 后端强制(R-AUTH-04);
  * - 统一表单:超管走 create/updateAdmin(送水员角色展示配送字段);普通管理员走 create/updateDeliveryWorker;
  * - 2026-08 设计调整:角色 Tab →「用户类型」过滤参数(下拉 Select,无 Tab);「查看」统一跳转
@@ -45,20 +45,35 @@ const AccountUsers: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const [activeRole, setActiveRole] = useState<string>('ALL');
+  // 服务端分页/过滤状态(AGENTS.md 规则 10:列表接口分页 + 过滤)
+  const [keyword, setKeyword] = useState<string>('');
+  const [page, setPage] = useState<number>(0);
+  const [size, setSize] = useState<number>(20);
 
   // 仅超级管理员可管理管理员账号(菜单对普通管理员隐藏管理员项,后端以权限强制)
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const isSuperAdmin = userInfo.role === 'SUPER_ADMIN';
 
-  // 数据源按角色切换:超管查 admins 全量账号;普通管理员查 deliveryWorkers(配送能力角色)
+  // 数据源按角色切换:超管查 admins 分页账号;普通管理员查 deliveryWorkers(配送能力角色);
+  // 分页 + keyword/role 过滤全部下推服务端(AGENTS.md 规则 10)
+  const queryVariables = {
+    keyword: keyword || null,
+    role: activeRole === 'ALL' ? null : activeRole,
+    page,
+    size,
+  };
   const { data: adminsData, loading: adminsLoading, refetch: refetchAdmins } = useQuery(
     GET_ADMINS_QUERY,
-    { skip: !isSuperAdmin, errorPolicy: 'all' },
+    { skip: !isSuperAdmin, errorPolicy: 'all', variables: queryVariables },
   );
   const { data: workersData, loading: workersLoading, refetch: refetchWorkers } = useQuery(
     GET_DELIVERY_WORKERS_QUERY,
-    { skip: isSuperAdmin, errorPolicy: 'all' },
+    { skip: isSuperAdmin, errorPolicy: 'all', variables: queryVariables },
   );
+
+  const adminsPage = adminsData?.admins;
+  const workersPage = workersData?.deliveryWorkers;
+  const totalElements = (isSuperAdmin ? adminsPage?.totalElements : workersPage?.totalElements) ?? 0;
 
   // Mutations
   const [createAdmin, { loading: createAdminLoading }] = useCreateAdmin();
@@ -79,7 +94,7 @@ const AccountUsers: React.FC = () => {
 
   const accounts: AccountRow[] = useMemo(() => {
     if (isSuperAdmin) {
-      return (adminsData?.admins || []).map((a: AdminDTO) => ({
+      return (adminsPage?.content || []).map((a: AdminDTO) => ({
         id: a.id,
         username: a.username,
         realName: a.realName,
@@ -94,7 +109,7 @@ const AccountUsers: React.FC = () => {
         updatedAt: a.updatedAt,
       }));
     }
-    return (workersData?.deliveryWorkers || []).map((w: DeliveryWorkerDTO) => ({
+    return (workersPage?.content || []).map((w: DeliveryWorkerDTO) => ({
       id: w.id,
       name: w.name,
       phone: w.phone,
@@ -106,7 +121,7 @@ const AccountUsers: React.FC = () => {
       createdAt: w.createdAt,
       updatedAt: w.updatedAt,
     }));
-  }, [isSuperAdmin, adminsData, workersData]);
+  }, [isSuperAdmin, adminsPage, workersPage]);
 
   const loadingAccounts = isSuperAdmin ? adminsLoading : workersLoading;
 
@@ -127,7 +142,23 @@ const AccountUsers: React.FC = () => {
     ];
   }, [isSuperAdmin]);
 
-  const filtered = activeRole === 'ALL' ? accounts : accounts.filter((a) => a.role === activeRole);
+  // 角色过滤已下推服务端(role 参数),这里直接用当前页数据
+  const filtered = accounts;
+
+  const handleRoleChange = (value: string) => {
+    setActiveRole(value);
+    setPage(0);
+  };
+
+  const handleKeywordChange = (value: string) => {
+    setKeyword(value.trim());
+    setPage(0);
+  };
+
+  const handlePageChange = (nextPage: number, nextSize: number) => {
+    setPage(nextPage);
+    setSize(nextSize);
+  };
 
   const refetch = () => {
     if (isSuperAdmin) {
@@ -318,7 +349,9 @@ const AccountUsers: React.FC = () => {
         activeRole={activeRole}
         roleFilterOptions={roleFilterOptions}
         isSuperAdmin={isSuperAdmin}
-        onRoleChange={setActiveRole}
+        onRoleChange={handleRoleChange}
+        keyword={keyword}
+        onKeywordChange={handleKeywordChange}
         onAdd={() => {
           if (isSuperAdmin) {
             setEditingAdmin(null);
@@ -338,6 +371,7 @@ const AccountUsers: React.FC = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onReset={setResetTarget}
+        pagination={{ total: totalElements, page, size, onChange: handlePageChange }}
       />
 
       {/* 重置密码弹窗(新密码留空=默认 123456,G11 落地) */}

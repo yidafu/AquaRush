@@ -3,7 +3,6 @@ import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 plugins {
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.spring)
-  alias(libs.plugins.kotlin.jpa)
   alias(libs.plugins.spring.boot)
   alias(libs.plugins.spring.dependency.management)
   alias(libs.plugins.ktlint)
@@ -68,22 +67,13 @@ subprojects {
     version.set("1.5.0")
     debug.set(false)
     filter {
-      // Generated sources (QueryDSL/KSP output under build/generated, GraphQL
-      // codegen output under src/main/graphql-gen) must not be linted. They are
-      // also outputs of compileJava, so including them makes Gradle 9 fail the
-      // ktlint tasks with an implicit-dependency validation error.
-      // The actual per-file exclusion of generated code is handled by the
-      // [**/graphql-gen/**] and [**/build/generated/**] sections in .editorconfig,
-      // since ktlint matches those globs against project-relative paths while
-      // this filter matches against per-source-root paths.
+      // Generated sources (GraphQL codegen output under src/main/graphql-gen) must not be
+      // linted. The actual per-file exclusion of generated code is handled by the
+      // [**/graphql-gen/**] section in .editorconfig, since ktlint matches those globs
+      // against project-relative paths while this filter matches against per-source-root paths.
       exclude("**/build/generated/**")
     }
   }
-
-  // JPA all-open is configured via the aqua.kotlin.jpa convention plugin,
-  // which applies kotlin("plugin.allopen") and registers @Entity / @MappedSuperclass
-  // / @Embeddable as all-open annotations. Using -Xallopen / -Xannotation flags here
-  // is unsupported in Kotlin 2.x and emits warnings.
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {

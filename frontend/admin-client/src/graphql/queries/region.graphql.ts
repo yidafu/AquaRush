@@ -9,10 +9,15 @@ export interface Region {
   readonly parentCode?: string;
 }
 
-// Query to get all regions at once (for building tree structure)
-export const GET_ALL_REGIONS_QUERY = gql`
-  query GetAllRegions {
-    allRegions {
+/**
+ * 按父级查询地区(parentCode 为空 = 省级)。
+ *
+ * AGENTS.md 规则 10:后端不再提供整表返回的 allRegions,前端树形结构改为逐级懒加载,
+ * 每次请求返回的都是有界结果(省级 ~34 / 市级 ~20 / 区级 ~20)。
+ */
+export const GET_REGIONS_QUERY = gql`
+  query GetRegions($parentCode: String) {
+    regions(parentCode: $parentCode) {
       code
       name
       level
@@ -21,9 +26,10 @@ export const GET_ALL_REGIONS_QUERY = gql`
   }
 `;
 
-// Hook to get all regions at once (for building tree structure)
-export const useAllRegions = () => {
-  return useQuery<{ allRegions: Region[] }>(GET_ALL_REGIONS_QUERY, {
+/** 查询某一级地区(parentCode 省略 = 省级列表) */
+export const useRegions = (parentCode?: string) => {
+  return useQuery<{ regions: Region[] }>(GET_REGIONS_QUERY, {
+    variables: { parentCode: parentCode ?? null },
     notifyOnNetworkStatusChange: true,
   });
 };

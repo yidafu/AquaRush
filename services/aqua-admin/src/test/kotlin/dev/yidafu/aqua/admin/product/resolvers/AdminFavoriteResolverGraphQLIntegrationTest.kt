@@ -22,9 +22,11 @@ package dev.yidafu.aqua.admin.product.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -58,6 +60,7 @@ class AdminFavoriteResolverGraphQLIntegrationTest(
   context: WebApplicationContext,
   productRepository: ProductRepository,
   productFavoriteRepository: ProductFavoriteRepository,
+  userRepository: UserRepository,
 ) : FunSpec({
     var mockMvc: MockMvc = mockk()
 
@@ -96,6 +99,18 @@ class AdminFavoriteResolverGraphQLIntegrationTest(
           .webAppContextSetup(context)
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
+
+      // product_favorites.user_id 有外键 fk_favorites_user,用例引用固定用户 id 1/2
+      // → 按 id 幂等 upsert(Exposed save 带 id 即 upsert)
+      listOf(1L, 2L).forEach { userId ->
+        userRepository.save(
+          UserModel(
+            id = userId,
+            wechatOpenId = "favorite-user-$userId",
+            email = "favorite-user-$userId@test.local",
+          ),
+        )
+      }
     }
     test("favoriteProducts returns user favorites") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_USER_READ"))

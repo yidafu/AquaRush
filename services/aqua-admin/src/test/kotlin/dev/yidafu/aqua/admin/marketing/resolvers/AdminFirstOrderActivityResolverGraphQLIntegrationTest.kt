@@ -80,7 +80,7 @@ class AdminFirstOrderActivityResolverGraphQLIntegrationTest(
 
     fun futureTo(): String = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
-    fun productId(): Long = productRepository.findAll().first { it.name == "新人专享商品" }.id!!
+    fun productId(): Long = productRepository.findByName("新人专享商品")!!.id!!
 
     beforeTest {
       mockMvc =
@@ -90,7 +90,7 @@ class AdminFirstOrderActivityResolverGraphQLIntegrationTest(
           .build()
 
       // 幂等种子 1 商品(按名称去重,避免共享测试库遗留数据重复)
-      if (productRepository.findAll().none { it.name == "新人专享商品" }) {
+      if (productRepository.findByName("新人专享商品") == null) {
         productRepository.save(
           ProductModel(
             name = "新人专享商品",

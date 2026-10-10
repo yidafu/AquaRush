@@ -110,8 +110,6 @@ class ReconciliationTaskRepositoryImpl(
         .any()
     }
 
-  override fun findAll(): List<ReconciliationTaskModel> = findWhere { Op.TRUE }
-
   override fun findAll(pageable: Pageable): Page<ReconciliationTaskModel> {
     val content =
       transaction(database) {

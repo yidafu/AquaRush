@@ -19,45 +19,22 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "message_history")
 open class MessageHistoryModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "user_id", nullable = false)
   val userId: Long,
-  @Column(name = "message_type", nullable = false, length = 50)
   val messageType: String,
-  @Column(name = "template_id", nullable = false, length = 100)
   val templateId: String,
-  @Column(name = "content", columnDefinition = "TEXT")
   val content: String,
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, length = 20)
   val status: MessageStatus,
-  @Column(name = "sent_at")
   val sentAt: LocalDateTime?,
-  @Column(name = "wx_message_id", length = 100)
   val wxMessageId: String?,
-  @Column(name = "error_message", columnDefinition = "TEXT")
   val errorMessage: String?,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "retry_count", nullable = false)
   val retryCount: Int = 0,
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
   companion object {

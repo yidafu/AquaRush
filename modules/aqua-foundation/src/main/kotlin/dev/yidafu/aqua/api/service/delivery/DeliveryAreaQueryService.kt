@@ -44,11 +44,6 @@ interface DeliveryAreaQueryService {
   )
 
   /**
-   * 获取所有配送区域
-   */
-  fun getAllDeliveryAreas(): List<DeliveryAreaModel>
-
-  /**
    * 获取已启用的配送区域
    */
   fun getEnabledDeliveryAreas(): List<DeliveryAreaModel>

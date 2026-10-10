@@ -75,14 +75,15 @@ class PromotionActivityRepositoryImpl(
       deletedBy = row[PromotionActivitiesTable.deletedBy],
     )
 
-  override fun findAll(): List<PromotionActivityModel> =
+  override fun findByName(name: String): PromotionActivityModel? =
     transaction(database) {
       PromotionActivitiesTable
         .selectAll()
-        .where { PromotionActivitiesTable.activeOnly() }
+        .where { PromotionActivitiesTable.activeOnly { PromotionActivitiesTable.name eq name } }
         .orderBy(PromotionActivitiesTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   override fun findAllById(ids: List<Long>): List<PromotionActivityModel> {
     if (ids.isEmpty()) return emptyList()

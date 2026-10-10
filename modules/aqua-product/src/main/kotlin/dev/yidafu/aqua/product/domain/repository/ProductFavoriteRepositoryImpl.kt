@@ -30,9 +30,11 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.countDistinct
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.max
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
@@ -259,22 +261,78 @@ class ProductFavoriteRepositoryImpl(
         }.count()
     }
 
-  override fun findMostFavoritedProducts(): List<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
+  /**
+   * 收藏聚合基查询:`group by product_id` 带收藏数与最后收藏时间。
+   * 分组/排序/分页/过滤全部下推到 SQL(AGENTS.md 规则 10),调用方不得整表进内存后再切页。
+   */
+  private fun favoriteCountQuery() =
+    ProductFavoritesTable
+      .select(
+        ProductFavoritesTable.productId,
+        ProductFavoritesTable.productId.count(),
+        ProductFavoritesTable.createdAt.max(),
+      ).where { ProductFavoritesTable.activeOnly() }
+      .groupBy(ProductFavoritesTable.productId)
+
+  private fun toFavoriteCount(row: ResultRow): ProductFavoriteRepositoryCustom.ProductFavoriteCount =
+    ProductFavoriteRepositoryCustom.ProductFavoriteCount(
+      productId = row[ProductFavoritesTable.productId],
+      favoriteCount = row[ProductFavoritesTable.productId.count()],
+      lastFavoritedAt = row[ProductFavoritesTable.createdAt.max()],
+    )
+
+  override fun findMostFavoritedProducts(
+    pageable: Pageable,
+    minFavorites: Long?,
+  ): Page<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
+    val favoriteCount = ProductFavoritesTable.productId.count()
+    val (content, total) =
+      transaction(database) {
+        val content =
+          favoriteCountQuery()
+            .apply { minFavorites?.let { min -> having { favoriteCount greaterEq min } } }
+            .orderBy(
+              favoriteCount to SortOrder.DESC,
+              ProductFavoritesTable.productId to SortOrder.ASC,
+            ).offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .map(::toFavoriteCount)
+        // 分组数 = 命中 HAVING 的商品数(Exposed 对 group by 查询会包一层 COUNT(*))
+        val total =
+          favoriteCountQuery()
+            .apply { minFavorites?.let { min -> having { favoriteCount greaterEq min } } }
+            .count()
+        content to total
+      }
+    return PageImpl(content, pageable, total)
+  }
+
+  override fun findTopFavoritedProducts(limit: Int): List<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
     val favoriteCount = ProductFavoritesTable.productId.count()
     return transaction(database) {
-      ProductFavoritesTable
-        .select(ProductFavoritesTable.productId, favoriteCount)
-        .where { ProductFavoritesTable.activeOnly() }
-        .groupBy(ProductFavoritesTable.productId)
-        .orderBy(favoriteCount to SortOrder.DESC)
-        .map {
-          ProductFavoriteRepositoryCustom.ProductFavoriteCount(
-            productId = it[ProductFavoritesTable.productId],
-            favoriteCount = it[favoriteCount],
-          )
-        }
+      favoriteCountQuery()
+        .orderBy(favoriteCount to SortOrder.DESC, ProductFavoritesTable.productId to SortOrder.ASC)
+        .limit(limit)
+        .map(::toFavoriteCount)
     }
   }
+
+  override fun countFavoritedProducts(): Long =
+    transaction(database) {
+      val distinctProducts = ProductFavoritesTable.productId.countDistinct()
+      ProductFavoritesTable
+        .select(distinctProducts)
+        .where { ProductFavoritesTable.activeOnly() }
+        .first()[distinctProducts]
+    }
+
+  override fun countTotalFavorites(): Long =
+    transaction(database) {
+      ProductFavoritesTable
+        .selectAll()
+        .where { ProductFavoritesTable.activeOnly() }
+        .count()
+    }
 
   // ===== 导出 =====
 
@@ -283,8 +341,12 @@ class ProductFavoriteRepositoryImpl(
     productIds: List<Long>?,
     dateFrom: LocalDateTime?,
     dateTo: LocalDateTime?,
+    afterId: Long?,
+    limit: Int,
   ): List<ProductFavoriteModel> {
     var condition: Op<Boolean> = Op.TRUE
+    // keyset 游标:按 id 升序分批读,导出不再整表进内存(AGENTS.md 规则 10)
+    afterId?.let { condition = condition and (ProductFavoritesTable.id greater it) }
     userId?.let { condition = condition and (ProductFavoritesTable.userId eq it) }
     productIds?.let { ids ->
       if (ids.isNotEmpty()) {
@@ -298,6 +360,7 @@ class ProductFavoriteRepositoryImpl(
         .selectAll()
         .where { ProductFavoritesTable.activeOnly { condition } }
         .orderBy(ProductFavoritesTable.id to SortOrder.ASC)
+        .limit(limit)
         .toList()
     }.map(::toModel)
   }

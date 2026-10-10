@@ -28,6 +28,4 @@ interface CustomerGroupQueryApiService {
   fun findById(id: Long): CustomerGroupModel?
 
   fun findByIds(ids: List<Long>): List<CustomerGroupModel>
-
-  fun findAll(): List<CustomerGroupModel>
 }

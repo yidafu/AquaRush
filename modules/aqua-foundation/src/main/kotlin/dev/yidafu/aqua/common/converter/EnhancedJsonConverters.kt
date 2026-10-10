@@ -19,8 +19,6 @@
 
 package dev.yidafu.aqua.common.converter
 
-import jakarta.persistence.AttributeConverter
-import jakarta.persistence.Converter
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.node.ArrayNode
@@ -37,11 +35,10 @@ object EnhancedJsonConverters {
 /**
  * Converter for ObjectNode (JSON objects) storage
  */
-@Converter(autoApply = false)
-class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
+class ObjectNodeConverter {
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: ObjectNode?): String? =
+  fun convertToDatabaseColumn(attribute: ObjectNode?): String? =
     if (attribute == null) {
       null
     } else {
@@ -52,7 +49,7 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
       }
     }
 
-  override fun convertToEntityAttribute(dbData: String?): ObjectNode? =
+  fun convertToEntityAttribute(dbData: String?): ObjectNode? =
     if (dbData == null || dbData.trim().isEmpty()) {
       null
     } else {
@@ -72,11 +69,10 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
 /**
  * Converter for ArrayNode (JSON arrays) storage
  */
-@Converter(autoApply = false)
-class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
+class ArrayNodeConverter {
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: ArrayNode?): String? =
+  fun convertToDatabaseColumn(attribute: ArrayNode?): String? =
     if (attribute == null) {
       null
     } else {
@@ -87,7 +83,7 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
       }
     }
 
-  override fun convertToEntityAttribute(dbData: String?): ArrayNode? =
+  fun convertToEntityAttribute(dbData: String?): ArrayNode? =
     if (dbData == null || dbData.trim().isEmpty()) {
       null
     } else {
@@ -107,11 +103,10 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
 /**
  * Converter for generic JsonNode storage (can be object, array, or primitive)
  */
-@Converter(autoApply = false)
-class JsonNodeConverter : AttributeConverter<JsonNode?, String?> {
+class JsonNodeConverter {
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: JsonNode?): String? =
+  fun convertToDatabaseColumn(attribute: JsonNode?): String? =
     if (attribute == null) {
       null
     } else {
@@ -122,7 +117,7 @@ class JsonNodeConverter : AttributeConverter<JsonNode?, String?> {
       }
     }
 
-  override fun convertToEntityAttribute(dbData: String?): JsonNode? =
+  fun convertToEntityAttribute(dbData: String?): JsonNode? =
     (
       if (dbData == null || dbData.trim().isEmpty()) {
         null

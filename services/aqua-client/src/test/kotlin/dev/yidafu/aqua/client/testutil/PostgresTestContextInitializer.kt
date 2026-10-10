@@ -37,23 +37,20 @@ import org.springframework.core.env.MapPropertySource
  * （SpringApplication 启动时自动加载，无需改 30+ 个测试类）。
  *
  * 优先级：这里用 `propertySources.addFirst` 写入，高于 `application.yml` /
- * 本机残留的 `application-test.yml` / `@TestPropertySource`，因此本机残留的 H2
- * 配置不再生效。
+ * 本机残留的 `application-test.yml` / `@TestPropertySource`，因此本机残留配置不再生效
+ * （残留 yml 是 H2 时代的 gitignored 文件，其 `spring.jpa.*` 随 JPA 移除一并失效）。
  *
- * `ddl-auto=create` + `liquibase.enabled=false` 刻意保留既有测试语义（表结构由
- * Hibernate 实体元数据生成，启动时 drop+create）。切到「跑真实 Liquibase changelog」
- * 是另一个独立议题，不在本次 H2→Testcontainers 迁移范围内。
+ * **表结构来源**：client 生产不跑 Liquibase（schema 由 admin 服务维护），JPA/Hibernate
+ * 也随 Exposed 迁移移除 —— 因此测试表结构由 [ClientTestSchema] 在上下文初始化前按
+ * foundation 的 Exposed 表定义创建（见该类注释）。
  *
- * 为什么是 `create` 而不是原来的 `create-drop`：**容器生命周期**。`create-drop` 会在
- * SessionFactory 关闭时再连库执行 DROP —— 那是 JVM shutdown 阶段，而 Testcontainers
- * 自己的 shutdown hook 也在同一阶段停容器，二者并发竞争：容器先停 → Hibernate 拿不到
- * 连接，Hikari 连接池无限重试 → SpringApplicationShutdownHook 永不返回 →
- * `./gradlew check` **挂死**。测试库是容器内的一次性库，退出时 drop 没有价值，因此改成
- * `create`（启动时仍然 drop+create，共享同一套库的语义不变），去掉退出阶段对数据库的依赖。
+ * 容器生命周期：库是容器内一次性库，[ClientTestSchema] 的建表只在上下文启动阶段执行，
+ * 退出阶段不依赖数据库（避免 Testcontainers 关闭钩子与连接池在 JVM shutdown 竞争）。
  */
 class PostgresTestContextInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
   override fun initialize(applicationContext: ConfigurableApplicationContext) {
-    val coordinates = PostgresTestContainer.coordinates("aquaclienttest")
+    val coordinates = PostgresTestContainer.coordinates(ClientTestSchema.DB_NAME)
+    ClientTestSchema.createIfNeeded(PostgresTestContainer.connect(ClientTestSchema.DB_NAME))
     applicationContext.environment.propertySources.addFirst(
       MapPropertySource(
         "aquaTestcontainersPostgres",
@@ -62,16 +59,9 @@ class PostgresTestContextInitializer : ApplicationContextInitializer<Configurabl
           "spring.datasource.username" to coordinates.user,
           "spring.datasource.password" to coordinates.password,
           "spring.datasource.driver-class-name" to "org.postgresql.Driver",
-          "spring.jpa.hibernate.ddl-auto" to "create",
-          "spring.jpa.generate-ddl" to "true",
-          // 本机残留的 application-test.yml 可能把方言钉成 H2Dialect;连接已是真实 PG,
-          // 方言不对会按 H2 生成 DDL(表建不出来),必须显式钉成 PostgreSQL。
-          "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.PostgreSQLDialect",
-          // main application.yml 用 metadata-then-scripts(生产靠 Liquibase 脚本),
-          // 但测试禁用 Liquibase 且没有 scripts 源 → 必须显式改回 metadata,
-          // 否则 Hibernate 报 "Unrecognized schema generation source type"。
-          "spring.jpa.properties.jakarta.persistence.schema-generation.create-source" to "metadata",
-          "spring.jpa.properties.jakarta.persistence.schema-generation.drop-source" to "metadata",
+          // client 无 Liquibase changelog(schema 由 admin 服务维护,生产 enabled=false),
+          // JPA/Hibernate 已随 Exposed 迁移移除 → 测试表结构由 ClientTestSchema 按
+          // foundation 的 Exposed 表定义创建(见该类注释)。
           "spring.liquibase.enabled" to "false",
         ),
       ),

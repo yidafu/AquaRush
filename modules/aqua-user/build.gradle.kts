@@ -19,7 +19,6 @@ dependencies {
   // HTTP client for WeChat API
   implementation(libs.spring.boot.starter.web)
 
-  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
   implementation(libs.wechat.miniapp)
 
   // Used by WeChat code (kept after notice migration)
@@ -33,5 +32,3 @@ dependencies {
   testImplementation(libs.mockk.core)
   testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
 }
-
-// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

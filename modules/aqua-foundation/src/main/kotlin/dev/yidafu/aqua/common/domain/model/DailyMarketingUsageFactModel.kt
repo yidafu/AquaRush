@@ -19,13 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -39,41 +32,17 @@ import java.time.LocalDateTime
  * - ticket_sales_count/ticket_sales_revenue_cents/ticket_redeemed_count:票种专用(其余 kind 为 0)
  * 活动名易变,不落 name 列(查询时经 api 服务批量取名,与 daily_product_facts「商品名易变,查询时 join」一致)。
  */
-@Entity
-@Table(
-  name = "daily_marketing_usage_facts",
-  uniqueConstraints = [UniqueConstraint(columnNames = ["stat_date", "kind", "ref_id"])],
-)
 data class DailyMarketingUsageFactModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "stat_date", nullable = false)
   var statDate: LocalDate = LocalDate.now(),
-  @Column(name = "kind", nullable = false)
   var kind: String = "",
-  @Column(name = "ref_id", nullable = false)
   var refId: Long = 0,
-  @Column(name = "order_count", nullable = false)
   var orderCount: Long = 0,
-  @Column(name = "benefit_cents", nullable = false)
   var benefitCents: Long = 0,
-  @Column(name = "usage_count", nullable = false)
   var usageCount: Long = 0,
-  @Column(name = "ticket_sales_count", nullable = false)
   var ticketSalesCount: Long = 0,
-  @Column(name = "ticket_sales_revenue_cents", nullable = false)
   var ticketSalesRevenueCents: Long = 0,
-  @Column(name = "ticket_redeemed_count", nullable = false)
   var ticketRedeemedCount: Long = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)

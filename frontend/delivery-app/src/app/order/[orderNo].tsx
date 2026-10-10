@@ -255,7 +255,7 @@ export default function OrderDetailScreen() {
     setAssignLoading(true);
     try {
       const res = await getDeliveryWorkers();
-      setAssignWorkers([...(res?.deliveryWorkers ?? [])]);
+      setAssignWorkers([...(res?.deliveryWorkers?.content ?? [])]);
       setAssignIsSelfCollect(Boolean(order.isSelfCollect));
       setAssignSheetVisible(true);
     } catch (e: any) {

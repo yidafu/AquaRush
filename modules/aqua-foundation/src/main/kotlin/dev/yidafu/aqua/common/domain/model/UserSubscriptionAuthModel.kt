@@ -19,9 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
 /**
@@ -30,37 +27,16 @@ import java.time.LocalDateTime
  * 一次性模板:用户每授权一次可发送一次(remaining_count=1),发送成功后消耗;
  * 达上限/拒绝后不再弹窗授权(微信规范),未授权用户不推送,降级站内查看。
  */
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(
-  name = "user_subscription_auths",
-  uniqueConstraints = [UniqueConstraint(name = "uk_sub_auth_user_template", columnNames = ["user_id", "template_id"])],
-)
 open class UserSubscriptionAuthModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "user_id", nullable = false)
   val userId: Long,
-  @Column(name = "template_id", nullable = false, length = 100)
   val templateId: String,
-  @Column(name = "remaining_count", nullable = false)
   var remainingCount: Int = 1,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-
   /** 消耗一次授权(一次性模板),返回是否还有剩余 */
   fun consume(): Boolean {
     if (remainingCount <= 0) return false

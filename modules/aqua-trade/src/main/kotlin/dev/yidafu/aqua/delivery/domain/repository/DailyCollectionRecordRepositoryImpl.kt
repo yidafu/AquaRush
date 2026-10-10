@@ -104,16 +104,6 @@ class DailyCollectionRecordRepositoryImpl(
     return PageImpl(content, pageable, total)
   }
 
-  override fun findAll(): List<DailyCollectionRecordModel> =
-    transaction(database) {
-      DailyCollectionRecordsTable
-        .selectAll()
-        .where { activeWhere() }
-        // 原 JPA 无序,固定 id 升序取稳定插入序
-        .orderBy(DailyCollectionRecordsTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel> = paged(Op.TRUE, pageable)
 
   override fun findById(id: Long): Optional<DailyCollectionRecordModel> =

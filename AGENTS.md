@@ -10,7 +10,7 @@ Instructions for AI coding agents (OpenCode, Claude Code, …) working in this r
 
 AquaRush — WeChat Mini Program bottled-water ordering & delivery system. Kotlin Spring Boot 4 backend, React frontends.
 
-- **Backend modules** (`modules/`): `aqua-foundation` (shared infra: entities, cross-module DTOs/services, GraphQL config, messaging, security), `aqua-user`, `aqua-product`, `aqua-trade` (order/delivery/payment/review), `aqua-analytics`, `aqua-platform`, `aqua-ops` (运营配置), `aqua-marketing` (营销 + `barrel/` 水桶费 — merged from former `aqua-deposit`)
+- **Backend modules** (`modules/`): `aqua-foundation` (shared infra: domain models, Exposed table mappings, cross-module DTOs/services, GraphQL config, messaging, security), `aqua-user`, `aqua-product`, `aqua-trade` (order/delivery/payment/review), `aqua-analytics`, `aqua-platform`, `aqua-ops` (运营配置), `aqua-marketing` (营销 + `barrel/` 水桶费 — merged from former `aqua-deposit`)
 - **Services** (the only two deployable entrypoints): `services/aqua-admin` (admin dashboard backend), `services/aqua-client` (Mini Program backend)
 - **Frontends** (pnpm workspace): `frontend/user-weapp` (Taro 4 Mini Program; npm package name `user-miniapp`), `frontend/delivery-app` (Expo SDK 57 React Native), `frontend/admin-client` (React + Vite + Ant Design), `frontend/common` (`@aquarush/common` — shared money/status utils, tracking SDK)
 - Root `package.json` scripts: `pnpm dev:admin` / `pnpm dev:client` (Gradle bootRun), `pnpm dev:weapp`, `pnpm dev:pc`.
@@ -61,7 +61,7 @@ pnpm codegen                              # regenerate GraphQL types after editi
 These invariants must always hold — see `claude/architecture.md` for rationale:
 
 1. All entity IDs are `Long` Snowflake; **all monetary values are `Long` cents (分)** — format only at the presentation layer.
-2. JPA entities are centralized in `modules/aqua-foundation/.../common/domain/model/`; cross-module DTOs live in `aqua-foundation` `api/dto` (one class per file).
+2. Domain models (plain Kotlin data classes, no JPA annotations) are centralized in `modules/aqua-foundation/.../common/domain/model/`; Exposed table mappings in `modules/aqua-foundation/.../common/domain/table/`; cross-module DTOs live in `aqua-foundation` `api/dto` (one class per file).
 3. Domain modules MUST NOT call other modules' repositories directly — cross-module data access goes through `aqua-foundation` `api/service/**`.
 4. Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages; module-root `exception/`; `.imports` files outside `META-INF/spring/`.
 5. Admin resolvers annotate each method with `@PreAuthorize("hasAuthority('PERMISSION_<CODE>')")` using codes from `AdminPermission`; client resolvers use `isAuthenticated()`. Keep `AdminPermission` / `RolePermissionMapping` in sync with `PRD/01-overview.md`.

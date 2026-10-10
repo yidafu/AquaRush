@@ -30,6 +30,9 @@ import org.springframework.data.domain.Pageable
 interface UserService {
   fun findById(id: Long): UserModel?
 
+  /** 批量按 id 查询(导出/联查场景避免逐行查询) */
+  fun findByIds(ids: List<Long>): List<UserModel>
+
   fun findByWechatOpenId(wechatOpenId: String): UserModel?
 
   fun createUser(

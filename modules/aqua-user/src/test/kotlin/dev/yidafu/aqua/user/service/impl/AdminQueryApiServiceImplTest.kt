@@ -26,7 +26,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import java.time.LocalDateTime
 
 class AdminQueryApiServiceImplTest :
@@ -60,11 +59,6 @@ class AdminQueryApiServiceImplTest :
     test("findByUsername should delegate") {
       every { adminRepository.findByUsername("admin") } returns admin()
       service.findByUsername("admin")?.username shouldBe "admin"
-    }
-    test("findAll should delegate") {
-      every { adminRepository.findAllAdmins() } returns listOf(admin())
-      service.findAll().size shouldBe 1
-      verify { adminRepository.findAllAdmins() }
     }
     test("existsById should delegate") {
       every { adminRepository.existsById(1L) } returns true

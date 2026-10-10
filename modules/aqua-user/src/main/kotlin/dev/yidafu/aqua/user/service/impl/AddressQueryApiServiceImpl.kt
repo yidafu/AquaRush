@@ -56,7 +56,5 @@ class AdminQueryApiServiceImpl(
 
   override fun findByUsername(username: String): AdminModel? = adminRepository.findByUsername(username)
 
-  override fun findAll(): List<AdminModel> = adminRepository.findAllAdmins()
-
   override fun existsById(id: Long): Boolean = adminRepository.existsById(id)
 }

@@ -37,9 +37,6 @@ interface DeliveryAreaRepository {
   /** 启用中的区域列表(过滤软删)。 */
   fun findByEnabledTrue(): List<DeliveryAreaModel>
 
-  /** 全部区域(过滤软删;原 JPA 无序,固定 id 升序取稳定插入序)。 */
-  fun findAll(): List<DeliveryAreaModel>
-
   fun findById(id: Long): Optional<DeliveryAreaModel>
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */

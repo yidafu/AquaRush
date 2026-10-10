@@ -95,18 +95,17 @@ class RegionQueryResolverTest :
           _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
         )
     }
-    test("should return all regions when no parameters provided") {
+    test("should return root provinces when no parameters provided(规则 10:不再整表返回)") {
       // Given
-      val allRegions = listOf(sampleProvince, sampleCity, sampleDistrict)
-      every { regionRepository.findAll() } returns allRegions
+      every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
 
       // When
       val result = regionQueryResolver.regions(null, null, userPrincipal)
 
       // Then
-      result.size shouldBe 3
-      result shouldBe allRegions
-      verify { regionRepository.findAll() }
+      result.size shouldBe 1
+      result shouldBe listOf(sampleProvince)
+      verify { regionRepository.findRootRegions(1) }
     }
     test("should return regions by level when only level provided") {
       // Given
@@ -181,7 +180,7 @@ class RegionQueryResolverTest :
     }
     test("should work with null user principal") {
       // Given
-      every { regionRepository.findAll() } returns listOf(sampleProvince)
+      every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
 
       // When
       val result = regionQueryResolver.regions(null, null, null)
@@ -189,7 +188,7 @@ class RegionQueryResolverTest :
       // Then
       result.size shouldBe 1
       result[0] shouldBe sampleProvince
-      verify { regionRepository.findAll() }
+      verify { regionRepository.findRootRegions(1) }
     }
     test("should handle regions query with mixed parameters correctly") {
       // Given

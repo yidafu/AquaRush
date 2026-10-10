@@ -26,7 +26,7 @@ export function AdminWorkers() {
     const results = await Promise.all([getDeliveryWorkerStatistics(), getDeliveryWorkers()]);
     setData({
       overview: results[0]?.deliveryWorkerStatistics ?? null,
-      workers: results[1]?.deliveryWorkers ?? [],
+      workers: results[1]?.deliveryWorkers?.content ?? [],
     });
   }, []);
 

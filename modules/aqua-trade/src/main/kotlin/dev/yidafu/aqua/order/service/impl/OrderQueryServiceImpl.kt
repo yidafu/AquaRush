@@ -55,8 +55,6 @@ class OrderQueryServiceImpl(
 
   override fun getOrdersByStatus(status: OrderModelStatus): List<OrderModel> = orderRepository.findByStatus(status)
 
-  override fun findAllOrders(): List<OrderModel> = orderRepository.findAll()
-
   override fun findOrderByIdAndUserId(
     orderId: Long,
     userId: Long,

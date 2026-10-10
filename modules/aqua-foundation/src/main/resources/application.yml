@@ -14,5 +14,4 @@ management:
 logging:
   level:
     dev.yidafu.aqua: DEBUG
-    org.hibernate.orm: WARN
-    org.hibernate: WARN
+    org.jetbrains.exposed: WARN

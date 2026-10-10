@@ -82,17 +82,6 @@ class AddressResolverTest :
       result[0].receiverName shouldBe "张三"
       verify { addressService.findByUserId(1L) }
     }
-    test("addresses should return all addresses") {
-      // Given
-      every { addressService.findAllAddresses() } returns listOf(createSampleAddress())
-
-      // When
-      val result = resolver.addresses()
-
-      // Then
-      result.size shouldBe 1
-      verify { addressService.findAllAddresses() }
-    }
     test("searchAllAddresses should search with keyword and return page") {
       // Given
       every { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) } returns

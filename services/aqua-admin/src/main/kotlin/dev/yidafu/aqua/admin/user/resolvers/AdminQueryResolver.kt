@@ -1,5 +1,5 @@
 /**
- * AquaRush Admin Service Query Resolver
+ * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
  *
@@ -20,37 +20,89 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.common.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.common.graphql.generated.AdminVoPage
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.mapper.toGraphQL
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
+/**
+ * 账号/地区查询 Resolver(管理后台)。
+ *
+ * 规则 10:账号列表改分页 + keyword 过滤,详情走 admin(id),不再把全表账号下发前端。
+ */
 @Controller
 class AdminQueryResolver(
   private val adminRepository: AdminRepository,
   private val regionRepository: RegionRepository,
 ) {
+  private val logger = LoggerFactory.getLogger(AdminQueryResolver::class.java)
+
   /**
-   * 获取所有管理员 - 管理员权限
+   * 账号分页列表(管理员权限)。keyword 模糊匹配 username/realName/phone。
+   * size 上限 100,防止调用方一次拉全表绕过规则 10。
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_READ')")
-  fun admins(): List<Admin> = adminRepository.findAllAdmins().map { it.toGraphQL() }
+  fun admins(
+    @Argument keyword: String?,
+    @Argument role: String?,
+    @Argument page: Int = 0,
+    @Argument size: Int = 20,
+  ): AdminVoPage {
+    val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, MAX_PAGE_SIZE))
+    val result =
+      adminRepository.findAllAdmins(
+        keyword = keyword,
+        role = role?.let { runCatching { AdminRoleModel.valueOf(it) }.getOrNull() },
+        pageable = pageable,
+      )
+    return AdminVoPage(
+      content = result.content.map { it.toGraphQL() },
+      totalElements = result.totalElements.toInt(),
+      totalPages = result.totalPages,
+      size = result.size,
+      number = result.number,
+    )
+  }
 
   /**
-   * 获取所有地区数据，用于前端构建树形结构
+   * 账号详情(管理员权限):超管账号详情页按 id 查询,替代原先「拉全量 admins 再前端 find」。
+   */
+  @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_READ')")
+  fun admin(
+    @Argument id: Long,
+  ): Admin? = adminRepository.findAdminById(id)?.toGraphQL()
+
+  /**
+   * 按父级查询地区(parentCode 为空 → 省级列表),供前端树形结构逐级懒加载。
+   * 每次返回条数有界(省级 ~34 / 市级 ~20 / 区级 ~20),符合 AGENTS.md 规则 10。
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun allRegions(): List<RegionModel> =
+  fun regions(
+    @Argument parentCode: String?,
+  ): List<RegionModel> =
     try {
-      regionRepository.findAll() ?: emptyList()
+      if (parentCode.isNullOrBlank()) {
+        regionRepository.findRootRegions(1)
+      } else {
+        regionRepository.findByParentCodeOrderByCode(parentCode)
+      }
     } catch (e: Exception) {
-      println("Error fetching all regions: ${e.message}")
-      e.printStackTrace()
+      logger.error("Error fetching regions for parentCode={}", parentCode, e)
       emptyList()
     }
+
+  private companion object {
+    const val MAX_PAGE_SIZE = 100
+  }
 }

@@ -19,14 +19,8 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
-import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.SoftDelete
-import org.hibernate.type.SqlTypes
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
@@ -36,55 +30,23 @@ import java.time.LocalDateTime
  * 与 PRD 12-operations-config.md §F-OPS-003 / 13-misc.md §核心实体 保持一致:
  * 类型、内容、图片、联系方式、状态、处理结果、处理人;状态流转 待处理 → 处理中 → 已处理。
  */
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(
-  name = "feedbacks",
-  indexes = [Index(name = "idx_feedbacks_status_created_at", columnList = "status, created_at")],
-)
 open class FeedbackModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "user_id", nullable = false)
   var userId: Long = -1L,
-  @Column(name = "feedback_type", nullable = false, length = 30)
-  @Enumerated(EnumType.STRING)
   var feedbackType: FeedbackType = FeedbackType.OTHER,
-  @Column(name = "content", nullable = false, columnDefinition = "TEXT")
   var content: String = "",
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "images", columnDefinition = "json")
-  @Convert(converter = ArrayNodeConverter::class)
   var images: ArrayNode? = null,
-  @Column(name = "contact_info", length = 100)
   var contactInfo: String? = null,
-  @Column(name = "status", nullable = false, length = 30)
-  @Enumerated(EnumType.STRING)
   var status: FeedbackStatus = FeedbackStatus.PENDING,
-  @Column(name = "handle_result", columnDefinition = "TEXT")
   var handleResult: String? = null,
-  @Column(name = "handled_by_id")
   var handledById: Long? = null,
-  @Column(name = "handled_by_name", length = 100)
   var handledByName: String? = null,
-  @Column(name = "handled_at")
   var handledAt: LocalDateTime? = null,
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-
   /**
    * Get images as a list of URLs
    */

@@ -33,6 +33,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -61,17 +63,20 @@ class AdminDeliveryWorkerQueryResolverTest :
       deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
       resolver = AdminDeliveryWorkerQueryResolver(adminService, deliveryWorkerStatisticsQueryApiService)
     }
-    test("deliveryWorkers should return all delivery capable admins") {
+    test("deliveryWorkers should return paged delivery capable admins") {
       // Given
-      every { adminService.findAllDeliveryCapable() } returns listOf(createSampleWorker())
+      val pageable = PageRequest.of(0, 20)
+      every { adminService.findDeliveryWorkers(null, null, pageable) } returns
+        PageImpl(listOf(createSampleWorker()), pageable, 1)
 
       // When
-      val result = resolver.deliveryWorkers()
+      val result = resolver.deliveryWorkers(keyword = null, role = null, page = 0, size = 20)
 
       // Then
-      result.size shouldBe 1
-      result[0].name shouldBe "送水员甲"
-      verify { adminService.findAllDeliveryCapable() }
+      result.content.size shouldBe 1
+      result.content[0].name shouldBe "送水员甲"
+      result.totalElements shouldBe 1
+      verify { adminService.findDeliveryWorkers(null, null, pageable) }
     }
     test("onlineDeliveryWorkers should filter by online status") {
       // Given

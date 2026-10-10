@@ -60,4 +60,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V290FixOrderOperationTypeCheck", logicalFilePath = "db/changelog/changes/v2.9.0-fix-order-operation-type-check.xml")
     // JPA→Exposed P4:orders.status 加宽到 varchar(30),容纳枚举 AWAITING_CONFIRMATION(21 字符)
     include(file = "db/changelog/changes/V300WidenOrdersStatus", logicalFilePath = "db/changelog/changes/v3.0.0-widen-orders-status.xml")
+    // P5 收口:补回历史 Hibernate ddl-auto 建出、changelog 缺失的 notification_settings 表
+    include(file = "db/changelog/changes/V310AddNotificationSettings", logicalFilePath = "db/changelog/changes/v3.1.0-add-notification-settings.xml")
   })

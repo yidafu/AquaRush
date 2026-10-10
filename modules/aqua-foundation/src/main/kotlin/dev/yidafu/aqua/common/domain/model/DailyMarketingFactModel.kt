@@ -19,13 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -39,43 +32,18 @@ import java.time.LocalDateTime
  * - ticket_redeemed_count:当日水票核销张数(user_tickets USED 按 usedAt)
  * - gift_quantity:当日赠品件数(order_gifts 按 created_at)
  */
-@Entity
-@Table(
-  name = "daily_marketing_facts",
-  uniqueConstraints = [UniqueConstraint(columnNames = ["stat_date"])],
-)
 data class DailyMarketingFactModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "stat_date", nullable = false)
   var statDate: LocalDate = LocalDate.now(),
-  @Column(name = "marketing_order_count", nullable = false)
   var marketingOrderCount: Long = 0,
-  @Column(name = "coupon_benefit_cents", nullable = false)
   var couponBenefitCents: Long = 0,
-  @Column(name = "promotion_benefit_cents", nullable = false)
   var promotionBenefitCents: Long = 0,
-  @Column(name = "first_order_benefit_cents", nullable = false)
   var firstOrderBenefitCents: Long = 0,
-  @Column(name = "coupon_redeemed_count", nullable = false)
   var couponRedeemedCount: Long = 0,
-  @Column(name = "ticket_sales_count", nullable = false)
   var ticketSalesCount: Long = 0,
-  @Column(name = "ticket_sales_revenue_cents", nullable = false)
   var ticketSalesRevenueCents: Long = 0,
-  @Column(name = "ticket_redeemed_count", nullable = false)
   var ticketRedeemedCount: Long = 0,
-  @Column(name = "gift_quantity", nullable = false)
   var giftQuantity: Long = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+)

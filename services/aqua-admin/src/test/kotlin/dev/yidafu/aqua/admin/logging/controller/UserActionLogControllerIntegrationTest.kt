@@ -134,7 +134,7 @@ class UserActionLogControllerIntegrationTest(
 
       awaitCount(2)
 
-      val click = userActionLogRepository.findAll().first { it.actionType == "CLICK" }
+      val click = userActionLogRepository.findByActionType("CLICK").first()
       click.userId shouldBe "u-1001"
       click.target shouldBe "add-to-cart"
       click.pageUrl shouldBe "/pages/product-detail/index"
@@ -154,7 +154,7 @@ class UserActionLogControllerIntegrationTest(
       withClue("sensitive value should be stripped") { props.contains("secret123") shouldBe false }
 
       // 旧客户端兼容:pageUrl 从 properties 回退提取
-      val form = userActionLogRepository.findAll().first { it.actionType == "FORM_SUBMIT" }
+      val form = userActionLogRepository.findByActionType("FORM_SUBMIT").first()
       form.pageUrl shouldBe "/pages/order-confirm/index"
     }
     test("query filters and paginates") {

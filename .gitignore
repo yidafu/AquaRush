@@ -82,6 +82,8 @@ secrets/
 
 # Node.js & npm/yarn/pnpm
 node_modules/
+# 符号链接形式的依赖目录(worktree 里 link 主仓 node_modules 时)
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

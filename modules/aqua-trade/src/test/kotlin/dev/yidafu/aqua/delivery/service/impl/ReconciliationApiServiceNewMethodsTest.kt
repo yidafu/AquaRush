@@ -52,7 +52,6 @@ class ReconciliationApiServiceNewMethodsTest :
       every { repo.findById(9L) } returns Optional.of(record)
       every { repo.findById(10L) } returns Optional.empty()
       every { repo.findAll(pageable) } returns page
-      every { repo.findAll() } returns listOf(record)
 
       impl.findByDeliveryWorkerIdAndCollectionDate(1L, date) shouldBe record
       impl.findByDeliveryWorkerIdAndCollectionDate(1L, date, pageable) shouldBe page
@@ -63,7 +62,6 @@ class ReconciliationApiServiceNewMethodsTest :
       impl.findById(9L) shouldBe record
       impl.findById(10L).shouldBeNull()
       impl.findAll(pageable) shouldBe page
-      impl.findAll() shouldBe listOf(record)
     }
 
     test("DailyReconciliationQueryApiServiceImpl 新增查询全部委托仓库") {
@@ -74,13 +72,11 @@ class ReconciliationApiServiceNewMethodsTest :
       every { repo.findByReconciliationDate(date) } returns model
       every { repo.findById(9L) } returns Optional.of(model)
       every { repo.findById(10L) } returns Optional.empty()
-      every { repo.findAll() } returns listOf(model)
       every { repo.findAll(pageable) } returns page
 
       impl.findByReconciliationDate(date) shouldBe model
       impl.findById(9L) shouldBe model
       impl.findById(10L).shouldBeNull()
-      impl.findAll() shouldBe listOf(model)
       impl.findAll(pageable) shouldBe page
     }
 

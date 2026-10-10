@@ -89,15 +89,6 @@ class UserRepositoryImpl(
       }?.let(::toModel),
     )
 
-  override fun findAll(): List<UserModel> =
-    transaction(database) {
-      UsersTable
-        .selectAll()
-        .where { UsersTable.activeOnly() }
-        .orderBy(UsersTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAll(pageable: Pageable): Page<UserModel> {
     val (content, total) =
       transaction(database) {

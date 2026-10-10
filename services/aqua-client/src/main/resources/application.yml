@@ -26,15 +26,6 @@ spring:
       leak-detection-threshold: 60000
       pool-name: UserServicePool
 
-  jpa:
-    hibernate:
-      ddl-auto: none  # 不进行任何自动 DDL 操作
-    show-sql: true
-    generate-ddl: false        # 禁用 JPA 自动 DDL
-    properties:
-      hibernate:
-        format_sql: true
-
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
@@ -107,7 +98,7 @@ logging:
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
     dev.yidafu.aqua.exception: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.jetbrains.exposed: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

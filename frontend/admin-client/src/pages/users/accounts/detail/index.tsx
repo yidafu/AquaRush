@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spin } from 'antd';
 import { useQuery } from '@apollo/client';
 import {
-  GET_ADMINS_QUERY,
+  GET_ADMIN_QUERY,
   DELIVERY_WORKER_DETAIL_QUERY,
 } from '../../../../graphql/queries/user.graphql';
 import type { Admin, DeliveryWorker } from '@aquarush/common';
@@ -37,7 +37,8 @@ const AccountDetailPage: React.FC = () => {
     data: adminsData,
     loading: adminsLoading,
     refetch: refetchAdmins,
-  } = useQuery(GET_ADMINS_QUERY, {
+  } = useQuery(GET_ADMIN_QUERY, {
+    variables: { id },
     skip: !isSuperAdmin,
     errorPolicy: 'all',
   });
@@ -55,7 +56,7 @@ const AccountDetailPage: React.FC = () => {
 
   const record: DeliveryRecord | undefined = useMemo(() => {
     if (isSuperAdmin) {
-      const a = (adminsData?.admins || []).find((x: Admin) => String(x.id) === id);
+      const a = adminsData?.admin as Admin | undefined;
       if (!a) return undefined;
       return {
         id: a.id,
@@ -99,7 +100,7 @@ const AccountDetailPage: React.FC = () => {
       createdAt: w.createdAt,
       updatedAt: w.updatedAt,
     };
-  }, [isSuperAdmin, adminsData, workerData, id]);
+  }, [isSuperAdmin, adminsData, workerData]);
 
   const refetch = () => {
     if (isSuperAdmin) {

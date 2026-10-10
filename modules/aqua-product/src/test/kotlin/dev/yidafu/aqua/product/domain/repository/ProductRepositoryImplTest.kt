@@ -79,14 +79,15 @@ class ProductRepositoryImplTest :
       reloaded.status shouldBe ProductModelStatus.OFFLINE
     }
 
-    test("软删商品不可见:findById/existsById/findAll/findByStatus 均过滤") {
+    test("软删商品不可见:findById/existsById/findByName/findByStatus 均过滤") {
       val keep = ProductPgTestSupport.product(name = "存活")
       val removed = ProductPgTestSupport.product(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
       repo.findById(removed).isPresent shouldBe false
       repo.existsById(keep) shouldBe true
-      repo.findAll() shouldHaveSize 1
+      repo.findByName("存活")!!.id shouldBe keep
+      repo.findByName("已删") shouldBe null
       repo.findByStatus(ProductModelStatus.ONLINE) shouldHaveSize 1
     }
 
@@ -280,14 +281,14 @@ class ProductRepositoryImplTest :
       page.content.single().name shouldBe "可见商品"
     }
 
-    test("findAll 按 id 升序且不含软删") {
+    test("findByName 精确命中且软删不可见") {
       val first = ProductPgTestSupport.product(name = "一")
       val second = ProductPgTestSupport.product(name = "二")
       ProductPgTestSupport.product(name = "删", deleted = true)
 
-      val all = repo.findAll()
-      all shouldHaveSize 2
-      all.map { it.id } shouldContainExactly listOf(first, second)
-      all.map { it.name } shouldContainExactly listOf("一", "二")
+      repo.findByName("一")!!.id shouldBe first
+      repo.findByName("二")!!.id shouldBe second
+      repo.findByName("删") shouldBe null
+      repo.findByName("不存在") shouldBe null
     }
   })

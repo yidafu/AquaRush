@@ -76,14 +76,15 @@ class TicketTypeRepositoryImpl(
       deletedBy = row[TicketTypesTable.deletedBy],
     )
 
-  override fun findAll(): List<TicketTypeModel> =
+  override fun findByName(name: String): TicketTypeModel? =
     transaction(database) {
       TicketTypesTable
         .selectAll()
-        .where { TicketTypesTable.activeOnly() }
+        .where { TicketTypesTable.activeOnly { TicketTypesTable.name eq name } }
         .orderBy(TicketTypesTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   override fun findAllById(ids: List<Long>): List<TicketTypeModel> {
     if (ids.isEmpty()) return emptyList()

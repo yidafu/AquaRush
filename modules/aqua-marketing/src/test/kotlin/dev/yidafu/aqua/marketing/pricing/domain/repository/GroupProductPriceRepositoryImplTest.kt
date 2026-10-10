@@ -70,6 +70,29 @@ class GroupProductPriceRepositoryImplTest :
         .priceCents shouldBe 700L
     }
 
+    test("save 命中软删行时复活而非插新行(uk_gpp_group_product 全量唯一)") {
+      val groupId = MarketingPgTestSupport.customerGroup(name = "G1R")
+      val deletedId =
+        MarketingPgTestSupport.groupProductPrice(
+          groupId = groupId,
+          productId = 10L,
+          priceCents = 900L,
+          deleted = true,
+        )
+
+      val saved = repo.save(GroupProductPriceModel(customerGroupId = groupId, productId = 10L, priceCents = 750L))
+
+      saved.id shouldBe deletedId
+      repo.findByCustomerGroupIdAndProductId(groupId, 10L).shouldNotBeNull().priceCents shouldBe 750L
+      // 复活(update)而非新增:表内该组仍只有一行,不会与软删行撞唯一索引
+      transaction(MarketingPgTestSupport.database) {
+        GroupProductPricesTable
+          .selectAll()
+          .where { GroupProductPricesTable.customerGroupId eq groupId }
+          .count() shouldBe 1L
+      }
+    }
+
     test("软删行不可见:列表/单查/分页均过滤") {
       val groupId = MarketingPgTestSupport.customerGroup(name = "G2")
       MarketingPgTestSupport.groupProductPrice(groupId = groupId, productId = 1L)

@@ -19,12 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Index
-import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 /**
@@ -39,39 +33,20 @@ import java.time.LocalDateTime
  * - 经度/纬度用 double 精度存储(数据库 double 列),GraphQL 投影按 Float 输出(与 Address 一致);
  * - 仅管理员可查询(R-AUTH-02 权限隔离,resolver 层强制)。
  */
-@Entity
-@Table(
-  name = "delivery_trajectories",
-  indexes = [
-    Index(name = "idx_trajectory_worker_order", columnList = "delivery_worker_id, order_id, reported_at"),
-    Index(name = "idx_trajectory_worker_reported", columnList = "delivery_worker_id, reported_at"),
-    Index(name = "idx_trajectory_order", columnList = "order_id"),
-  ],
-)
 class DeliveryTrajectoryModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
   /** 送水工账号 id(admins 单表,迁移 v1.2.1) */
-  @Column(name = "delivery_worker_id", nullable = false)
   val deliveryWorkerId: Long,
   /** 关联订单 */
-  @Column(name = "order_id", nullable = false)
   val orderId: Long,
   /** 经度(WGS84/GCJ02 由客户端定位提供,展示用) */
-  @Column(name = "longitude", nullable = false)
   val longitude: Double,
   /** 纬度 */
-  @Column(name = "latitude", nullable = false)
   val latitude: Double,
   /** 定位精度(米,可空) */
-  @Column(name = "accuracy")
   val accuracy: Double? = null,
   /** 上报时间(客户端定位产生时间,服务端落库时间见 createdAt) */
-  @Column(name = "reported_at", nullable = false)
   val reportedAt: LocalDateTime = LocalDateTime.now(),
   /** 服务端落库时间 */
-  @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
 )

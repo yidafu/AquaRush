@@ -14,8 +14,6 @@ wechatpay = "0.2.17"
 jwt = "0.13.0"
 graphql = "25.0"
 spring-graphql = "1.3.0" # Let Spring Boot manage GraphQL version
-ksp = "2.3.0"
-querydsl = "5.1.0"
 logback-logstash = "7.4"
 kotlinx-serialization = "1.6.3"
 kotlinx-coroutines = "1.8.0"
@@ -38,14 +36,17 @@ kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+# 供 build-logic 预编译脚本解析 kotlin("plugin.spring"):该 Gradle 插件由 kotlin-allopen
+# 构件提供(其 jar 内含 org.jetbrains.kotlin.plugin.spring 的 marker)。
 kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
-kotlin-noarg = { module = "org.jetbrains.kotlin:kotlin-noarg", version.ref = "kotlin" }
 
 # Spring Boot
 spring-boot-gradlePlugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 spring-dependency-management-gradlePlugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "spring-dependency-management" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref="spring-boot" }
-spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref="spring-boot" }
+spring-boot-starter-jdbc = { module = "org.springframework.boot:spring-boot-starter-jdbc", version.ref="spring-boot" }
+# Page/Pageable/Sort:仓储接口沿用 Spring Data 分页抽象(JPA 已下线,仅保留 commons)
+spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref="spring-boot" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref="spring-boot" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref="spring-boot" }
@@ -101,10 +102,6 @@ graphql-java-extended-scalars = { module = "com.graphql-java:graphql-java-extend
 java-dataloader = { module = "com.graphql-java:java-dataloader", version = "6.0.0" }
 
 
-# QueryDSL
-querydsl-jpa = { module = "com.querydsl:querydsl-jpa", version.ref = "querydsl" }
-querydsl-core = { module = "com.querydsl:querydsl-core", version.ref = "querydsl"}
-querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" }
 
 # Logging
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logback-logstash" }
@@ -180,13 +177,12 @@ wechat-miniapp = { module = "com.github.binarywang:weixin-java-miniapp", version
 [bundles]
 kotlin = ["kotlin-reflect", "kotlin-stdlib"]
 spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "jackson-module-kotlin"]
-spring-boot-data = ["spring-boot-starter-data-jpa", "postgresql"]
-spring-boot-liqiubase = ["spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "postgresql"]
+spring-boot-data = ["spring-boot-starter-jdbc", "spring-data-commons", "postgresql"]
+spring-boot-liqiubase = ["spring-boot-starter-jdbc", "spring-data-commons", "spring-boot-starter-liquibase", "postgresql"]
 exposed = ["exposed-core", "exposed-jdbc", "exposed-java-time", "exposed-json", "exposed-spring-transaction"]
 spring-boot-security = ["spring-boot-starter-security"]
 jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 graphql = ["spring-boot-starter-graphql"]
-querydsl = ["querydsl-jpa","querydsl-core", "querydsl-apt"]
 kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]
 messaging = ["spring-boot-starter-artemis", "artemis-jakarta-server"]
 cache = ["spring-boot-starter-cache"]
@@ -198,10 +194,7 @@ jackson = ["jackson-binding", "jackson-module-kotlin",  "jackson-core"]
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
-kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
-kotlin-noarg = { id = "org.jetbrains.kotlin.plugin.noarg", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
@@ -222,7 +215,6 @@ testcontainers = { id = "org.testcontainers", version = "1.19.7" }
 versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
 # Dependency Analysis
 dependency-check = { id = "org.owasp.dependencycheck", version = "9.0.9" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Aqua project convention plugins
 aqua-kotlin-common = { id = "aqua.kotlin.common", version = "unspecified" }

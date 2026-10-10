@@ -59,7 +59,4 @@ interface AddressRepository : AddressRepositoryCustom {
   fun save(entity: AddressModel): AddressModel
 
   fun saveAll(entities: List<AddressModel>): List<AddressModel>
-
-  /** 存量接口遗留的无界查询(违反规则 10,AddressServiceImpl 存量使用;不新增调用)。 */
-  fun findAll(): List<AddressModel>
 }

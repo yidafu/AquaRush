@@ -19,50 +19,23 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.util.MoneyUtils
-import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.SoftDelete
-import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "order_items")
 open class OrderItemModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "order_id", nullable = false)
   val orderId: Long,
-  @Column(name = "product_id", nullable = false)
   val productId: Long,
-  @Column(name = "quantity", nullable = false)
   val quantity: Int,
-  @Column(name = "unit_price_cents", nullable = false)
   val unitPriceCents: Long,
-  @Column(name = "total_price_cents", nullable = false)
   val totalPriceCents: Long,
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "product_snapshot", nullable = false, columnDefinition = "json")
   val productSnapshot: String, // JSON string of product snapshot
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-
   // Backward compatibility property
   val unitPrice: BigDecimal
     get() = MoneyUtils.fromCents(unitPriceCents)

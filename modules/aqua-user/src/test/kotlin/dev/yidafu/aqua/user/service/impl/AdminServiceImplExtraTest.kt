@@ -83,10 +83,6 @@ class AdminServiceImplExtraTest :
           bizLogger,
         )
     }
-    test("findAll should delegate") {
-      every { adminRepository.findAll() } returns listOf(admin())
-      service.findAll().size shouldBe 1
-    }
     test("findById should delegate") {
       every { adminRepository.findById(1L) } returns Optional.of(admin())
       service.findById(1L).shouldNotBeNull()
@@ -130,7 +126,8 @@ class AdminServiceImplExtraTest :
       service.countByRole(AdminRoleModel.ADMIN) shouldBe 1L
     }
     test("findAllDeliveryCapable should delegate with delivery capable roles") {
-      every { adminRepository.findAllByRoleIn(any()) } returns listOf(admin(role = AdminRoleModel.DELIVERY_WORKER))
+      every { adminRepository.findAllByRoleIn(any(), any<Int>()) } returns
+        listOf(admin(role = AdminRoleModel.DELIVERY_WORKER))
       service.findAllDeliveryCapable().size shouldBe 1
     }
     test("countDeliveryCapable should delegate with delivery capable roles") {
@@ -139,7 +136,7 @@ class AdminServiceImplExtraTest :
       verify { adminRepository.countByRoleIn(any()) }
     }
     test("findByOnlineStatus should filter to delivery capable roles") {
-      every { adminRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) } returns
+      every { adminRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE, any()) } returns
         listOf(admin(role = AdminRoleModel.DELIVERY_WORKER), admin(role = AdminRoleModel.SUPER_ADMIN))
       val result = service.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE)
       result.size shouldBe 1

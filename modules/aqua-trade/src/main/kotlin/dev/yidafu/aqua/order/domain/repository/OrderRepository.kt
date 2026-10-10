@@ -95,9 +95,6 @@ interface OrderRepository : OrderRepositoryCustom {
 
   fun findById(id: Long): Optional<OrderModel>
 
-  /** 全量读取(调用方:findAllOrders 展示;原 JPA 无序,按 id 升序破平)。 */
-  fun findAll(): List<OrderModel>
-
   fun findAllById(ids: Iterable<Long>): List<OrderModel>
 
   /**

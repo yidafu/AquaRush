@@ -45,7 +45,5 @@ interface AdminQueryApiService {
 
   fun findByUsername(username: String): AdminModel?
 
-  fun findAll(): List<AdminModel>
-
   fun existsById(id: Long): Boolean
 }

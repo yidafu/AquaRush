@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, Select } from 'antd';
+import { Button, Space, Select, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 export interface AccountToolbarProps {
@@ -7,6 +7,9 @@ export interface AccountToolbarProps {
   roleFilterOptions: { value: string; label: string }[];
   isSuperAdmin: boolean;
   onRoleChange: (value: string) => void;
+  /** 关键字搜索(username/realName/phone 模糊,服务端过滤) */
+  keyword: string;
+  onKeywordChange: (value: string) => void;
   onAdd: () => void;
 }
 
@@ -16,6 +19,8 @@ const AccountToolbar: React.FC<AccountToolbarProps> = ({
   roleFilterOptions,
   isSuperAdmin,
   onRoleChange,
+  keyword,
+  onKeywordChange,
   onAdd,
 }) => (
   <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -26,6 +31,13 @@ const AccountToolbar: React.FC<AccountToolbarProps> = ({
         onChange={onRoleChange}
         options={roleFilterOptions}
         style={{ width: 160 }}
+      />
+      <Input.Search
+        allowClear
+        placeholder="账号/姓名/手机号"
+        defaultValue={keyword}
+        onSearch={onKeywordChange}
+        style={{ width: 240 }}
       />
     </Space>
     <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>

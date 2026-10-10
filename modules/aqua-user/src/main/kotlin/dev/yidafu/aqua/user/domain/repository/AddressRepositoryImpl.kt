@@ -157,11 +157,6 @@ class AddressRepositoryImpl(
     return entities
   }
 
-  override fun findAll(): List<AddressModel> =
-    transaction(database) {
-      selectAllWhere { Op.TRUE }.orderBy(AddressesTable.id to SortOrder.ASC).toList()
-    }.map(::toModel)
-
   override fun findByUserId(userId: Long): List<AddressModel> =
     transaction(database) {
       selectAllWhere { AddressesTable.userId eq userId }.orderBy(AddressesTable.id to SortOrder.ASC).toList()

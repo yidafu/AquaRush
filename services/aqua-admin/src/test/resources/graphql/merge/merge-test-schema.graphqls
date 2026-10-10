@@ -4,7 +4,7 @@
 scalar Long
 
 type Query {
-  deliveryWorkers: [DeliveryWorker!]!
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
 }
 
 type Mutation {
@@ -57,4 +57,12 @@ input CreateDeliveryWorkerInput {
   phone: String!
   password: String
   isAvailable: Boolean
+}
+
+type DeliveryWorkerVOPage {
+  content: [DeliveryWorker!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
 }

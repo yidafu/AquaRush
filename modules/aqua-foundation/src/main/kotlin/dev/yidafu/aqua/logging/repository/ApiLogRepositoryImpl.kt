@@ -19,13 +19,23 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.ApiLogModel
-import dev.yidafu.aqua.common.domain.model.QApiLogModel
+import dev.yidafu.aqua.common.domain.model.OperationType
 import dev.yidafu.aqua.common.domain.model.RequestType
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.ApiLogsTable
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -33,18 +43,97 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 /**
- * QueryDSL implementation for ApiLogRepositoryCustom
+ * API 请求日志仓储实现(JPA→Exposed 迁移 P5,替代原 QueryDSL 实现)。
+ *
+ * 与迁移前语义一致:
+ * - [findByFilters] 动态条件 + created_at 倒序(补 id 倒序破平,避免同刻日志顺序不稳定,分页不重不漏);
+ * - [save] 为日志写入场景的 upsert;
+ * - `api_logs` 无软删列(实体无 `@SoftDelete`),查询不做 `is_deleted` 过滤。
  */
 @Repository
-class ApiLogRepositoryImpl : ApiLogRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class ApiLogRepositoryImpl(
+  private val database: Database,
+) : ApiLogRepository {
+  private fun toModel(row: ResultRow): ApiLogModel =
+    ApiLogModel(
+      id = row[ApiLogsTable.id],
+      correlationId = row[ApiLogsTable.correlationId],
+      requestType = RequestType.valueOf(row[ApiLogsTable.requestType]),
+      operationType = row[ApiLogsTable.operationType]?.let { OperationType.valueOf(it) },
+      operationName = row[ApiLogsTable.operationName],
+      method = row[ApiLogsTable.method],
+      uri = row[ApiLogsTable.uri],
+      query = row[ApiLogsTable.query],
+      requestBody = row[ApiLogsTable.requestBody],
+      responseStatus = row[ApiLogsTable.responseStatus],
+      durationMs = row[ApiLogsTable.durationMs],
+      ipAddress = row[ApiLogsTable.ipAddress],
+      userAgent = row[ApiLogsTable.userAgent],
+      userId = row[ApiLogsTable.userId],
+      username = row[ApiLogsTable.username],
+      errorMessage = row[ApiLogsTable.errorMessage],
+      createdAt = row[ApiLogsTable.createdAt],
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
+  override fun save(entity: ApiLogModel): ApiLogModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val exists =
+        ApiLogsTable
+          .selectAll()
+          .where { ApiLogsTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        ApiLogsTable.update({ ApiLogsTable.id eq id }) {
+          it[correlationId] = entity.correlationId
+          it[requestType] = entity.requestType.name
+          it[operationType] = entity.operationType?.name
+          it[operationName] = entity.operationName
+          it[method] = entity.method
+          it[uri] = entity.uri
+          it[query] = entity.query
+          it[requestBody] = entity.requestBody
+          it[responseStatus] = entity.responseStatus
+          it[durationMs] = entity.durationMs
+          it[ipAddress] = entity.ipAddress
+          it[userAgent] = entity.userAgent
+          it[userId] = entity.userId
+          it[username] = entity.username
+          it[errorMessage] = entity.errorMessage
+        }
+      } else {
+        ApiLogsTable.insert {
+          it[ApiLogsTable.id] = id
+          it[correlationId] = entity.correlationId
+          it[requestType] = entity.requestType.name
+          it[operationType] = entity.operationType?.name
+          it[operationName] = entity.operationName
+          it[method] = entity.method
+          it[uri] = entity.uri
+          it[query] = entity.query
+          it[requestBody] = entity.requestBody
+          it[responseStatus] = entity.responseStatus
+          it[durationMs] = entity.durationMs
+          it[ipAddress] = entity.ipAddress
+          it[userAgent] = entity.userAgent
+          it[userId] = entity.userId
+          it[username] = entity.username
+          it[errorMessage] = entity.errorMessage
+          it[createdAt] = entity.createdAt
+        }
+      }
+      entity
+    }
 
-  private val apiLog = QApiLogModel.apiLogModel
+  override fun findByCorrelationId(correlationId: String): List<ApiLogModel> =
+    transaction(database) {
+      ApiLogsTable
+        .selectAll()
+        .where { ApiLogsTable.correlationId eq correlationId }
+        .orderBy(ApiLogsTable.createdAt to SortOrder.ASC, ApiLogsTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
 
   override fun findByFilters(
     requestType: RequestType?,
@@ -55,34 +144,29 @@ class ApiLogRepositoryImpl : ApiLogRepositoryCustom {
     endTime: LocalDateTime?,
     pageable: Pageable,
   ): Page<ApiLogModel> {
-    val builder = BooleanBuilder()
-
-    // Build dynamic conditions
-    requestType?.let { builder.and(apiLog.requestType.eq(it)) }
-    method?.let { builder.and(apiLog.method.eq(it)) }
-    responseStatus?.let { builder.and(apiLog.responseStatus.eq(it)) }
-    userId?.let { builder.and(apiLog.userId.eq(it)) }
-    startTime?.let { builder.and(apiLog.createdAt.goe(it)) }
-    endTime?.let { builder.and(apiLog.createdAt.loe(it)) }
-
-    // Get total count
-    val total =
-      queryFactory
-        .query()
-        .from(apiLog)
-        .where(builder)
-        .fetchCount()
-
-    // Get paginated results with sorting
-    val results =
-      queryFactory
-        .selectFrom(apiLog)
-        .where(builder)
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-        .orderBy(apiLog.createdAt.desc())
-        .fetch()
-
-    return PageImpl(results, pageable, total)
+    val conditions =
+      buildList {
+        requestType?.let { add(ApiLogsTable.requestType eq it.name) }
+        method?.let { add(ApiLogsTable.method eq it) }
+        responseStatus?.let { add(ApiLogsTable.responseStatus eq it) }
+        userId?.let { add(ApiLogsTable.userId eq it) }
+        startTime?.let { add(ApiLogsTable.createdAt greaterEq it) }
+        endTime?.let { add(ApiLogsTable.createdAt lessEq it) }
+      }
+    val condition = conditions.reduceOrNull { a, b -> a and b } ?: Op.TRUE
+    val (content, total) =
+      transaction(database) {
+        val content =
+          ApiLogsTable
+            .selectAll()
+            .where { condition }
+            .orderBy(ApiLogsTable.createdAt to SortOrder.DESC, ApiLogsTable.id to SortOrder.DESC)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .toList()
+            .map(::toModel)
+        content to ApiLogsTable.selectAll().where { condition }.count()
+      }
+    return PageImpl(content, pageable, total)
   }
 }

@@ -204,21 +204,32 @@ export const getAdminOrders = (options: AdminOrderListOptions = {}) => {
 
 // ==================== 送水员管理 ====================
 
-/** 全部送水员（管理员） */
-export const getDeliveryWorkers = () => {
-  return networkManager.query<{ deliveryWorkers: readonly DeliveryWorker[] }>(`
-    query GetDeliveryWorkers {
-      deliveryWorkers {
-        id
-        name
-        phone
-        onlineStatus
-        isAvailable
-        currentTaskCount
-        earningCents
+/**
+ * 全部送水员（管理员，分页）。
+ * AGENTS.md 规则 10:后端 deliveryWorkers 已分页;派单候选场景取一页(默认 100 条上限)。
+ */
+export const getDeliveryWorkers = (keyword?: string, role?: string, page = 0, size = 100) => {
+  return networkManager.query<{
+    deliveryWorkers: { content: readonly DeliveryWorker[]; totalElements: number };
+  }>(
+    `
+    query GetDeliveryWorkers($keyword: String, $role: String, $page: Int, $size: Int) {
+      deliveryWorkers(keyword: $keyword, role: $role, page: $page, size: $size) {
+        content {
+          id
+          name
+          phone
+          onlineStatus
+          isAvailable
+          currentTaskCount
+          earningCents
+        }
+        totalElements
       }
     }
-  `);
+  `,
+    { keyword: keyword ?? null, role: role ?? null, page, size },
+  );
 };
 
 /** 在线送水员（管理员）— 派单候选 */

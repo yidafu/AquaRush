@@ -54,16 +54,6 @@ class AddressResolver(
   // Admin-only queries
 
   /**
-   * 获取所有地址 (管理员)
-   */
-  @QueryMapping
-  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
-  fun addresses(): List<Address> {
-    val allAddresses = addressService.findAllAddresses()
-    return allAddresses.map { it.toGraphQL() }
-  }
-
-  /**
    * 搜索所有地址 (管理员,分页;keyword 模糊匹配 detailAddress/phone/receiverName)
    */
   @QueryMapping

@@ -175,15 +175,6 @@ class FileMetadataRepositoryImpl(
       entity
     }
 
-  override fun findAll(): List<FileMetadata> =
-    transaction(database) {
-      FileMetadataTable
-        .selectAll()
-        .where { FileMetadataTable.activeOnly() }
-        .orderBy(FileMetadataTable.createdAt to SortOrder.DESC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAll(pageable: Pageable): Page<FileMetadata> = paged(Op.TRUE, pageable)
 
   override fun findByStoragePath(storagePath: String): Optional<FileMetadata> =

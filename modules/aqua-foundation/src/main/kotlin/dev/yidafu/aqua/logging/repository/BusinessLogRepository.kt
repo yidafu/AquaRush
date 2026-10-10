@@ -20,21 +20,23 @@
 package dev.yidafu.aqua.logging.repository
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 /**
- * 业务日志Repository
+ * 业务日志仓储(`business_logs`,logging 域)。
+ *
+ * JPA→Exposed 迁移 P5:剥离 `JpaRepository`,仅声明实际被调用的方法
+ * (原 `save` 继承自 JpaRepository);日志表**无软删列**,查询即全量可见。
+ * 多条件过滤分页见 [BusinessLogRepositoryCustom]。
  */
 @Repository
-interface BusinessLogRepository :
-  JpaRepository<BusinessLogModel, Long>,
-  BusinessLogRepositoryCustom {
+interface BusinessLogRepository : BusinessLogRepositoryCustom {
+  /** upsert 语义(对齐 JPA `save`):无 id 或 id 不存在时插入雪花 id,否则按 id 覆盖业务列。 */
+  fun save(entity: BusinessLogModel): BusinessLogModel
+
+  /** 按关联 id 取同一请求链路的所有日志(created_at 升序)。 */
   fun findByCorrelationId(correlationId: String): List<BusinessLogModel>
 
-  fun findByUserId(userId: Long): List<BusinessLogModel>
-
-  fun findByLevel(level: String): List<BusinessLogModel>
-
+  /** 按操作标识精确查询(OPS 审计用例:同操作同步写入 business_logs)。 */
   fun findByOperation(operation: String): List<BusinessLogModel>
 }

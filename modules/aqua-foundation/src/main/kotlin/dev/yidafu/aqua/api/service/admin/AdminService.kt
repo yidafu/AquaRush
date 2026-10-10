@@ -24,6 +24,8 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 /**
  * 管理员服务接口
@@ -33,11 +35,6 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
  * 的账号行即送水员身份。
  */
 interface AdminService {
-  /**
-   * Find all admin users
-   */
-  fun findAll(): List<AdminModel>
-
   /**
    * Find admin by id
    */
@@ -76,9 +73,20 @@ interface AdminService {
   fun findByRole(role: AdminRoleModel): List<AdminModel>
 
   /**
-   * 获取具备配送能力的账号(role ∈ {DELIVERY_WORKER, ADMIN},兼容旧 deliveryWorkers 查询语义)
+   * 获取具备配送能力的账号(role ∈ {DELIVERY_WORKER, ADMIN},兼容旧 deliveryWorkers 查询语义)。
+   * 内部装配/统计用,SQL 侧有界(上限见实现);对外列表接口请用 [findDeliveryWorkers]。
    */
   fun findAllDeliveryCapable(): List<AdminModel>
+
+  /**
+   * 分页查询具备配送能力的账号(keyword 模糊匹配 username/realName/phone)。
+   * AGENTS.md 规则 10:配送员列表接口必须分页 + 过滤。
+   */
+  fun findDeliveryWorkers(
+    keyword: String?,
+    role: AdminRoleModel?,
+    pageable: Pageable,
+  ): Page<AdminModel>
 
   /**
    * 具备配送能力的账号数(role ∈ {DELIVERY_WORKER, ADMIN},统计场景条件 count,避免全表加载)

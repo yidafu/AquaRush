@@ -94,13 +94,6 @@ class AddressResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
     }
-    test("addresses query returns all addresses") {
-      setMockUser(authorities = listOf("PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"))
-      addressService.save(createSampleAddress())
-
-      graphql("""{"query":"{ addresses { id userId receiverName phone province city district detailAddress isDefault } }"}""")
-        .andExpect(jsonPath("$.data.addresses.length()").value(greaterThanOrEqualTo(1)))
-    }
     test("searchAllAddresses query searches addresses") {
       setMockUser(authorities = listOf("PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"))
       addressService.save(createSampleAddress(city = "深圳市", detailAddress = "南山科技园"))

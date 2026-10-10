@@ -99,14 +99,16 @@ export const useUsers = (input?: UserListInput) => {
   });
 };
 
-export const useAdmins = () => {
+export const useAdmins = (keyword?: string, role?: string, page = 0, size = 20) => {
   return useQuery(GET_ADMINS_QUERY, {
+    variables: { keyword: keyword || null, role: role || null, page, size },
     errorPolicy: 'all',
   });
 };
 
-export const useDeliveryWorkers = () => {
+export const useDeliveryWorkers = (keyword?: string, role?: string, page = 0, size = 20) => {
   return useQuery(GET_DELIVERY_WORKERS_QUERY, {
+    variables: { keyword: keyword || null, role: role || null, page, size },
     errorPolicy: 'all',
   });
 };

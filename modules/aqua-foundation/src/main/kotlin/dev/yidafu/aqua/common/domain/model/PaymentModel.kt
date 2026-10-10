@@ -19,55 +19,26 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "payments")
 open class PaymentModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "order_id", nullable = false)
   val orderId: Long,
-  @Column(name = "user_id", nullable = false)
   val userId: Long,
-  @Column(name = "transaction_id", unique = true)
   var transactionId: String? = null,
-  @Column(name = "prepay_id", unique = true)
   var prepayId: String? = null,
-  @Column(name = "amount_cents", nullable = false)
   var amount: Long,
-  @Column(name = "currency", nullable = false)
   var currency: String = "CNY",
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
   var status: PaymentStatus = PaymentStatus.PENDING,
-  @Enumerated(EnumType.STRING)
-  @Column(name = "payment_method", nullable = false)
   var paymentMethod: PaymentMethod = PaymentMethod.WECHAT_PAY,
-  @Column(name = "description")
   var description: String? = null,
-  @Column(name = "failure_reason")
   var failureReason: String? = null,
-  @Column(name = "paid_at")
   var paidAt: LocalDateTime? = null,
-  @Column(name = "expired_at")
   var expiredAt: LocalDateTime? = null,
-  @Version
-  @Column(name = "version", nullable = false)
   var version: Long = 0L,
-  @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable
 

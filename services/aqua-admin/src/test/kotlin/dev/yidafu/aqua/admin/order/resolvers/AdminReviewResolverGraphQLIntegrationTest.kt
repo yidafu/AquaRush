@@ -21,13 +21,20 @@ package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import dev.yidafu.aqua.review.domain.repository.DeliveryWorkerStatisticsRepository
 import dev.yidafu.aqua.review.domain.repository.ReviewRepository
+import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -63,6 +70,9 @@ class AdminReviewResolverGraphQLIntegrationTest(
   reviewRepository: ReviewRepository,
   adminRepository: AdminRepository,
   deliveryWorkerStatisticsRepository: DeliveryWorkerStatisticsRepository,
+  userRepository: UserRepository,
+  addressRepository: AddressRepository,
+  orderRepository: OrderRepository,
 ) : FunSpec({
     var mockMvc: MockMvc = mockk()
     var orderIdSeq = 0L
@@ -93,17 +103,52 @@ class AdminReviewResolverGraphQLIntegrationTest(
         ).id!!
     }
 
+    /**
+     * 评价种子。生产 schema(reviews.order_id → orders.id、reviews.user_id → users.id)有外键,
+     * 故这里按需补齐父行:用户(id = userId)、地址(id = userId)、订单(id = 评价的 orderId)。
+     * 全部按显式 id 幂等 upsert(Exposed save)。
+     */
     fun seedReview(
       userId: Long,
       deliveryWorkerId: Long,
       rating: Int = 5,
       comment: String = "送水很快",
-    ): Long =
-      reviewRepository
+    ): Long {
+      // nanoTime 保证跨测试方法唯一(一单一评,reviews.order_id 唯一约束)
+      val orderId = System.nanoTime() + orderIdSeq++
+      userRepository.save(
+        UserModel(
+          id = userId,
+          wechatOpenId = "review-user-$userId",
+          email = "review-user-$userId@test.local",
+        ),
+      )
+      addressRepository.save(
+        AddressModel(
+          id = userId,
+          userId = userId,
+          receiverName = "测试收货人",
+          phone = "13800000000",
+          province = "广东省",
+          city = "深圳市",
+          district = "南山区",
+          detailAddress = "测试路1号",
+        ),
+      )
+      orderRepository.save(
+        OrderModel(
+          id = orderId,
+          orderNo = "REV-$orderId",
+          userId = userId,
+          addressId = userId,
+          amountCents = 3000L,
+          status = OrderModelStatus.COMPLETED,
+        ),
+      )
+      return reviewRepository
         .save(
           ReviewModel(
-            // nanoTime 保证跨测试方法唯一(一单一评,reviews.order_id 唯一约束)
-            orderId = System.nanoTime() + orderIdSeq++,
+            orderId = orderId,
             userId = userId,
             deliveryWorkerId = deliveryWorkerId,
             rating = rating,
@@ -111,6 +156,7 @@ class AdminReviewResolverGraphQLIntegrationTest(
             isAnonymous = false,
           ),
         ).id!!
+    }
 
     fun seedWorkerStatistics(
       deliveryWorkerId: Long,

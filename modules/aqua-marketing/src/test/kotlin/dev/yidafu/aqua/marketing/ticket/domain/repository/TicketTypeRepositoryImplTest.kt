@@ -61,13 +61,13 @@ class TicketTypeRepositoryImplTest :
       repo.findByStatus(TicketTypeStatus.DISABLED).size shouldBe 1
     }
 
-    test("软删票种不可见:findAll/findAllById/findByStatus/findById 均过滤") {
+    test("软删票种不可见:findByName/findAllById/findByStatus/findById 均过滤") {
       val keep = MarketingPgTestSupport.ticketType(name = "存活")
       MarketingPgTestSupport.ticketType(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
-      repo.findAll().map { it.id } shouldContainExactly repo.findAllById(listOf(keep)).map { it.id }
-      repo.findAll().size shouldBe 1
+      repo.findByName("存活")!!.id shouldBe keep
+      repo.findByName("已删") shouldBe null
       repo.findAllById(listOf(keep)).size shouldBe 1
       repo.findAllById(emptyList()).size shouldBe 0
       repo.findByStatus(TicketTypeStatus.ACTIVE).size shouldBe 1

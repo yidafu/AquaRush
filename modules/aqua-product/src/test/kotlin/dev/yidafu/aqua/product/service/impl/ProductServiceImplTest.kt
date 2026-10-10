@@ -21,7 +21,6 @@ package dev.yidafu.aqua.product.service.impl
 
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
@@ -192,30 +191,5 @@ class ProductServiceImplTest :
       service.updateSalesVolume(1L, 9)
 
       p.salesVolume shouldBe 9
-    }
-    test("getProductStatistics aggregates statuses and low stock") {
-      val online = product(1L, ProductModelStatus.ONLINE, stock = 50, price = 200L)
-      val offline = product(2L, ProductModelStatus.OFFLINE, stock = 8, price = 300L)
-      val out = product(3L, ProductModelStatus.OUT_OF_STOCK, stock = 0, price = 400L)
-      every { productRepository.findAll() } returns listOf(online, offline, out)
-      every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
-
-      val stats = service.getProductStatistics()
-
-      stats.totalProducts shouldBe 3
-      stats.onlineProducts shouldBe 1
-      stats.offlineProducts shouldBe 1
-      stats.lowStockProducts shouldBe 2
-      stats.totalValueCents shouldBe 900L
-      stats.averagePriceCents shouldBe 300L
-    }
-    test("getProductStatistics handles empty product list") {
-      every { productRepository.findAll() } returns emptyList()
-
-      val stats = service.getProductStatistics()
-
-      stats.totalProducts shouldBe 0
-      stats.averagePriceCents shouldBe 0L
-      stats.lowStockProducts shouldBe 0
     }
   })

@@ -1,8 +1,19 @@
 # Delivery Worker management
 
+# 配送员分页(参照 AddressVOPage/AdminVOPage 的新式分页)
+type DeliveryWorkerVOPage {
+  content: [DeliveryWorker!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
 extend type Query {
   # Delivery Worker queries
-  deliveryWorkers: [DeliveryWorker!]!
+  # 配送员列表:分页 + keyword(username/realName/phone 模糊)。AGENTS.md 规则 10 禁止无界全量返回
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
+  # 在线配送员(状态过滤 + SQL 侧上限,运维用途)
   onlineDeliveryWorkers: [DeliveryWorker!]!
   deliveryWorker(id: PrimaryId!): DeliveryWorker
   # 送水工配送轨迹(F-ADR-012,仅管理员 PERMISSION_DELIVERY_WORKER_READ;

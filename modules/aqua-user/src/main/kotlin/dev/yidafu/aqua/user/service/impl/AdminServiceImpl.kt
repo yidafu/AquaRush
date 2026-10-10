@@ -32,6 +32,8 @@ import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -58,12 +60,14 @@ class AdminServiceImpl(
     private const val DEFAULT_PASSWORD = "123456"
     private const val DELIVERY_WORKER_USERNAME_PREFIX = "delivery_"
     private val DELIVERY_CAPABLE_ROLES = listOf(AdminRoleModel.DELIVERY_WORKER, AdminRoleModel.ADMIN)
-  }
 
-  /**
-   * Find all admin users
-   */
-  override fun findAll(): List<AdminModel> = adminRepository.findAll()
+    /**
+     * 内部装配/统计场景的 SQL 侧上限(配送排班候选、送水员统计等)。
+     * 这些调用方需要「尽可能全」的配送能力账号,但不是对外列表接口 —— 用有界 limit
+     * 代替无界全表扫描(AGENTS.md 规则 10);业务上配送账号量级远低于该上限。
+     */
+    private const val INTERNAL_DELIVERY_LIST_LIMIT = 500
+  }
 
   /**
    * Find admin by id
@@ -166,7 +170,17 @@ class AdminServiceImpl(
   /**
    * 具备配送能力的账号(role ∈ {DELIVERY_WORKER, ADMIN},兼容旧 deliveryWorkers 查询语义)
    */
-  override fun findAllDeliveryCapable(): List<AdminModel> = adminRepository.findAllByRoleIn(DELIVERY_CAPABLE_ROLES)
+  override fun findAllDeliveryCapable(): List<AdminModel> =
+    adminRepository.findAllByRoleIn(DELIVERY_CAPABLE_ROLES, INTERNAL_DELIVERY_LIST_LIMIT)
+
+  override fun findDeliveryWorkers(
+    keyword: String?,
+    role: AdminRoleModel?,
+    pageable: Pageable,
+  ): Page<AdminModel> {
+    val roles = if (role == null) DELIVERY_CAPABLE_ROLES else listOf(role)
+    return adminRepository.findAllByRoleIn(roles, keyword, pageable)
+  }
 
   /**
    * 具备配送能力的账号数(role ∈ {DELIVERY_WORKER, ADMIN},条件 count,避免全表加载)
@@ -177,7 +191,9 @@ class AdminServiceImpl(
    * 按在线状态查询配送能力账号
    */
   override fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel> =
-    adminRepository.findByOnlineStatus(status).filter { it.role in DELIVERY_CAPABLE_ROLES }
+    adminRepository
+      .findByOnlineStatus(status, INTERNAL_DELIVERY_LIST_LIMIT)
+      .filter { it.role in DELIVERY_CAPABLE_ROLES }
 
   /**
    * Check if admin exists by phone

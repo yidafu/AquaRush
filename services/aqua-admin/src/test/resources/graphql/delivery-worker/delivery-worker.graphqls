@@ -3,7 +3,7 @@
 scalar Long
 
 type Query {
-  deliveryWorkers: [DeliveryWorker!]!
+  deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
   onlineDeliveryWorkers: [DeliveryWorker!]!
   deliveryWorker(id: Long!): DeliveryWorker
 }
@@ -26,4 +26,12 @@ type DeliveryWorker {
 enum DeliveryWorkerStatus {
   ONLINE
   OFFLINE
+}
+
+type DeliveryWorkerVOPage {
+  content: [DeliveryWorker!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
 }

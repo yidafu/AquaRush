@@ -30,7 +30,7 @@ dev/yidafu/aqua/<domain>/
 ├── controller/       # REST controllers (only when needed)
 ├── domain/
 │   ├── model/        # module-private models (+ enums/)
-│   ├── repository/   # Spring Data repositories + custom impls
+│   ├── repository/   # Exposed DSL repositories (+ Repository interface in same package)
 │   └── exception/    # domain exceptions
 ├── dto/              # module-private DTOs
 ├── event/            # domain events and handlers
@@ -44,7 +44,7 @@ Services use `<admin|client>/{config, <domain>/{resolvers, controller, dto}}`.
 
 **Core rules**:
 
-1. **JPA entities are centralized** in `modules/aqua-foundation/.../common/domain/model/` (the client service's `@EntityScan` depends on this). Domain modules keep only private non-entity models.
+1. **Domain models are centralized** in `modules/aqua-foundation/.../common/domain/model/` (plain Kotlin classes — JPA/Hibernate annotations were removed in the P5 migration). Exposed `Table` mappings live in `modules/aqua-foundation/.../common/domain/table/`. Domain modules keep only private non-model types.
 2. **Cross-module DTOs live in `aqua-foundation` `api/dto`** (one class per file). Module-private DTOs stay in the module `dto/`; service-local DTOs in `<domain>/dto/`. Do not create `api/query` or `common/dto`.
 3. **Resolver placement**: pure module adapters may live in the module (`analytics/reconciliation/resolvers`); resolvers that depend on service-layer DTOs/security live in the service `<domain>/resolvers/` (always plural).
 4. **Resolver input types are never inlined** (no `data class XxxInput` in a resolver `companion object`) — service-local GraphQL input DTOs go in `<admin|client>/<domain>/dto/` (e.g. `admin/user/dto/AdminRequestDtos.kt`, mapped from the generated GraphQL input via a `fromInput(...)` factory); cross-module DTOs in `aqua-foundation` `api/dto`.
@@ -92,9 +92,9 @@ Modules are structured with clear dependency hierarchy:
 ## Database Configuration
 
 - **Primary Database**: PostgreSQL (configurable to MySQL)
-- **Migration**: Liquibase with XML-based changelogs in `services/aqua-admin/src/main/resources/db/changelog/changes/` (versioned `v1.0.x-*.xml`, `v1.1.x-*.xml`)
-- **Schema Management**: Automatic on startup, manual via `./gradlew :services:aqua-admin:update` (schema is managed by the admin service; liquibase is disabled on aqua-client)
-- **ORM**: Spring Data JPA with Hibernate
+- **Migration**: Liquibase with **compiled Kotlin DSL changelogs** in `services/aqua-admin/src/main/kotlin/db/changelog/` (`DbChangelogMaster` + `changes/V*.kt`; the path is the class FQCN). There is no `liquibase update` Gradle task — migrations run at application startup.
+- **Schema Management**: Automatic on startup (Liquibase, admin service only; liquibase is disabled on aqua-client)
+- **Persistence**: JetBrains Exposed 1.x DSL (`org.jetbrains.exposed.v1.*`) over the Spring-managed `DataSource`; repositories open transactions with `transaction(database) { }`. No JPA/Hibernate/QueryDSL on the classpath (P5 收口).
 
 ## Key Database Tables
 

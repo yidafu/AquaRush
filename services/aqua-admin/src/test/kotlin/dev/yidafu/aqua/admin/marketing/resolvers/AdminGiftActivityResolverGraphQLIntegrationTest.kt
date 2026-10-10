@@ -80,7 +80,7 @@ class AdminGiftActivityResolverGraphQLIntegrationTest(
 
     fun futureTo(): String = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 
-    fun giftProductId(): Long = productRepository.findAll().first { it.name == "满赠赠品商品" }.id!!
+    fun giftProductId(): Long = productRepository.findByName("满赠赠品商品")!!.id!!
 
     beforeTest {
       mockMvc =
@@ -90,7 +90,7 @@ class AdminGiftActivityResolverGraphQLIntegrationTest(
           .build()
 
       // 幂等种子 2 商品(活动商品 + 赠品,按名称去重)
-      if (productRepository.findAll().none { it.name == "满赠活动商品" }) {
+      if (productRepository.findByName("满赠活动商品") == null) {
         productRepository.save(
           ProductModel(
             name = "满赠活动商品",
@@ -102,7 +102,7 @@ class AdminGiftActivityResolverGraphQLIntegrationTest(
           ),
         )
       }
-      if (productRepository.findAll().none { it.name == "满赠赠品商品" }) {
+      if (productRepository.findByName("满赠赠品商品") == null) {
         productRepository.save(
           ProductModel(
             name = "满赠赠品商品",

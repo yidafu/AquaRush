@@ -75,12 +75,10 @@ class OrderQueryServiceImplTest :
       every { orderRepository.findByUserId(100L) } returns orders
       every { orderRepository.findByUserIdAndStatus(100L, OrderModelStatus.PENDING_PAYMENT) } returns orders
       every { orderRepository.findByStatus(OrderModelStatus.COMPLETED) } returns emptyList()
-      every { orderRepository.findAll() } returns orders
 
       service.getUserOrders(100L) shouldBe orders
       service.getUserOrdersByStatus(100L, OrderModelStatus.PENDING_PAYMENT) shouldBe orders
       service.getOrdersByStatus(OrderModelStatus.COMPLETED) shouldBe emptyList()
-      service.findAllOrders() shouldBe orders
       service.findOrdersByUserId(100L) shouldBe orders
     }
     test("findOrderByIdAndUserId validates ownership") {

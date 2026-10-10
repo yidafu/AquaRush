@@ -22,54 +22,31 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账报表实体
  */
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.SoftDelete
-import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
 
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(name = "reconciliation_reports")
 class ReconciliationReportModel : SoftDeletable {
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null
 
-  @Column(name = "task_id", nullable = false)
   var taskId: String = ""
 
-  @Column(name = "report_type", nullable = false)
   var reportType: String = "" // SUMMARY, DETAIL
 
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "report_data", columnDefinition = "jsonb", nullable = false)
   var reportData: Map<String, Any> = emptyMap()
 
-  @Column(name = "file_path")
   var filePath: String? = null
 
-  @Column(name = "file_name")
   var fileName: String? = null
 
-  @Column(name = "file_size")
   var fileSize: Long? = null
 
-  @Column(name = "generated_at", nullable = false)
   var generatedAt: LocalDateTime = LocalDateTime.now()
 
-  @Column(name = "created_at", nullable = false)
   var createdAt: LocalDateTime = LocalDateTime.now()
 
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now()
 
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null
 
   companion object {

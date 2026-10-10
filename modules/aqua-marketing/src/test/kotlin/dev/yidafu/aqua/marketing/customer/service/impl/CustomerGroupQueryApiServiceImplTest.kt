@@ -52,10 +52,4 @@ class CustomerGroupQueryApiServiceImplTest :
 
       result.size shouldBe 1
     }
-    test("findAll") {
-      every { customerGroupRepository.findAll() } returns
-        listOf(CustomerGroupModel(id = 1L, name = "A"), CustomerGroupModel(id = 2L, name = "B"))
-
-      service.findAll().size shouldBe 2
-    }
   })

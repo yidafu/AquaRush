@@ -22,16 +22,11 @@ dependencies {
     implementation(libs.spring.boot.gradlePlugin)
     implementation(libs.spring.dependency.management.gradlePlugin)
 
-    // Add Kotlin plugins for precompiled script plugins
+    // 预编译脚本里的 kotlin("plugin.spring") 需要该构件提供 Gradle 插件 marker
+    // (kotlin-spring 插件由 kotlin-allopen 实现);kotlin-noarg/kotlin-jpa 随 P5 一并移除。
     implementation(libs.kotlin.allopen)
-    implementation(libs.kotlin.noarg)
 
     // Add ktlint plugin
     implementation(libs.ktlint.gradlePlugin)
   implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:${libs.versions.kotlin.get()}")
-
-  implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${libs.versions.ksp.get()}")
-
-
-  // QueryDSL is now configured manually without the ewerk plugin (incompatible with Gradle 9)
 }

@@ -98,7 +98,7 @@ class AdminNoticeResolverGraphQLIntegrationTest(
           .build()
 
       // 幂等种子公告(按标题去重,避免共享测试库遗留数据重复)
-      if (noticeRepository.findAll().none { it.title == "种子公告A" }) {
+      if (noticeRepository.findByTitle("种子公告A") == null) {
         noticeRepository.saveAll(
           listOf(
             seedNotice("种子公告A", NoticeType.PLATFORM_NOTICE, NoticeStatus.PUBLISHED, pinned = true),

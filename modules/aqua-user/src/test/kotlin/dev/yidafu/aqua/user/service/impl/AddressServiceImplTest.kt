@@ -194,17 +194,6 @@ class AddressServiceImplTest :
       result.size shouldBe 2
       verify { addressRepository.saveAll(addresses) }
     }
-    test("findAllAddresses should return all addresses") {
-      // Given
-      every { addressRepository.findAll() } returns listOf(createSampleAddress(), createSampleAddress2())
-
-      // When
-      val result = addressService.findAllAddresses()
-
-      // Then
-      result.size shouldBe 2
-      verify { addressRepository.findAll() }
-    }
     test("deleteAddressById should delete address by id for admin") {
       // When
       val result = addressService.deleteAddressById(1L)

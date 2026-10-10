@@ -179,24 +179,49 @@ class ProductFavoriteRepositoryImplTest :
       repo.countFavoritesSince(base.plusDays(10)) shouldBe 0L
     }
 
-    test("findMostFavoritedProducts:按收藏数倒序,软删不计") {
+    test("findMostFavoritedProducts:SQL 侧分页+HAVING 过滤,软删不计,附最后收藏时间") {
+      val base = LocalDateTime.of(2026, 3, 1, 0, 0)
+      val p1 = ProductPgTestSupport.product()
+      val p2 = ProductPgTestSupport.product()
+      val p3 = ProductPgTestSupport.product()
+      ProductPgTestSupport.favorite(userId = 1L, productId = p1, createdAt = base)
+      ProductPgTestSupport.favorite(userId = 2L, productId = p1, createdAt = base.plusDays(1))
+      ProductPgTestSupport.favorite(userId = 3L, productId = p1, createdAt = base.plusDays(2))
+      ProductPgTestSupport.favorite(userId = 4L, productId = p2, createdAt = base)
+      ProductPgTestSupport.favorite(userId = 5L, productId = p2, deleted = true)
+      ProductPgTestSupport.favorite(userId = 6L, productId = p3, createdAt = base)
+
+      // 第 1 页(每页 2 条):收藏数倒序,同数按商品 id 升序
+      val page0 = repo.findMostFavoritedProducts(PageRequest.of(0, 2))
+      page0.totalElements shouldBe 3L
+      page0.content.map { it.productId } shouldContainExactly listOf(p1, p2)
+      page0.content[0].favoriteCount shouldBe 3L
+      page0.content[0].lastFavoritedAt shouldBe base.plusDays(2)
+
+      // 第 2 页不重不漏
+      val page1 = repo.findMostFavoritedProducts(PageRequest.of(1, 2))
+      page1.content.map { it.productId } shouldContainExactly listOf(p3)
+
+      // minFavorites 下推到 HAVING:只有 p1 满足 >= 2
+      val filtered = repo.findMostFavoritedProducts(PageRequest.of(0, 10), minFavorites = 2L)
+      filtered.totalElements shouldBe 1L
+      filtered.content.single().productId shouldBe p1
+    }
+
+    test("findTopFavoritedProducts/countFavoritedProducts/countTotalFavorites:SQL 侧 limit 与聚合") {
       val p1 = ProductPgTestSupport.product()
       val p2 = ProductPgTestSupport.product()
       ProductPgTestSupport.favorite(userId = 1L, productId = p1)
       ProductPgTestSupport.favorite(userId = 2L, productId = p1)
-      ProductPgTestSupport.favorite(userId = 3L, productId = p1)
-      ProductPgTestSupport.favorite(userId = 4L, productId = p2)
-      ProductPgTestSupport.favorite(userId = 5L, productId = p2, deleted = true)
+      ProductPgTestSupport.favorite(userId = 3L, productId = p2)
+      ProductPgTestSupport.favorite(userId = 4L, productId = p2, deleted = true)
 
-      val counts = repo.findMostFavoritedProducts()
-      counts shouldHaveSize 2
-      counts[0].productId shouldBe p1
-      counts[0].favoriteCount shouldBe 3L
-      counts[1].productId shouldBe p2
-      counts[1].favoriteCount shouldBe 1L
+      repo.findTopFavoritedProducts(1).map { it.productId } shouldContainExactly listOf(p1)
+      repo.countFavoritedProducts() shouldBe 2L
+      repo.countTotalFavorites() shouldBe 3L
     }
 
-    test("findFavoritesForExport:过滤组合与空过滤回退") {
+    test("findFavoritesForExport:过滤组合 + keyset 游标分批(软删不计)") {
       val base = LocalDateTime.of(2026, 3, 1, 0, 0)
       val pa = ProductPgTestSupport.product()
       val pb = ProductPgTestSupport.product()
@@ -211,17 +236,23 @@ class ProductFavoriteRepositoryImplTest :
         deleted = true,
       )
 
-      val all = repo.findFavoritesForExport(null, null, null, null)
+      val all = repo.findFavoritesForExport(null, null, null, null, null, 100)
       all shouldHaveSize 3
       all.map { it.id } shouldContainExactly listOf(f1, f2, f3)
-      repo.findFavoritesForExport(11L, null, null, null) shouldHaveSize 2
-      repo.findFavoritesForExport(null, listOf(pa), null, null) shouldHaveSize 1
-      repo.findFavoritesForExport(null, emptyList(), null, null) shouldHaveSize 3
-      repo.findFavoritesForExport(null, null, base.plusDays(1), null) shouldHaveSize 2
-      repo.findFavoritesForExport(null, null, null, base) shouldHaveSize 1
-      repo.findFavoritesForExport(null, null, base.plusDays(1), base.plusDays(8)) shouldHaveSize 1
-      val scoped = repo.findFavoritesForExport(11L, listOf(pa, pb), base, base.plusDays(10))
+      repo.findFavoritesForExport(11L, null, null, null, null, 100) shouldHaveSize 2
+      repo.findFavoritesForExport(null, listOf(pa), null, null, null, 100) shouldHaveSize 1
+      repo.findFavoritesForExport(null, emptyList(), null, null, null, 100) shouldHaveSize 3
+      repo.findFavoritesForExport(null, null, base.plusDays(1), null, null, 100) shouldHaveSize 2
+      repo.findFavoritesForExport(null, null, null, base, null, 100) shouldHaveSize 1
+      repo.findFavoritesForExport(null, null, base.plusDays(1), base.plusDays(8), null, 100) shouldHaveSize 1
+      val scoped = repo.findFavoritesForExport(11L, listOf(pa, pb), base, base.plusDays(10), null, 100)
       scoped.map { it.id } shouldContainExactly listOf(f1, f3)
+
+      // keyset:按 id 升序,afterId 之后取 limit 条 —— 导出分批不重不漏
+      val firstBatch = repo.findFavoritesForExport(null, null, null, null, null, 2)
+      firstBatch.map { it.id } shouldContainExactly listOf(f1, f2)
+      val secondBatch = repo.findFavoritesForExport(null, null, null, null, firstBatch.last().id, 2)
+      secondBatch.map { it.id } shouldContainExactly listOf(f3)
     }
 
     test("getAverageFavoritesPerUser:均值与无用户回退 0.0") {

@@ -86,16 +86,6 @@ class DeliveryAreaRepositoryImpl(
         .toList()
     }.map(::toModel)
 
-  override fun findAll(): List<DeliveryAreaModel> =
-    transaction(database) {
-      DeliveryAreasTable
-        .selectAll()
-        .where { DeliveryAreasTable.activeOnly() }
-        // 原 JPA 无序,固定 id 升序取稳定插入序
-        .orderBy(DeliveryAreasTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findById(id: Long): Optional<DeliveryAreaModel> =
     Optional.ofNullable(
       transaction(database) {

@@ -92,11 +92,6 @@ interface AddressService {
   fun saveAll(addresses: List<AddressModel>): List<AddressModel>
 
   /**
-   * 获取所有地址 (管理员功能)
-   */
-  fun findAllAddresses(): List<AddressModel>
-
-  /**
    * 根据ID删除地址 (管理员功能，不校验userId)
    */
   fun deleteAddressById(addressId: Long): Boolean

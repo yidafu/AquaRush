@@ -3,7 +3,6 @@
 scalar Long
 
 type Query {
-  addresses: [Address!]!
   searchAllAddresses(keyword: String, page: Int, size: Int): AddressVOPage!
   userAddresses(userId: Long): [Address!]!
 }

@@ -18,5 +18,3 @@ dependencies {
   // 必须有实现级回归；共享 PG 基建在 foundation testFixtures
   testImplementation(testFixtures(project(":modules:aqua-foundation")))
 }
-
-// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

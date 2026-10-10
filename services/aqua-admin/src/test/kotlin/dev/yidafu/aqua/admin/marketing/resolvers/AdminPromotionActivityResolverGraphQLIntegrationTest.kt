@@ -89,7 +89,7 @@ class AdminPromotionActivityResolverGraphQLIntegrationTest(
           """mutation { createPromotionActivity(input: {name: "$name", activityType: FULL_REDUCE, scope: ALL, validFrom: "${futureFrom()}", validTo: "${futureTo()}", tiers: [{thresholdCents: 10000, discountAmountCents: 1000}, {thresholdCents: 20000, discountAmountCents: 2500}]}) { id name } }""",
         )
       withClue("createPromotionActivity should succeed: $json") { !json.contains("\"errors\"") shouldBe true }
-      return promotionActivityRepository.findAll().first { it.name == name }.id!!
+      return promotionActivityRepository.findByName(name)!!.id!!
     }
 
     /**
@@ -104,7 +104,7 @@ class AdminPromotionActivityResolverGraphQLIntegrationTest(
           .build()
 
       // 幂等种子 1 商品(按名称去重,避免共享测试库遗留数据重复)
-      if (productRepository.findAll().none { it.name == "满减商品" }) {
+      if (productRepository.findByName("满减商品") == null) {
         productRepository.save(
           ProductModel(
             name = "满减商品",
@@ -133,7 +133,7 @@ class AdminPromotionActivityResolverGraphQLIntegrationTest(
         !json.contains("\"errors\"") shouldBe true
 
       // 单查 promotionActivity:档位 + 展示态一致
-      val activityId = promotionActivityRepository.findAll().first { it.name == name }.id!!
+      val activityId = promotionActivityRepository.findByName(name)!!.id!!
       val detail =
         postGraphql(
           "{ promotionActivity(id: $activityId) { id name currentStatus tiers { thresholdCents discountAmountCents } } }",

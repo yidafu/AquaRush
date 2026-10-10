@@ -29,6 +29,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 class AdminQueryResolverTest :
@@ -64,46 +66,62 @@ class AdminQueryResolverTest :
       regionRepository = mockk(relaxed = true)
       resolver = AdminQueryResolver(adminRepository, regionRepository)
     }
-    test("admins should return all admins") {
+    test("admins should return paged admins") {
       // Given
       val admins = listOf(createSampleAdmin())
-      every { adminRepository.findAllAdmins() } returns admins
+      val pageable = PageRequest.of(0, 20)
+      every { adminRepository.findAllAdmins(null, null, pageable) } returns PageImpl(admins, pageable, 1)
 
       // When
-      val result = resolver.admins()
+      val result = resolver.admins(keyword = null, role = null, page = 0, size = 20)
 
       // Then
-      result.size shouldBe 1
-      verify { adminRepository.findAllAdmins() }
+      result.content.size shouldBe 1
+      result.totalElements shouldBe 1
+      verify { adminRepository.findAllAdmins(null, null, pageable) }
     }
-    test("admins should return empty list when no admins") {
+    test("admins should return empty page when no admins") {
       // Given
-      every { adminRepository.findAllAdmins() } returns emptyList()
+      val pageable = PageRequest.of(0, 20)
+      every { adminRepository.findAllAdmins(null, null, pageable) } returns PageImpl(emptyList(), pageable, 0)
 
       // When
-      val result = resolver.admins()
+      val result = resolver.admins(keyword = null, role = null, page = 0, size = 20)
 
       // Then
-      result.isEmpty() shouldBe true
+      result.content.isEmpty() shouldBe true
+      result.totalElements shouldBe 0
     }
-    test("allRegions should return all regions") {
+    test("regions(parentCode=null) should return root provinces") {
       // Given
       val regions = listOf(createSampleRegion())
-      every { regionRepository.findAll() } returns regions
+      every { regionRepository.findRootRegions(1) } returns regions
 
       // When
-      val result = resolver.allRegions()
+      val result = resolver.regions(parentCode = null)
 
       // Then
       result.size shouldBe 1
-      verify { regionRepository.findAll() }
+      verify { regionRepository.findRootRegions(1) }
     }
-    test("allRegions should return empty list on error") {
+    test("regions(parentCode) should return children of the given parent") {
       // Given
-      every { regionRepository.findAll() } throws RuntimeException("Database error")
+      val regions = listOf(createSampleRegion())
+      every { regionRepository.findByParentCodeOrderByCode("440000") } returns regions
 
       // When
-      val result = resolver.allRegions()
+      val result = resolver.regions(parentCode = "440000")
+
+      // Then
+      result.size shouldBe 1
+      verify { regionRepository.findByParentCodeOrderByCode("440000") }
+    }
+    test("regions should return empty list on error") {
+      // Given
+      every { regionRepository.findRootRegions(1) } throws RuntimeException("Database error")
+
+      // When
+      val result = resolver.regions(parentCode = null)
 
       // Then
       result.isEmpty() shouldBe true

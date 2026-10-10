@@ -67,7 +67,7 @@ class CustomerGroupRepositoryImplTest :
       repo.findByName("旧名") shouldBe null
     }
 
-    test("软删分组不可见:各查询均过滤,findAll 按 id 升序") {
+    test("软删分组不可见:各查询均过滤,findAllById 按 id 升序") {
       val first = MarketingPgTestSupport.customerGroup(name = "一")
       val second = MarketingPgTestSupport.customerGroup(name = "二")
       MarketingPgTestSupport.customerGroup(name = "删", deleted = true)
@@ -75,8 +75,7 @@ class CustomerGroupRepositoryImplTest :
       repo.findById(first).isPresent shouldBe true
       repo.findById(second).isPresent shouldBe true
       repo.existsByName("删") shouldBe false
-      repo.findAll() shouldHaveSize 2
-      repo.findAll().map { it.id } shouldContainExactly listOf(first, second)
+      repo.findAllById(listOf(first, second, 999L)).map { it.id } shouldContainExactly listOf(first, second)
       repo.findAllById(listOf(first, 999L)) shouldHaveSize 1
       repo.findAllById(emptyList()) shouldHaveSize 0
     }

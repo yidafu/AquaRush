@@ -42,7 +42,6 @@ class RegionRepositoryImplTest :
       repo.existsByCodeAndLevel("HZ", 2) shouldBe true
       repo.existsByCodeAndLevel("HZ", 3) shouldBe false
       repo.findById(saved.id!!).shouldNotBeNull()
-      repo.findAll() shouldHaveSize 1
 
       repo.delete(saved)
       repo.findByCode("HZ") shouldBe null

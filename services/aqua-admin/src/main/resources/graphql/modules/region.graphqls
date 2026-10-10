@@ -2,6 +2,7 @@
 
 extend type Query {
   # Region queries
-  # 获取所有地区数据，用于前端构建树形结构
-  allRegions: [Region!]!
+  # 按父级懒加载地区(parentCode 为空 = 省级列表)。
+  # AGENTS.md 规则 10:不再提供整表返回的 allRegions;前端 Cascader 逐级加载。
+  regions(parentCode: String): [Region!]!
 }

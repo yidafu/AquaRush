@@ -29,8 +29,8 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
  * foundation 表定义冒烟测试的真实 PG 支撑(JPA→Exposed 迁移 P4),
  * 模式与 user/analytics/platform/ops 的 *PgTestSupport 一致。
  *
- * 覆盖 [common.domain.table] 包下全部 53 个具体 table object
- * (Trade/Marketing/Product/Source/Reconciliation/Fact/Platform/User),
+ * 覆盖 [common.domain.table] 包下全部 56 个具体 table object
+ * (Trade/Marketing/Product/Source/Reconciliation/Fact/Platform/User/Logging),
  * 不含抽象基类 [SoftDeletableTable] —— 目的是在最便宜的时点暴露
  * 列名拼错、PG 保留字冲突、jsonString 类型映射问题。
  */
@@ -100,6 +100,10 @@ object FoundationPgTestSupport {
       AddressesTable,
       RegionsTable,
       NotificationSettingsTable,
+      // LoggingTables(P5:foundation logging 仓储去 QueryDSL)
+      ApiLogsTable,
+      BusinessLogsTable,
+      LogBackupRecordsTable,
     )
 
   @Volatile

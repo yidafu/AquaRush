@@ -121,24 +121,46 @@ class GroupProductPriceRepositoryImpl(
     }
   }
 
+  /**
+   * upsert 语义(对齐 JPA `save`)。自然键 (customer_group_id, product_id) 上有**非部分**
+   * 唯一索引 `uk_gpp_group_product`:软删行仍占用该键,若直接 INSERT 新 id 会撞唯一索引
+   * (管理后台「删除分组价后再重新配置同一商品」会 500)。因此按自然键查找时**包含软删行**,
+   * 命中即复活该行(清 is_deleted/deleted_at/deleted_by 并覆盖价格),而非插入新行。
+   */
   override fun save(entity: GroupProductPriceModel): GroupProductPriceModel =
     transaction(database) {
-      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
       val now = LocalDateTime.now()
-      val exists =
-        GroupProductPricesTable
-          .selectAll()
-          .where { GroupProductPricesTable.id eq id }
-          .limit(1)
-          .any()
-      if (exists) {
+      val existingRow =
+        if (entity.id != null) {
+          GroupProductPricesTable
+            .selectAll()
+            .where { GroupProductPricesTable.id eq entity.id!! }
+            .limit(1)
+            .firstOrNull()
+        } else {
+          GroupProductPricesTable
+            .selectAll()
+            .where {
+              (GroupProductPricesTable.customerGroupId eq entity.customerGroupId) and
+                (GroupProductPricesTable.productId eq entity.productId)
+            }.limit(1)
+            .firstOrNull()
+        }
+      if (existingRow != null) {
+        val id = existingRow[GroupProductPricesTable.id]
+        entity.id = id
         GroupProductPricesTable.update({ GroupProductPricesTable.id eq id }) {
           it[customerGroupId] = entity.customerGroupId
           it[productId] = entity.productId
           it[priceCents] = entity.priceCents
+          // 复活软删行:同键唯一索引下不允许并存第二条(见方法注释)
+          it[isDeleted] = false
+          it[deletedAt] = null
+          it[deletedBy] = null
           it[updatedAt] = now
         }
       } else {
+        val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
         GroupProductPricesTable.insert {
           it[GroupProductPricesTable.id] = id
           it[customerGroupId] = entity.customerGroupId

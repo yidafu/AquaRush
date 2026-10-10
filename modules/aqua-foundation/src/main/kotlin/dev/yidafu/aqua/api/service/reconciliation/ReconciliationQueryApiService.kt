@@ -71,8 +71,6 @@ interface DailyCollectionQueryApiService {
   fun findById(id: Long): DailyCollectionRecordModel?
 
   fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel>
-
-  fun findAll(): List<DailyCollectionRecordModel>
 }
 
 interface DailyReconciliationQueryApiService {
@@ -86,8 +84,6 @@ interface DailyReconciliationQueryApiService {
   fun findByReconciliationDate(reconciliationDate: LocalDate): DailyReconciliationModel?
 
   fun findById(id: Long): DailyReconciliationModel?
-
-  fun findAll(): List<DailyReconciliationModel>
 
   fun findAll(pageable: Pageable): Page<DailyReconciliationModel>
 }

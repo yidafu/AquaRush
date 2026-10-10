@@ -386,12 +386,11 @@ class OrderRepositoryImplTest :
       repo.countByStatus(OrderModelStatus.COMPLETED) shouldBe 0L
     }
 
-    test("findAll:软删过滤 + id 升序;findAllById:命中子集 + 空列表") {
+    test("findAllById:软删过滤 + 命中子集 + 空列表") {
       val a = seedOrder(userId = 1L)
       seedOrder(userId = 2L, deleted = true)
       val c = seedOrder(userId = 3L)
 
-      repo.findAll().map { it.id } shouldContainExactly listOf(a, c)
       repo.findAllById(listOf(c, a)).map { it.id } shouldContainExactly listOf(a, c)
       repo.findAllById(emptyList()) shouldHaveSize 0
     }

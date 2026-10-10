@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.admin.statistics
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.admin.testutil.StatisticsTestSeeds
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
@@ -38,6 +39,7 @@ import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
+import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
@@ -77,11 +79,14 @@ class StatisticsOrderRepositoryIntegrationTest(
   private val paymentRepository: PaymentRepository,
   private val paymentRefundRepository: PaymentRefundRepository,
   private val adminRepository: AdminRepository,
+  private val productRepository: ProductRepository,
 ) : FunSpec({
     // orders.user_id/address_id 存在外键,先种一条用户与地址供订单引用
     var userId = 1L
     var addressId = 0L
     beforeTest {
+      // order_items.product_id 有外键 fk_order_items_product,用例以固定商品 id 1/2/3 断言 → 按 id 幂等种子
+      StatisticsTestSeeds.seedProducts(productRepository)
       userId =
         userRepository
           .save(

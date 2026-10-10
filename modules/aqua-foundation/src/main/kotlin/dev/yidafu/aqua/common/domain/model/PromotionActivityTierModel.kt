@@ -19,49 +19,21 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import jakarta.persistence.*
-import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 
 /**
  * 满减/折扣活动档位(PRD 10-marketing.md §R-MKT-04):
  * 档位金额递增且互斥,活动内取最高已达标档;满减用 discountAmountCents,满折用 discountRatePermille(千分比,9000=9折)。
  */
-@Entity
-@SoftDelete(columnName = "is_deleted")
-@Table(
-  name = "promotion_activity_tiers",
-  indexes = [
-    Index(name = "idx_pat_activity_sort", columnList = "activity_id,sort"),
-  ],
-)
 open class PromotionActivityTierModel(
-  @Id
-  @SnowflakeIdGenerator
-  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null,
-  @Column(name = "activity_id", nullable = false)
   val activityId: Long = 0,
-  @Column(name = "threshold_cents", nullable = false)
   var thresholdCents: Long = 0,
-  @Column(name = "discount_amount_cents")
   var discountAmountCents: Long? = null,
-  @Column(name = "discount_rate_permille")
   var discountRatePermille: Long? = null,
-  @Column(name = "sort", nullable = false)
   var sort: Int = 0,
-  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-  @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
-) : SoftDeletable {
-  @PreUpdate
-  fun preUpdate() {
-    updatedAt = LocalDateTime.now()
-  }
-}
+) : SoftDeletable

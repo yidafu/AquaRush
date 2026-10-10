@@ -32,9 +32,6 @@ import java.util.Optional
  * report_data 为 text 列,JSON 结构化转换由仓储层负责(Jackson)。
  */
 interface DailyReconciliationRepository {
-  /** 全量列表(过滤软删;原 JPA 无序,固定 id 升序取稳定插入序)。 */
-  fun findAll(): List<DailyReconciliationModel>
-
   /** 分页(过滤软删;原 JPA 无序,id 升序破平防跨页重复)。 */
   fun findAll(pageable: Pageable): Page<DailyReconciliationModel>
 

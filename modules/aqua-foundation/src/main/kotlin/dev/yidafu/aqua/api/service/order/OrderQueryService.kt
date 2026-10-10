@@ -59,11 +59,6 @@ interface OrderQueryService {
   fun getOrdersByStatus(status: OrderModelStatus): List<OrderModel>
 
   /**
-   * 获取所有订单
-   */
-  fun findAllOrders(): List<OrderModel>
-
-  /**
    * 根据ID和用户ID查询订单
    */
   fun findOrderByIdAndUserId(

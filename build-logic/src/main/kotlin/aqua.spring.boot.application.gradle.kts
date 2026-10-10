@@ -1,5 +1,4 @@
 plugins {
-    id("aqua.kotlin.jpa")
     id("aqua.kotlin.spring")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -16,4 +15,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.liquibase:liquibase-core")
+    // JPA→Exposed 迁移 P5:JPA 已下线,服务侧数据访问走 Exposed(JDBC);
+    // 保留 Spring JDBC 栈(DataSource/JdbcTemplate/事务管理器)与仓储接口使用的分页抽象。
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.springframework.data:spring-data-commons")
 }

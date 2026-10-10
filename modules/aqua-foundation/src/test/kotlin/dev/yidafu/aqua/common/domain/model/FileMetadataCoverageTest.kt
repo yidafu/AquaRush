@@ -106,14 +106,6 @@ class FileMetadataCoverageTest :
       s shouldContain "abc123"
     }
 
-    test("preUpdate 应刷新 updatedAt") {
-      val m = metadata()
-      val before = m.updatedAt
-      Thread.sleep(5)
-      m.preUpdate()
-      (m.updatedAt.isAfter(before) || m.updatedAt != before).shouldBeTrue()
-    }
-
     test("FileType 枚举全部值应可遍历且稳定") {
       FileType.entries.map { it.name } shouldContainExactly
         listOf(

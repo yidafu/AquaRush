@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package dev.yidafu.aqua.logging.partition.repository
@@ -22,11 +22,12 @@ package dev.yidafu.aqua.logging.partition.repository
 import dev.yidafu.aqua.logging.partition.domain.LogPartitionRules
 import dev.yidafu.aqua.logging.partition.domain.model.LogPartitionInfo
 import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType
+import org.jetbrains.exposed.v1.core.VarCharColumnType
+import org.jetbrains.exposed.v1.core.statements.StatementType
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.postgresql.PGConnection
 import org.slf4j.LoggerFactory
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.query
-import org.springframework.jdbc.datasource.DataSourceUtils
 import org.springframework.stereotype.Repository
 import java.io.BufferedOutputStream
 import java.io.OutputStream
@@ -40,29 +41,38 @@ import java.util.zip.GZIPOutputStream
 /**
  * 日志分区元数据/操作 Repository 实现(PostgreSQL)
  * 日志表按月分区,备份直接操作分区表:分区导出(COPY)、并入年度冷表、DROP 分区、事务级 advisory lock。
+ *
+ * 事务性(Exposed 迁移 P5 收口):主事务管理器是 Exposed `SpringTransactionManager`,本类**全部**
+ * 数据访问都走 Exposed —— `transaction(database) { exec(...) }` 会加入 `@Transactional` 已开启的
+ * 同一个事务(同一 Database 时 Exposed 不新开事务),因此
+ * `LogBackupTransactionService.doBackup` 的
+ * 「advisory xact lock → 导出 → 并入冷表 → DROP 分区 → 落库」是原子的。
+ * 这里不再使用 Spring `JdbcTemplate` / `DataSourceUtils`,也就不再依赖「事务连接被绑定到
+ * DataSource 的 `ConnectionHolder`」这一隐式约定 —— 事务边界由 Exposed 一处决定。
+ *
+ * `COPY ... TO STDOUT` 只能用 JDBC `CopyManager`,因此这一处从**当前 Exposed 事务**取原始连接
+ * (`Transaction.connection.connection`):COPY 与同事务的 DDL/DML 落在同一条连接、同一个事务里。
  */
 @Repository
 class LogPartitionRepositoryImpl(
-  private val jdbcTemplate: JdbcTemplate,
+  private val database: Database,
 ) : LogPartitionRepository {
   private val logger = LoggerFactory.getLogger(LogPartitionRepositoryImpl::class.java)
 
   /** 冷表 schema(按年份组织,如 log_archive.api_logs_2026) */
   private val coldSchema = "log_archive"
 
-  override fun isPartitioned(logTable: LogTableType): Boolean {
-    val relkind =
-      jdbcTemplate.queryForObject(
+  override fun isPartitioned(logTable: LogTableType): Boolean =
+    transaction(database) {
+      exec(
         "SELECT relkind FROM pg_class WHERE relname = ? AND relnamespace = 'public'::regnamespace",
-        String::class.java,
-        logTable.tableName,
-      ) ?: return false
-    return relkind == "p"
-  }
+        listOf(VarCharColumnType() to logTable.tableName),
+      ) { rs -> if (rs.next()) rs.getString(1) else null }
+    } == "p"
 
-  override fun listPartitions(logTable: LogTableType): List<LogPartitionInfo> {
-    val rows =
-      jdbcTemplate.query(
+  override fun listPartitions(logTable: LogTableType): List<LogPartitionInfo> =
+    transaction(database) {
+      exec(
         """
         SELECT c.relname AS partition_name,
                pg_get_expr(c.relpartbound, c.oid) AS bound,
@@ -74,27 +84,31 @@ class LogPartitionRepositoryImpl(
         WHERE p.relname = ? AND p.relkind = 'p'
         ORDER BY c.relname
         """.trimIndent(),
-        { rs, _ ->
-          val name = rs.getString("partition_name")
-          val bound = rs.getString("bound")
-          val month = LogPartitionRules.monthOfPartition(name)
-          val fromTo = parseBound(bound)
-          LogPartitionInfo(
-            logTable = logTable,
-            partitionName = name,
-            partitionMonth = month,
-            rowCount = rs.getLong("row_count"),
-            sizeBytes = rs.getLong("size_bytes"),
-            isDefault = bound == null,
-            isCurrentMonth = month == LocalDateTime.now().format(monthFmt),
-            fromBound = fromTo?.first,
-            toBound = fromTo?.second,
-          )
-        },
-        logTable.tableName,
-      )
-    return rows
-  }
+        listOf(VarCharColumnType() to logTable.tableName),
+      ) { rs ->
+        buildList {
+          while (rs.next()) {
+            val name = rs.getString("partition_name")
+            val bound = rs.getString("bound")
+            val month = LogPartitionRules.monthOfPartition(name)
+            val fromTo = parseBound(bound)
+            add(
+              LogPartitionInfo(
+                logTable = logTable,
+                partitionName = name,
+                partitionMonth = month,
+                rowCount = rs.getLong("row_count"),
+                sizeBytes = rs.getLong("size_bytes"),
+                isDefault = bound == null,
+                isCurrentMonth = month == LocalDateTime.now().format(monthFmt),
+                fromBound = fromTo?.first,
+                toBound = fromTo?.second,
+              ),
+            )
+          }
+        }
+      } ?: emptyList()
+    }
 
   override fun createMonthPartition(
     logTable: LogTableType,
@@ -102,22 +116,24 @@ class LogPartitionRepositoryImpl(
   ) {
     val (from, to) = monthRange(yearMonth)
     val partitionName = partitionName(logTable, yearMonth)
-    jdbcTemplate.execute(
-      "CREATE TABLE IF NOT EXISTS $partitionName PARTITION OF ${logTable.tableName} " +
-        "FOR VALUES FROM ('$from') TO ('$to')",
-    )
+    transaction(database) {
+      exec(
+        "CREATE TABLE IF NOT EXISTS $partitionName PARTITION OF ${logTable.tableName} " +
+          "FOR VALUES FROM ('$from') TO ('$to')",
+      )
+    }
   }
 
   override fun ensureColdYearTable(
     logTable: LogTableType,
     year: Int,
   ) {
-    // 幂等补建冷表 schema(迁移建过一次;防止 schema 被重置/删除后备份失败)
-    jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS $coldSchema")
     val coldTable = coldTableName(logTable, year)
-    jdbcTemplate.execute(
-      "CREATE TABLE IF NOT EXISTS $coldTable (LIKE public.${logTable.tableName} INCLUDING ALL)",
-    )
+    transaction(database) {
+      // 幂等补建冷表 schema(迁移建过一次;防止 schema 被重置/删除后备份失败)
+      exec("CREATE SCHEMA IF NOT EXISTS $coldSchema")
+      exec("CREATE TABLE IF NOT EXISTS $coldTable (LIKE public.${logTable.tableName} INCLUDING ALL)")
+    }
   }
 
   override fun appendToColdTable(
@@ -126,8 +142,22 @@ class LogPartitionRepositoryImpl(
     partitionName: String,
   ): Int {
     val coldTable = coldTableName(logTable, year)
+    // RETURNING 1 逐行计数:与 JdbcTemplate.update 的受影响行数语义一致(而不是查 count(*))
     val inserted =
-      jdbcTemplate.update("INSERT INTO $coldTable SELECT * FROM $partitionName")
+      transaction(database) {
+        // RETURNING 逐行计数(与 JdbcTemplate.update 的受影响行数同义)。
+        // 必须显式声明 StatementType.SELECT:Exposed 默认按 DML 走 executeUpdate,
+        // 而 PG 对带 RETURNING 且「预期无结果集」的调用会报「传回预期之外的结果」。
+        exec(
+          "INSERT INTO $coldTable SELECT * FROM $partitionName RETURNING 1",
+          emptyList(),
+          StatementType.SELECT,
+        ) { rs ->
+          var rows = 0
+          while (rs.next()) rows++
+          rows
+        } ?: 0
+      }
     logger.info("Appended {} rows from {} into cold table {}", inserted, partitionName, coldTable)
     return inserted
   }
@@ -141,13 +171,13 @@ class LogPartitionRepositoryImpl(
     val counter = CountingOutputStream()
     Files.newOutputStream(targetFile).use { raw ->
       GZIPOutputStream(BufferedOutputStream(TeeingOutputStream(raw, sha256, counter))).use { gzip ->
-        val connection = DataSourceUtils.getConnection(requireNotNull(jdbcTemplate.dataSource))
-        try {
+        transaction(database) {
+          // Exposed 事务持有原始 JDBC 连接(ExposedConnection.connection);COPY 走它,
+          // 从而与同事务的 DDL/DML 同连接、同事务
+          val connection = this.connection.connection as java.sql.Connection
           val pg = connection.unwrap(PGConnection::class.java)
           val sql = "COPY $partitionName TO STDOUT WITH (FORMAT csv, HEADER true)"
           pg.copyAPI.copyOut(sql, gzip)
-        } finally {
-          DataSourceUtils.releaseConnection(connection, jdbcTemplate.dataSource)
         }
       }
     }
@@ -157,17 +187,20 @@ class LogPartitionRepositoryImpl(
   }
 
   override fun dropPartition(partitionName: String) {
-    jdbcTemplate.execute("DROP TABLE $partitionName")
+    transaction(database) {
+      exec("DROP TABLE $partitionName")
+    }
     logger.info("Dropped partition {}", partitionName)
   }
 
   override fun tryAcquireBackupLock(partitionName: String): Boolean {
     val acquired =
-      jdbcTemplate.queryForObject(
-        "SELECT pg_try_advisory_xact_lock(hashtext(?))",
-        Boolean::class.java,
-        "aquarush:log-backup:$partitionName",
-      ) ?: false
+      transaction(database) {
+        exec(
+          "SELECT pg_try_advisory_xact_lock(hashtext(?))",
+          listOf(VarCharColumnType() to "aquarush:log-backup:$partitionName"),
+        ) { rs -> if (rs.next()) rs.getBoolean(1) else false }
+      } ?: false
     logger.debug("Advisory lock for {} acquired: {}", partitionName, acquired)
     return acquired
   }
