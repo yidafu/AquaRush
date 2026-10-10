@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="aqua-rush.svg" alt="AquaRush Logo" width="200"/>
+  <img src="aqua-rush-logo.svg" alt="AquaRush Logo" width="240"/>
   <h1>AquaRush - WeChat Bottled Water Ordering System</h1>
 </div>
 

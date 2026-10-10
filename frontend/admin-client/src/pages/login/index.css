@@ -28,7 +28,7 @@
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background: #fff;
-  padding: 4px;
+  padding: 12px; /* 标志横向较宽，圆形徽章内需留足内边距，避免底角被裁 */
 }
 
 .login-header .title {

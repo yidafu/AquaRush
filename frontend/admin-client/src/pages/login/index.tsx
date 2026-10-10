@@ -80,7 +80,7 @@ const Login: React.FC = () => {
       <div className="login-container">
         <div className="login-header">
           <div className="logo">
-            <img src="/aqua-rush.jpeg" alt="AquaRush" className="logo-img" />
+            <img src="/aqua-rush-mark.svg" alt="AquaRush" className="logo-img" />
           </div>
           <h1 className="title">桶装水订水系统</h1>
           <p className="subtitle">管理后台</p>
