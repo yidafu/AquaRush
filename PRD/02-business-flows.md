@@ -93,6 +93,21 @@
 
 > 现状(2026-08,G01 已解决):`PaymentServiceImpl` 为真实实现(微信支付 V3 JSAPI 预支付 + 假支付模式 `wechat.pay.mock-enabled` 供开发/测试);`WechatPayNotifyController` 提供 `/api/pay/notify` 回调端点(验签/金额校验/幂等);超时取消由 `PAYMENT_EXPIRY_CHECK` 延迟消息主触发 + `PaymentExpiryScheduler` 兜底扫描,幂等与互斥由 `payments.version` 乐观锁 CAS 保证;`refund()` 退款并落 `payment_refunds`(status=COMPLETED,退款/净营收统计口径);管理员退款审核流(R-PAY-02)与后台退款管理页已落地(2026-08-19)。规则定义见 04-order.md §R-PAY-01/02。
 
+**微信支付对账流程 [2026-10 新增,规划中(04-order.md §R-PAY-04/F-ORD-031,G93)]**:
+
+```text
+每日 02:00/02:05(调度,aqua-admin)下载 T-1 微信交易账单(ALL)与退款账单(REFUND,哈希校验)
+  → 解密解析(元两位小数→分) → 与本地逐笔比对:
+      支付: payments(paid_at 落账单日,含 REFUNDING/REFUNDED) vs 账单交易状态
+      退款: payment_refunds(COMPLETED,processed_at 落账单日) vs 账单退款状态
+  → 差异四类: 短款(微信有本地无)/长款(本地有微信无)/金额不一致/状态不一致
+      + 汇总三方校验(微信账单汇总行 / 逐笔解析合计 / 本地合计)
+  → 差异落明细 → 管理员处置(解决/忽略 + 备注必填)→ 闭环留痕;同任务幂等可重跑
+```
+
+- 资金安全底线:漏单(微信已收、本地无记录)与金额不一致必须显式暴露,不允许静默;对账完成≠无差异(任务成功但差异数 > 0 仍须逐条处置)。
+- 与收款对账(§收款与对账流程,R-COL-01~04,送水工日报口径)相互独立;退款单长期未完结的兜底发现通道即退款账单对账(R-PAY-02 原缺口承接)。
+
 ## 代客下单流程
 
 送水工在送水工端为不便自助下单的用户(如老年人、电话订水)代下单:

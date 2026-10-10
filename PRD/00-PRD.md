@@ -3,7 +3,7 @@
 | 文档信息 | 内容 |
 | --- | --- |
 | 文档名称 | AquaRush 送水小程序产品需求文档 |
-| 版本 | v0.31(合规决策:明确不做用户储值,F-MKT-010 收敛为套餐卡) |
+| 版本 | v0.33(新增微信支付对账:R-PAY-04/F-ORD-031,权限码目录 42 码) |
 | 编写日期 | 2026-08-09 |
 | 文档状态 | 草稿(待评审) |
 | 覆盖范围 | 用户端小程序 / 送水工端独立 App(delivery-app,React Native + Expo) / 管理后台(三端) |
@@ -45,6 +45,7 @@
 | 2026-10-08 | v0.30 | **代码核验回填**(对 v0.29 两项 ❓ 待核验项的收敛):① **G91 水票**——票号全局唯一(`user_tickets.ticket_no` 唯一索引 + `ticket_no_sequences` 按月原子取号)与防重复核销(`redeemAtomically` 原子条件更新 + 幂等 + 核销不足回滚)**均已具备**(2026-08),残余仅为**核销点位**(现状下单侧 → 目标送达侧扫码,增强);② **G85 送水工导航**——订单详情**已内嵌目的地地图**(MapLibre + 天地图,`destination-map.tsx`),F-ORD-029 状态 [规划中]→**[部分实现]**,残余为**一键唤起第三方导航未集成**(`Linking` 仅用于拨号)。同步更新 04-order(F-ORD-029 现状/缺口关联/域级验收)、10-marketing(R-MKT-08 现状、§1.3 验收)、14-misc(G85/G91 缺口行与说明) | - |
 | 2026-10-09 | v0.31 | **明确本项目不做用户储值(合规决策)**:储值余额属单用途预付卡资金类业务,需预付卡备案/资金存管资质,公司无相应资质,小程序上架与运营存在合规风险——余额充值/余额支付/余额抵扣/余额+微信组合支付均不实现,预收资金需求由水票(F-MKT-007)与套餐卡(预购货物凭证)承接;F-MKT-010「储值与套餐」收敛为「套餐卡(次卡/月卡/季卡)」,R-MKT-11 重写为套餐卡规则(核销/退款对齐 R-MKT-08),G79 同步收敛;移除项:储值账户/储值流水实体、储值↔渠道对账一致性、储值类异常场景、储值渗透率指标、recharge(用户端充值页)/recharge-plans(后台储值配置)页面、F-NTF-007 ④储值余额不足提醒;前端同步移除确认页「余额支付(即将上线)」占位与后台用户详情「账户余额」展示(`users.balance_cents` 为遗留恒 0 字段,不暴露入口);同步更新 01/02/04/07/10/13/14 与 design/_spec、原型页 | - |
 | 2026-10-10 | v0.32 | **事件传输迁移 Transactional Outbox(去外部 MQ 依赖,架构决策)**:单体双进程(aqua-admin/aqua-client)共享 PostgreSQL `outbox_events` 表替代 Artemis/JMS——发布与业务写同事务(原子性,失败回滚业务);点对点行 `subscriber IS NULL` 经 `FOR UPDATE SKIP LOCKED` 单次认领,广播(`broadcast-events` WS 推送)按订阅 admin/client 各写一行;延迟投递(`PAYMENT_EXPIRY_CHECK`,R-ORD-04)改 `next_run_at` 到期认领(行为不变,`PaymentExpiryScheduler` 兜底不变);消费失败指数退避重试(默认 8 次)→ `DEAD` + 健康指标 DOWN 告警(无 redrive API);彻底移除 Artemis 依赖(broker/broker.xml/artemis 目录/spring-jms/嵌入式 broker,集成测试不再起 Artemis);同步更新 04-order.md(R-ORD-04/F-ORD-010 现状)、13-notification.md(F-NTF-003 现状)、14-misc.md(G44/轨迹流程)、claude/architecture.md、claude/messaging-cache-wechat.md;设计文档 docs/compose/spec/outbox-messaging.md | - |
+| 2026-10-10 | v0.33 | **新增微信支付对账(资金安全,G93 立项)**:以微信支付官方账单(T-1 交易账单 + 退款账单)为基准与本地支付/退款记录逐笔比对(短款/长款/金额不一致/状态不一致四类差异),差异人工处置闭环、重跑幂等留痕——规则 R-PAY-04(04-order.md §2.2)、管理后台功能 F-ORD-031 支付对账页(§3.5,规划中,挂「支付管理」导航);R-PAY-02 缺口「退款结果异步查询/退款回调对账」由 R-PAY-04 承接;权限码目录新增 PAYMENT_RECONCILIATION_READ/EXECUTE(40→42 码,超管 42/管理员 37,后台角色权限矩阵同步);02-business-flows.md 增对账流程、06-collection.md §4 增与日报对账的边界说明、08-statistics.md F-STA-002 开放问题收敛、14-misc.md(缺口 G93/路线图/核心实体/附录 C);技术设计 docs/tech-design/07-payment-reconciliation.md(新卷) | - |
 
 ### 阅读约定
 
@@ -73,7 +74,7 @@
 | 文档 | 域范围 | 功能编号 | 业务规则 |
 | --- | --- | --- | --- |
 | [03-product.md](03-product.md) | 商品域 | F-PRO-001~012 | R-PRO-01~05、R-MON-03 |
-| [04-order.md](04-order.md) | 订单域 | F-ORD-001~014、020~030 | R-ORD-01~16、R-PAY-01~03、R-MON-02、R-EVL-01 |
+| [04-order.md](04-order.md) | 订单域 | F-ORD-001~014、020~031 | R-ORD-01~16、R-PAY-01~04、R-MON-02、R-EVL-01 |
 | [05-address-delivery.md](05-address-delivery.md) | 地址与配送域 | F-ADR-001~003、010~013、020~022 | R-ADR-01~04 |
 | [06-collection.md](06-collection.md) | 收银与对账域 | F-COL-001~003、010~012 | R-COL-01~05 |
 | [07-user.md](07-user.md) | 用户与账户域 | F-USR-001~006、010~011、020~023 | R-AUTH-01~03 |
