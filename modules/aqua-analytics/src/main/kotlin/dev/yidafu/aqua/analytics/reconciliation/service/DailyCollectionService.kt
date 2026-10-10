@@ -155,6 +155,17 @@ class DailyCollectionService(
       collectionDate,
     )
 
+    // 已确认(CONFIRMED)日报为终态,不可被提交覆盖(裁决缺陷 #4,保留设计;
+    // 前置拦截,统计查询与落库均不执行;驳回/确认流转不受影响)
+    val existingRecord =
+      dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(
+        deliveryWorkerId,
+        collectionDate,
+      )
+    if (existingRecord?.status == DailyCollectionStatus.CONFIRMED) {
+      throw BadRequestException("该日收款记录已确认,不可修改;如需修改请先联系管理员驳回")
+    }
+
     // 查询当日完成的订单数量和金额
     val startOfDay = collectionDate.atStartOfDay()
     val endOfDay = collectionDate.atTime(LocalTime.MAX)
@@ -188,13 +199,7 @@ class DailyCollectionService(
         }
       }
 
-    // 创建或更新记录
-    val existingRecord =
-      dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(
-        deliveryWorkerId,
-        collectionDate,
-      )
-
+    // 创建或更新记录(现有记录已在方法开头查得并完成 CONFIRMED 守卫)
     val record =
       existingRecord?.apply {
         this.cashAmountCents = cashAmountCents
