@@ -4,7 +4,6 @@ import {
   UserOutlined,
   PhoneOutlined,
   TeamOutlined,
-  WalletOutlined,
   DollarOutlined,
   MailOutlined,
   CalendarOutlined,
@@ -66,9 +65,6 @@ const UserBasicInfoCard: React.FC<UserBasicInfoCardProps> = ({ user, lastOrderTi
             </Descriptions.Item>
             <Descriptions.Item label="所属客户分组">
               <TeamOutlined /> {user.customerGroupName || '未分组'}
-            </Descriptions.Item>
-            <Descriptions.Item label="账户余额">
-              <WalletOutlined /> {displayCents(user.balanceCents)}
             </Descriptions.Item>
             <Descriptions.Item label="总消费金额">
               <DollarOutlined /> {displayCents(user.totalSpentCents)}

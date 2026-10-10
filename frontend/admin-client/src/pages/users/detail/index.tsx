@@ -27,7 +27,8 @@ import type { UserDetailPageData } from './types';
 
 /**
  * 用户详情页(users/:id,PRD/07-user.md §F-USR-022):
- * 基本信息卡(含角色/邮箱/所属分组/余额/总消费) → 统计卡(全量口径) → Tabs
+ * 基本信息卡(含角色/邮箱/所属分组/总消费;无账户余额——用户储值不做,2026-10-09 决策)
+ * → 统计卡(全量口径) → Tabs
  * (收货地址/订单记录/优惠券/水票/意见反馈/评价记录/收藏商品),订单记录可下钻。
  */
 const UserDetailPage: React.FC = () => {

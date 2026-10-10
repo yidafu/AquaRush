@@ -6,7 +6,7 @@ interface PaymentMethod {
   id: string
   name: string
   description: string
-  /** 未接入的支付方式置灰不可选(PRD F-ORD-001:余额支付未实现,仅展示) */
+  /** 预留:未接入的支付方式置灰不可选(如企业月结 F-ORD-027) */
   disabled?: boolean
 }
 
@@ -19,17 +19,12 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   selectedMethod,
   onMethodChange
 }) => {
+  // 仅微信支付:用户储值不做(2026-10-09 合规决策,原「余额支付·即将上线」占位移除)
   const paymentMethods: PaymentMethod[] = [
     {
       id: 'wechat',
       name: '微信支付',
       description: '使用微信支付，安全快捷'
-    },
-    {
-      id: 'balance',
-      name: '余额支付',
-      description: '使用账户余额支付',
-      disabled: true
     }
   ]
 

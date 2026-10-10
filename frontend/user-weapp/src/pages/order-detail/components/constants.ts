@@ -97,8 +97,7 @@ export interface OrderDetail {
 }
 
 export const PAYMENT_METHOD_MAP: Record<string, string> = {
-  wechat: '微信支付',
-  balance: '余额支付'
+  wechat: '微信支付'
 }
 
 // 配送时段文案兜底(AC-ORD-001-05,与 DeliveryTimeSelector/后端 DeliveryTimeSlot 枚举对应;

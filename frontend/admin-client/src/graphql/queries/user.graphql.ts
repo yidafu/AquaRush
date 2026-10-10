@@ -361,7 +361,6 @@ export const USER_DETAIL_PAGE_DATA_QUERY = gql`
       status
       role
       email
-      balanceCents
       totalSpentCents
       customerGroupId
       customerGroupName
