@@ -63,7 +63,6 @@ class SecurityConfig(
           .requestMatchers(
             "/login",
             "/api/auth/login",
-            "/api/auth/delivery/login",
             "/css/**",
             "/js/**",
             "/static/**",

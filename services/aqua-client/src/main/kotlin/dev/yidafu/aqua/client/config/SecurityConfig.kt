@@ -53,8 +53,6 @@ class SecurityConfig(
         auth
           .requestMatchers("/api/auth/wechat/login")
           .permitAll()
-          .requestMatchers("/api/auth/delivery/check")
-          .permitAll()
           // 刷新 token：access token 可能已过期，必须可匿名到达
           .requestMatchers("/api/auth/refresh")
           .permitAll()
