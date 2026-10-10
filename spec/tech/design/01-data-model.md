@@ -380,7 +380,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 
 | 列 | 类型 | 说明 |
 | --- | --- | --- |
-| payment_method | VARCHAR(20) | 支付渠道（回调写入）:现状 WECHAT_PAY / CASH 两值;MONTHLY_SETTLEMENT 随 G83;**无 BALANCE/组合支付——储值 2026-10-09 决策不做**。注意与 `payment_type`(收款方式) 是两列并存 |
+| payment_method | VARCHAR(20) | 支付渠道（回调写入）:现状 WECHAT_PAY / CASH 两值;MONTHLY_SETTLEMENT 随 G83（**[暂缓]**）;**无 BALANCE/组合支付——储值 2026-10-09 决策不做**。注意与 `payment_type`(收款方式) 是两列并存 |
 | payment_transaction_id / paid_at | VARCHAR(128) / TIMESTAMP | 微信支付单号与支付成功时间;代客下单自提 = 下单时间（已收款） |
 | cancel 留痕 | — | `cancel_reason / cancelled_by_type+cancelled_by_id / cancelled_at` 为**规划列**（现状未建,取消上下文记入 order_operations.extra_data） |
 

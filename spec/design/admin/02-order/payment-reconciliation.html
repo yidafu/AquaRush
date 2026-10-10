@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 支付对账｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 支付管理 / 微信支付对账</h1>
+      <p class="sub">功能编号 F-ORD-031 ｜ 订单域 ｜ 规则 R-PAY-04 ｜ 入口「支付管理」导航分组（与退款管理同级）｜ 数据源：F-ORD-005 支付 / F-ORD-006 退款</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-031</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G93</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：对账任务列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 对账任务列表（筛选 + 每日任务 + 差异数）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/payments/reconciliation</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>支付管理</div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">支付管理 <span class="crumb-sep">/</span> <b>支付对账</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>微信支付对账</h2>
+                    <div class="desc">每日凌晨自动对账（支付 02:00 / 退款 02:05）｜ 以微信官方 T-1 账单为基准逐笔比对 ｜ 差异人工处置留痕（R-PAY-04）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">手动对账</span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>账单类型</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="fitem"><span>账单日</span><div class="input" style="width:190px"><span>2026-09-11 ~ 2026-10-10</span></div></div>
+                  <div class="fitem"><span>任务状态</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>账单日</th>
+                        <th>类型</th>
+                        <th>状态</th>
+                        <th class="num">微信总笔数</th>
+                        <th class="num">微信总金额</th>
+                        <th class="num">本地总金额</th>
+                        <th class="num">差异数</th>
+                        <th>执行时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num bold">2026-10-10</td>
+                        <td><span class="tag tag-brand">支付账单</span></td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td class="num">128</td>
+                        <td class="num">¥3,286.00</td>
+                        <td class="num">¥3,286.00</td>
+                        <td class="num t-ok bold">0</td>
+                        <td class="num">10-11 02:00:12</td>
+                        <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">2026-10-10</td>
+                        <td><span class="tag tag-assign">退款账单</span></td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td class="num">3</td>
+                        <td class="num">¥86.00</td>
+                        <td class="num">¥74.00</td>
+                        <td class="num t-err bold">1</td>
+                        <td class="num">10-11 02:05:08</td>
+                        <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">2026-10-09</td>
+                        <td><span class="tag tag-brand">支付账单</span></td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td class="num">142</td>
+                        <td class="num">¥3,860.00</td>
+                        <td class="num">¥3,848.00</td>
+                        <td class="num t-err bold">2</td>
+                        <td class="num">10-10 02:00:09</td>
+                        <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">2026-10-09</td>
+                        <td><span class="tag tag-assign">退款账单</span></td>
+                        <td><span class="tag tag-err">失败</span></td>
+                        <td class="num">—</td>
+                        <td class="num">—</td>
+                        <td class="num">—</td>
+                        <td class="num">—</td>
+                        <td class="num">10-10 02:05:03</td>
+                        <td><div class="ops"><a class="danger">重跑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">2026-10-08</td>
+                        <td><span class="tag tag-brand">支付账单</span></td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td class="num">136</td>
+                        <td class="num">¥3,522.00</td>
+                        <td class="num">¥3,522.00</td>
+                        <td class="num t-ok bold">0</td>
+                        <td class="num">10-09 02:00:11</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 10 条任务 ｜ 差异未处置 3（差异数 &gt; 0 的任务状态仍为「成功」——对账完成 ≠ 无差异）</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+                <div class="card tint" style="margin-bottom:0">
+                  <div class="card-title sm mb2">对账口径（R-PAY-04）</div>
+                  <p class="f-aux mb0">以微信支付官方账单（T-1 交易账单 + 退款账单）为基准，与本地支付记录（payments）和退款记录（payment_refunds）逐笔比对，产出「短款（微信有本地无）/ 长款（本地有微信无）/ 金额不一致 / 状态不一致」四类差异；差异须人工处置（解决 / 忽略并留备注）后闭环，不允许静默吞掉。与送水工收款日报对账（F-COL-011）相互独立。</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：任务详情弹窗 + 差异处置弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 任务详情弹窗（三方校验汇总 + 差异列表）→ 差异「处理」弹窗（双层）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/payments/reconciliation — 详情</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="mi on">支付管理</div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">支付管理 <span class="crumb-sep">/</span> <b>支付对账</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>微信支付对账</h2><div class="desc">详情弹窗打开态</div></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>账单日</th><th>类型</th><th>状态</th><th class="num">差异数</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr><td class="num bold">2026-10-09</td><td><span class="tag tag-brand">支付账单</span></td><td><span class="tag tag-ok">成功</span></td><td class="num t-err bold">2</td><td><div class="ops"><a>详情</a></div></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 任务详情弹窗 -->
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head" style="justify-content:space-between">
+                对账详情 · 2026-10-09 支付账单
+                <span class="t-weak" style="font-weight:400">✕</span>
+              </div>
+              <div class="modal-body">
+
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">账单日 / 类型</div><div class="v num">2026-10-09 · 支付账单</div></div>
+                  <div class="desc-item"><div class="k">任务状态</div><div class="v"><span class="tag tag-ok">成功</span><span class="f-note t-weak" style="margin-left:6px">差异数 &gt; 0 仍为成功</span></div></div>
+                  <div class="desc-item"><div class="k">执行时间</div><div class="v num">2026-10-10 02:00:09</div></div>
+                  <div class="desc-item"><div class="k">触发方式</div><div class="v">每日调度（02:00）</div></div>
+                </div>
+
+                <div class="section-title" style="font-size:15px">三方校验汇总</div>
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card"><div class="lbl">微信账单汇总</div><div class="val">¥3,860.00<div class="sub-line">142 笔</div></div></div>
+                  <div class="stat-card"><div class="lbl">逐笔解析合计</div><div class="val">¥3,860.00<div class="sub-line">142 笔</div></div></div>
+                  <div class="stat-card"><div class="lbl">本地合计</div><div class="val t-err">¥3,848.00<div class="sub-line">141 笔</div></div></div>
+                </div>
+
+                <div class="section-title" style="font-size:15px">差异明细（2）</div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>差异类型</th>
+                        <th>商户订单号</th>
+                        <th>微信单号</th>
+                        <th class="num">微信金额</th>
+                        <th class="num">本地金额</th>
+                        <th>处理状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="tag tag-err">短款</span><div class="sub-line">微信有本地无</div></td>
+                        <td class="num">—</td>
+                        <td class="num">420002…8066</td>
+                        <td class="num">¥36.00</td>
+                        <td class="num">—</td>
+                        <td><span class="tag tag-warn">未处置</span></td>
+                        <td><div class="ops"><a>处理</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-err">金额不一致</span></td>
+                        <td class="num">202610090023</td>
+                        <td class="num">420002…8131</td>
+                        <td class="num">¥88.00</td>
+                        <td class="num">¥76.00</td>
+                        <td><span class="tag tag-warn">未处置</span></td>
+                        <td><div class="ops"><a>处理</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="f-note t-weak mt2">资金安全底线：漏单（微信已收、本地无记录）与金额不一致必须显式暴露；执行与处置均记业务日志（操作人 / 任务 / 差异）。</div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">关闭</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 差异处置弹窗（叠加于详情之上） -->
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head" style="justify-content:space-between">
+                处置差异 · 金额不一致 202610090023
+                <span class="t-weak" style="font-weight:400">✕</span>
+              </div>
+              <div class="modal-body">
+
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">差异类型</div><div class="v"><span class="tag tag-err">金额不一致</span></div></div>
+                  <div class="desc-item"><div class="k">商户订单号</div><div class="v num">202610090023</div></div>
+                  <div class="desc-item"><div class="k">微信金额</div><div class="v num t-err bold">¥88.00</div></div>
+                  <div class="desc-item"><div class="k">本地金额</div><div class="v num">¥76.00</div></div>
+                </div>
+
+                <div class="field" style="margin-top:12px">
+                  <label class="req">处置结果</label>
+                  <div class="radio-row">
+                    <span class="radio on">解决（已核实无资金损失或已修复）</span>
+                    <span class="radio">忽略（跨日边界等可解释差异）</span>
+                  </div>
+                </div>
+
+                <div class="field mb0">
+                  <label class="req">处理说明（备注必填）</label>
+                  <div class="textarea"><span class="ph">请填写处理说明</span></div>
+                  <div class="f-note t-weak" style="margin-top:4px">提交时校验：「请填写处理说明」；处置留痕可审计，重跑幂等保留已处置记录。</div>
+                </div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">提交处置</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「支付管理」→ 支付对账（与退款管理同级；2026-10 新增导航分组）</p>
+        <p><strong>跳转：</strong>任务行「详情」→ 详情弹窗；差异行「处理」→ 处置弹窗（解决 / 忽略 + 备注必填）</p>
+        <p><strong>权限：</strong><code>PAYMENT_RECONCILIATION_READ</code>（可见任务列表）/ <code>PAYMENT_RECONCILIATION_EXECUTE</code>（重跑 / 处置；无权限时入口不可见，R-AUTH-04）</p>
+        <p><strong>状态：</strong><span class="chip chip-plan">规划中</span>（缺口 G93；支付 / 退款链路已实现 R-PAY-01/02，微信侧账单核对为目标形态）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>页面标题 +「手动对账」按钮（限 T-1~T-30，窗口外提示「仅支持近 30 天账单」）</li>
+          <li>筛选区：账单类型（支付 / 退款）+ 账单日范围 + 任务状态</li>
+          <li>任务列表：账单日 / 类型 / 状态 / 微信总笔数 / 微信总金额 / 本地总金额 / 差异数 / 执行时间 / 操作（详情、重跑）</li>
+          <li>对账口径说明卡（R-PAY-04：四类差异 + 与日报对账相互独立）</li>
+          <li>第二状态：详情弹窗（三方校验汇总卡：微信账单汇总 / 逐笔解析合计 / 本地合计 + 差异列表）→ 差异行「处理」弹窗（解决 / 忽略 + 备注必填）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>每日凌晨调度自动执行支付对账（02:00）与退款对账（02:05），任务列表呈现结果</li>
+          <li>点任务行「详情」→ 下钻报表汇总与差异明细（三方校验）</li>
+          <li>差异逐条处置：解决 = 已核实无资金损失或已修复；忽略 = 确认为跨日边界等可解释差异；<strong>均须备注</strong>（「请填写处理说明」）</li>
+          <li>「重跑」同账单日任务 → 确认「重跑将重算该日对账结果，已处理的差异记录保留，确认继续？」→ 幂等重算（已处置差异保留留痕，未处置差异重算）</li>
+          <li>执行与处置均记业务日志（操作人 / 任务 / 差异）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>任务状态：</strong>成功 / 失败（展示失败原因 + 重跑入口）/ 执行中；<strong>差异处理状态：</strong>未处置 / 已解决 / 已忽略。</p>
+        <p><strong>关键口径：</strong>差异数 &gt; 0 的任务状态仍为「成功」（对账完成 ≠ 无差异），差异数用语义红强调；差异保持未处置且持续可见，不自动闭环。</p>
+        <p><strong>空态：</strong>「暂无对账记录」；<strong>加载态：</strong>表格 loading；<strong>错误态：</strong>任务失败展示失败原因并提供重跑；<strong>禁用态：</strong>无 EXECUTE 权限时重跑 / 处置入口不可见。</p>
+        <p><strong>四类差异：</strong>短款（微信有本地无）/ 长款（本地有微信无）/ 金额不一致 / 状态不一致（如退款账单已退成功但本地退款单未完结）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：主操作品牌蓝，差异金额 / 差异数用语义红，重跑为敏感动作加二次确认。</p>
+        <p><strong>资金安全底线：</strong>漏单与金额不一致必须显式暴露，不允许静默吞掉；差异自动修复（自动补单 / 自动改状态）不做，一律人工处置留痕。</p>
+        <p>金额一律分存储、展示两位小数（R-MON-01）；与送水工收款日报对账（F-COL-011，内部收款口径）相互独立，本页为与微信渠道的账实核对。</p>
+        <p>资金账单（手续费 / 净额）与结算账单对账为后续增强（开放决策见 spec/tech/design/07-payment-reconciliation.md）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

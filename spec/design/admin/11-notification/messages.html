@@ -19,6 +19,7 @@
       <span class="chip">F-NTF-006</span>
       <span class="chip chip-ok">已实现</span>
       <span class="chip chip-goal">关联单号跳转 目标形态</span>
+      <span class="chip chip-plan">F-NTF-008 接单超时预警 规划中</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -45,6 +46,7 @@
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
@@ -134,6 +136,15 @@
                         <td><div class="ops"><a>查看详情</a></div></td>
                       </tr>
                       <tr>
+                        <td class="num">2026-10-08 10:05</td>
+                        <td><span class="tag tag-assign">WebSocket 推送</span></td>
+                        <td>订单接单超时 <span class="tag tag-goal"></span></td>
+                        <td>管理员 · 超管</td>
+                        <td class="ellipsis" style="max-width:220px">订单 202610080017 已待派单超 30 分钟无人接单，请及时处理</td>
+                        <td><span class="tag tag-ok">发送成功</span></td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
                         <td class="num">2026-10-07 11:30</td>
                         <td><span class="tag tag-brand">订阅消息</span></td>
                         <td>退款</td>
@@ -184,6 +195,7 @@
                 <div class="mi">订单管理<span class="badge">12</span></div>
                 <div class="mi">地址与配送</div>
                 <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="mi">支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi">用户管理</div>
                 <div class="mi">营销管理</div>
@@ -282,6 +294,7 @@
                 <div class="mi">订单管理<span class="badge">12</span></div>
                 <div class="mi">地址与配送</div>
                 <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="mi">支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi">用户管理</div>
                 <div class="mi">营销管理</div>
@@ -346,6 +359,7 @@
         <p><strong>入口：</strong>通知与消息 → 消息列表；路由 <code>notifications/messages</code></p>
         <p><strong>权限：</strong><code>NOTIFICATION_READ</code>（管理员 / 超管）；失败重发 <code>NOTIFICATION_WRITE</code>（仅超管）</p>
         <p><strong>状态：</strong><span class="chip chip-ok">已实现</span>（缺口 G68 已解决）</p>
+        <p><strong>预警消息（F-NTF-008 <span class="chip chip-plan" style="margin-left:4px">规划中</span>）：</strong>「订单接单超时 / 开始配送超时」预警复用本列表触达管理员（站内 + WebSocket 实时推送），摘要含订单号 / 金额 / 超时时长，点关联单号跳订单详情处理（缺口 G94，阈值参数见「系统设置 → 订单与履约参数」F-SYS-002）。</p>
       </div>
 
       <div class="note-card">
@@ -381,6 +395,7 @@
         <p><strong>重发仅重试微信订阅消息通道</strong>（站内消息不重推）；无 <code>NOTIFICATION_READ</code> 不可进入。</p>
         <p>消息与轮询按<strong>幂等键去重</strong>，不重复渲染；接收人默认脱敏展示。</p>
         <p><span class="tag tag-goal"></span> 缺口 <strong>G68 已解决</strong>；关联单号点击跳订单详情为目标形态。</p>
+        <p><span class="tag tag-goal"></span> 接单超时预警（F-NTF-008/R-NTF-07，缺口 <strong>G94</strong>）仅一次幂等预警：同订单同阶段不重复发送；预警接收人固定为管理员角色，不含送水工。</p>
       </div>
     </div>
 

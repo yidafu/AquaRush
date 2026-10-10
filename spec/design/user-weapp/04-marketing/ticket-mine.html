@@ -19,6 +19,7 @@
     <div class="chips">
       <span class="chip">F-MKT-007</span>
       <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">G97 待激活状态 规划中</span>
       <span class="chip chip-plain">user-weapp · WeUI</span>
     </div>
   </header>
@@ -129,6 +130,31 @@
                 <div class="weui-cell">
                   <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260800020114</div>
                   <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+              </div>
+
+              <!-- 票夹卡 3：待激活（复购激活票，目标形态 G97） -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px;opacity:.75">
+                <div style="padding:16px 16px 8px">
+                  <div class="row between mb2">
+                    <span class="bold" style="font-size:17px;color:var(--text-sub)">19L 桶水票 · 大额</span>
+                    <span class="row gap1"><span class="weui-tag weui-tag--orange weui-tag--md">待激活</span><span class="weui-tag weui-tag--goal"></span></span>
+                  </div>
+                  <div class="row between mb2">
+                    <span class="f-note t-sub">规格限定：通兑 · 限 19L 桶装水</span>
+                    <span class="f-note t-sub">剩余 <b class="t-sub">2</b> 张</span>
+                  </div>
+                  <div class="f-note t-warn">需复购 1 单后可核销，完成复购自动激活</div>
+                  <div class="f-note t-sub">有效期：2027-09-01 到期</div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:8px 16px"><div class="weui-cell__bd f-note t-sub">票号</div></div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260900030121</div>
+                  <div class="weui-cell__ft"><span class="t-weak">激活后可核销</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260900030122</div>
+                  <div class="weui-cell__ft"><span class="t-weak">激活后可核销</span></div>
                 </div>
               </div>
 
@@ -300,13 +326,14 @@
           <li>长按票号可复制（线下核验对账）</li>
           <li>可用票在确认订单页可选择核销张数（≤ 下单桶数 ∩ 可用张数）</li>
           <li>已过期票置灰不可核销；已核销票可回溯使用记录</li>
+          <li>待激活票（复购激活票）不可核销，完成复购后自动激活（<span class="weui-tag weui-tag--goal"></span> 目标形态 G97）；单次核销上限票在下单侧限制单笔可勾选张数</li>
           <li>切换 Tab 过滤票状态</li>
         </ol>
       </div>
 
       <div class="note-card">
         <h3>状态与规则</h3>
-        <p><strong>可用 / 已核销 / 已退回 / 已过期：</strong>四态并存（<code>.weui-tag--green</code> 可退 / <code>.weui-tag--done</code> 已核销）；<strong>空态：</strong>「暂无可用水票」。</p>
+        <p><strong>可用 / 已核销 / 已退回 / 已过期：</strong>四态并存（<code>.weui-tag--green</code> 可退 / <code>.weui-tag--done</code> 已核销）；<strong>空态：</strong>「暂无可用水票」；待激活（复购激活票，<code>.weui-tag--orange</code>，目标形态 G97）置灰展示并提示激活条件。</p>
         <p><strong>票有效期：</strong>过期作废不可使用；即将过期（如 30 天内）以警示色提示。</p>
         <p><strong>退回规则：</strong>订单取消 / 退款 → 已核销未过期票退回票夹；已过期作废。</p>
         <p><strong>票号：</strong>唯一且可复制，格式 SP + YYYYMM + 8 位序号。</p>
@@ -325,6 +352,7 @@
         <p>票号唯一且需可复制便于线下核验，用等宽字体（<code>--font-num</code>）呈现；过期票置灰但可回溯。</p>
         <p>「可退票」为合规 / 权益标识，需醒目但不用强调橙，避免与券品牌混淆。</p>
         <p>金额统一用 <code>.weui-price</code>，禁止手拼「¥」字符串；非券元素一律不上强调橙。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 待激活状态（缺口 <strong>G97</strong>，R-MKT-08 修订，规划中）：须显著区别于可用票（置灰 + 警示橙标签），避免用户误以为可核销；激活判定口径为开放问题。</p>
       </div>
     </div>
 

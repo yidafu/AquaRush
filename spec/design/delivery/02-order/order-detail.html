@@ -13,7 +13,7 @@
   <header class="stage-head">
     <div>
       <h1>送水工端 App · 订单详情与完成配送</h1>
-      <p class="sub">功能编号 F-ORD-011 / F-ORD-024 / F-ORD-028 / F-ORD-029 ｜ 订单域 ｜ 下游：修改地址信息 / 转单 / 地图导航 / 拨号</p>
+      <p class="sub">功能编号 F-ORD-011 / F-ORD-024 / F-ORD-028 / F-ORD-029 / F-ORD-032 ｜ 订单域 ｜ 下游：修改地址信息 / 转单 / 地图导航 / 拨号</p>
     </div>
     <div class="chips">
       <span class="chip">F-ORD-011</span>
@@ -74,9 +74,10 @@
                   <span class="f-body bold t-main">张先生</span>
                   <span class="row gap1 t-brand">
                     <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
-                    138****6621
+                    13812346621
                   </span>
                 </div>
+                <div class="f-note t-weak mt2">号码保护 <span class="tag tag-goal"></span>：「待配送 / 配送中」可见完整号码并可 <code>tel:</code> 拨号；「待派单 / 已完成 / 已取消 / 已退款」脱敏（138****6621）且隐藏拨号入口（F-ORD-032/R-ORD-17，缺口 G95 规划中；脱敏形态由服务端按阶段下发，前端不自行处理、无「查看完整号码」旁路）。</div>
                 <div class="f-aux t-sub mt2">广东省深圳市南山区科技园南路 88 号 清水湾小区 3 号楼 2 单元 602</div>
                 <div class="f-note t-sub mt2">定位：22.5431, 113.9345（WGS-84）</div>
 
@@ -167,7 +168,7 @@
               <div class="card">
                 <div class="card-head">
                   <span class="card-title sm">收货地址</span>
-                  <span class="f-note t-sub">张先生 138****6621</span>
+                  <span class="f-note t-sub">张先生 13812346621</span>
                 </div>
                 <div class="f-aux t-sub">清水湾小区 3 号楼 2 单元 602 · <strong class="t-main">6 楼</strong></div>
                 <div class="row gap2 mt3">
@@ -362,7 +363,7 @@
         <ol>
           <li>导航栏：返回 + 标题 + 消息入口（未读红点）</li>
           <li>状态头：订单状态标签 + 配送进度（下单 → 支付 → 派单 → 配送 → 完成）+ 订单号</li>
-          <li>收货地址卡：收货人 / 电话（可拨打）/ 省市区 + 详细地址 / 楼层 / 定位；内嵌目的地地图；卡底按钮组「修改地址信息(定位/楼层等)」+「导航」</li>
+          <li>收货地址卡：收货人 / 电话（配送阶段完整可见可拨打；非配送阶段脱敏 138****6621 且无拨号入口——号码保护 F-ORD-032 <span class="tag tag-goal"></span>）/ 省市区 + 详细地址 / 楼层 / 定位；内嵌目的地地图；卡底按钮组「修改地址信息(定位/楼层等)」+「导航」</li>
           <li>商品卡：图 / 名 / 规格 × 数量</li>
           <li>收款方式（配送中）：现金 / 水票 / 扫码 三选一</li>
           <li>配送照片上传（≥ 1 张）+ 配送备注</li>
@@ -388,6 +389,7 @@
         <p><strong>禁用态：</strong>未拍照禁用「完成配送」并提示「请先拍摄配送照片」；终态订单隐藏修改地址 / 转单入口。</p>
         <p><strong>错误态：</strong>提交失败提示后端错误（如「订单已结束」）；<strong>自提标识：</strong>自提订单显示自提标识、免运费。</p>
         <p>收款方式三选一互斥；导航无坐标时降级为「复制地址」；离线提示「网络不可用，可复制地址」。</p>
+        <p><strong>号码保护（R-ORD-17，F-ORD-032 规划中）：</strong>收货人电话按配送阶段控制可见性——「待配送 / 配送中」完整号码 + <code>tel:</code> 拨号；其余阶段脱敏「前 3 + **** + 后 4」且无拨号入口；管理员后台订单详情不受限（完整可见）。</p>
       </div>
 
       <div class="note-card">
@@ -400,7 +402,7 @@
         <h3>设计要点 / 禁忌</h3>
         <p>完成配送为<strong>硬校验</strong>（照片 ≥ 1 张 + 收款方式必选），未满足不得提交；送达即完成，不得出现「待确认收货」中间态。</p>
         <p>送水工端<strong>完全不出现强调橙</strong>：主操作「开始配送 / 完成配送」走品牌蓝（品牌蓝 <code>--brand</code>），禁用态置灰，异常用 error 色。</p>
-        <p><strong>规划中缺口：</strong>转单 F-ORD-028（G84，规划中，chip-plan）；一键导航 F-ORD-029（G85，地图已具备 / 唤起导航未集成，chip-partial）。两处目标形态以 <code>.tag-goal</code> 标注。</p>
+        <p><strong>规划中缺口：</strong>转单 F-ORD-028（G84，规划中，chip-plan）；一键导航 F-ORD-029（G85，地图已具备 / 唤起导航未集成，chip-partial）；号码保护 F-ORD-032（G95，规划中，2026-10-11 新增）。目标形态以 <code>.tag-goal</code> 标注。</p>
       </div>
     </div>
 

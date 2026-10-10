@@ -17,7 +17,8 @@
     </div>
     <div class="chips">
       <span class="chip">F-OPS-005</span>
-      <span class="chip chip-ok">已实现 2026-08</span>
+      <span class="chip chip-partial">部分实现（楼层分档已实现）</span>
+      <span class="chip chip-plan">G96 起送门槛 / 距离阶梯 规划中</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -44,6 +45,7 @@
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
@@ -149,6 +151,62 @@
                   </div>
                 </div>
 
+                <!-- 起送门槛与距离阶梯运费（目标形态，R-OPS-03/G96） -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">起送门槛与距离阶梯运费 <span class="tag tag-goal"></span></div>
+                    <span class="f-note t-sub">目标形态 · 2026-10-11 立项（R-OPS-03，缺口 G96）· 排期待定</span>
+                  </div>
+
+                  <div class="field">
+                    <label>起送门槛（元） <span class="f-note t-weak">｜ InputNumber ｜ ≥ 0 ｜ 默认 0 = 不启用</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>30.00</span></div>
+                      <span class="f-note t-sub">元</span>
+                      <span class="switch on"></span>
+                      <span class="f-note t-sub">启用</span>
+                    </div>
+                    <div class="f-note t-weak mt2">订单商品金额低于门槛时<strong>服务端拦截下单</strong>并提示「未达起送金额」（AC-OPS-005-07）；客户端确认订单页提交前同步预检提示。</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>距离阶梯运费 <span class="f-note t-weak">｜ 收货地址与门店距离分档加收，与楼层分档互补、叠加计算</span></label>
+                    <div class="ant-table" style="box-shadow:none">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th style="width:60px">序号</th>
+                            <th>距离上限（km，InputNumber）</th>
+                            <th>加价金额（元，0-999，≤2 位小数）</th>
+                            <th style="width:100px">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="num">1</td>
+                            <td><div class="input" style="width:120px"><span>3</span></div></td>
+                            <td><div class="row gap2"><div class="input" style="width:120px"><span>0.00</span></div><span class="f-note t-sub">元</span></div></td>
+                            <td><div class="ops"><a>上移</a><a>下移</a><a class="danger">删除</a></div></td>
+                          </tr>
+                          <tr>
+                            <td class="num">2</td>
+                            <td><div class="input" style="width:120px"><span>5</span></div></td>
+                            <td><div class="row gap2"><div class="input" style="width:120px"><span>3.00</span></div><span class="f-note t-sub">元</span></div></td>
+                            <td><div class="ops"><a>上移</a><a>下移</a><a class="danger">删除</a></div></td>
+                          </tr>
+                          <tr>
+                            <td class="num">3</td>
+                            <td><div class="input" style="width:120px"><span>10</span></div></td>
+                            <td><div class="row gap2"><div class="input" style="width:120px"><span>6.00</span></div><span class="f-note t-sub">元</span></div></td>
+                            <td><div class="ops"><a>上移</a><a>下移</a><a class="danger">删除</a></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="f-note t-weak mt2">示例：≤3km 不加收 / ≤5km +¥3.00 / ≤10km +¥6.00。计费与快照口径仍归订单域 R-MON-02；档位按距离升序、区间不重叠。</div>
+                  </div>
+                </div>
+
                 <!-- 快照落库说明 -->
                 <div class="card tint">
                   <div class="card-title sm mb2">下单时快照落库（R-MON-02）</div>
@@ -193,6 +251,7 @@
                 <div class="mi">订单管理<span class="badge">12</span></div>
                 <div class="mi">地址与配送</div>
                 <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="mi">支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi">用户管理</div>
                 <div class="mi">营销管理</div>
@@ -281,6 +340,7 @@
                 <div class="mi">订单管理<span class="badge">12</span></div>
                 <div class="mi">地址与配送</div>
                 <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="mi">支付管理</div>
                 <div class="group-lbl">客户与营销</div>
                 <div class="mi">用户管理</div>
                 <div class="mi">营销管理</div>
@@ -340,7 +400,7 @@
         <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
         <p><strong>入口：</strong>运营配置 → 运费规则；路由 <code>operations/delivery-fee</code></p>
         <p><strong>下游：</strong>订单域消费（R-MON-02，F-ORD-001/020）；用户端确认订单页费用明细</p>
-        <p><strong>状态：</strong><span class="chip chip-ok">已实现 2026-08</span></p>
+        <p><strong>状态：</strong><span class="chip chip-partial">部分实现</span>（楼层分档已实现 2026-08，2026-10 分档化）；起送门槛 / 距离阶梯运费 <span class="chip chip-plan">规划中</span>（R-OPS-03，2026-10-11 依调研报告 v2 F13 立项，缺口 G96）</p>
       </div>
 
       <div class="note-card">
@@ -349,6 +409,7 @@
           <li>免费楼层配置：免费楼层（默认 4）+ 楼层为空免运费说明</li>
           <li>楼层分档加价表：可增删档位，每档含起始楼层 / 结束楼层（可空 = 以上）/ 加价金额（元）</li>
           <li>自提订单免运费开关</li>
+          <li>起送门槛 + 距离阶梯运费表 <span class="tag tag-goal"></span>（目标形态：门槛金额 + 启用开关；距离档位可增删行，与楼层分档叠加计算）</li>
           <li>下单时快照落库说明（R-MON-02）+ 修改记录</li>
           <li>费用试算器（输入楼层 → 实时试算）+ 边界用例速查；保存二次确认</li>
         </ol>
@@ -367,7 +428,7 @@
       <div class="note-card">
         <h3>状态与规则</h3>
         <p><strong>免运费场景：</strong>免费楼层及以下免运费；楼层为空（平房 / 无楼层信息）免运费；自提免运费；未配置回显默认并提示。</p>
-        <p><strong>关键数据字段：</strong>免费楼层、分档（起始楼层 / 结束楼层 / 加价金额分）、审计记录。</p>
+        <p><strong>关键数据字段：</strong>免费楼层、分档（起始楼层 / 结束楼层 / 加价金额分）、起送门槛金额、距离阶梯（距离上限 / 加价金额）、审计记录。</p>
         <p><strong>校验：</strong>「运费金额无效」「档位区间重叠」；分档须按楼层升序、区间不重叠、各档加价 0-999 元 ≤ 2 位小数。</p>
       </div>
 
@@ -376,7 +437,8 @@
         <p>管理端<strong>不出现强调橙</strong>：金额用品牌蓝 / 语义色，主操作用品牌蓝，删除档位用语义 error 色。</p>
         <p>保存<strong>二次确认须说明对已生成订单无影响</strong>：「确定保存新的配送费规则吗？修改将影响新订单，已生成订单不受影响」。</p>
         <p>由单档改分档（解决 7 楼与 27 楼同价）；金额一律分存储、展示层转元（¥0.00 形式）。</p>
-        <p><span class="tag tag-goal"></span> 缺口 <strong>G62</strong>：规则口径由订单域 R-MON-02 定义，本域仅提供配置能力；距离计费为开放问题。</p>
+        <p><span class="tag tag-goal"></span> 缺口 <strong>G62</strong>：规则口径由订单域 R-MON-02 定义，本域仅提供配置能力。</p>
+        <p><span class="tag tag-goal"></span> 起送门槛 / 距离阶梯运费缺口 <strong>G96</strong>（R-OPS-03，2026-10-11 立项，排期待定）：原「距离计费」开放问题由 R-OPS-03 承接；距离阶梯与楼层分档为<strong>叠加计算</strong>（互补），已生成订单不受后续配置变更影响。</p>
       </div>
     </div>
 

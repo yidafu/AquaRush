@@ -1,15 +1,15 @@
 # 页面编写契约（UI 设计稿生成规范）
 
-> 所有 `design/**/*.html` 必须遵守本契约。目标是 90+ 张稿子视觉同源、可整组评审。
-> 设计依据：`docs/ui-design-system.md` V1.0 + `design/_spec/*.md`（从 PRD 提取的页面规格）。
+> 所有 `spec/design/**/*.html` 必须遵守本契约。目标是 90+ 张稿子视觉同源、可整组评审。
+> 设计依据：`spec/design/ui-design-system.md` V1.1 + `spec/design/_spec/*.md`（从 PRD 提取的页面规格）。
 > **禁止参考代码**：只依据 PRD 与规格文件，不得阅读 `frontend/`、`modules/`、`services/`。
 
 ---
 
 ## 0. 用户端小程序：WeUI 组件体系（最高优先级，与下文冲突时以本节为准）
 
-`design/user-weapp/**` 一律采用**微信官方 WeUI 2.x 组件体系**，样式来自 `../../assets/weui.css`。
-样板页：`design/user-weapp/01-product/home.html`（**照它写**）。
+`spec/design/user-weapp/**` 一律采用**微信官方 WeUI 2.x 组件体系**，样式来自 `../../assets/weui.css`。
+样板页：`spec/design/user-weapp/01-product/home.html`（**照它写**）。
 
 ### 0.1 引入顺序（三端外壳 + WeUI）
 
@@ -110,9 +110,9 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 
 | 端 | 目录 | 路径深度 |
 | --- | --- | --- |
-| 用户端小程序 | `design/user-weapp/<模块号>-<模块名>/<page>.html` | 2 层 |
-| 管理后台 | `design/admin/<模块号>-<模块名>/<page>.html` | 2 层 |
-| 送水工端 App | `design/delivery/<模块号>-<模块名>/<page>.html` | 2 层 |
+| 用户端小程序 | `spec/design/user-weapp/<模块号>-<模块名>/<page>.html` | 2 层 |
+| 管理后台 | `spec/design/admin/<模块号>-<模块名>/<page>.html` | 2 层 |
+| 送水工端 App | `spec/design/delivery/<模块号>-<模块名>/<page>.html` | 2 层 |
 
 一个页面 = 一个 HTML 文件。**弹窗/抽屉/底部弹层不单独成页**，作为父页面的第二种状态在同一文件内用「状态切换」区块表达（见 §5）。
 
@@ -138,7 +138,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
     </div>
     <div class="chips">
       <span class="chip">F-PRO-001</span>
-      <span class="chip chip-ok">已实现</span>   <!-- chip-ok 已实现 / chip-partial 部分实现 / chip-plan 规划中 -->
+      <span class="chip chip-ok">已实现</span>   <!-- chip-ok 已实现 / chip-partial 部分实现 / chip-plan 规划中 / chip-defer 暂缓 -->
       <span class="chip chip-plain">user-weapp</span>
     </div>
   </header>
@@ -221,7 +221,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 
 ### 3.3 送水工端 App（亮色，375 宽，高度自适应）
 
-> 送水工端（delivery-app）为 **Expo React Native 应用，默认亮色**（与设计系统 `docs/ui-design-system.md` §2 的「亮/暗双模式」一致，稿子出亮色默认态）。
+> 送水工端（delivery-app）为 **Expo React Native 应用，默认亮色**（与设计系统 `spec/design/ui-design-system.md` §2 的「亮/暗双模式」一致，稿子出亮色默认态）。
 > `ui.css` 里保留了 `.phone.dark` 夜间模式作用域作为可选能力，**页面默认不使用**。
 
 ```html
@@ -352,7 +352,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 6. 移动端触达高度 ≥ 44px，管理端控件 ≥ 32px。
 7. 商品图一律用 `.thumb` / `.prod-card .cover` 占位块并标注「实拍图占位」——**严禁卡通插画风**。
 8. 消费者端不做无限滚动长列表：首页只保留「定位 / 时效 / 高频购买」≤3 个核心信息 + 2~3 个补充商品。
-9. 状态标记必须与 PRD 一致：`[已实现]` → `chip-ok`，`[部分实现]` → `chip-partial`，`[规划中]` → `chip-plan` + 页内 `.tag-goal` 标注。
+9. 状态标记必须与 PRD 一致：`[已实现]` → `chip-ok`，`[部分实现]` → `chip-partial`，`[规划中]` → `chip-plan` + 页内 `.tag-goal` 标注，`[暂缓]`（2026-10-11 新增：已有决策明确缓做，保留编号与设计、不进当期排期）→ `chip-defer` + 页内 `.tag-goal` 标注 + 「设计要点」卡注明暂缓决策与日期。
 10. 页内文案尽量逐字使用 PRD 原文（规格文件的「页面文案」一栏）。
 
 ## 9. 订单状态标签映射（唯一口径）
@@ -369,5 +369,5 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 
 ```
 工作台 / 数据统计 / 商品管理 / 订单管理 / 派单中心(订单管理内) / 地址与配送 / 收银对账
-用户管理 / 营销管理 / 运营配置 / 通知消息 / 系统设置 / 日志管理
+支付管理(支付对账 / 退款管理,2026-10 新增) / 用户管理 / 营销管理 / 运营配置 / 通知消息 / 系统设置 / 日志管理
 ```

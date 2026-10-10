@@ -66,6 +66,7 @@ body {
 .chip-ok      { background: rgba(82, 196, 26, 0.12); color: #389E0D; }
 .chip-partial { background: rgba(250, 173, 20, 0.14); color: #D48806; }
 .chip-plan    { background: rgba(140, 140, 140, 0.14); color: #595959; }
+.chip-defer   { background: rgba(114, 46, 209, 0.10); color: #722ED1; }
 .chip-goal    { background: var(--action-tint); color: #D4380D; }
 
 .stage-body {

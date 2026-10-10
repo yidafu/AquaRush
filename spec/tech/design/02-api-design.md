@@ -264,13 +264,15 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `activeBanners` / `banners(input)` / `banner(id)` / `createBanner/updateBanner/deleteBanner` / `reorderBanner(id,direction)` | public / OPS_CONFIG_READ / OPS_CONFIG_WRITE | 用户端只读 activeBanners；后台维护（排序=reorderBanner 上下移，原设计名 moveBanner；时间窗、启停） |
 | `activeNotices` / `notices(input)` / `notice(id)` / `createNotice/updateNotice/publishNotice/stopNotice/setNoticePinned/deleteNotice` | public / OPS_CONFIG_* | 公告（发布/置顶/停用闭环；原设计名 disableNotice 现状为 stopNotice，另有独立置顶/删除） |
 | `feedbacks(input{type,status,contact,userId,dateRange,page,size})` / `reviewFeedback(id,input{status,handleResult})` | FEEDBACK_READ / FEEDBACK_REVIEW | 反馈处理（待处理→处理中→已处理仅允许前进；处理人/时间留痕；原设计名 processFeedback({status,reply})，字段现状为 handleResult） |
-| `storeProfile` / `saveStoreProfile(input)` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 店铺信息（原设计名 updateStoreProfile） |
-| `deliveryFeeRule` / `saveDeliveryFeeRule(input{freeFloorLimit,surchargeCents,tiers})` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 配送费规则。**R-MON-02 分档已落地（V345,结构 #6 完成）**：input 必填 `tiers: [{fromFloor,toFloor,feeCents}]`（升序/不重叠/起始楼层>免费楼层/末档不封顶,服务层校验）;`surchargeCents` 为 tiers 为空时的兜底单档 |
+| `storeProfile` / `saveStoreProfile(input)` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 店铺信息（原设计名 updateStoreProfile）；表单预留**门店经纬度**（longitude/latitude，R-OPS-03 距离计算输入、G96 排期待定，列现状未落） |
+| `deliveryFeeRule` / `saveDeliveryFeeRule(input{freeFloorLimit,surchargeCents,tiers})` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 配送费规则。**R-MON-02 分档已落地（V345,结构 #6 完成）**：input 必填 `tiers: [{fromFloor,toFloor,feeCents}]`（升序/不重叠/起始楼层>免费楼层/末档不封顶,服务层校验）;`surchargeCents` 为 tiers 为空时的兜底单档。**规划扩展**（R-OPS-03,G96 排期待定）：input 增 `minimumOrderCents`（起送门槛,0=不启用）与 `distanceTiers: [{fromKm,toKm,feeCents}]`（距离阶梯,升序/不重叠/末档不封顶）,与楼层分档叠加计价、下单快照 |
 | `systemConfigs(group)` / `saveSystemConfigs(input)` / `restoreSystemConfig(settingKey)` / `systemConfigChanges(key,page,size)` | SYSTEM_CONFIG_READ / SYSTEM_CONFIG_WRITE（仅超管） | 参数中心（键类型校验/审计闭环/恢复默认——原设计名 resetSystemConfig 现状为 restoreSystemConfig；审计查询 API 现状未落 schema，列零散补全 A 类） |
 | `dataMaintenanceOverview(input)` | SYSTEM_CONFIG_READ | 数据维护单查询：保留策略 + 三类日志分区状态（行数/大小/可备份性）+ 备份记录 |
 | `backupLogPartition(input)` | SYSTEM_CONFIG_WRITE | 手动离线备份（不受自动开关影响） |
 | `notifications(input{messageType,receiverType,keyword,read,startAt,endAt,page,size})` / `notification(id)` | NOTIFICATION_READ | 后台消息列表（默认近 30 天）+ 详情（原设计名 type/readStatus/dateRange，现状为 messageType/read/startAt/endAt） |
 | `resendNotification(id)` | NOTIFICATION_WRITE（仅超管） | 失败订阅消息重发（复用全部门控；站内消息不重推） |
+
+> **接单超时预警（F-NTF-008/R-NTF-07，规划中 G94）**：无新 API——`OrderAcceptTimeoutScanner` 调度（admin）扫描「待派单/待配送」超阈值订单 → `ORDER_ACCEPT_TIMEOUT` / `DELIVERY_START_TIMEOUT` 事件（outbox）→ 通知网关落库 + WS 推送**全体管理员**（幂等键=订单号+事件类型，R-NTF-07）；阈值参数 `order_accept_timeout_minutes`（默认 30）/`delivery_start_timeout_minutes`（默认 60）入 F-SYS-002。
 
 ---
 

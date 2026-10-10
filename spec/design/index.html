@@ -12,10 +12,10 @@
   <header class="stage-head">
     <div>
       <h1>AquaRush 三端 UI 设计稿 · 总索引</h1>
-      <p class="sub">依据 PRD 文档（v0.30 · 12 个功能域）逐模块生成，未参考任何代码 · 设计规范来源 <code>docs/ui-design-system.md</code></p>
+      <p class="sub">依据 PRD 文档（v0.30 · 12 个功能域）逐模块生成，未参考任何代码 · 设计规范来源 <code>spec/design/ui-design-system.md</code></p>
     </div>
     <div class="chips">
-      <span class="chip">PRD v0.30</span>
+      <span class="chip">PRD v0.35</span>
       <span class="chip chip-plain">每页面一个独立 HTML</span>
       <span class="chip chip-plain">小程序端按微信官方 WeUI 2.x</span>
     </div>
@@ -25,12 +25,13 @@
 
     <div class="card">
       <div class="ix-stats">
-        <div class="ix-stat"><div class="n">106</div><div class="l">页面总数</div></div>
+        <div class="ix-stat"><div class="n">107</div><div class="l">页面总数</div></div>
         <div class="ix-stat"><div class="n">3</div><div class="l">终端</div></div>
         <div class="ix-stat"><div class="n">21</div><div class="l">功能域 / 模块组</div></div>
         <div class="ix-stat"><div class="n">76</div><div class="l">已实现页</div></div>
         <div class="ix-stat"><div class="n">4</div><div class="l">部分实现页</div></div>
-        <div class="ix-stat"><div class="n">26</div><div class="l">规划中页（目标形态）</div></div>
+        <div class="ix-stat"><div class="n">23</div><div class="l">规划中页（目标形态）</div></div>
+          <div class="ix-stat"><div class="n">4</div><div class="l">暂缓页（不进当期排期）</div></div>
       </div>
       <div class="ix-note mt4">
         <strong>阅读方式：</strong>每张稿为「stage 画布 + 设备外框 + 右侧标注面板」。左侧是设计效果（多状态并排：正常态 / 空态 / 弹窗态 / 视口态），右侧标注面板给出 <strong>页面说明 / 布局结构 / 关键交互 / 状态与规则 / 设计要点·禁忌</strong>；三端稿件的标注面板另含一张「组件与度量」说明卡。
@@ -54,14 +55,14 @@
       <div class="section-title">订单域 <span class="f-note t-weak">F-ORD-001~030 · 9 页</span></div>
       <div class="list mb3">
         <a class="list-item" href="user-weapp/02-order/delivery-tracking.html"><span class="grow col"><span class="f-body bold t-main">配送跟踪</span><span class="f-note t-sub">订单域 · F-ADR-010</span></span><span class="chip chip-partial">部分实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="user-weapp/02-order/enterprise-order.html"><span class="grow col"><span class="f-body bold t-main">企业下单</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/enterprise-order.html"><span class="grow col"><span class="f-body bold t-main">企业下单</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-defer">暂缓</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-confirm.html"><span class="grow col"><span class="f-body bold t-main">确认订单</span><span class="f-note t-sub">订单域 · F-ORD-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-detail.html"><span class="grow col"><span class="f-body bold t-main">订单详情</span><span class="f-note t-sub">订单域 · F-ORD-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-list.html"><span class="grow col"><span class="f-body bold t-main">我的订单</span><span class="f-note t-sub">订单域 · F-ORD-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-payment.html"><span class="grow col"><span class="f-body bold t-main">在线支付发起与结果</span><span class="f-note t-sub">订单域 · F-ORD-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-rebuy.html"><span class="grow col"><span class="f-body bold t-main">一键复购（再来一单）</span><span class="f-note t-sub">订单域 · F-ORD-025</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="user-weapp/02-order/order-review.html"><span class="grow col"><span class="f-body bold t-main">订单评价</span><span class="f-note t-sub">订单域 · F-ORD-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="user-weapp/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">周期订购（订阅）</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">周期订购（订阅）</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-defer">暂缓</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
       </div>
       <div class="section-title">地址与配送域 <span class="f-note t-weak">F-ADR-001~003 · 3 页</span></div>
       <div class="list mb3">
@@ -92,7 +93,7 @@
       </div>
     </section>
     <section class="card">
-      <div class="card-head"><div class="ix-end"><div class="t">② 管理后台</div><div class="d">React + Ant Design 5 · 运营中枢 · 深色侧边栏 + 浅色内容区</div></div><span class="chip chip-plain">60 页</span></div>
+      <div class="card-head"><div class="ix-end"><div class="t">② 管理后台</div><div class="d">React + Ant Design 5 · 运营中枢 · 深色侧边栏 + 浅色内容区</div></div><span class="chip chip-plain">61 页</span></div>
       <div class="section-title">商品域 <span class="f-note t-weak">F-PRO-006~012 · 5 页</span></div>
       <div class="list mb3">
         <a class="list-item" href="admin/01-product/barrel-ledger.html"><span class="grow col"><span class="f-body bold t-main">押金管理 / 桶账台账</span><span class="f-note t-sub">商品域 · F-PRO-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
@@ -101,15 +102,16 @@
         <a class="list-item" href="admin/01-product/products-list.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 商品列表</span><span class="f-note t-sub">商品域 · F-PRO-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/01-product/products-options.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 规格 / 水源地配置</span><span class="f-note t-sub">商品域 · F-PRO-009</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
       </div>
-      <div class="section-title">订单域 <span class="f-note t-weak">F-ORD-020~030 · 7 页</span></div>
+      <div class="section-title">订单域 <span class="f-note t-weak">F-ORD-020~032 · 8 页</span></div>
       <div class="list mb3">
-        <a class="list-item" href="admin/02-order/enterprise-customers.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 企业客户管理</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/enterprise-customers.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 企业客户管理</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-defer">暂缓</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/02-order/order-assign.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 派单与批量派单</span><span class="f-note t-sub">订单域 · F-ORD-022</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/02-order/order-create.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 代客下单</span><span class="f-note t-sub">订单域 · F-ORD-013</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/02-order/order-detail.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单详情</span><span class="f-note t-sub">订单域 · F-ORD-021</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/02-order/order-export.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单导出</span><span class="f-note t-sub">订单域 · F-ORD-030</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
         <a class="list-item" href="admin/02-order/orders-list.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单列表与筛选</span><span class="f-note t-sub">订单域 · F-ORD-020</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
-        <a class="list-item" href="admin/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 周期订购计划管理</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/payment-reconciliation.html"><span class="grow col"><span class="f-body bold t-main">支付管理 / 微信支付对账</span><span class="f-note t-sub">订单域 · F-ORD-031 · R-PAY-04</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 周期订购计划管理</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-defer">暂缓</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
       </div>
       <div class="section-title">地址与配送域 <span class="f-note t-weak">F-ADR-012/013/020~022 · 5 页</span></div>
       <div class="list mb3">
