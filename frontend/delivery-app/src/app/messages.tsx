@@ -30,6 +30,14 @@ const READ_TABS: { title: string; key: ReadTabKey }[] = [
   { title: '已读', key: 'READ' },
 ];
 
+/** 消息类型 → 图标(原型 messages.html:列表项左侧类型图标,置于 tint 圆底)。 */
+const TYPE_ICONS: Record<WorkerNotificationType, string> = {
+  ORDER: '📋',
+  SYSTEM: '⚙️',
+  ANNOUNCEMENT: '📢',
+  FEEDBACK: '💬',
+};
+
 /** 状态 Tab → read 筛选值:全部=不过滤,未读=false,已读=true */
 function readTabToValue(key: ReadTabKey): boolean | undefined {
   if (key === 'ALL') return undefined;
@@ -236,9 +244,12 @@ export default function MessagesScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleMarkRead(item)}>
             <ThemedView type="card" style={styles.item}>
+              {/* 类型图标(数据现有:item.type) */}
+              <View style={[styles.iconCircle, { backgroundColor: theme.primaryBg }]}>
+                <ThemedText type="small">{TYPE_ICONS[item.type] ?? '🔔'}</ThemedText>
+              </View>
               <View style={styles.itemBody}>
                 <View style={styles.itemTitleRow}>
-                  {!item.read && <View style={[styles.dot, { backgroundColor: theme.primary }]} />}
                   <ThemedText
                     style={[styles.itemTitle, !item.read && styles.itemTitleUnread]}
                     numberOfLines={1}>
@@ -254,6 +265,10 @@ export default function MessagesScreen() {
                   </ThemedText>
                 ) : null}
               </View>
+              {/* 未读角标(数据现有:item.read) */}
+              {!item.read && (
+                <View style={[styles.unreadDot, { backgroundColor: theme.danger }]} />
+              )}
             </ThemedView>
           </TouchableOpacity>
         )}
@@ -289,11 +304,21 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
   },
   item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
     marginHorizontal: Spacing.three,
     marginBottom: Spacing.three,
     padding: Spacing.three,
     borderRadius: Radius.lg,
     ...Shadow.sm,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   itemBody: {
     flex: 1,
@@ -302,11 +327,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  dot: {
+  unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
   },
   itemTitle: {
     flex: 1,

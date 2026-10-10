@@ -1,15 +1,29 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
 import { usePathname, useRouter, type Href } from 'expo-router';
 
 import { Button } from '@/components/button';
 import { Gradient } from '@/components/gradient';
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
+import { storage } from '@/services/storage';
+
+/** 版本号:优先 app 配置版本(expo-constants),取不到回退 1.0.0(原型 login.html 底部版本号)。 */
+const APP_VERSION = `v${Constants.expoConfig?.version ?? Constants.nativeApplicationVersion ?? '1.0.0'}`;
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -24,8 +38,22 @@ export default function LoginScreen() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 启动回填记住的账号(仅用户名,不缓存密码)
+  useEffect(() => {
+    storage
+      .getRememberedUsername()
+      .then((saved) => {
+        if (saved) {
+          setUsername(saved);
+          setRemember(true);
+        }
+      })
+      .catch((e) => console.error('读取记住账号失败:', e));
+  }, []);
 
   const handleSubmit = async () => {
     setError('');
@@ -36,6 +64,12 @@ export default function LoginScreen() {
     setSubmitting(true);
     try {
       const info = await login(username.trim(), password);
+      // 记住账号(原型 login.html:仅本地记住用户名,不缓存密码)
+      if (remember) {
+        await storage.setRememberedUsername(username.trim());
+      } else {
+        await storage.clearRememberedUsername();
+      }
       const isAdmin = info.role === 'ADMIN' || info.role === 'SUPER_ADMIN';
       // 管理员登录落在「管理」Tab；送水员保持深链/首页
       router.replace(isAdmin ? '/manage' : (pendingRoute ?? '/'));
@@ -46,30 +80,35 @@ export default function LoginScreen() {
     }
   };
 
-  // 登录页为全屏品牌渐变 hero（亮暗一致），状态栏恒为亮字（见 docs/ui-spec.md §6）
-  const gradientColors = [theme.headerGradientStart, theme.headerGradientEnd] as const;
-
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Gradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.flex}>
-        <StatusBar style="light" />
+    <ThemedView type="pageBackground" style={styles.flex}>
+      <StatusBar style="auto" />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          {/* 品牌区(原型 login.html):渐变圆角方块 logo + AquaRush 字标 + 端名副标题 */}
           <View style={styles.logoSection}>
-            <ThemedText type="title" style={{ color: theme.headerText }}>
-              AquaRush
-            </ThemedText>
-            <ThemedText type="caption" themeColor="headerTextSecondary">
+            <Gradient
+              colors={[theme.headerGradientStart, theme.headerGradientEnd] as const}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.logoMark}>
+              <ThemedText type="subtitle" themeColor="headerText" style={styles.logoLetter}>
+                A
+              </ThemedText>
+            </Gradient>
+            <ThemedText type="subtitle">AquaRush</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
               送水配送 · 运营管理
             </ThemedText>
           </View>
 
-          <View style={[styles.panel, { backgroundColor: theme.card }]}>
-            <ThemedText type="heading" style={styles.welcome}>
-              欢迎使用 AquaRush 配送与运营平台
-            </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.welcome}>
+            欢迎使用 AquaRush 配送与运营平台
+          </ThemedText>
 
+          <View style={[styles.panel, { backgroundColor: theme.card }]}>
             {error ? (
               <ThemedText themeColor="danger" style={styles.error}>
                 {error}
@@ -94,6 +133,20 @@ export default function LoginScreen() {
               onSubmitEditing={handleSubmit}
               editable={!submitting}
             />
+
+            {/* 记住账号(仅记住用户名,启动回填) */}
+            <View style={styles.rememberRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                记住账号
+              </ThemedText>
+              <Switch
+                value={remember}
+                onValueChange={setRemember}
+                trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
+                ios_backgroundColor={theme.backgroundSelected}
+                disabled={submitting}
+              />
+            </View>
 
             <Button
               title="登录"
@@ -121,9 +174,14 @@ export default function LoginScreen() {
               </Text>
             </ThemedText>
           </View>
+
+          {/* 底部版本号(原型 login.html) */}
+          <ThemedText type="caption" themeColor="textTertiary" style={styles.version}>
+            {`AquaRush 配送版 ${APP_VERSION}`}
+          </ThemedText>
         </ScrollView>
-      </Gradient>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ThemedView>
   );
 }
 
@@ -139,7 +197,22 @@ const styles = StyleSheet.create({
   logoSection: {
     alignItems: 'center',
     gap: Spacing.one,
-    marginBottom: Spacing.five,
+    marginBottom: Spacing.four,
+  },
+  logoMark: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.two,
+  },
+  logoLetter: {
+    fontWeight: '700',
+  },
+  welcome: {
+    textAlign: 'center',
+    marginBottom: Spacing.four,
   },
   panel: {
     borderRadius: Radius.xl,
@@ -147,12 +220,13 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     ...Shadow.lg,
   },
-  welcome: {
-    textAlign: 'center',
-    marginBottom: Spacing.one,
-  },
   error: {
     textAlign: 'center',
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   tips: {
     textAlign: 'center',
@@ -160,5 +234,9 @@ const styles = StyleSheet.create({
   },
   agreementLink: {
     textDecorationLine: 'underline',
+  },
+  version: {
+    textAlign: 'center',
+    marginTop: Spacing.five,
   },
 });

@@ -11,6 +11,8 @@ interface CollectionInputFieldsProps {
   waterTicketCount: string;
   qrCodeAmount: string;
   totalCents: number;
+  /** 禁用态(今日已提交后只读回显) */
+  disabled?: boolean;
   onCashAmountChange: (text: string) => void;
   onWaterTicketCountChange: (text: string) => void;
   onQrCodeAmountChange: (text: string) => void;
@@ -24,6 +26,7 @@ export function CollectionInputFields({
   waterTicketCount,
   qrCodeAmount,
   totalCents,
+  disabled = false,
   onCashAmountChange,
   onWaterTicketCountChange,
   onQrCodeAmountChange,
@@ -47,6 +50,7 @@ export function CollectionInputFields({
           onChangeText={onChangeText}
           keyboardType={keyboardType}
           placeholder={`请输入${label}`}
+          editable={!disabled}
           containerStyle={styles.input}
         />
         <ThemedText type="small" themeColor="textTertiary" style={styles.unit}>
