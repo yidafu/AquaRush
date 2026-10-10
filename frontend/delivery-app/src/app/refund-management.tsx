@@ -3,7 +3,7 @@ import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } fro
 import { useRouter } from 'expo-router';
 import { toast } from 'sonner-native';
 import { RefundAction, RefundStatus } from '@aquarush/common';
-import type { RefundRequest } from '@aquarush/common';
+import type { RefundRequestVo } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { ListFooterStatus } from '@/components/list-footer-status';
@@ -32,14 +32,14 @@ export default function RefundManagementScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { isAdmin } = useAuth();
-  const [requests, setRequests] = useState<RefundRequest[]>([]);
+  const [requests, setRequests] = useState<RefundRequestVo[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [statusFilter, setStatusFilter] = useState<RefundStatus | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [reviewTarget, setReviewTarget] = useState<RefundRequest | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<RefundRequestVo | null>(null);
   const [reviewAction, setReviewAction] = useState<RefundAction>(RefundAction.APPROVE);
   const [submitting, setSubmitting] = useState(false);
   const loadingRef = useRef(false);
@@ -95,7 +95,7 @@ export default function RefundManagementScreen() {
     loadPage(page + 1, statusFilter, true).catch(() => {});
   }, [loading, loadingMore, page, totalPages, statusFilter, loadPage]);
 
-  const openReview = useCallback((request: RefundRequest, action: RefundAction) => {
+  const openReview = useCallback((request: RefundRequestVo, action: RefundAction) => {
     setReviewTarget(request);
     setReviewAction(action);
   }, []);

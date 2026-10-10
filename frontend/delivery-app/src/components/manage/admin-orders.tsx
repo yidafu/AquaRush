@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { OrderStatus, ORDER_STATUS_TEXT } from '@aquarush/common';
-import type { Order, OrderVoPage } from '@aquarush/common';
+import type { OrderVo, OrderVoPage } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { Input } from '@/components/input';
@@ -24,7 +24,7 @@ const STATUS_OPTIONS: { label: string; value?: OrderStatus }[] = [
 
 export function AdminOrders() {
   const theme = useTheme();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderVo[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | undefined>(undefined);

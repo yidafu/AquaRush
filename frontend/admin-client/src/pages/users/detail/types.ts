@@ -1,11 +1,11 @@
-import type { User, Order, Address } from '@aquarush/common';
+import type { UserVo, OrderVo, AddressVo } from '@aquarush/common';
 
 /** 用户详情页单页查询(UserDetailPageData)返回结构 */
 export interface UserDetailPageData {
-  user?: User;
-  userAddresses: Address[];
+  user?: UserVo;
+  userAddresses: AddressVo[];
   orders: {
-    content: Order[];
+    content: OrderVo[];
     totalElements: number;
     totalPages: number;
     number: number;

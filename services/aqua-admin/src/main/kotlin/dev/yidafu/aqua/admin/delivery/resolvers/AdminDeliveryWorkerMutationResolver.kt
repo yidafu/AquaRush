@@ -28,7 +28,7 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVo
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
 import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
 import org.slf4j.LoggerFactory
@@ -61,7 +61,7 @@ class AdminDeliveryWorkerMutationResolver(
   @Transactional
   fun createDeliveryWorker(
     @Argument input: CreateDeliveryWorkerInput,
-  ): DeliveryWorker {
+  ): DeliveryWorkerVo {
     try {
       // 验证输入
       validateCreateDeliveryWorkerInput(input)
@@ -102,7 +102,7 @@ class AdminDeliveryWorkerMutationResolver(
   fun updateDeliveryWorker(
     @Argument workerId: Long,
     @Argument input: UpdateDeliveryWorkerInput,
-  ): DeliveryWorker {
+  ): DeliveryWorkerVo {
     try {
       // 获取现有账号(送水员档案并入 admins 单表后,workerId 即账号 id)
       val existingWorker =

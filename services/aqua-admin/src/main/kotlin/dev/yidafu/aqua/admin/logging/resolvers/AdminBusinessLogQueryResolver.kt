@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.logging.resolvers
 
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogVoPage
-import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.logging.mapper.toGraphQL
 import dev.yidafu.aqua.logging.service.BusinessLogService
 import org.springframework.graphql.data.method.annotation.Argument
@@ -39,7 +39,7 @@ class AdminBusinessLogQueryResolver(
   private val businessLogService: BusinessLogService,
 ) {
   /**
-   * 分页查询业务日志(恒 createdAt 倒序,PageInfo 分页)
+   * 分页查询业务日志(恒 createdAt 倒序,PageInfoVo 分页)
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
@@ -50,7 +50,7 @@ class AdminBusinessLogQueryResolver(
     return BusinessLogVoPage(
       list = page.content.map { it.toGraphQL() },
       pageInfo =
-        PageInfo(
+        PageInfoVo(
           total = page.totalElements.toInt(),
           pageSize = page.size,
           pageNum = page.number,

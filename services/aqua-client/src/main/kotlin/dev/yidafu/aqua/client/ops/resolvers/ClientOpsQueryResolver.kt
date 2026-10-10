@@ -26,12 +26,12 @@ import dev.yidafu.aqua.api.service.ops.StoreProfileQueryApiService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
-import dev.yidafu.aqua.common.graphql.generated.Banner
-import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
+import dev.yidafu.aqua.common.graphql.generated.BannerVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRuleVo
 import dev.yidafu.aqua.common.graphql.generated.DeliverySlotVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
-import dev.yidafu.aqua.common.graphql.generated.Notice
-import dev.yidafu.aqua.common.graphql.generated.StoreProfile
+import dev.yidafu.aqua.common.graphql.generated.NoticeVo
+import dev.yidafu.aqua.common.graphql.generated.StoreProfileVo
 import dev.yidafu.aqua.ops.banner.mapper.toGraphQL
 import dev.yidafu.aqua.ops.deliveryfeerule.mapper.toGraphQL
 import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
@@ -59,28 +59,28 @@ class ClientOpsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun activeBanners(): List<Banner> = bannerQueryApiService.getActiveBanners().map { it.toGraphQL() }
+  fun activeBanners(): List<BannerVo> = bannerQueryApiService.getActiveBanners().map { it.toGraphQL() }
 
   /**
    * 当前生效公告列表(已发布且在时间窗内,置顶优先、发布时间倒序;无公告返回空列表,用户端隐藏公告栏)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun activeNotices(): List<Notice> = noticeQueryApiService.getActiveNotices().map { it.toGraphQL() }
+  fun activeNotices(): List<NoticeVo> = noticeQueryApiService.getActiveNotices().map { it.toGraphQL() }
 
   /**
    * 店铺信息(未配置返回 null,用户端按默认值兜底展示)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun storeProfile(): StoreProfile? = storeProfileQueryApiService.getStoreProfile()?.let { it.toGraphQL() }
+  fun storeProfile(): StoreProfileVo? = storeProfileQueryApiService.getStoreProfile()?.let { it.toGraphQL() }
 
   /**
    * 配送费规则(未配置返回默认规则 免费4楼/加价2元,确认订单页据此展示运费)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun deliveryFeeRule(): DeliveryFeeRule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().toGraphQL()
+  fun deliveryFeeRule(): DeliveryFeeRuleVo = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().toGraphQL()
 
   /**
    * 配送时段配置(F-SYS-002,AC-SYS-002-01/03):

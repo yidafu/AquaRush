@@ -23,16 +23,16 @@ import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.PriceSource
-import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
 
 /**
- * ProductModel → GraphQL Product 类型
+ * ProductModel → GraphQL ProductVo 类型
  * 金额字段两侧均为分制 Long,直接赋值无需转换
  */
-fun ProductModel.toGraphQL(): Product =
-  Product(
+fun ProductModel.toGraphQL(): ProductVo =
+  ProductVo(
     certificateImages = certificateImages,
     coverImageUrl = coverImageUrl,
     createdAt = createdAt,

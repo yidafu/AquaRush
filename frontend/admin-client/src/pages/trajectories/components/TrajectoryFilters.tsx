@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import type { DeliveryWorker } from '@aquarush/common';
+import type { DeliveryWorkerVo } from '@aquarush/common';
 
 const { RangePicker } = DatePicker;
 
 export interface TrajectoryFiltersProps {
-  workers: readonly DeliveryWorker[];
+  workers: readonly DeliveryWorkerVo[];
   workersLoading: boolean;
   selectedWorkerId?: string;
   onWorkerChange: (value: string) => void;

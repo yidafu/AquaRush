@@ -5,7 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { MarketingUsageVo, PromotionActivity } from '@aquarush/common';
+import type { MarketingUsageVo, PromotionActivityVo } from '@aquarush/common';
 import { PROMOTION_ACTIVITY_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
@@ -51,7 +51,7 @@ const PromotionDetailPage: React.FC = () => {
   const variables = id ? { id, input: { page, size } } : null;
 
   const { data, loading, error } = useQuery<{
-    promotionActivity?: PromotionActivity | null;
+    promotionActivity?: PromotionActivityVo | null;
     promotionActivityUsage?: MarketingUsageVo | null;
   }>(PROMOTION_ACTIVITY_USAGE_PAGE_DATA_QUERY, {
     variables: variables ?? undefined,

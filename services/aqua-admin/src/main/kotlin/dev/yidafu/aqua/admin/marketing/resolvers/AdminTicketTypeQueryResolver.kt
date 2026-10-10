@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.TicketTypeQueryService
-import dev.yidafu.aqua.common.graphql.generated.TicketType
+import dev.yidafu.aqua.common.graphql.generated.TicketTypeAdminVo
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeListInput
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeVoPage
 import dev.yidafu.aqua.marketing.ticket.mapper.toDomain
@@ -71,5 +71,5 @@ class AdminTicketTypeQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun ticketType(
     @Argument id: Long,
-  ): TicketType? = ticketTypeQueryService.getTicketType(id)?.let { it.toGraphQL() }
+  ): TicketTypeAdminVo? = ticketTypeQueryService.getTicketType(id)?.let { it.toGraphQL() }
 }

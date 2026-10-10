@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.ops.LogPartitionMutationService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryService
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.BackupLogPartitionInput
-import dev.yidafu.aqua.common.graphql.generated.LogBackupRecord
+import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.logging.partition.mapper.toGraphQL
 import jakarta.validation.Valid
@@ -54,7 +54,7 @@ class AdminLogBackupMutationResolver(
   fun backupLogPartition(
     @Argument @Valid input: BackupLogPartitionInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): LogBackupRecord {
+  ): LogBackupRecordVo {
     val table = input.logTable.toDomain()
     logger.info("Admin {} backing up log partition {} of {}", principal.username, input.partitionName, table.tableName)
     val record =

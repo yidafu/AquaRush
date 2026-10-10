@@ -21,16 +21,18 @@ package dev.yidafu.aqua.user.mapper
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
-import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus
 import dev.yidafu.aqua.common.graphql.generated.AdminRole
+import dev.yidafu.aqua.common.graphql.generated.AdminVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
+import dev.yidafu.aqua.common.graphql.generated.RegionVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
-import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserVo
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -44,11 +46,11 @@ import java.time.LocalDateTime
 fun AdminRole.toDomain(): AdminRoleModel = AdminRoleModel.valueOf(name)
 
 /**
- * UserModel → GraphQL User 类型
+ * UserModel → GraphQL UserVo 类型
  * 金额字段两侧均为分制 Long,直接赋值无需转换
  */
-fun UserModel.toGraphQL(): User =
-  User(
+fun UserModel.toGraphQL(): UserVo =
+  UserVo(
     avatarUrl = avatarUrl,
     balanceCents = balanceCents,
     createdAt = createdAt,
@@ -67,12 +69,12 @@ fun UserModel.toGraphQL(): User =
   )
 
 /**
- * AdminModel → GraphQL Admin 类型
+ * AdminModel → GraphQL AdminVo 类型
  *
- * 送水员档案并入 admins 单表后,Admin 类型同时承载配送业务字段(F-USR-021)
+ * 送水员档案并入 admins 单表后,AdminVo 类型同时承载配送业务字段(F-USR-021)
  */
-fun AdminModel.toGraphQL(): Admin =
-  Admin(
+fun AdminModel.toGraphQL(): AdminVo =
+  AdminVo(
     // 账号状态(枚举需显式转换;F-USR-020)
     accountStatus = AdminAccountStatus.valueOf(accountStatus.name),
     avatarUrl = avatarUrl,
@@ -97,10 +99,10 @@ fun AdminModel.toGraphQL(): Admin =
   )
 
 /**
- * AddressModel → GraphQL Address 类型
+ * AddressModel → GraphQL AddressVo 类型
  */
-fun AddressModel.toGraphQL(): Address =
-  Address(
+fun AddressModel.toGraphQL(): AddressVo =
+  AddressVo(
     city = city,
     cityCode = cityCode,
     createdAt = createdAt,
@@ -195,3 +197,18 @@ fun AddressModel.merge(inputInput: UpdateAddressInput) {
   inputInput.latitude?.let { this.latitude = it.toDouble() }
   inputInput.isDefault?.let { this.isDefault = it }
 }
+
+/**
+ * RegionModel → GraphQL RegionVo 类型
+ * id 在未持久化时可能为 null,给 0 兜底;软删除字段不暴露给 GraphQL
+ */
+fun RegionModel.toGraphQL(): RegionVo =
+  RegionVo(
+    id = id ?: 0L,
+    name = name,
+    code = code,
+    parentCode = parentCode,
+    level = level,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )

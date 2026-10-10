@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, Button, Space, DatePicker, Row, Col } from 'antd';
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
-import type { MarketingStatistics as MarketingStatisticsVO } from '@aquarush/common';
+import type { MarketingStatisticsVo as MarketingStatisticsVO } from '@aquarush/common';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import dayjs, { Dayjs } from 'dayjs';

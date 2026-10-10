@@ -1,17 +1,17 @@
 # Test Schema for Statistics Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/statistics/) 加载
-# 与 services/aqua-admin/src/main/resources/graphql/modules/statistics.graphqls + shared-types OrderStatistics
+# 与 services/aqua-admin/src/main/resources/graphql/modules/statistics.graphqls + shared-types OrderStatisticsVO
 # 保持一致(G42 接线 + G38 completedOrders + G37 状态分布/客单价分布/高峰时段分析)
 
 scalar Long
 scalar LocalDateTime
 
 type Query {
-  orderStatistics(input: DateRangeInput!): OrderStatistics!
-  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
-  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
-  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
-  pendingOrderBreakdown: PendingOrderBreakdown!
+  orderStatistics(input: DateRangeInput!): OrderStatisticsVO!
+  dailyStatistics(input: DateRangeInput!): [DailyStatisticVO!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatisticVO!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatisticVO!]!
+  pendingOrderBreakdown: PendingOrderBreakdownVO!
 }
 
 input DateRangeInput {
@@ -19,7 +19,7 @@ input DateRangeInput {
   endDate: LocalDateTime!
 }
 
-type DateRange {
+type DateRangeVO {
   startDate: LocalDateTime!
   endDate: LocalDateTime!
 }
@@ -34,37 +34,37 @@ enum OrderStatus {
   REFUNDED
 }
 
-type OrderStatistics {
+type OrderStatisticsVO {
   totalOrders: Int!
   completedOrders: Int!
   totalRevenueCents: Long!
   averageOrderValueCents: Long!
   refundAmountCents: Long!
   netRevenueCents: Long!
-  dateRange: DateRange!
-  statusDistribution: [OrderStatusStatistic!]!
-  orderValueDistribution: [OrderValueBucketStatistic!]!
-  peakHourDistribution: [PeakHourStatistic!]!
+  dateRange: DateRangeVO!
+  statusDistribution: [OrderStatusStatisticVO!]!
+  orderValueDistribution: [OrderValueBucketStatisticVO!]!
+  peakHourDistribution: [PeakHourStatisticVO!]!
 }
 
-type OrderStatusStatistic {
+type OrderStatusStatisticVO {
   status: OrderStatus!
   count: Int!
 }
 
-type OrderValueBucketStatistic {
+type OrderValueBucketStatisticVO {
   fromCents: Long
   toCents: Long
   label: String!
   count: Int!
 }
 
-type PeakHourStatistic {
+type PeakHourStatisticVO {
   hour: Int!
   count: Int!
 }
 
-type DailyStatistic {
+type DailyStatisticVO {
   date: String!
   orderCount: Int!
   orderProductCount: Int!
@@ -72,7 +72,7 @@ type DailyStatistic {
   refundCents: Long!
 }
 
-type WeeklyStatistic {
+type WeeklyStatisticVO {
   weekNumber: Int!
   year: Int!
   startDate: String!
@@ -83,7 +83,7 @@ type WeeklyStatistic {
   refundCents: Long!
 }
 
-type MonthlyStatistic {
+type MonthlyStatisticVO {
   month: Int!
   year: Int!
   monthName: String!
@@ -93,7 +93,7 @@ type MonthlyStatistic {
   refundCents: Long!
 }
 
-type PendingOrderBreakdown {
+type PendingOrderBreakdownVO {
   pendingPayment: Int!
   pendingDispatch: Int!
   pendingDelivery: Int!

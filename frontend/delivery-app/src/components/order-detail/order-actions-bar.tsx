@@ -5,10 +5,10 @@ import { Button } from '@/components/button';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 
 interface OrderActionsBarProps {
-  order: Order;
+  order: OrderVo;
   isAdmin: boolean;
   actionLoading: boolean;
   assignLoading: boolean;

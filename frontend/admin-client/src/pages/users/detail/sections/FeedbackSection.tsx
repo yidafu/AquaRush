@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Table, Tag, Empty, Alert } from 'antd';
 import { useQuery } from '@apollo/client';
 import { GET_FEEDBACKS_QUERY } from '../../../../graphql/queries/ops.graphql';
-import type { Feedback, FeedbackType, FeedbackStatus } from '@aquarush/common';
+import type { FeedbackVo, FeedbackType, FeedbackStatus } from '@aquarush/common';
 import { FEEDBACK_STATUS_LABELS, FEEDBACK_STATUS_TONE, FEEDBACK_TYPE_LABELS, formatDateTime } from '@aquarush/common';
 import { getToneColor } from '../../../../constants/status';
 import { pagination } from '@/utils/table';
@@ -31,7 +31,7 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ userId }) => {
     return <Alert type="error" showIcon message="意见反馈加载失败" description={error.message} />;
   }
 
-  const feedbacks: Feedback[] = data?.feedbacks?.content || [];
+  const feedbacks: FeedbackVo[] = data?.feedbacks?.content || [];
 
   const columns = [
     {

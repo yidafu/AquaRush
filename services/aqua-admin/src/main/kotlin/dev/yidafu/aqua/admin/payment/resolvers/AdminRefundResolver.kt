@@ -27,8 +27,8 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.ProcessRefundInput
 import dev.yidafu.aqua.common.graphql.generated.RefundAction
-import dev.yidafu.aqua.common.graphql.generated.RefundRequest
 import dev.yidafu.aqua.common.graphql.generated.RefundRequestPage
+import dev.yidafu.aqua.common.graphql.generated.RefundRequestVo
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.payment.service.RefundReviewService
@@ -86,7 +86,7 @@ class AdminRefundResolver(
   fun refundRequest(
     @Argument id: String,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): RefundRequest? {
+  ): RefundRequestVo? {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -99,7 +99,7 @@ class AdminRefundResolver(
   fun processRefund(
     @Argument input: ProcessRefundInput,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): RefundRequest {
+  ): RefundRequestVo {
     val refundRequestId = input.refundRequestId.toLongOrNull() ?: throw BadRequestException("退款申请ID无效")
     val admin =
       adminService.findByUsername(userDetails.username)

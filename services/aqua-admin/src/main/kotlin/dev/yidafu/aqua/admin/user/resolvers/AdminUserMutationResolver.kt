@@ -1,5 +1,5 @@
 /**
- * AquaRush Admin User Mutation Resolver
+ * AquaRush AdminVo UserVo Mutation Resolver
  *
  * Copyright (C) 2025 AquaRush Team
  *
@@ -25,12 +25,12 @@ import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.common.graphql.generated.AdminVo
 import dev.yidafu.aqua.common.graphql.generated.CreateAdminInput
 import dev.yidafu.aqua.common.graphql.generated.CreateUserInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAdminInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateUserInput
-import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserVo
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.slf4j.LoggerFactory
@@ -62,7 +62,7 @@ class AdminUserMutationResolver(
   @MutationMapping
   fun createAdmin(
     @Argument input: CreateAdminInput,
-  ): Admin {
+  ): AdminVo {
     try {
       // 验证输入
       validateCreateAdminInput(input)
@@ -100,7 +100,7 @@ class AdminUserMutationResolver(
   fun updateAdmin(
     @Argument id: Long,
     @Argument input: UpdateAdminInput,
-  ): Admin {
+  ): AdminVo {
     try {
       // 转换输入为请求对象
       val request = UpdateAdminRequest.fromInput(input)
@@ -151,7 +151,7 @@ class AdminUserMutationResolver(
       }
 
       val deleted = adminService.deleteById(id)
-      logger.info("Admin deleted: $id")
+      logger.info("AdminVo deleted: $id")
       return deleted
     } catch (e: Exception) {
       if (e is BadRequestException) {
@@ -173,7 +173,7 @@ class AdminUserMutationResolver(
   ): Boolean {
     try {
       adminService.resetPassword(id, newPassword)
-      logger.info("Admin password reset: $id")
+      logger.info("AdminVo password reset: $id")
       return true
     } catch (e: Exception) {
       if (e is BadRequestException) {
@@ -191,7 +191,7 @@ class AdminUserMutationResolver(
   @MutationMapping
   fun createUser(
     @Argument input: CreateUserInput,
-  ): User {
+  ): UserVo {
     try {
       val created =
         userService.createUserByAdmin(
@@ -214,7 +214,7 @@ class AdminUserMutationResolver(
   fun updateUser(
     @Argument id: Long,
     @Argument input: UpdateUserInput,
-  ): User {
+  ): UserVo {
     try {
       val updated =
         userService.updateUserByAdmin(
@@ -241,7 +241,7 @@ class AdminUserMutationResolver(
   ): Boolean {
     try {
       val deleted = userService.deleteUserById(id)
-      logger.info("User deleted: $id")
+      logger.info("UserVo deleted: $id")
       return deleted
     } catch (e: Exception) {
       logger.error("Failed to delete user", e)

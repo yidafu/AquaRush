@@ -20,18 +20,18 @@
 package dev.yidafu.aqua.ops.feedback.mapper
 
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
-import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackRecordVo
 import dev.yidafu.aqua.common.graphql.generated.FeedbackStatus
 import dev.yidafu.aqua.common.graphql.generated.FeedbackType
+import dev.yidafu.aqua.common.graphql.generated.FeedbackVo
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus as DomainFeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType as DomainFeedbackType
 
 /**
  * 意见反馈映射器:域实体 → GraphQL 类型
  */
-fun FeedbackModel.toGraphQL(): Feedback =
-  Feedback(
+fun FeedbackModel.toGraphQL(): FeedbackVo =
+  FeedbackVo(
     contactInfo = contactInfo,
     content = content,
     createdAt = createdAt,

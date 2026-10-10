@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.FeedbackMutationService
-import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
+import dev.yidafu.aqua.common.graphql.generated.FeedbackVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.ops.feedback.mapper.toGraphQL
 import jakarta.validation.Valid
@@ -51,7 +51,7 @@ class AdminFeedbackMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: FeedbackReviewInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Feedback {
+  ): FeedbackVo {
     logger.info("Admin {} reviewing feedback {} status {}", principal.username, id, input.status)
     val feedback =
       feedbackMutationService.reviewFeedback(

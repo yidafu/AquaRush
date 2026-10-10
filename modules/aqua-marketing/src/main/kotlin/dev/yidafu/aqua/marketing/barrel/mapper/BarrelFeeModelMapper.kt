@@ -20,15 +20,15 @@
 package dev.yidafu.aqua.marketing.barrel.mapper
 
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
-import dev.yidafu.aqua.common.graphql.generated.BarrelFee
+import dev.yidafu.aqua.common.graphql.generated.BarrelFeeAdminVo
 import dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus as DomainBarrelFeeStatus
 
 /**
- * 水桶费价目实体 → GraphQL BarrelFee(状态枚举同名 valueOf 互转)
+ * 水桶费价目实体 → GraphQL BarrelFeeAdminVo(状态枚举同名 valueOf 互转)
  */
-fun BarrelFeeModel.toGraphQL(): BarrelFee =
-  BarrelFee(
+fun BarrelFeeModel.toGraphQL(): BarrelFeeAdminVo =
+  BarrelFeeAdminVo(
     id = id ?: 0L,
     specification = specification,
     priceCents = priceCents,

@@ -22,9 +22,9 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 import dev.yidafu.aqua.api.service.marketing.PromotionActivityQueryService
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityListInput
+import dev.yidafu.aqua.common.graphql.generated.PromotionActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityVoPage
 import dev.yidafu.aqua.marketing.promotion.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
@@ -71,9 +71,9 @@ class AdminPromotionActivityQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun promotionActivity(
     @Argument id: Long,
-  ): PromotionActivity? = promotionActivityQueryService.getActivity(id)?.let { toPromotionActivity(it) }
+  ): PromotionActivityVo? = promotionActivityQueryService.getActivity(id)?.let { toPromotionActivity(it) }
 
-  private fun toPromotionActivity(model: PromotionActivityModel): PromotionActivity {
+  private fun toPromotionActivity(model: PromotionActivityModel): PromotionActivityVo {
     val tiers = promotionActivityQueryService.listTiers(model.id ?: 0L)
     val now = LocalDateTime.now()
     val currentStatus =

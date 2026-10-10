@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
-import dev.yidafu.aqua.common.graphql.generated.UserInfo
+import dev.yidafu.aqua.common.graphql.generated.UserInfoVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -53,7 +53,7 @@ class ClientAuthResolver(
   @PreAuthorize("isAuthenticated()")
   fun me(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): UserInfo {
+  ): UserInfoVo {
     val user =
       userService.findById(userPrincipal.id)
         ?: throw IllegalArgumentException("用户不存在")
@@ -68,7 +68,7 @@ class ClientAuthResolver(
   fun updateProfile(
     @Argument @Valid input: UpdateProfileInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): UserInfo {
+  ): UserInfoVo {
     logger.info(
       "updateProfile for user: {}, fields: nickname={}, phone={}, avatar={}",
       userPrincipal.id,
@@ -81,10 +81,10 @@ class ClientAuthResolver(
   }
 
   /**
-   * 领域实体 → GraphQL UserInfo(纯函数直构,手写转换不依赖编译期生成 mapper)
+   * 领域实体 → GraphQL UserInfoVo(纯函数直构,手写转换不依赖编译期生成 mapper)
    */
-  private fun UserModel.toUserInfo(): UserInfo =
-    UserInfo(
+  private fun UserModel.toUserInfo(): UserInfoVo =
+    UserInfoVo(
       id = id ?: 0L,
       wechatOpenId = wechatOpenId,
       nickname = nickname,

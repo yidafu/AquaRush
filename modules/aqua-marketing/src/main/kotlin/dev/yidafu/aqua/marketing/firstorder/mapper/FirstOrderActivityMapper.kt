@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.marketing.firstorder.mapper
 
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
-import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityType
+import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
@@ -35,8 +35,8 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 fun FirstOrderActivityModel.toGraphQL(
   currentStatus: PromotionActivityDisplayStatus,
   productName: String?,
-): FirstOrderActivity =
-  FirstOrderActivity(
+): FirstOrderActivityVo =
+  FirstOrderActivityVo(
     id = id ?: 0L,
     name = name,
     activityType = activityType.toGraphQL(),

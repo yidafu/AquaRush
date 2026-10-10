@@ -3,9 +3,9 @@ import { todayDateString } from '@/utils/date';
 import type {
   ConfirmDailyCollectionInput,
   DailyCollectionPage,
-  DailyCollectionRecord,
-  DailyCollectionSummary,
-  DailyReconciliation,
+  DailyCollectionRecordVo,
+  DailyCollectionSummaryVo,
+  DailyReconciliationVo,
   DailyReconciliationPage,
   DailyReconciliationStatus,
   MyTodayCollectionVo,
@@ -40,7 +40,7 @@ export const getTodayCollection = () => {
 
 // 配送员提交每日收款
 export const submitDailyCollection = (input: SubmitDailyCollectionInput) => {
-  return networkManager.mutate<{ submitDailyCollection: DailyCollectionRecord }>(
+  return networkManager.mutate<{ submitDailyCollection: DailyCollectionRecordVo }>(
     `
     mutation SubmitDailyCollection($input: SubmitDailyCollectionInput!) {
       submitDailyCollection(input: $input) {
@@ -144,7 +144,7 @@ export const getAdminCollectionPage = (
   collectionDate?: string,
 ) => {
   return networkManager.query<{
-    dailyCollectionSummary: DailyCollectionSummary;
+    dailyCollectionSummary: DailyCollectionSummaryVo;
     dailyCollections: DailyCollectionPage;
     dailyReconciliations: DailyReconciliationPage;
   }>(
@@ -236,7 +236,7 @@ export const getAdminCollectionPage = (
 
 /** 管理员确认每日收款 */
 export const confirmDailyCollection = (input: ConfirmDailyCollectionInput) => {
-  return networkManager.mutate<{ confirmDailyCollection: DailyCollectionRecord }>(
+  return networkManager.mutate<{ confirmDailyCollection: DailyCollectionRecordVo }>(
     `
     mutation ConfirmDailyCollection($input: ConfirmDailyCollectionInput!) {
       confirmDailyCollection(input: $input) {
@@ -256,7 +256,7 @@ export const confirmDailyCollection = (input: ConfirmDailyCollectionInput) => {
 
 /** 管理员驳回每日收款(G28:驳回退回草稿,配送员可改可重提) */
 export const rejectDailyCollection = (input: RejectDailyCollectionInput) => {
-  return networkManager.mutate<{ rejectDailyCollection: DailyCollectionRecord }>(
+  return networkManager.mutate<{ rejectDailyCollection: DailyCollectionRecordVo }>(
     `
     mutation RejectDailyCollection($input: RejectDailyCollectionInput!) {
       rejectDailyCollection(input: $input) {
@@ -276,7 +276,7 @@ export const rejectDailyCollection = (input: RejectDailyCollectionInput) => {
 
 /** 管理员复核对账记录 */
 export const reviewReconciliation = (input: ReviewReconciliationInput) => {
-  return networkManager.mutate<{ reviewReconciliation: DailyReconciliation }>(
+  return networkManager.mutate<{ reviewReconciliation: DailyReconciliationVo }>(
     `
     mutation ReviewReconciliation($input: ReviewReconciliationInput!) {
       reviewReconciliation(input: $input) {
@@ -295,7 +295,7 @@ export const reviewReconciliation = (input: ReviewReconciliationInput) => {
 
 /** 管理员手动执行对账(默认昨日) */
 export const executeDailyReconciliation = (reconciliationDate?: string) => {
-  return networkManager.mutate<{ executeDailyReconciliation: DailyReconciliation }>(
+  return networkManager.mutate<{ executeDailyReconciliation: DailyReconciliationVo }>(
     `
     mutation ExecuteDailyReconciliation($reconciliationDate: String) {
       executeDailyReconciliation(reconciliationDate: $reconciliationDate) {

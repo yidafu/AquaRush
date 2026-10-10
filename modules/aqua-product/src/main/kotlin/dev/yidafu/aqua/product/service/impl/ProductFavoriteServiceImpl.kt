@@ -215,7 +215,7 @@ class ProductFavoriteServiceImpl(
   /**
    * Get comprehensive analytics about user favorites
    */
-  override fun getFavoriteAnalytics(): UserFavoriteAnalytics {
+  override fun getFavoriteAnalytics(): UserFavoriteAnalyticsVo {
     val now = LocalDateTime.now()
     val todayStart = now.toLocalDate().atStartOfDay()
     val weekStart = now.minusDays(7).toLocalDate().atStartOfDay()
@@ -229,7 +229,7 @@ class ProductFavoriteServiceImpl(
     val newThisWeek = productFavoriteRepository.countFavoritesSince(weekStart)
     val newThisMonth = productFavoriteRepository.countFavoritesSince(monthStart)
 
-    return UserFavoriteAnalytics(
+    return UserFavoriteAnalyticsVo(
       totalFavorites = totalFavorites,
       activeUsersWithFavorites = activeUsers,
       averageFavoritesPerUser = averageFavorites.toFloat(),
@@ -244,7 +244,7 @@ class ProductFavoriteServiceImpl(
    *
    * 规则 10:总数走 SQL 聚合(`count(distinct product_id)` / `count(*)`),不再把整个收藏聚合读进内存。
    */
-  override fun getAllProductsFavoriteStats(): AllProductsFavoriteStats {
+  override fun getAllProductsFavoriteStats(): AllProductsFavoriteStatsVo {
     val totalProducts = productFavoriteRepository.countFavoritedProducts()
     val totalFavorites = productFavoriteRepository.countTotalFavorites()
     val averageFavoritesPerProduct =
@@ -254,7 +254,7 @@ class ProductFavoriteServiceImpl(
         0.0f
       }
 
-    return AllProductsFavoriteStats(
+    return AllProductsFavoriteStatsVo(
       totalProducts = totalProducts,
       totalFavorites = totalFavorites,
       averageFavoritesPerProduct = averageFavoritesPerProduct,
@@ -266,13 +266,13 @@ class ProductFavoriteServiceImpl(
    *
    * 规则 10:Top-N 由 SQL limit 决定,商品名批量按 id 取(`findAllById`),不再整表进内存。
    */
-  override fun getProductFavoriteStats(): List<ProductFavoriteStat> {
+  override fun getProductFavoriteStats(): List<ProductFavoriteStatVo> {
     val mostFavorited = productFavoriteRepository.findTopFavoritedProducts(PRODUCT_FAVORITE_STATS_LIMIT)
     if (mostFavorited.isEmpty()) return emptyList()
     val productsById = productRepository.findAllById(mostFavorited.map { it.productId }).associateBy { it.id }
 
     return mostFavorited.map { favoriteCount ->
-      ProductFavoriteStat(
+      ProductFavoriteStatVo(
         productId = favoriteCount.productId,
         productName = productsById[favoriteCount.productId]?.name ?: UNKNOWN_PRODUCT_NAME,
         favoriteCount = favoriteCount.favoriteCount,
@@ -306,7 +306,7 @@ class ProductFavoriteServiceImpl(
     val list =
       favoritesPage.content.mapNotNull { item ->
         val product = productsById[item.productId] ?: return@mapNotNull null
-        ProductFavoriteItem(
+        ProductFavoriteItemVo(
           product = convertToGraphQLProduct(product),
           favoriteCount = item.favoriteCount,
           lastFavoritedAt = item.lastFavoritedAt ?: LocalDateTime.now(),
@@ -316,7 +316,7 @@ class ProductFavoriteServiceImpl(
     return ProductFavoriteVoPage(
       list = list,
       pageInfo =
-        PageInfo(
+        PageInfoVo(
           total = favoritesPage.totalElements.toInt(),
           pageSize = size,
           pageNum = page,
@@ -588,7 +588,7 @@ class ProductFavoriteServiceImpl(
 
   // Private helper methods
 
-  private fun convertToGraphQLProduct(product: ProductModel): Product = product.toGraphQL()
+  private fun convertToGraphQLProduct(product: ProductModel): ProductVo = product.toGraphQL()
 
   private fun convertProductStatus(status: ProductStatus): ProductStatus = status
 

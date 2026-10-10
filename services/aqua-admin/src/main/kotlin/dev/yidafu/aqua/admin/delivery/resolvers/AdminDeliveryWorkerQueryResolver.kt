@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVoPage
 import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
 import org.springframework.data.domain.PageRequest
@@ -41,7 +41,7 @@ import dev.yidafu.aqua.common.annotation.AdminService as AdminServiceAnnotation
  * 提供配送员管理的查询功能，仅管理员可访问
  *
  * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),配送员即
- * role=DELIVERY_WORKER/ADMIN 的账号行,DeliveryWorker 为兼容投影类型。
+ * role=DELIVERY_WORKER/ADMIN 的账号行,DeliveryWorkerVo 为兼容投影类型。
  */
 @AdminServiceAnnotation
 @Controller
@@ -82,7 +82,7 @@ class AdminDeliveryWorkerQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
-  fun onlineDeliveryWorkers(): List<DeliveryWorker> =
+  fun onlineDeliveryWorkers(): List<DeliveryWorkerVo> =
     adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE).map { it.toDeliveryWorker() }
 
   /**
@@ -92,7 +92,7 @@ class AdminDeliveryWorkerQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorker(
     @Argument id: Long,
-  ): DeliveryWorker? =
+  ): DeliveryWorkerVo? =
     adminService.findById(id)?.let {
       if (it.role == AdminRoleModel.DELIVERY_WORKER || it.role == AdminRoleModel.ADMIN) {
         it.toDeliveryWorker()

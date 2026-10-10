@@ -1,11 +1,11 @@
 import React from 'react';
 import { Descriptions, Tag, Typography } from 'antd';
-import type { LogBackupRecord } from '@aquarush/common';
+import type { LogBackupRecordVo } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
 import DetailModal from '@/components/DetailModal';
 
 export interface BackupRecordDetailModalProps {
-  record: LogBackupRecord | null;
+  record: LogBackupRecordVo | null;
   onClose: () => void;
 }
 

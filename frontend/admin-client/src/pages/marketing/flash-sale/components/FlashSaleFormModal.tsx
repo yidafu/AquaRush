@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
-import type { FlashSaleActivity } from '@aquarush/common';
+import type { FlashSaleActivityVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 
 const { RangePicker } = DatePicker;
@@ -25,10 +25,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: FlashSaleActivity | null;
+  record: FlashSaleActivityVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: FlashSaleFormPayload, record: FlashSaleActivity | null) => void;
+  onSubmit: (payload: FlashSaleFormPayload, record: FlashSaleActivityVo | null) => void;
 }
 
 const FlashSaleFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {

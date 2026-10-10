@@ -6,7 +6,7 @@ import {
   GET_ADMIN_QUERY,
   DELIVERY_WORKER_DETAIL_QUERY,
 } from '../../../../graphql/queries/user.graphql';
-import type { Admin, DeliveryWorker } from '@aquarush/common';
+import type { AdminVo, DeliveryWorkerVo } from '@aquarush/common';
 import AdminForm from '../../components/AdminForm';
 import DeliveryWorkerForm from '../../components/DeliveryWorkerForm';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
@@ -56,7 +56,7 @@ const AccountDetailPage: React.FC = () => {
 
   const record: DeliveryRecord | undefined = useMemo(() => {
     if (isSuperAdmin) {
-      const a = adminsData?.admin as Admin | undefined;
+      const a = adminsData?.admin as AdminVo | undefined;
       if (!a) return undefined;
       return {
         id: a.id,
@@ -79,7 +79,7 @@ const AccountDetailPage: React.FC = () => {
         updatedAt: a.updatedAt,
       };
     }
-    const w: DeliveryWorker | undefined = workerData?.deliveryWorker;
+    const w: DeliveryWorkerVo | undefined = workerData?.deliveryWorker;
     if (!w) return undefined;
     return {
       id: w.id,

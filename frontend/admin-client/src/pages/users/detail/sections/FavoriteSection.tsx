@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Table, Tag, Empty, Alert, Image } from 'antd';
 import { useQuery } from '@apollo/client';
 import { USER_FAVORITES_QUERY } from '../../../../graphql/queries/user.graphql';
-import type { FavoriteProduct, ProductStatus } from '@aquarush/common';
+import type { FavoriteProductVo, ProductStatus } from '@aquarush/common';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
@@ -40,14 +40,14 @@ const FavoriteSection: React.FC<FavoriteSectionProps> = ({ userId }) => {
     return <Alert type="error" showIcon message="收藏商品加载失败" description={error.message} />;
   }
 
-  const favorites: FavoriteProduct[] = data?.favoriteProducts?.list || [];
+  const favorites: FavoriteProductVo[] = data?.favoriteProducts?.list || [];
 
   const columns = [
     {
       title: '商品',
       key: 'product',
       width: 260,
-      render: (_: unknown, record: FavoriteProduct) => (
+      render: (_: unknown, record: FavoriteProductVo) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Image
             src={record.coverImageUrl}

@@ -22,7 +22,7 @@ package dev.yidafu.aqua.marketing.coupon.mapper
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.graphql.generated.CouponIssuanceType
 import dev.yidafu.aqua.common.graphql.generated.CouponScope
-import dev.yidafu.aqua.common.graphql.generated.CouponTemplate
+import dev.yidafu.aqua.common.graphql.generated.CouponTemplateAdminVo
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateStatus
 import dev.yidafu.aqua.common.graphql.generated.CouponType
 import dev.yidafu.aqua.common.graphql.generated.IssueTargetType
@@ -40,8 +40,8 @@ import dev.yidafu.aqua.common.domain.model.enums.ValidityType as DomainValidityT
 fun CouponTemplateModel.toGraphQL(
   receivedCount: Int,
   usedCount: Int,
-): CouponTemplate =
-  CouponTemplate(
+): CouponTemplateAdminVo =
+  CouponTemplateAdminVo(
     id = id ?: 0L,
     name = name,
     couponType = couponType.toGraphQL(),

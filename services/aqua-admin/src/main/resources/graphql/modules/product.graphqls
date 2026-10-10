@@ -1,22 +1,22 @@
-# Product management (Admin)
+# ProductVO management (AdminVO)
 
 extend type Query {
-  # Product queries
-  product(id: PrimaryId!): Product
-  productStatistics(dateRange: DateRangeInput): ProductStatistics
-  productDailySales(input: DateRangeInput!): [ProductDailySales!]!
+  # ProductVO queries
+  product(id: PrimaryId!): ProductVO
+  productStatistics(dateRange: DateRangeInput): ProductStatisticsVO
+  productDailySales(input: DateRangeInput!): [ProductDailySalesVO!]!
   productsPaginated(input: ProductSearchInput): ProductVOPage
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVOPage!
   # 库存预警阈值(商品列表着色/低库存判断用,读系统参数 F-SYS-003,缺省 10/50)
-  stockWarningThresholds: StockWarningThresholds!
+  stockWarningThresholds: StockWarningThresholdsVO!
   # 用户收藏的商品(用户详情页「收藏商品」Tab,分页)
   favoriteProducts(userId: PrimaryId!, page: Int = 0, size: Int = 20): FavoriteProductVOPage!
   # 商品属性选项字典(F-PRO-009):规格/水源地下拉选项;enabledOnly=true 仅返回启用项(商品表单用),false 返回全量(配置页用)
-  productOptions(type: ProductOptionType!, enabledOnly: Boolean = false): [ProductOption!]!
+  productOptions(type: ProductOptionType!, enabledOnly: Boolean = false): [ProductOptionVO!]!
 }
 
 # 商品属性选项字典(F-PRO-009):规格/水源地下拉选项的配置来源,替换前端硬编码候选
-type ProductOption {
+type ProductOptionVO {
   id: PrimaryId!
   optionType: ProductOptionType!
   # 选项值(如规格 "500ml"/"19L",水源地 "长白山")
@@ -38,7 +38,7 @@ enum ProductOptionType {
 }
 
 # 库存预警阈值(低库存红 < lowThreshold,中档橙 < midThreshold,其余绿;R-PRO-02)
-type StockWarningThresholds {
+type StockWarningThresholdsVO {
   # 低库存阈值(件)
   lowThreshold: Int!
   # 中档预警阈值(件,须大于 lowThreshold)
@@ -46,16 +46,16 @@ type StockWarningThresholds {
 }
 
 extend type Mutation {
-  # Product mutations
-  createProduct(input: CreateProductInput!): Product!
-  updateProduct(id: PrimaryId!, input: UpdateProductInput!): Product!
+  # ProductVO mutations
+  createProduct(input: CreateProductInput!): ProductVO!
+  updateProduct(id: PrimaryId!, input: UpdateProductInput!): ProductVO!
   deleteProduct(id: PrimaryId!): Boolean!
-  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): Product!
-  onlineProduct(id: PrimaryId!): Product!
-  offlineProduct(id: PrimaryId!): Product!
+  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): ProductVO!
+  onlineProduct(id: PrimaryId!): ProductVO!
+  offlineProduct(id: PrimaryId!): ProductVO!
   # 商品属性选项字典(F-PRO-009)
-  createProductOption(input: CreateProductOptionInput!): ProductOption!
-  updateProductOption(id: PrimaryId!, input: UpdateProductOptionInput!): ProductOption!
+  createProductOption(input: CreateProductOptionInput!): ProductOptionVO!
+  updateProductOption(id: PrimaryId!, input: UpdateProductOptionInput!): ProductOptionVO!
   deleteProductOption(id: PrimaryId!): Boolean!
 }
 

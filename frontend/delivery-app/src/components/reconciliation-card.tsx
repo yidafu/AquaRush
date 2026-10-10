@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
-import type { DailyReconciliation } from '@aquarush/common';
+import type { DailyReconciliationVo } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { OrderInfoRow } from '@/components/order-info-row';
@@ -10,7 +10,7 @@ import { TOLERANCE_CENTS, RECONCILIATION_STATUS_MAP, RECONCILIATION_STATUS_TONE 
 import { Spacing } from '@/constants/theme';
 
 /** 对账记录卡片：日期 + 状态 + 六项统计 + 复核信息。见 weapp reconciliation-records。 */
-export function ReconciliationCard({ record }: { record: DailyReconciliation }) {
+export function ReconciliationCard({ record }: { record: DailyReconciliationVo }) {
   const discrepancyMatched = Math.abs(record.discrepancyAmountCents) <= TOLERANCE_CENTS;
 
   return (

@@ -6,11 +6,11 @@ import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.UserNotFoundException
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
-import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
-import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
+import dev.yidafu.aqua.common.graphql.generated.TodayStatisticsVo
+import dev.yidafu.aqua.common.graphql.generated.WeekStatisticsVo
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.order.mapper.toDomain
 import dev.yidafu.aqua.order.mapper.toGraphQL
@@ -36,7 +36,7 @@ class WeappOrderQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
-  fun pendingDeliveryOrders(): List<Order> = deliveryTaskQueryService.getPendingDeliveryOrders().map { adminOrderMapper.map(it) }
+  fun pendingDeliveryOrders(): List<OrderVo> = deliveryTaskQueryService.getPendingDeliveryOrders().map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员的已接单订单
@@ -45,7 +45,7 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun assignedOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): List<Order> = deliveryTaskQueryService.getAssignedOrders(getAdminIdByUsername(userDetail.username)).map { adminOrderMapper.map(it) }
+  ): List<OrderVo> = deliveryTaskQueryService.getAssignedOrders(getAdminIdByUsername(userDetail.username)).map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员的配送中订单
@@ -54,7 +54,7 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun deliveringOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): List<Order> =
+  ): List<OrderVo> =
     deliveryTaskQueryService
       .getOrdersByStatus(
         getAdminIdByUsername(userDetail.username),
@@ -68,7 +68,7 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun todayStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): TodayStatistics {
+  ): TodayStatisticsVo {
     // 送水员档案并入 admins 单表后,账号 id 即送水员 id(迁移 v1.2.1)
     val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
     return deliveryTaskQueryService.getTodayStatistics(actualWorkerId).toGraphQL()
@@ -81,7 +81,7 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun weekStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): WeekStatistics {
+  ): WeekStatisticsVo {
     val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
     return deliveryTaskQueryService.getWeekStatistics(actualWorkerId).toGraphQL()
   }

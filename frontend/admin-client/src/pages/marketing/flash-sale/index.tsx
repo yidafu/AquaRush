@@ -5,7 +5,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import { BRAND_PRIMARY } from '../../../config/theme';
-import type { FlashSaleActivity } from '@aquarush/common';
+import type { FlashSaleActivityVo } from '@aquarush/common';
 import {
   useFlashSaleActivities,
   useCreateFlashSaleActivity,
@@ -32,7 +32,7 @@ const FlashSale: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<FlashSaleActivity | null>(null);
+  const [editingRecord, setEditingRecord] = useState<FlashSaleActivityVo | null>(null);
 
   const [createActivity, { loading: creating }] = useCreateFlashSaleActivity();
   const [updateActivity, { loading: updating }] = useUpdateFlashSaleActivity();
@@ -61,12 +61,12 @@ const FlashSale: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: FlashSaleActivity) => {
+  const handleEdit = (record: FlashSaleActivityVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: FlashSaleFormPayload, record: FlashSaleActivity | null) => {
+  const handleSubmit = async (payload: FlashSaleFormPayload, record: FlashSaleActivityVo | null) => {
     if (record) {
       await updateActivity({ variables: { id: record.id, input: payload } });
     } else {
@@ -75,11 +75,11 @@ const FlashSale: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: FlashSaleActivity) => {
+  const handleDisable = async (record: FlashSaleActivityVo) => {
     await disableActivity({ variables: { id: record.id } });
   };
 
-  const columns: ColumnsType<FlashSaleActivity> = [
+  const columns: ColumnsType<FlashSaleActivityVo> = [
     { title: '活动名称', dataIndex: 'name', width: 180, ellipsis: true },
     { title: '商品', dataIndex: 'productName', width: 140, ellipsis: true },
     {
@@ -164,7 +164,7 @@ const FlashSale: React.FC = () => {
         </Space>
       }
     >
-      <Table<FlashSaleActivity>
+      <Table<FlashSaleActivityVo>
         rowKey="id"
         columns={columns}
         dataSource={activities}

@@ -30,10 +30,10 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
-import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
-import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
-import dev.yidafu.aqua.common.graphql.generated.StockWarningItem
+import dev.yidafu.aqua.common.graphql.generated.ProductDailySalesVo
+import dev.yidafu.aqua.common.graphql.generated.ProductSalesStatVo
+import dev.yidafu.aqua.common.graphql.generated.ProductStatisticsVo
+import dev.yidafu.aqua.common.graphql.generated.StockWarningItemVo
 import dev.yidafu.aqua.common.graphql.generated.StockWarningStatus
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -63,7 +63,7 @@ class ProductStatisticsServiceImpl(
    * OFFLINE/OUT_OF_STOCK 商品计入总数与低库存预警,不再以 findByStatus(ONLINE) 取子集;
    * 排行营收按已完成订单项聚合(P2-7)。
    */
-  fun getProductStatistics(): ProductStatistics {
+  fun getProductStatistics(): ProductStatisticsVo {
     // 状态分布:总数 = 各状态合计,不整表加载实体(规则 13)
     val statusCounts = productSalesStatisticsRepository.countProductsByStatus()
     val totalProducts = statusCounts.values.sum()
@@ -82,11 +82,11 @@ class ProductStatisticsServiceImpl(
     val lowStockCount = productSalesStatisticsRepository.countLowStockProducts(lowStockThreshold)
 
     // 商品销量排行(P2-7):销量/营收均按已完成订单项聚合,与「营收=已完成订单金额合计」全域口径同源
-    val productRanking: List<ProductSalesStat> =
+    val productRanking: List<ProductSalesStatVo> =
       productSalesStatisticsRepository
         .getProductSalesRanking(rankingTopN)
         .map { row ->
-          ProductSalesStat(
+          ProductSalesStatVo(
             productId = row.productId,
             productName = row.productName,
             salesVolume = row.salesVolume.toInt(),
@@ -100,11 +100,11 @@ class ProductStatisticsServiceImpl(
 
     // 库存预警明细(F-STA-006,G39):库存 ≤ 阈值(与 lowStockProducts 计数同源同口径,R-PRO-02);
     // 缺货(库存=0)置顶、其余按库存升序(仓储层已排序);状态:缺货 OUT_OF_STOCK / 预警 WARNING
-    val stockWarningItems: List<StockWarningItem> =
+    val stockWarningItems: List<StockWarningItemVo> =
       productSalesStatisticsRepository
         .findLowStockProducts(lowStockThreshold, lowStockListLimit)
         .map { item ->
-          StockWarningItem(
+          StockWarningItemVo(
             productId = item.productId,
             productName = item.productName,
             specification = item.specification,
@@ -119,7 +119,7 @@ class ProductStatisticsServiceImpl(
           )
         }
 
-    return ProductStatistics(
+    return ProductStatisticsVo(
       totalProducts = totalProducts.toInt(),
       onlineProducts = onlineProducts.toInt(),
       offlineProducts = offlineProducts.toInt(),
@@ -144,7 +144,7 @@ class ProductStatisticsServiceImpl(
   fun getProductDailySales(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<ProductDailySales> {
+  ): List<ProductDailySalesVo> {
     val today = LocalDate.now(StatisticsTime.STATS_ZONE)
     val yesterday = today.minusDays(1)
     val historicalEnd = minOf(endDate, yesterday)
@@ -206,7 +206,7 @@ class ProductStatisticsServiceImpl(
           .filter { it.key.first == date }
           .sortedByDescending { it.value.third }
           .map { (key, value) ->
-            ProductDailySales(
+            ProductDailySalesVo(
               date = date.toString(),
               productId = key.second,
               productName = value.first,
@@ -217,7 +217,7 @@ class ProductStatisticsServiceImpl(
       if (dayResults.isEmpty()) {
         // No sales on this date, return a single entry with zero
         listOf(
-          ProductDailySales(
+          ProductDailySalesVo(
             date = date.toString(),
             productId = 0L,
             productName = "无销售",

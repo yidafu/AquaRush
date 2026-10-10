@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.GiftActivityQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.GiftActivity
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityListInput
+import dev.yidafu.aqua.common.graphql.generated.GiftActivityVo
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.marketing.gift.mapper.toGraphQL
@@ -69,9 +69,9 @@ class AdminGiftActivityQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun giftActivity(
     @Argument id: Long,
-  ): GiftActivity? = giftActivityQueryService.getActivity(id)?.let { toGiftActivity(it) }
+  ): GiftActivityVo? = giftActivityQueryService.getActivity(id)?.let { toGiftActivity(it) }
 
-  private fun toGiftActivity(model: GiftActivityModel): GiftActivity {
+  private fun toGiftActivity(model: GiftActivityModel): GiftActivityVo {
     val now = LocalDateTime.now()
     val currentStatus =
       when {

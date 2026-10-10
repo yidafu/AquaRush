@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, Tag, Button, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
@@ -51,7 +51,7 @@ const getStatusText = (status: OrderStatus) => {
 };
 
 export interface OrderHistoryTableProps {
-  orders: Order[];
+  orders: OrderVo[];
   loading: boolean;
   /** 0 基页码 */
   page: number;
@@ -71,13 +71,13 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
   onPageChange,
   onViewOrder,
 }) => {
-  const columns: ColumnsType<Order> = [
+  const columns: ColumnsType<OrderVo> = [
     {
       title: '订单编号',
       dataIndex: 'orderNo',
       key: 'orderNo',
       width: 150,
-      render: (orderNo: string, record: Order) => (
+      render: (orderNo: string, record: OrderVo) => (
         <Button
           type="link"
           size="small"
@@ -95,7 +95,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
       title: '商品信息',
       dataIndex: 'items',
       key: 'items',
-      render: (items: Order['items']) => {
+      render: (items: OrderVo['items']) => {
         const productNames = (items ?? []).map((item) => item.product?.name).filter(Boolean);
         const quantity = (items ?? []).reduce((sum, item) => sum + item.quantity, 0);
         return (
@@ -122,7 +122,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
       dataIndex: ['address', 'detailAddress'],
       key: 'address',
       width: 250,
-      render: (detailAddress: string, record: Order) => (
+      render: (detailAddress: string, record: OrderVo) => (
         <div>
           <div>{detailAddress}</div>
           <div style={{ fontSize: '12px', color: '#999' }}>
@@ -136,7 +136,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
       dataIndex: ['deliveryWorker', 'name'],
       key: 'deliveryWorker',
       width: 100,
-      render: (name: string, record: Order) =>
+      render: (name: string, record: OrderVo) =>
         name ? (
           <div>
             <div>{name}</div>

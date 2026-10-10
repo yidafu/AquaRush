@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { PromotionActivity } from '@aquarush/common';
+import type { PromotionActivityVo } from '@aquarush/common';
 import {
   usePromotionActivities,
   useCreatePromotionActivity,
@@ -36,7 +36,7 @@ const Promotions: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<PromotionActivity | null>(null);
+  const [editingRecord, setEditingRecord] = useState<PromotionActivityVo | null>(null);
 
   const [createActivity, { loading: creating }] = useCreatePromotionActivity();
   const [updateActivity, { loading: updating }] = useUpdatePromotionActivity();
@@ -65,12 +65,12 @@ const Promotions: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: PromotionActivity) => {
+  const handleEdit = (record: PromotionActivityVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: PromotionFormPayload, record: PromotionActivity | null) => {
+  const handleSubmit = async (payload: PromotionFormPayload, record: PromotionActivityVo | null) => {
     if (record) {
       await updateActivity({ variables: { id: record.id, input: payload } });
     } else {
@@ -79,11 +79,11 @@ const Promotions: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: PromotionActivity) => {
+  const handleDisable = async (record: PromotionActivityVo) => {
     await disableActivity({ variables: { id: record.id } });
   };
 
-  const renderTiers = (record: PromotionActivity) => {
+  const renderTiers = (record: PromotionActivityVo) => {
     if (record.activityType === 'FULL_REDUCE') {
       return record.tiers.map((tier) => `满${displayCents(tier.thresholdCents)}减${displayCents(tier.discountAmountCents)}`).join(' / ');
     }
@@ -92,13 +92,13 @@ const Promotions: React.FC = () => {
       .join(' / ');
   };
 
-  const renderScope = (record: PromotionActivity) => {
+  const renderScope = (record: PromotionActivityVo) => {
     if (record.scope === 'ALL') return '全场';
     if (record.scope === 'PRODUCT') return '指定商品';
     return '指定分组';
   };
 
-  const columns: ColumnsType<PromotionActivity> = [
+  const columns: ColumnsType<PromotionActivityVo> = [
     { title: '活动名称', dataIndex: 'name', width: 180, ellipsis: true },
     {
       title: '类型',
@@ -174,7 +174,7 @@ const Promotions: React.FC = () => {
         </Space>
       }
     >
-      <Table<PromotionActivity>
+      <Table<PromotionActivityVo>
         rowKey="id"
         columns={columns}
         dataSource={activities}

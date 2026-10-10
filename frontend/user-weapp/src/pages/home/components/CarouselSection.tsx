@@ -1,11 +1,11 @@
 import React from 'react'
 import { View, Text, Image, Swiper, SwiperItem } from '@tarojs/components'
-import type { Banner } from '@aquarush/common'
+import type { BannerVo } from '@aquarush/common'
 
 import './CarouselSection.scss'
 
 interface CarouselSectionProps {
-  banners: Banner[]
+  banners: BannerVo[]
   onBannerClick: (linkType: string, linkTarget: string) => void
 }
 

@@ -20,16 +20,16 @@
 package dev.yidafu.aqua.product.mapper
 
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
-import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.ProductOptionType
+import dev.yidafu.aqua.common.graphql.generated.ProductOptionVo
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType as DomainProductOptionType
 
 /**
  * 商品属性选项字典 Mapper(F-PRO-009):
- * 实体 → GraphQL ProductOption;GraphQL 枚举 ↔ 领域枚举同名互转。
+ * 实体 → GraphQL ProductOptionVo;GraphQL 枚举 ↔ 领域枚举同名互转。
  */
-fun ProductOptionModel.toGraphQL(): ProductOption =
-  ProductOption(
+fun ProductOptionModel.toGraphQL(): ProductOptionVo =
+  ProductOptionVo(
     createdAt = createdAt,
     enabled = enabled,
     id = id ?: 0L,

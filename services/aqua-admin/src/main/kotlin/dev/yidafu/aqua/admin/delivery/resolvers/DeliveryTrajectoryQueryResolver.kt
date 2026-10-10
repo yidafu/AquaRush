@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.api.service.delivery.DeliveryTrajectoryQueryService
-import dev.yidafu.aqua.common.graphql.generated.DeliveryTrajectory
+import dev.yidafu.aqua.common.graphql.generated.DeliveryTrajectoryVo
 import dev.yidafu.aqua.delivery.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -48,7 +48,7 @@ class DeliveryTrajectoryQueryResolver(
     @Argument orderId: Long?,
     @Argument startTime: LocalDateTime?,
     @Argument endTime: LocalDateTime?,
-  ): List<DeliveryTrajectory> =
+  ): List<DeliveryTrajectoryVo> =
     deliveryTrajectoryQueryService
       .getTrajectories(workerId, orderId, startTime, endTime)
       .map { it.toGraphQL() }
@@ -60,5 +60,5 @@ class DeliveryTrajectoryQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorkerLatestLocation(
     @Argument workerId: Long,
-  ): DeliveryTrajectory? = deliveryTrajectoryQueryService.getLatestTrajectory(workerId)?.toGraphQL()
+  ): DeliveryTrajectoryVo? = deliveryTrajectoryQueryService.getLatestTrajectory(workerId)?.toGraphQL()
 }

@@ -1,19 +1,19 @@
 import React from 'react';
 import { Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { BusinessLog } from '@aquarush/common';
+import type { BusinessLogVo } from '@aquarush/common';
 import { OPERATION_CONFIG } from '../../../../components/BusinessLogTimeline';
 import { getLogLevelInfo } from './constants';
 import { pagination } from '@/utils/table';
 
 export interface BusinessLogTableProps {
-  list: readonly BusinessLog[];
+  list: readonly BusinessLogVo[];
   loading: boolean;
   pageNum: number;
   pageSize: number;
   total: number;
   onPageChange: (pageNum: number, pageSize: number) => void;
-  onViewDetail: (log: BusinessLog) => void;
+  onViewDetail: (log: BusinessLogVo) => void;
 }
 
 /** 业务日志表格(logs/business/index.tsx 拆分) */
@@ -26,7 +26,7 @@ const BusinessLogTable: React.FC<BusinessLogTableProps> = ({
   onPageChange,
   onViewDetail,
 }) => {
-  const columns: ColumnsType<BusinessLog> = [
+  const columns: ColumnsType<BusinessLogVo> = [
     {
       title: '时间',
       dataIndex: 'createdAt',
@@ -49,7 +49,7 @@ const BusinessLogTable: React.FC<BusinessLogTableProps> = ({
       dataIndex: 'operation',
       key: 'operation',
       width: 140,
-      render: (operation: string | undefined, record: BusinessLog) => {
+      render: (operation: string | undefined, record: BusinessLogVo) => {
         const op = operation || record.message?.match(/Operation:\s*([^,\s]+)/)?.[1];
         return op ? (OPERATION_CONFIG[op]?.label ?? op) : '-';
       },
@@ -72,7 +72,7 @@ const BusinessLogTable: React.FC<BusinessLogTableProps> = ({
       dataIndex: 'username',
       key: 'username',
       width: 120,
-      render: (name: string, record: BusinessLog) => name || record.userId || '-',
+      render: (name: string, record: BusinessLogVo) => name || record.userId || '-',
     },
     {
       title: '关联ID',
@@ -85,7 +85,7 @@ const BusinessLogTable: React.FC<BusinessLogTableProps> = ({
       title: '操作',
       key: 'action',
       width: 100,
-      render: (_: unknown, record: BusinessLog) => (
+      render: (_: unknown, record: BusinessLogVo) => (
         <Button type="link" size="small" onClick={() => onViewDetail(record)}>
           详情
         </Button>

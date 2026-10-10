@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateGiftActivityInput
-import dev.yidafu.aqua.common.graphql.generated.GiftActivity
+import dev.yidafu.aqua.common.graphql.generated.GiftActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -50,7 +50,7 @@ class AdminGiftActivityMutationResolver(
   fun createGiftActivity(
     @Argument @Valid input: CreateGiftActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): GiftActivity {
+  ): GiftActivityVo {
     logger.info("Admin {} creating gift activity: {}", principal.username, input.name)
     val activity =
       giftActivityMutationService.createActivity(
@@ -67,7 +67,7 @@ class AdminGiftActivityMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateGiftActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): GiftActivity {
+  ): GiftActivityVo {
     logger.info("Admin {} updating gift activity {}", principal.username, id)
     val activity =
       giftActivityMutationService.updateActivity(
@@ -84,14 +84,14 @@ class AdminGiftActivityMutationResolver(
   fun disableGiftActivity(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): GiftActivity {
+  ): GiftActivityVo {
     logger.info("Admin {} disabling gift activity {}", principal.username, id)
     val activity =
       giftActivityMutationService.disableActivity(principal.id, principal.username, id)
     return toGiftActivity(activity)
   }
 
-  private fun toGiftActivity(model: GiftActivityModel): GiftActivity {
+  private fun toGiftActivity(model: GiftActivityModel): GiftActivityVo {
     val now = LocalDateTime.now()
     val currentStatus =
       when {

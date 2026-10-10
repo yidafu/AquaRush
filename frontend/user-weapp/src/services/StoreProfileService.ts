@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import { StoreProfile } from '@aquarush/common'
+import { StoreProfileVo } from '@aquarush/common'
 import { ConfigServiceError, ConfigServiceResult } from './ConfigService'
 
 export type StoreProfileServiceResponse<T> = ConfigServiceResult<T> | ConfigServiceError
@@ -26,9 +26,9 @@ class StoreProfileService {
   /**
    * 获取当前店铺配置(未配置返回 null)
    */
-  public async getStoreProfile(): Promise<StoreProfileServiceResponse<StoreProfile | null>> {
+  public async getStoreProfile(): Promise<StoreProfileServiceResponse<StoreProfileVo | null>> {
     const query = `
-      query StoreProfile {
+      query StoreProfileVo {
         storeProfile {
           shopName
           logoUrl
@@ -42,7 +42,7 @@ class StoreProfileService {
     `
 
     try {
-      const response = await networkManager.query<{ storeProfile: StoreProfile | null }>(query)
+      const response = await networkManager.query<{ storeProfile: StoreProfileVo | null }>(query)
       return {
         success: true,
         data: response.data?.storeProfile ?? null

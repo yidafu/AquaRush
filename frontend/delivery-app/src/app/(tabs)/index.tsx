@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { Money, centsToYuan } from '@aquarush/common';
-import type { TodayStatistics, WeekStatistics } from '@aquarush/common';
+import type { TodayStatisticsVo, WeekStatisticsVo } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { Gradient } from '@/components/gradient';
@@ -20,8 +20,8 @@ import { getWorkbenchData } from '@/services/delivery';
 import { todayDateString } from '@/utils/date';
 
 interface WorkbenchData {
-  today: TodayStatistics | null;
-  week: WeekStatistics | null;
+  today: TodayStatisticsVo | null;
+  week: WeekStatisticsVo | null;
 }
 
 export default function WorkbenchScreen() {

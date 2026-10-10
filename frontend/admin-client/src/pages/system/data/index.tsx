@@ -9,7 +9,7 @@ import {
   Typography,
 } from 'antd';
 import { LogTableType } from '@aquarush/common';
-import type { DataMaintenanceOverviewVo, LogBackupRecord, LogPartitionVo } from '@aquarush/common';
+import type { DataMaintenanceOverviewVo, LogBackupRecordVo, LogPartitionVo } from '@aquarush/common';
 import { useBackupLogPartition, useDataMaintenanceOverview, useSaveSystemConfigs } from '../../../services/system-graphql';
 import {
   LogRetentionForm,
@@ -31,7 +31,7 @@ const SystemDataMaintenanceConfig: React.FC = () => {
   const [activeTable, setActiveTable] = useState<LogTableType>(LogTableType.API_LOG);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [detail, setDetail] = useState<LogBackupRecord | null>(null);
+  const [detail, setDetail] = useState<LogBackupRecordVo | null>(null);
 
   const overview = data?.dataMaintenanceOverview as DataMaintenanceOverviewVo | undefined;
 

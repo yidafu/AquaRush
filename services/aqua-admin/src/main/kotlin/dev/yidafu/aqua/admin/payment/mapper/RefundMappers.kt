@@ -20,14 +20,14 @@
 package dev.yidafu.aqua.admin.payment.mapper
 
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
-import dev.yidafu.aqua.common.graphql.generated.RefundRequest
+import dev.yidafu.aqua.common.graphql.generated.RefundRequestVo
 
 /**
- * 退款申请实体 → GraphQL RefundRequest(R-PAY-02 后台退款管理页)
+ * 退款申请实体 → GraphQL RefundRequestVo(R-PAY-02 后台退款管理页)
  * originalTransactionId 由调用方经支付记录解析后注入。
  */
-fun PaymentRefundModel.toRefundRequest(originalTransactionId: String?): RefundRequest =
-  RefundRequest(
+fun PaymentRefundModel.toRefundRequest(originalTransactionId: String?): RefundRequestVo =
+  RefundRequestVo(
     id = id?.toString() ?: "",
     originalTransactionId = originalTransactionId ?: "",
     orderId = orderId,

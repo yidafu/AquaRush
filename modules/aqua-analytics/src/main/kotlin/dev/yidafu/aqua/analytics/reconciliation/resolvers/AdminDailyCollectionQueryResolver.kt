@@ -31,15 +31,15 @@ import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionListInput
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionPage
-import dev.yidafu.aqua.common.graphql.generated.DailyCollectionSummary
+import dev.yidafu.aqua.common.graphql.generated.DailyCollectionSummaryVo
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationListInput
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationPage
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
-import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.common.graphql.generated.PaymentType
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetail
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailPage
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailVo
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.graphql.data.method.annotation.Argument
@@ -61,9 +61,9 @@ class AdminDailyCollectionQueryResolver(
 ) : BaseGraphQLResolver() {
   private val logger = LoggerFactory.getLogger(AdminDailyCollectionQueryResolver::class.java)
 
-  /** Spring Data Page → GraphQL PageInfo(与 businessLogs 等分页查询同款映射) */
-  private fun pageInfoOf(page: Page<*>): PageInfo =
-    PageInfo(
+  /** Spring Data Page → GraphQL PageInfoVo(与 businessLogs 等分页查询同款映射) */
+  private fun pageInfoOf(page: Page<*>): PageInfoVo =
+    PageInfoVo(
       total = page.totalElements.toInt(),
       pageSize = page.size,
       pageNum = page.number,
@@ -142,13 +142,13 @@ class AdminDailyCollectionQueryResolver(
   fun dailyCollectionSummary(
     @Argument collectionDate: String?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyCollectionSummary {
+  ): DailyCollectionSummaryVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
     val date = collectionDate?.let { LocalDate.parse(it, DateTimeFormatter.ISO_LOCAL_DATE) } ?: LocalDate.now()
     val summary = dailyCollectionService.getDailyCollectionSummary(date)
-    return DailyCollectionSummary(
+    return DailyCollectionSummaryVo(
       collectionDate = summary.collectionDate.toString(),
       totalCashAmountCents = summary.totalCashAmountCents,
       totalQrCodeAmountCents = summary.totalQrCodeAmountCents,
@@ -198,8 +198,8 @@ class AdminDailyCollectionQueryResolver(
     )
   }
 
-  private fun orderToDetail(order: OrderModel): ReconciliationOrderDetail =
-    ReconciliationOrderDetail(
+  private fun orderToDetail(order: OrderModel): ReconciliationOrderDetailVo =
+    ReconciliationOrderDetailVo(
       orderId = order.id ?: 0L,
       orderNo = order.orderNo,
       deliveryWorkerId = order.deliveryWorkerId,

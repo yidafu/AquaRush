@@ -3,7 +3,7 @@ import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd
 import dayjs, { Dayjs } from 'dayjs';
 import { SingleImageUpload } from '../../../../components/ImageUpload';
 import { BannerLinkType } from '@aquarush/common';
-import type { Banner } from '@aquarush/common';
+import type { BannerVo } from '@aquarush/common';
 import { useBanner } from '../../../../services/ops-graphql';
 import FormModal from '@/components/FormModal';
 import { useDetailBackfill } from '@/hooks/useDetailBackfill';
@@ -36,10 +36,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: Banner | null;
+  record: BannerVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: BannerFormPayload, record: Banner | null) => void;
+  onSubmit: (payload: BannerFormPayload, record: BannerVo | null) => void;
 }
 
 // 跳转类型文案

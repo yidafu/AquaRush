@@ -2,7 +2,7 @@
  * order-view 纯映射单测:items 归一/营销价判定、时间轴、地址、状态标志、费用快照。
  */
 import { describe, expect, it } from '@jest/globals'
-import { Order, OrderStatus } from '../types/graphql'
+import { OrderVo, OrderStatus } from '../types/graphql'
 import { orderCostSnapshotFromOrder } from '../utils/order-cost'
 import {
   buildOrderTimeline,
@@ -10,7 +10,7 @@ import {
   toOrderDetailView,
 } from './order-view'
 
-const makeOrder = (overrides: Partial<Order> = {}): Order => ({
+const makeOrder = (overrides: Partial<OrderVo> = {}): OrderVo => ({
   id: '1',
   orderNo: 'NO-1',
   status: OrderStatus.DELIVERING,
@@ -34,7 +34,7 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
         effectivePriceCents: 2500,
         specification: '18.9L',
         hasGroupPrice: false,
-        priceSource: 'GROUP_PRICE' as Order['items'][number]['product']['priceSource'],
+        priceSource: 'GROUP_PRICE' as OrderVo['items'][number]['product']['priceSource'],
         salesVolume: 10,
         sortOrder: 1,
       } as any,

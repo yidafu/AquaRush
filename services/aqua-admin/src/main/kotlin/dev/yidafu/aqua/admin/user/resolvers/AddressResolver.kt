@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.api.service.admin.AddressService
-import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.graphql.generated.AddressVoPage
 import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
@@ -46,7 +46,7 @@ class AddressResolver(
   @PreAuthorize("isAuthenticated()")
   fun userAddresses(
     @Argument userId: Long,
-  ): List<Address> {
+  ): List<AddressVo> {
     val list = addressService.findByUserId(userId)
     return list.map { it.toGraphQL() }
   }
@@ -85,7 +85,7 @@ class AddressResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
   fun createAdminAddress(
     @Argument @Valid input: AddressInput,
-  ): Address {
+  ): AddressVo {
     try {
       val address = input.toDomain()
       // userId 保持为 null，由 AddressInput 中的值决定
@@ -106,7 +106,7 @@ class AddressResolver(
   fun updateAdminAddress(
     @Argument id: Long,
     @Argument @Valid input: UpdateAddressInput,
-  ): Address {
+  ): AddressVo {
     try {
       val existingAddress =
         addressService.findById(id)

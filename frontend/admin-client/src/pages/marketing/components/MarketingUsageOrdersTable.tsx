@@ -3,7 +3,7 @@ import { Button, Space, Table, Tag } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { OrderStatus, displayCents, formatDateTime } from '@aquarush/common';
-import type { Order, OrderVoPage } from '@aquarush/common';
+import type { OrderVo, OrderVoPage } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
 const getStatusColor = (status: OrderStatus) => {
@@ -75,7 +75,7 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
   const navigate = useNavigate();
   const content = orders?.content ?? [];
 
-  const columns: ColumnsType<Order> = [
+  const columns: ColumnsType<OrderVo> = [
     { title: '订单号', dataIndex: 'orderNo', width: 190, ellipsis: true },
     {
       title: '下单时间',
@@ -107,7 +107,7 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
           {
             title: '营销优惠',
             width: 170,
-            render: (_: unknown, record: Order) => {
+            render: (_: unknown, record: OrderVo) => {
               if (discountField === 'coupon') {
                 return record.couponDiscountCents
                   ? `${record.couponName || '优惠券'} -${displayCents(record.couponDiscountCents)}`
@@ -122,7 +122,7 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
                 ? `${record.firstOrderActivityName || '首单立减'} -${displayCents(record.firstOrderDiscountCents)}`
                 : '—';
             },
-          } as ColumnsType<Order>[number],
+          } as ColumnsType<OrderVo>[number],
         ]
       : []),
     ...(showGifts
@@ -130,12 +130,12 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
           {
             title: '赠品',
             width: 160,
-            render: (_: unknown, record: Order) => {
+            render: (_: unknown, record: OrderVo) => {
               const gifts = record.giftItems ?? [];
               if (gifts.length === 0) return '—';
               return gifts.map((g) => `${g.productName} ×${g.quantity}`).join('、');
             },
-          } as ColumnsType<Order>[number],
+          } as ColumnsType<OrderVo>[number],
         ]
       : []),
     {
@@ -156,7 +156,7 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
   ];
 
   return (
-    <Table<Order>
+    <Table<OrderVo>
       rowKey="id"
       columns={columns}
       dataSource={content}

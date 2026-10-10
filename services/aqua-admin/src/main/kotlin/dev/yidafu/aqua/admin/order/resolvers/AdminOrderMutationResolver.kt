@@ -1,5 +1,5 @@
 /**
- * AquaRush Admin Order Mutation Resolver
+ * AquaRush Admin OrderVo Mutation Resolver
  *
  * Copyright (C) 2025 AquaRush Team
  *
@@ -29,7 +29,7 @@ import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
-import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.toRequest
@@ -61,10 +61,10 @@ class AdminOrderMutationResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_WRITE')")
   fun cancelOrder(
     @Argument orderId: Long,
-  ): Order =
+  ): OrderVo =
     orderMutationService.cancelOrderForAdmin(orderId)?.let { adminOrderMapper.map(it) }
 
-      ?: throw IllegalArgumentException("Order not found")
+      ?: throw IllegalArgumentException("OrderVo not found")
 
   /**
    * 更新订单状态 - 管理员权限
@@ -74,7 +74,7 @@ class AdminOrderMutationResolver(
   fun updateOrderStatus(
     @Argument orderId: Long,
     @Argument status: OrderModelStatus,
-  ): Order =
+  ): OrderVo =
     orderMutationService
       .updateOrderStatus(orderId, status)
       .let { adminOrderMapper.map(it) }
@@ -94,7 +94,7 @@ class AdminOrderMutationResolver(
     @Argument workerId: Long,
     @Argument isSelfCollect: Boolean,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId) assigning worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
@@ -110,7 +110,7 @@ class AdminOrderMutationResolver(
     @Argument orderIds: List<Long>,
     @Argument workerId: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): List<Order> {
+  ): List<OrderVo> {
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId)  batch assigning orders $orderIds to worker $workerId")
@@ -126,7 +126,7 @@ class AdminOrderMutationResolver(
   fun createDeliveryOrder(
     @Argument @Valid input: CreateDeliveryOrderInput,
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): Order {
+  ): OrderVo {
     logger.info(
       "Delivery creating order: items=${input.items.map { "productId=${it.productId},quantity=${it.quantity}" }.joinToString(
         ";",
@@ -152,7 +152,7 @@ class AdminOrderMutationResolver(
   fun acceptDelivery(
     @Argument orderId: Long,
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): Order {
+  ): OrderVo {
     val username = userDetail.username
     logger.info("Worker $username accepting delivery for order $orderId")
     return adminOrderMapper.map(deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(username)))
@@ -165,7 +165,7 @@ class AdminOrderMutationResolver(
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun startDelivery(
     @Argument orderId: Long,
-  ): Order {
+  ): OrderVo {
     logger.info("Starting delivery for order $orderId")
     return adminOrderMapper.map(deliveryTaskMutationService.startDelivery(orderId))
   }
@@ -183,7 +183,7 @@ class AdminOrderMutationResolver(
     @Argument photos: List<String>,
     @Argument paymentType: PaymentType?,
     @Argument remark: String?,
-  ): Order {
+  ): OrderVo {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
     return adminOrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
   }
@@ -198,7 +198,7 @@ class AdminOrderMutationResolver(
     @Argument orderId: Long,
     @Argument @Valid input: UpdateOrderAddressInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     logger.info(
       "Worker ${principal.username} updating address for order $orderId: " +
         "receiverName=${input.receiverName}, floor=${input.floor}, " +
@@ -220,7 +220,7 @@ class AdminOrderMutationResolver(
     @Argument action: DeliveryPhotoReviewAction,
     @Argument remark: String?,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     logger.info(
       "Admin ${principal.username}(${principal.id}) reviewing delivery photo for order $orderId, action: $action, remark: $remark",
     )

@@ -22,8 +22,8 @@ package dev.yidafu.aqua.client.user.resolvers
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.mapper.merge
@@ -58,7 +58,7 @@ class ClientAddressMutationResolver(
   fun createAddress(
     @Argument @Valid input: AddressInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Address {
+  ): AddressVo {
     try {
       // 检查地址数量限制
       val currentAddressCount = addressService.countByUserId(userPrincipal.id)
@@ -78,7 +78,7 @@ class ClientAddressMutationResolver(
 
       // Ensure the saved address has an ID before returning
       if (savedAddress.id == null) {
-        logger.error("Address was saved but ID is still null")
+        logger.error("AddressVo was saved but ID is still null")
         throw BadRequestException("地址保存失败：ID 生成失败")
       }
 
@@ -102,7 +102,7 @@ class ClientAddressMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateAddressInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Address {
+  ): AddressVo {
     try {
       // 验证地址存在且属于当前用户
       val existingAddress = addressService.findById(id)
@@ -190,7 +190,7 @@ class ClientAddressMutationResolver(
     id: Long,
     newName: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Address {
+  ): AddressVo {
     return try {
       // 验证源地址存在且属于当前用户
       val sourceAddress = addressService.findById(id)

@@ -22,21 +22,21 @@ package dev.yidafu.aqua.marketing.barrel.mapper
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseItemModel
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus
-import dev.yidafu.aqua.common.graphql.generated.BarrelPurchase
-import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseItem
+import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseAdminVo
+import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseItemAdminVo
 import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseItemVo
 import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseVo
 
 /**
- * 购桶单实体 → GraphQL BarrelPurchase(管理端)/BarrelPurchaseVO(用户端);
+ * 购桶单实体 → GraphQL BarrelPurchaseAdminVo(管理端)/BarrelPurchaseVO(用户端);
  * 明细来自 barrel_purchase_items,由调用方注入(状态枚举同名 valueOf 互转)。
  */
 object BarrelPurchaseModelMapper {
   fun map(
     model: BarrelPurchaseModel,
     items: List<BarrelPurchaseItemModel>,
-  ): BarrelPurchase =
-    BarrelPurchase(
+  ): BarrelPurchaseAdminVo =
+    BarrelPurchaseAdminVo(
       id = model.id ?: 0L,
       userId = model.userId,
       orderNo = model.orderNo,
@@ -71,8 +71,8 @@ object BarrelPurchaseModelMapper {
       paymentParams = paymentParams,
     )
 
-  private fun mapItem(model: BarrelPurchaseItemModel): BarrelPurchaseItem =
-    BarrelPurchaseItem(
+  private fun mapItem(model: BarrelPurchaseItemModel): BarrelPurchaseItemAdminVo =
+    BarrelPurchaseItemAdminVo(
       specification = model.specification,
       unitPriceCents = model.unitPriceCents,
       quantity = model.quantity,

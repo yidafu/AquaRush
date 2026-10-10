@@ -20,17 +20,17 @@
 package dev.yidafu.aqua.ops.notice.mapper
 
 import dev.yidafu.aqua.common.domain.model.NoticeModel
-import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.NoticeStatus
 import dev.yidafu.aqua.common.graphql.generated.NoticeType
+import dev.yidafu.aqua.common.graphql.generated.NoticeVo
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus as DomainNoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType as DomainNoticeType
 
 /**
  * 公告映射器:域实体 → GraphQL 类型
  */
-fun NoticeModel.toGraphQL(): Notice =
-  Notice(
+fun NoticeModel.toGraphQL(): NoticeVo =
+  NoticeVo(
     content = content,
     createdAt = createdAt,
     endAt = endAt,

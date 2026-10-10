@@ -31,9 +31,9 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateReviewRequestInput
-import dev.yidafu.aqua.common.graphql.generated.Order
-import dev.yidafu.aqua.common.graphql.generated.OrderPaymentParams
-import dev.yidafu.aqua.common.graphql.generated.Review
+import dev.yidafu.aqua.common.graphql.generated.OrderPaymentParamsVo
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
+import dev.yidafu.aqua.common.graphql.generated.ReviewVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.toRequest
 import jakarta.validation.Valid
@@ -71,7 +71,7 @@ class ClientOrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     val order =
       orderMutationService.createOrder(
         input.toRequest().copy(userId = principal.id),
@@ -88,7 +88,7 @@ class ClientOrderMutationResolver(
   fun createOrderPayment(
     @Argument orderId: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): OrderPaymentParams {
+  ): OrderPaymentParamsVo {
     val order =
       orderQueryApiService.findById(orderId)
         ?: throw NotFoundException("订单不存在: $orderId")
@@ -110,7 +110,7 @@ class ClientOrderMutationResolver(
         requiresSimulation = true
         emptyMap()
       }
-    return OrderPaymentParams(
+    return OrderPaymentParamsVo(
       paymentParams = if (params.isEmpty()) null else toObjectNode(params),
       requiresSimulation = requiresSimulation,
       autoCompleted = params["mock"] == true,
@@ -126,7 +126,7 @@ class ClientOrderMutationResolver(
   fun cancelOrder(
     @Argument orderId: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     val order =
       orderQueryApiService.findById(orderId)
         ?: throw NotFoundException("订单不存在: $orderId")
@@ -168,7 +168,7 @@ class ClientOrderMutationResolver(
   fun confirmReceipt(
     @Argument orderId: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     val order =
       orderQueryApiService.findById(orderId)
         ?: throw NotFoundException("订单不存在: $orderId")
@@ -190,7 +190,7 @@ class ClientOrderMutationResolver(
   fun createReview(
     @Argument @Valid input: CreateReviewRequestInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Review {
+  ): ReviewVo {
     val review =
       reviewMutationService.createReview(
         userId = principal.id,

@@ -32,8 +32,8 @@ import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.service.DeliveryPhotoReviewService
 import io.kotest.assertions.throwables.shouldThrow
@@ -55,7 +55,7 @@ class AdminOrderMutationResolverTest :
     var adminOrderMapper: AdminOrderMapper = mockk()
     var deliveryPhotoReviewService: DeliveryPhotoReviewService = mockk()
     var resolver: AdminOrderMutationResolver = mockk()
-    val order: Order = mockk(relaxed = true)
+    val order: OrderVo = mockk(relaxed = true)
     val orderModel: OrderModel =
       OrderModel(
         id = 1L,

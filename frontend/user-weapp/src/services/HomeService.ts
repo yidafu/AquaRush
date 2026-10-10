@@ -1,9 +1,9 @@
 import { networkManager } from '../utils/networkManager'
 import {
-  Banner,
-  Notice,
-  StoreProfile,
-  Address as GraphQLAddress,
+  BannerVo,
+  NoticeVo,
+  StoreProfileVo,
+  AddressVo as GraphQLAddress,
   normalizeCents
 } from '@aquarush/common'
 
@@ -36,9 +36,9 @@ export interface HomeData {
   hotProducts: HomeProduct[]
   /** 其余商品(更多商品区,≤3) */
   moreProducts: HomeProduct[]
-  banners: Banner[]
-  notices: Notice[]
-  storeProfile: StoreProfile | null
+  banners: BannerVo[]
+  notices: NoticeVo[]
+  storeProfile: StoreProfileVo | null
   /** 默认收货地址(无则为 null) */
   defaultAddress: GraphQLAddress | null
   /** 营业时间文案("07:00-22:00",未配置回退默认) */
@@ -141,9 +141,9 @@ class HomeService {
     try {
       const response = await networkManager.query<{
         activeProducts?: { list: any[] }
-        activeBanners?: Banner[]
-        activeNotices?: Notice[]
-        storeProfile?: StoreProfile | null
+        activeBanners?: BannerVo[]
+        activeNotices?: NoticeVo[]
+        storeProfile?: StoreProfileVo | null
         userAddresses?: GraphQLAddress[]
       }>(query, { totalSize: hotSize + moreSize })
 

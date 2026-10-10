@@ -25,7 +25,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepo
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.common.graphql.generated.DailyStatisticVo
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -85,8 +85,8 @@ class UserStatisticsServiceImplTest :
       result.size shouldBe 3
       result[0].date shouldBe "2025-06-01"
       result[0].orderCount shouldBe 2
-      result[1] shouldBe DailyStatistic(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
-      result[2] shouldBe DailyStatistic(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
+      result[1] shouldBe DailyStatisticVo(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
+      result[2] shouldBe DailyStatisticVo(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
     }
     test("getLoginStatistics aggregates today and range logins") {
       val start = LocalDate.of(2025, 6, 1)

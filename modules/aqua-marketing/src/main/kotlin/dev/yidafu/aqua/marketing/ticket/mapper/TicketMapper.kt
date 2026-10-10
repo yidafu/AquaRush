@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.marketing.ticket.mapper
 
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
-import dev.yidafu.aqua.common.graphql.generated.TicketType
+import dev.yidafu.aqua.common.graphql.generated.TicketTypeAdminVo
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeKind
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeStatus
 import dev.yidafu.aqua.common.graphql.generated.ValidityType
@@ -31,8 +31,8 @@ import dev.yidafu.aqua.common.domain.model.enums.ValidityType as DomainValidityT
 /**
  * 桶水票票种映射器:域实体 → GraphQL 类型(PRD 10-marketing.md §F-MKT-007)
  */
-fun TicketTypeModel.toGraphQL(): TicketType =
-  TicketType(
+fun TicketTypeModel.toGraphQL(): TicketTypeAdminVo =
+  TicketTypeAdminVo(
     id = id ?: 0L,
     name = name,
     ticketType = ticketType.toGraphQL(),

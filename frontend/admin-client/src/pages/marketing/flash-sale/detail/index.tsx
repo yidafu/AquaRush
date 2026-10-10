@@ -5,7 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { FlashSaleActivity, MarketingUsageVo } from '@aquarush/common';
+import type { FlashSaleActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { FLASH_SALE_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
@@ -41,7 +41,7 @@ const FlashSaleDetailPage: React.FC = () => {
   const variables = id ? { id, input: { page, size } } : null;
 
   const { data, loading, error } = useQuery<{
-    flashSaleActivity?: FlashSaleActivity | null;
+    flashSaleActivity?: FlashSaleActivityVo | null;
     flashSaleActivityUsage?: MarketingUsageVo | null;
   }>(FLASH_SALE_USAGE_PAGE_DATA_QUERY, {
     variables: variables ?? undefined,

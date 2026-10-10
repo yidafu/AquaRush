@@ -1,4 +1,4 @@
-# Test Schema for Admin Barrel Resolvers GraphQL Integration Tests
+# Test Schema for AdminVO Barrel Resolvers GraphQL Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/barrel/) 加载
 # 与 services/aqua-admin/src/main/resources/graphql/modules/barrel.graphqls 保持一致(G06 水桶费)
 
@@ -19,7 +19,7 @@ enum BarrelPaymentStatus {
   REFUNDED
 }
 
-type BarrelFee {
+type BarrelFeeAdminVO {
   id: Long!
   specification: String!
   priceCents: Long!
@@ -30,21 +30,21 @@ type BarrelFee {
 }
 
 type BarrelFeePage {
-  content: [BarrelFee!]!
+  content: [BarrelFeeAdminVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type BarrelPurchaseItem {
+type BarrelPurchaseItemAdminVO {
   specification: String!
   unitPriceCents: Long!
   quantity: Int!
   amountCents: Long!
 }
 
-type BarrelPurchase {
+type BarrelPurchaseAdminVO {
   id: Long!
   orderNo: String!
   userId: Long!
@@ -55,13 +55,13 @@ type BarrelPurchase {
   refundedBy: Long
   refundRemark: String
   remark: String
-  items: [BarrelPurchaseItem!]!
+  items: [BarrelPurchaseItemAdminVO!]!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
 type BarrelPurchasePage {
-  content: [BarrelPurchase!]!
+  content: [BarrelPurchaseAdminVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -101,8 +101,8 @@ type Query {
 }
 
 type Mutation {
-  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFee!
-  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFee!
-  disableBarrelFee(id: Long!): BarrelFee!
-  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchase!
+  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFeeAdminVO!
+  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFeeAdminVO!
+  disableBarrelFee(id: Long!): BarrelFeeAdminVO!
+  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchaseAdminVO!
 }

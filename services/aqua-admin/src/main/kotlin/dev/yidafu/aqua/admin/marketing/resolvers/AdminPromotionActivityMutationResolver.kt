@@ -24,8 +24,8 @@ import dev.yidafu.aqua.api.service.marketing.PromotionActivityQueryService
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.CreatePromotionActivityInput
-import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
+import dev.yidafu.aqua.common.graphql.generated.PromotionActivityVo
 import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.marketing.promotion.mapper.toGraphQL
@@ -54,7 +54,7 @@ class AdminPromotionActivityMutationResolver(
   fun createPromotionActivity(
     @Argument @Valid input: CreatePromotionActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): PromotionActivity {
+  ): PromotionActivityVo {
     logger.info("Admin {} creating promotion activity: {}", principal.username, input.name)
     val activity =
       promotionActivityMutationService.createActivity(
@@ -71,7 +71,7 @@ class AdminPromotionActivityMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdatePromotionActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): PromotionActivity {
+  ): PromotionActivityVo {
     logger.info("Admin {} updating promotion activity {}", principal.username, id)
     val activity =
       promotionActivityMutationService.updateActivity(
@@ -88,14 +88,14 @@ class AdminPromotionActivityMutationResolver(
   fun disablePromotionActivity(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): PromotionActivity {
+  ): PromotionActivityVo {
     logger.info("Admin {} disabling promotion activity {}", principal.username, id)
     val activity =
       promotionActivityMutationService.disableActivity(principal.id, principal.username, id)
     return toPromotionActivity(activity)
   }
 
-  private fun toPromotionActivity(model: PromotionActivityModel): PromotionActivity {
+  private fun toPromotionActivity(model: PromotionActivityModel): PromotionActivityVo {
     val tiers = promotionActivityQueryService.listTiers(model.id ?: 0L)
     val now = LocalDateTime.now()
     val currentStatus =

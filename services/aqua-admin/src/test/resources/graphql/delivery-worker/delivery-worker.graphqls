@@ -4,11 +4,11 @@ scalar Long
 
 type Query {
   deliveryWorkers(keyword: String, role: String, page: Int = 0, size: Int = 20): DeliveryWorkerVOPage!
-  onlineDeliveryWorkers: [DeliveryWorker!]!
-  deliveryWorker(id: Long!): DeliveryWorker
+  onlineDeliveryWorkers: [DeliveryWorkerVO!]!
+  deliveryWorker(id: Long!): DeliveryWorkerVO
 }
 
-type DeliveryWorker {
+type DeliveryWorkerVO {
   id: Long!
   userId: Long!
   wechatOpenId: String!
@@ -29,7 +29,7 @@ enum DeliveryWorkerStatus {
 }
 
 type DeliveryWorkerVOPage {
-  content: [DeliveryWorker!]!
+  content: [DeliveryWorkerVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

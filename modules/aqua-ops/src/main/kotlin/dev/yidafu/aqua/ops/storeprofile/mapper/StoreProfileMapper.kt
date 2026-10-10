@@ -22,7 +22,7 @@ package dev.yidafu.aqua.ops.storeprofile.mapper
 import dev.yidafu.aqua.api.dto.SaveStoreProfileRequest
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import dev.yidafu.aqua.common.graphql.generated.SaveStoreProfileInput
-import dev.yidafu.aqua.common.graphql.generated.StoreProfile
+import dev.yidafu.aqua.common.graphql.generated.StoreProfileVo
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -32,8 +32,8 @@ private val HH_MM_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH
  * 店铺信息映射器:域实体 → GraphQL 类型
  * 营业时间跨 GraphQL 边界以 "HH:mm" 字符串传输(无 LocalTime scalar)。
  */
-fun StoreProfileModel.toGraphQL(): StoreProfile =
-  StoreProfile(
+fun StoreProfileModel.toGraphQL(): StoreProfileVo =
+  StoreProfileVo(
     aboutUs = aboutUs,
     businessHoursEnd = businessHoursEnd?.format(HH_MM_FORMATTER),
     businessHoursStart = businessHoursStart?.format(HH_MM_FORMATTER),

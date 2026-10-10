@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import { Notice } from '@aquarush/common'
+import { NoticeVo } from '@aquarush/common'
 import { ConfigServiceError, ConfigServiceResult } from './ConfigService'
 
 export type NoticeServiceResponse<T> = ConfigServiceResult<T> | ConfigServiceError
@@ -25,7 +25,7 @@ class NoticeService {
   /**
    * 获取当前生效的公告列表(置顶优先、发布时间倒序;无公告返回空数组,用户端隐藏公告栏)
    */
-  public async getActiveNotices(): Promise<NoticeServiceResponse<Notice[]>> {
+  public async getActiveNotices(): Promise<NoticeServiceResponse<NoticeVo[]>> {
     const query = `
       query ActiveNotices {
         activeNotices {
@@ -41,7 +41,7 @@ class NoticeService {
     `
 
     try {
-      const response = await networkManager.query<{ activeNotices: Notice[] }>(query)
+      const response = await networkManager.query<{ activeNotices: NoticeVo[] }>(query)
       return {
         success: true,
         data: response.data?.activeNotices ?? []

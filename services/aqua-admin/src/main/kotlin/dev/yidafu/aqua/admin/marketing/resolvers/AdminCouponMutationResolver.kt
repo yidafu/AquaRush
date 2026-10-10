@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.CouponMutationService
 import dev.yidafu.aqua.api.service.marketing.CouponQueryService
-import dev.yidafu.aqua.common.graphql.generated.CouponTemplate
+import dev.yidafu.aqua.common.graphql.generated.CouponTemplateAdminVo
 import dev.yidafu.aqua.common.graphql.generated.CreateCouponTemplateInput
 import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
@@ -51,7 +51,7 @@ class AdminCouponMutationResolver(
   fun createCouponTemplate(
     @Argument @Valid input: CreateCouponTemplateInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): CouponTemplate {
+  ): CouponTemplateAdminVo {
     logger.info("Admin {} creating coupon template: {}", principal.username, input.name)
     val template =
       couponMutationService.createTemplate(
@@ -68,7 +68,7 @@ class AdminCouponMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateCouponTemplateInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): CouponTemplate {
+  ): CouponTemplateAdminVo {
     logger.info("Admin {} updating coupon template {}", principal.username, id)
     val template =
       couponMutationService.updateTemplate(
@@ -85,7 +85,7 @@ class AdminCouponMutationResolver(
   fun disableCouponTemplate(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): CouponTemplate {
+  ): CouponTemplateAdminVo {
     logger.info("Admin {} disabling coupon template {}", principal.username, id)
     val template =
       couponMutationService.disableTemplate(principal.id, principal.username, id)
@@ -109,7 +109,7 @@ class AdminCouponMutationResolver(
     )
   }
 
-  private fun toCouponTemplate(template: dev.yidafu.aqua.common.domain.model.CouponTemplateModel): CouponTemplate {
+  private fun toCouponTemplate(template: dev.yidafu.aqua.common.domain.model.CouponTemplateModel): CouponTemplateAdminVo {
     val templateId = template.id ?: 0L
     return template.toGraphQL(
       receivedCount = couponQueryService.receivedCount(templateId).toInt(),

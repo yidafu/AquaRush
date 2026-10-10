@@ -26,8 +26,8 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.ExecuteReconciliationInput
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationTask
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVo
 import dev.yidafu.aqua.common.graphql.generated.ResolveDiscrepancyInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import org.slf4j.LoggerFactory
@@ -59,7 +59,7 @@ class AdminReconciliationMutationResolver(
   fun executeReconciliation(
     @Argument input: ExecuteReconciliationInput,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): ReconciliationTask {
+  ): ReconciliationTaskVo {
     if (reconciliationService.hasRunningTask()) {
       throw BadRequestException("已有对账任务正在运行，请稍后再试")
     }

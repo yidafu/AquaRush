@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.admin.order.mapper
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.mapper.toGraphQL
 import dev.yidafu.aqua.order.mapper.toOrderItemVo
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 class AdminOrderMapper(
   private val orderItemRepository: OrderItemRepository,
 ) {
-  fun map(order: OrderModel): Order =
+  fun map(order: OrderModel): OrderVo =
     order.toGraphQL(
       items = orderItemRepository.findByOrderId(order.id!!).map { it.toOrderItemVo() },
     )

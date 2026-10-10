@@ -20,15 +20,15 @@
 package dev.yidafu.aqua.ops.banner.mapper
 
 import dev.yidafu.aqua.common.domain.model.BannerModel
-import dev.yidafu.aqua.common.graphql.generated.Banner
 import dev.yidafu.aqua.common.graphql.generated.BannerLinkType
+import dev.yidafu.aqua.common.graphql.generated.BannerVo
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType as DomainBannerLinkType
 
 /**
  * 轮播图映射器:域实体 → GraphQL 类型
  */
-fun BannerModel.toGraphQL(): Banner =
-  Banner(
+fun BannerModel.toGraphQL(): BannerVo =
+  BannerVo(
     createdAt = createdAt,
     enabled = enabled,
     endAt = endAt,

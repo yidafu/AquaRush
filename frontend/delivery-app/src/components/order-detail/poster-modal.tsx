@@ -6,12 +6,12 @@ import { PosterView, toPosterOrderData } from '@/components/order-poster';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 
 interface PosterModalProps {
   visible: boolean;
   onClose: () => void;
-  order: Order;
+  order: OrderVo;
   wechatConfigured: boolean;
   sharing: boolean;
   /** 海报 View 引用(由父组件持有,供 capturePosterView 截图) */

@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateFlashSaleActivityInput
-import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
+import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -50,7 +50,7 @@ class AdminFlashSaleMutationResolver(
   fun createFlashSaleActivity(
     @Argument @Valid input: CreateFlashSaleActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FlashSaleActivity {
+  ): FlashSaleActivityVo {
     logger.info("Admin {} creating flash sale activity: {}", principal.username, input.name)
     val activity =
       flashSaleActivityMutationService.createActivity(
@@ -67,7 +67,7 @@ class AdminFlashSaleMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateFlashSaleActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FlashSaleActivity {
+  ): FlashSaleActivityVo {
     logger.info("Admin {} updating flash sale activity {}", principal.username, id)
     val activity =
       flashSaleActivityMutationService.updateActivity(
@@ -84,14 +84,14 @@ class AdminFlashSaleMutationResolver(
   fun disableFlashSaleActivity(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FlashSaleActivity {
+  ): FlashSaleActivityVo {
     logger.info("Admin {} disabling flash sale activity {}", principal.username, id)
     val activity =
       flashSaleActivityMutationService.disableActivity(principal.id, principal.username, id)
     return toFlashSaleActivity(activity)
   }
 
-  private fun toFlashSaleActivity(model: FlashSaleActivityModel): FlashSaleActivity {
+  private fun toFlashSaleActivity(model: FlashSaleActivityModel): FlashSaleActivityVo {
     val product = productQueryApiService.findById(model.productId)
     val now = LocalDateTime.now()
     val currentStatus =

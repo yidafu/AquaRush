@@ -28,25 +28,29 @@ import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
-import dev.yidafu.aqua.common.graphql.generated.DailyStat
-import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
-import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.DailyStatVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryAddressVo
 import dev.yidafu.aqua.common.graphql.generated.OrderItemVo
-import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.OrderOperationVo
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
+import dev.yidafu.aqua.common.graphql.generated.TodayStatisticsVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
-import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
+import dev.yidafu.aqua.common.graphql.generated.WeekStatisticsVo
 import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
 import dev.yidafu.aqua.user.mapper.toGraphQL
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DomainDeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus as DeliveryPhotoReviewStatusG
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot as DeliveryTimeSlotG
+import dev.yidafu.aqua.common.graphql.generated.OperatorType as OperatorTypeG
+import dev.yidafu.aqua.common.graphql.generated.OrderOperationType as OrderOperationTypeG
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
 import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
@@ -71,18 +75,18 @@ fun OrderStatusG.toDomain(): OrderModelStatus = OrderModelStatus.valueOf(name)
 fun PaymentType.toGraphQL(): PaymentTypeG = PaymentTypeG.valueOf(name)
 
 // ============================================================================
-// OrderModel → GraphQL Order
+// OrderModel → GraphQL OrderVo
 // ============================================================================
 
 /**
- * OrderModel → GraphQL Order 直映(权威链路,原 OrderMapper)。
+ * OrderModel → GraphQL OrderVo 直映(权威链路,原 OrderMapper)。
  *
  * - [items] 商品明细(F-ORD-004)由调用方经 OrderItemRepository 填充(见 [OrderItemModel.toOrderItemVo]);
  * - giftItems 由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单);
  * - 配送备注 deliveryRemark 为完成配送时配送员填写,随 completeDelivery 落库(R-ORD-07)。
  */
-fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): Order =
-  Order(
+fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): OrderVo =
+  OrderVo(
     id = id ?: 0L,
     orderNo = orderNo,
     amountCents = amountCents,
@@ -140,11 +144,11 @@ fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): Order =
   )
 
 /**
- * DeliveryAddressModel → GraphQL DeliveryAddress(原 DeliveryAddressMapper)。
+ * DeliveryAddressModel → GraphQL DeliveryAddressVo(原 DeliveryAddressMapper)。
  * GraphQL 经纬度为 Float,领域模型/存储统一 Double(WGS-84)。
  */
-fun DeliveryAddressModel.toGraphQL(): DeliveryAddress =
-  DeliveryAddress(
+fun DeliveryAddressModel.toGraphQL(): DeliveryAddressVo =
+  DeliveryAddressVo(
     id = id ?: 0L,
     userId = userId,
     receiverName = receiverName,
@@ -220,23 +224,23 @@ fun UpdateOrderAddressInput.toRequest(): UpdateOrderAddressRequest =
 // 统计 DTO → GraphQL(统计 DTO 属 S2 保留类)
 // ============================================================================
 
-fun TodayStatisticsDTO.toGraphQL(): TodayStatistics =
-  TodayStatistics(
+fun TodayStatisticsDTO.toGraphQL(): TodayStatisticsVo =
+  TodayStatisticsVo(
     completedOrders = completedOrders,
     earningCents = earningCents,
     totalOrders = totalOrders,
     unfinishedOrders = unfinishedOrders,
   )
 
-fun WeekStatisticsDTO.toGraphQL(): WeekStatistics =
-  WeekStatistics(
+fun WeekStatisticsDTO.toGraphQL(): WeekStatisticsVo =
+  WeekStatisticsVo(
     dailyStats = dailyStats.map { it.toGraphQL() },
     totalEarningCents = totalEarningCents,
     totalOrders = totalOrders,
   )
 
-fun DailyStatDTO.toGraphQL(): DailyStat =
-  DailyStat(
+fun DailyStatDTO.toGraphQL(): DailyStatVo =
+  DailyStatVo(
     date = date,
     earningCents = earningCents,
     orderCount = orderCount,
@@ -258,7 +262,7 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
   return OrderItemVo(
     productId = productId,
     product =
-      Product(
+      ProductVo(
         certificateImages = null,
         coverImageUrl = snapshot?.get("coverImageUrl")?.toString() ?: "",
         createdAt = createdAt,
@@ -287,3 +291,31 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
     totalPriceCents = totalPriceCents,
   )
 }
+
+// ============================================================================
+// 订单操作留痕 → GraphQL
+// ============================================================================
+
+/**
+ * OrderOperationModel → GraphQL OrderOperationVo
+ *
+ * 枚举跨包同名 valueOf 互转;extraData 落库为 JSON 文本,序列化前还原为 ObjectNode
+ * (JsonObjectScalar 亦接受 String,但 Vo 字段类型为 ObjectNode,故在 mapper 内转换)。
+ */
+fun OrderOperationModel.toGraphQL(): OrderOperationVo =
+  OrderOperationVo(
+    id = id ?: 0L,
+    orderId = orderId,
+    operationType = OrderOperationTypeG.valueOf(operationType.name),
+    operatorId = operatorId,
+    operatorType = OperatorTypeG.valueOf(operatorType.name),
+    description = description,
+    extraData =
+      extraData?.let { json ->
+        runCatching {
+          val node = jacksonObjectMapper().readTree(json)
+          node as? tools.jackson.databind.node.ObjectNode
+        }.getOrNull()
+      },
+    createdAt = createdAt,
+  )

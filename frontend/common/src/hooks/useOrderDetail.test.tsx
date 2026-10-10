@@ -3,10 +3,10 @@
  */
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it } from '@jest/globals'
-import { Order, OrderStatus } from '../types/graphql'
+import { OrderVo, OrderStatus } from '../types/graphql'
 import { useOrderDetail } from './useOrderDetail'
 
-const makeOrder = (overrides: Partial<Order> = {}): Order => ({
+const makeOrder = (overrides: Partial<OrderVo> = {}): OrderVo => ({
   id: '1',
   orderNo: 'NO-1',
   status: OrderStatus.DELIVERING,

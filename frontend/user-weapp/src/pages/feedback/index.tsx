@@ -8,7 +8,7 @@ import { CONTACT_INFO } from '../../constants'
 // 反馈提交服务(G04 目标形态:真实落库)
 import FeedbackService from '../../services/FeedbackService'
 import StoreProfileService from '../../services/StoreProfileService'
-import { FeedbackType, StoreProfile } from '@aquarush/common'
+import { FeedbackType, StoreProfileVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 // 反馈类型(与后端 FeedbackType 枚举一一对应)
@@ -50,7 +50,7 @@ const Feedback: React.FC = () => {
 
   const [submitting, setSubmitting] = useState(false)
   // 店铺信息(F-OPS-004):客服热线动态读取,未配置时兜底常量
-  const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null)
+  const [storeProfile, setStoreProfile] = useState<StoreProfileVo | null>(null)
 
   useLoad(() => {
     console.log('Feedback page loaded.')

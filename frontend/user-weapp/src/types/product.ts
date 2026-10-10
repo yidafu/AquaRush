@@ -1,5 +1,5 @@
 // Product types for GraphQL operations and frontend data structures
-import { Product } from '@aquarush/common'
+import { ProductVo } from '@aquarush/common'
 
 // Error types for service operations
 export interface ProductServiceError {
@@ -17,7 +17,7 @@ export interface ProductListParams {
 }
 
 export interface ProductListResponse {
-  products: Product[]
+  products: ProductVo[]
   pagination: {
     page: number
     size: number
@@ -30,7 +30,7 @@ export interface ProductListResponse {
 
 // GraphQL Page response wrapper
 export interface ProductPageResponse {
-  content: Product[]
+  content: ProductVo[]
   page: {
     number: number
     size: number
@@ -48,5 +48,5 @@ export interface ProductServiceResult<T> {
   error?: ProductServiceError
 }
 
-export { Product }
+export { ProductVo }
 

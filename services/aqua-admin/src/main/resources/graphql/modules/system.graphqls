@@ -16,7 +16,7 @@ extend type Mutation {
   # 恢复参数默认值(留审计日志)
   restoreSystemConfig(settingKey: String!): SystemConfigVO!
   # 离线备份指定超期日志分区(转储冷表 + 导出数据文件;成功后分区从热表移除)
-  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecord!
+  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecordVO!
 }
 
 # 参数组
@@ -128,7 +128,7 @@ type LogPartitionVO {
 }
 
 # 离线备份记录
-type LogBackupRecord {
+type LogBackupRecordVO {
   # 主键
   id: PrimaryId!
   # 日志表
@@ -171,8 +171,8 @@ input LogBackupRecordListInput {
 
 # 离线备份记录分页结果
 type LogBackupRecordPage {
-  list: [LogBackupRecord!]!
-  pageInfo: PageInfo!
+  list: [LogBackupRecordVO!]!
+  pageInfo: PageInfoVO!
 }
 
 # 离线备份请求输入

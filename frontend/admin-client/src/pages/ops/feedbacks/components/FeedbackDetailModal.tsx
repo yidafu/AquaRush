@@ -8,7 +8,7 @@ import {
   FeedbackStatus,
   formatDateTime,
 } from '@aquarush/common';
-import type { Feedback } from '@aquarush/common';
+import type { FeedbackVo } from '@aquarush/common';
 import { getToneColor } from '../../../../constants/status';
 
 const { TextArea } = Input;
@@ -20,10 +20,10 @@ export interface ReviewPayload {
 
 interface Props {
   open: boolean;
-  record: Feedback | null;
+  record: FeedbackVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: ReviewPayload, record: Feedback) => void;
+  onSubmit: (payload: ReviewPayload, record: FeedbackVo) => void;
 }
 
 const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Table, Rate, Tag, Empty, Alert } from 'antd';
 import { useQuery } from '@apollo/client';
 import { REVIEWS_BY_USER_QUERY } from '../../../../graphql/queries/user.graphql';
-import type { Review } from '@aquarush/common';
+import type { ReviewVo } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
@@ -28,7 +28,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ userId }) => {
     return <Alert type="error" showIcon message="评价记录加载失败" description={error.message} />;
   }
 
-  const reviews: Review[] = data?.reviewsByUser?.content || [];
+  const reviews: ReviewVo[] = data?.reviewsByUser?.content || [];
 
   const columns = [
     {
@@ -56,7 +56,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ userId }) => {
       title: '匿名',
       key: 'isAnonymous',
       width: 80,
-      render: (_: unknown, record: Review) =>
+      render: (_: unknown, record: ReviewVo) =>
         record.isAnonymous ? <Tag color="default">匿名</Tag> : <Tag color="green">实名</Tag>,
     },
     {

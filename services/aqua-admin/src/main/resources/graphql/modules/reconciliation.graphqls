@@ -28,18 +28,18 @@ input DailyReconciliationListInput {
 
 # 收款记录分页结果
 type DailyCollectionPage {
-  list: [DailyCollectionRecord!]!
-  pageInfo: PageInfo!
+  list: [DailyCollectionRecordVO!]!
+  pageInfo: PageInfoVO!
 }
 
 # 对账记录分页结果
 type DailyReconciliationPage {
-  list: [DailyReconciliation!]!
-  pageInfo: PageInfo!
+  list: [DailyReconciliationVO!]!
+  pageInfo: PageInfoVO!
 }
 
 # 指定日期收银汇总(后台顶部汇总卡)
-type DailyCollectionSummary {
+type DailyCollectionSummaryVO {
   # 汇总日期
   collectionDate: String!
   # 现金收款合计(分,送水工填报)
@@ -57,7 +57,7 @@ type DailyCollectionSummary {
 }
 
 # 对账逐单明细(G29):当日「已送达」订单流水,与日报系统计算值同源
-type ReconciliationOrderDetail {
+type ReconciliationOrderDetailVO {
   # 订单ID
   orderId: PrimaryId!
   # 订单号
@@ -76,8 +76,8 @@ type ReconciliationOrderDetail {
 
 # 对账逐单明细分页结果
 type ReconciliationOrderDetailPage {
-  list: [ReconciliationOrderDetail!]!
-  pageInfo: PageInfo!
+  list: [ReconciliationOrderDetailVO!]!
+  pageInfo: PageInfoVO!
 }
 
 extend type Query {
@@ -86,7 +86,7 @@ extend type Query {
   # 对账记录分页查询(恒按对账日期倒序)
   dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationPage!
   # 指定日期收银汇总(默认今日)
-  dailyCollectionSummary(collectionDate: String): DailyCollectionSummary!
+  dailyCollectionSummary(collectionDate: String): DailyCollectionSummaryVO!
   # 对账逐单差异明细(G29:按对账日期分页返回当日已送达订单流水)
   dailyReconciliationOrderDetails(
     reconciliationDate: String!
@@ -107,7 +107,7 @@ extend type Query {
     size: Int = 20
   ): ReconciliationTaskPage!
   # 对账任务详情
-  reconciliationTask(taskId: String!): ReconciliationTask
+  reconciliationTask(taskId: String!): ReconciliationTaskVO
   # 对账差异分页查询(任务ID/解决状态筛选)
   reconciliationDiscrepancies(
     taskId: String
@@ -116,19 +116,19 @@ extend type Query {
     size: Int = 20
   ): ReconciliationDiscrepancyPage!
   # 对账报表列表(按任务,可选报表类型过滤)
-  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReport!]!
+  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReportVO!]!
 }
 
 extend type Mutation {
   # 每日收款管理
-  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
-  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecord!
-  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecord!
-  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliation!
-  executeDailyReconciliation(reconciliationDate: String): DailyReconciliation!
+  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecordVO!
+  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecordVO!
+  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecordVO!
+  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliationVO!
+  executeDailyReconciliation(reconciliationDate: String): DailyReconciliationVO!
 
   # 微信资金对账:手动执行对账(创建任务并异步执行)
-  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTask!
+  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTaskVO!
   # 解决对账差异(审核处理,备注留痕)
   resolveDiscrepancy(input: ResolveDiscrepancyInput!): Boolean!
 }

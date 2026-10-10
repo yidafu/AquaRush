@@ -12,9 +12,9 @@ import {
   USER_DETAIL_PAGE_DATA_QUERY,
 } from '../../../graphql/queries/user.graphql';
 import type {
-  User,
-  Order,
-  Address,
+  UserVo,
+  OrderVo,
+  AddressVo,
 } from '@aquarush/common';
 import AddressListUsingList from '../components/AddressListUsingList';
 import CouponSection from './sections/CouponSection';
@@ -59,9 +59,9 @@ const UserDetailPage: React.FC = () => {
     }
   }, [data, page]);
 
-  const user: User | undefined = data?.user;
-  const userAddresses: Address[] = data?.userAddresses || [];
-  const orders: Order[] = data?.orders.content || [];
+  const user: UserVo | undefined = data?.user;
+  const userAddresses: AddressVo[] = data?.userAddresses || [];
+  const orders: OrderVo[] = data?.orders.content || [];
 
   // 统计口径(2026-09 修正:不再按当前分页计算)
   // 总订单数 = orders.totalElements(全量);总消费 = user.totalSpentCents(持久化权威值);

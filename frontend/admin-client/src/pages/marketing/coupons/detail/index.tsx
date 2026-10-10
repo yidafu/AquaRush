@@ -5,7 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { displayCents, formatDateTime, COUPON_TYPE_LABELS } from '@aquarush/common';
-import type { CouponTemplate, MarketingUsageVo } from '@aquarush/common';
+import type { CouponTemplateAdminVo, MarketingUsageVo } from '@aquarush/common';
 import { COUPON_TEMPLATE_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
@@ -26,7 +26,7 @@ const CouponDetailPage: React.FC = () => {
   const variables = id ? { id, input: { page, size } } : null;
 
   const { data, loading, error } = useQuery<{
-    couponTemplate?: CouponTemplate | null;
+    couponTemplate?: CouponTemplateAdminVo | null;
     couponTemplateUsage?: MarketingUsageVo | null;
   }>(COUPON_TEMPLATE_USAGE_PAGE_DATA_QUERY, {
     variables: variables ?? undefined,
@@ -43,14 +43,14 @@ const CouponDetailPage: React.FC = () => {
     setSize(pagination.pageSize);
   };
 
-  const renderDiscount = (record: CouponTemplate) => {
+  const renderDiscount = (record: CouponTemplateAdminVo) => {
     if (record.couponType === 'DISCOUNT') {
       return record.discountRatePermille != null ? `${(record.discountRatePermille / 1000).toFixed(1)}折` : '—';
     }
     return displayCents(record.discountAmountCents);
   };
 
-  const renderValidity = (record: CouponTemplate) => {
+  const renderValidity = (record: CouponTemplateAdminVo) => {
     if (record.validityType === 'FIXED_RANGE') {
       return record.validFrom && record.validTo
         ? `${formatDateTime(record.validFrom)} ~ ${formatDateTime(record.validTo)}`

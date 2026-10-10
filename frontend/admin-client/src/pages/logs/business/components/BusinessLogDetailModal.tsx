@@ -1,14 +1,14 @@
 import React from 'react';
 import { Descriptions, Tag, Button } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
-import type { BusinessLog } from '@aquarush/common';
+import type { BusinessLogVo } from '@aquarush/common';
 import JsonViewer from '../../../../components/JsonViewer';
 import { getLogLevelInfo } from './constants';
 import DetailModal from '@/components/DetailModal';
 import { copyText } from '@/utils/clipboard';
 
 export interface BusinessLogDetailModalProps {
-  log: BusinessLog | null;
+  log: BusinessLogVo | null;
   open: boolean;
   onClose: () => void;
 }

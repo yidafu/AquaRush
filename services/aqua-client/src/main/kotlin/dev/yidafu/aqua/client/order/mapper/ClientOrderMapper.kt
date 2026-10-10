@@ -24,15 +24,15 @@ import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
-import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.PriceSource
-import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.graphql.generated.Review
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
+import dev.yidafu.aqua.common.graphql.generated.ReviewVo
 import dev.yidafu.aqua.order.mapper.toOrderItemVo
 
 /**
@@ -41,8 +41,8 @@ import dev.yidafu.aqua.order.mapper.toOrderItemVo
  * 枚举按同名条目 valueOf 互转;金额一律为分(R-MON-01)。
  */
 
-fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
-  Order(
+fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): OrderVo =
+  OrderVo(
     id = id ?: 0L,
     orderNo = orderNo,
     amountCents = amountCents,
@@ -93,8 +93,8 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
     giftItems = null,
   )
 
-fun ProductModel.toGraphQL(): Product =
-  Product(
+fun ProductModel.toGraphQL(): ProductVo =
+  ProductVo(
     id = id ?: 0L,
     name = name,
     subtitle = subtitle,
@@ -120,8 +120,8 @@ fun ProductModel.toGraphQL(): Product =
     priceSource = PriceSource.CATALOG_PRICE,
   )
 
-fun AddressModel.toGraphQL(): Address =
-  Address(
+fun AddressModel.toGraphQL(): AddressVo =
+  AddressVo(
     id = id ?: 0L,
     userId = userId,
     receiverName = receiverName,
@@ -145,8 +145,8 @@ fun AddressModel.toGraphQL(): Address =
  * 订单评价 GraphQL 映射(F-ORD-007,一单一评):
  * deliveryWorkerName 由送水工端/后台联查展示,用户端评价展示不依赖该字段。
  */
-fun ReviewModel.toGraphQL(): Review =
-  Review(
+fun ReviewModel.toGraphQL(): ReviewVo =
+  ReviewVo(
     reviewId = id ?: 0L,
     orderId = orderId,
     userId = userId,

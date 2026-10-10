@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Row, Empty, Card, message } from 'antd';
 import { useQuery } from '@apollo/client';
-import type { DeliveryTrajectory, DeliveryWorker } from '@aquarush/common';
+import type { DeliveryTrajectoryVo, DeliveryWorkerVo } from '@aquarush/common';
 import { BRAND_PRIMARY, COLOR_SUCCESS, COLOR_ERROR } from '../../config/theme';
 import { DEFAULT_MAP_CENTER } from '../../lib/map/tianditu';
 import { GET_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/user.graphql';
@@ -31,7 +31,7 @@ const DeliveryTrajectoriesPage: React.FC = () => {
 
   // 送水员列表(在线优先排序);分页接口取一页(下拉用,上限 100)
   const { data: workersData, loading: workersLoading } = useQuery<{
-    deliveryWorkers: { content: readonly DeliveryWorker[]; totalElements: number };
+    deliveryWorkers: { content: readonly DeliveryWorkerVo[]; totalElements: number };
   }>(GET_DELIVERY_WORKERS_QUERY, {
     variables: { keyword: null, role: null, page: 0, size: 100 },
     fetchPolicy: 'cache-and-network',
@@ -44,7 +44,7 @@ const DeliveryTrajectoriesPage: React.FC = () => {
 
   // 送水工最新位置(实时)
   const { data: latestData, loading: latestLoading, refetch: refetchLatest } = useQuery<{
-    deliveryWorkerLatestLocation?: DeliveryTrajectory | null;
+    deliveryWorkerLatestLocation?: DeliveryTrajectoryVo | null;
   }>(GET_DELIVERY_WORKER_LATEST_LOCATION_QUERY, {
     variables: selectedWorkerId ? { workerId: selectedWorkerId } : undefined,
     skip: !selectedWorkerId,
@@ -53,7 +53,7 @@ const DeliveryTrajectoriesPage: React.FC = () => {
 
   // 轨迹序列(按时间范围;orderId 不指定,展示全部配送轨迹)
   const { data: trajData, loading: trajLoading, refetch: refetchTrajectories } = useQuery<{
-    deliveryTrajectories: readonly DeliveryTrajectory[];
+    deliveryTrajectories: readonly DeliveryTrajectoryVo[];
   }>(GET_DELIVERY_TRAJECTORIES_QUERY, {
     variables: selectedWorkerId
       ? {

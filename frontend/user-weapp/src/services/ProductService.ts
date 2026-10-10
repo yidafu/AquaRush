@@ -1,6 +1,6 @@
 import { networkManager } from '../utils/networkManager'
 import {
-  Product as GraphQLProduct,
+  ProductVo as GraphQLProduct,
   ProductPriceVo,
   ProductStatus
 } from '@aquarush/common'

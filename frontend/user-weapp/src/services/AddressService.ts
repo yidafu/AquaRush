@@ -1,7 +1,7 @@
 import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {
-  Address as GraphQLAddress,
+  AddressVo as GraphQLAddress,
   AddressInput as GraphQLAddressInput,
   UpdateAddressInput as GraphQLUpdateAddressInput
 } from '@aquarush/common'

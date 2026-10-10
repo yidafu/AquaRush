@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Select, Switch, DatePicker, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { NoticeType } from '@aquarush/common';
-import type { Notice } from '@aquarush/common';
+import type { NoticeVo } from '@aquarush/common';
 import { useNotice } from '../../../../services/ops-graphql';
 import { NOTICE_TYPE_LABELS } from '../constants';
 import FormModal from '@/components/FormModal';
@@ -30,10 +30,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: Notice | null;
+  record: NoticeVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: NoticeFormPayload, record: Notice | null) => void;
+  onSubmit: (payload: NoticeFormPayload, record: NoticeVo | null) => void;
 }
 
 // 公告类型选项

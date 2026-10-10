@@ -1,11 +1,11 @@
 import React from 'react';
 import { Card, Col, Row, Statistic } from 'antd';
 import { centsToYuan } from '@aquarush/common';
-import type { MarketingUsageSummary } from '@aquarush/common';
+import type { MarketingUsageSummaryVo } from '@aquarush/common';
 
 interface MarketingUsageSummaryCardsProps {
   /** 使用情况汇总(加载中/未返回时为 null) */
-  summary?: MarketingUsageSummary | null;
+  summary?: MarketingUsageSummaryVo | null;
   loading?: boolean;
   /** 优惠金额卡片标题(默认「优惠金额」) */
   benefitLabel?: string;

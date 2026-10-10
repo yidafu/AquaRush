@@ -24,11 +24,11 @@ import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyStatus
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyType
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancy
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationReport
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationTask
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyVo
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationReportVo
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVo
 import dev.yidafu.aqua.common.graphql.generated.SourceSystem
 import dev.yidafu.aqua.common.util.JsonHelper
 import java.time.LocalDateTime
@@ -37,8 +37,8 @@ import java.time.LocalDateTime
  * 微信资金对账实体 → GraphQL 类型映射(原 ReconciliationTaskModelMapper):
  * 处理 id Long? -> Long、枚举跨包名(域枚举 → 生成枚举)、taskDate LocalDateTime? -> LocalDateTime。
  */
-fun ReconciliationTaskModel.toGraphQL(): ReconciliationTask =
-  ReconciliationTask(
+fun ReconciliationTaskModel.toGraphQL(): ReconciliationTaskVo =
+  ReconciliationTaskVo(
     // 处理 id: Long? -> Long
     id = id ?: 0L,
     taskId = taskId,
@@ -60,8 +60,8 @@ fun ReconciliationTaskModel.toGraphQL(): ReconciliationTask =
 /**
  * 对账差异实体 → GraphQL 类型映射(原 ReconciliationDiscrepancyModelMapper)
  */
-fun ReconciliationDiscrepancyModel.toGraphQL(): ReconciliationDiscrepancy =
-  ReconciliationDiscrepancy(
+fun ReconciliationDiscrepancyModel.toGraphQL(): ReconciliationDiscrepancyVo =
+  ReconciliationDiscrepancyVo(
     // 处理 id: Long? -> Long
     id = id ?: 0L,
     taskId = taskId,
@@ -82,8 +82,8 @@ fun ReconciliationDiscrepancyModel.toGraphQL(): ReconciliationDiscrepancy =
 /**
  * 对账报表实体 → GraphQL 类型映射(原 ReconciliationReportModelMapper)
  */
-fun ReconciliationReportModel.toGraphQL(): ReconciliationReport =
-  ReconciliationReport(
+fun ReconciliationReportModel.toGraphQL(): ReconciliationReportVo =
+  ReconciliationReportVo(
     // 处理 id: Long? -> Long
     id = id ?: 0L,
     taskId = taskId,

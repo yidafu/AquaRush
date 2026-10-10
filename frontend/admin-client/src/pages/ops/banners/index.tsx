@@ -3,7 +3,7 @@ import { Table, Tag, Space, Button, Card, Image, Popconfirm, Switch, message } f
 import { PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '@aquarush/common';
-import type { Banner } from '@aquarush/common';
+import type { BannerVo } from '@aquarush/common';
 import {
   useBanners,
   useCreateBanner,
@@ -20,7 +20,7 @@ const Banners: React.FC = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<Banner | null>(null);
+  const [editingRecord, setEditingRecord] = useState<BannerVo | null>(null);
 
   const [createBanner, { loading: creating }] = useCreateBanner();
   const [updateBanner, { loading: updating }] = useUpdateBanner();
@@ -50,12 +50,12 @@ const Banners: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: Banner) => {
+  const handleEdit = (record: BannerVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: BannerFormPayload, record: Banner | null) => {
+  const handleSubmit = async (payload: BannerFormPayload, record: BannerVo | null) => {
     if (record) {
       await updateBanner({
         variables: { id: record.id, input: { ...payload, enabled: payload.enabled } },
@@ -66,15 +66,15 @@ const Banners: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDelete = async (record: Banner) => {
+  const handleDelete = async (record: BannerVo) => {
     await deleteBanner({ variables: { id: record.id } });
   };
 
-  const handleReorder = async (record: Banner, direction: 'UP' | 'DOWN') => {
+  const handleReorder = async (record: BannerVo, direction: 'UP' | 'DOWN') => {
     await reorderBanner({ variables: { id: record.id, direction } });
   };
 
-  const handleToggleEnabled = async (record: Banner, enabled: boolean) => {
+  const handleToggleEnabled = async (record: BannerVo, enabled: boolean) => {
     await updateBanner({
       variables: {
         id: record.id,
@@ -95,7 +95,7 @@ const Banners: React.FC = () => {
 
   const linkLabel = (type: string) => (type === 'PRODUCT' ? '商品详情' : '自定义页面');
 
-  const columns: ColumnsType<Banner> = [
+  const columns: ColumnsType<BannerVo> = [
     {
       title: '图片',
       dataIndex: 'imageUrl',
@@ -164,7 +164,7 @@ const Banners: React.FC = () => {
         </Button>
       }
     >
-      <Table<Banner>
+      <Table<BannerVo>
         rowKey="id"
         columns={columns}
         dataSource={banners}

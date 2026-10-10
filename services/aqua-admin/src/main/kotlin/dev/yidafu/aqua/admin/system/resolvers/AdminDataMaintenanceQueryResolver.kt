@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.DataMaintenanceOverviewVo
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordListInput
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordPage
 import dev.yidafu.aqua.common.graphql.generated.LogTableType
-import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.logging.partition.mapper.LogPartitionVoMapper
 import dev.yidafu.aqua.logging.partition.mapper.toGraphQL
 import dev.yidafu.aqua.ops.systemconfig.mapper.toGraphQL
@@ -83,7 +83,7 @@ class AdminDataMaintenanceQueryResolver(
         LogBackupRecordPage(
           list = recordsPage.content.map { it.toGraphQL() },
           pageInfo =
-            PageInfo(
+            PageInfoVo(
               total = recordsPage.totalElements.toInt(),
               pageSize = recordsPage.size,
               pageNum = recordsPage.number,

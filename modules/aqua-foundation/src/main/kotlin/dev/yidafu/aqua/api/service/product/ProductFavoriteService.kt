@@ -81,18 +81,18 @@ interface ProductFavoriteService {
   /**
    * Get comprehensive analytics about user favorites
    */
-  fun getFavoriteAnalytics(): UserFavoriteAnalytics
+  fun getFavoriteAnalytics(): UserFavoriteAnalyticsVo
 
   /**
    * Get all products favorite statistics
    */
-  fun getAllProductsFavoriteStats(): AllProductsFavoriteStats
+  fun getAllProductsFavoriteStats(): AllProductsFavoriteStatsVo
 
   /**
    * Get product favorite statistics by product
    * @return list of product favorite stats
    */
-  fun getProductFavoriteStats(): List<ProductFavoriteStat>
+  fun getProductFavoriteStats(): List<ProductFavoriteStatVo>
 
   /**
    * Get products sorted by favorite count with pagination

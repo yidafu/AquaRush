@@ -5,7 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { FirstOrderActivity, MarketingUsageVo } from '@aquarush/common';
+import type { FirstOrderActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { FIRST_ORDER_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable, { type MarketingDiscountField } from '../../components/MarketingUsageOrdersTable';
@@ -52,7 +52,7 @@ const NewcomerDetailPage: React.FC = () => {
   const variables = id ? { id, input: { page, size } } : null;
 
   const { data, loading, error } = useQuery<{
-    firstOrderActivity?: FirstOrderActivity | null;
+    firstOrderActivity?: FirstOrderActivityVo | null;
     firstOrderActivityUsage?: MarketingUsageVo | null;
   }>(FIRST_ORDER_USAGE_PAGE_DATA_QUERY, {
     variables: variables ?? undefined,
@@ -71,7 +71,7 @@ const NewcomerDetailPage: React.FC = () => {
 
   const isReduce = config?.activityType === 'FIRST_ORDER_REDUCE';
 
-  const renderBenefit = (record: FirstOrderActivity) => {
+  const renderBenefit = (record: FirstOrderActivityVo) => {
     if (record.activityType === 'FIRST_ORDER_REDUCE') {
       const threshold = record.thresholdCents ? `满${displayCents(record.thresholdCents)}` : '';
       if (record.discountAmountCents) {

@@ -23,10 +23,10 @@ import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
-import dev.yidafu.aqua.common.graphql.generated.StockWarningThresholds
+import dev.yidafu.aqua.common.graphql.generated.StockWarningThresholdsVo
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.toGraphQL
 import dev.yidafu.aqua.product.mapper.toRequest
@@ -52,8 +52,8 @@ class AdminProductQueryResolver(
    */
   @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   @QueryMapping
-  fun stockWarningThresholds(): StockWarningThresholds =
-    StockWarningThresholds(
+  fun stockWarningThresholds(): StockWarningThresholdsVo =
+    StockWarningThresholdsVo(
       lowThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L).toInt(),
       midThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.STOCK_WARNING_TIER_MID, 50L).toInt(),
     )
@@ -87,7 +87,7 @@ class AdminProductQueryResolver(
   @QueryMapping
   fun product(
     @Argument id: Long,
-  ): Product? = productService.findById(id)?.toGraphQL()
+  ): ProductVo? = productService.findById(id)?.toGraphQL()
 
   /**
    * 查询在售商品列表(R-PRO-03:仅返回在售且库存>0 的商品,供用户端/预览使用)

@@ -1,14 +1,14 @@
 import { networkManager } from '@/utils/network-manager';
 import type {
-  Order,
+  OrderVo,
   OrderStatus,
   OrderVoPage,
   ProductVoPage,
-  Address,
+  AddressVo,
   Scalars,
-  TodayStatistics,
+  TodayStatisticsVo,
   UpdateOrderAddressInput,
-  WeekStatistics,
+  WeekStatisticsVo,
 } from '@aquarush/common';
 
 // 订单操作记录类型
@@ -23,7 +23,7 @@ interface OrderOperation {
 
 // 获取待接单订单列表
 export const getPendingDeliveryOrders = () => {
-  return networkManager.query<{ pendingDeliveryOrders: readonly Order[] }>(`
+  return networkManager.query<{ pendingDeliveryOrders: readonly OrderVo[] }>(`
     query {
       pendingDeliveryOrders {
         id
@@ -56,7 +56,7 @@ export const getPendingDeliveryOrders = () => {
 
 // 获取我的已接单订单（未开始配送）
 export const getMyAssignedOrders = () => {
-  return networkManager.query<{ assignedOrders: readonly Order[] }>(`
+  return networkManager.query<{ assignedOrders: readonly OrderVo[] }>(`
     query GetAssignedOrders {
       assignedOrders {
         id
@@ -89,7 +89,7 @@ export const getMyAssignedOrders = () => {
 
 // 获取我的配送中订单
 export const getMyDeliveringOrders = () => {
-  return networkManager.query<{ deliveringOrders: readonly Order[] }>(`
+  return networkManager.query<{ deliveringOrders: readonly OrderVo[] }>(`
     query GetDeliveringOrders {
       deliveringOrders {
         id
@@ -123,7 +123,7 @@ export const getMyDeliveringOrders = () => {
 
 // 获取订单详情
 export const getOrderDetail = (orderNo: string) => {
-  return networkManager.query<{ orderByNo: Order }>(
+  return networkManager.query<{ orderByNo: OrderVo }>(
     `
     query GetOrderDetail($orderNo: String!) {
       orderByNo(orderNo: $orderNo) {
@@ -218,7 +218,7 @@ export const getOrderOperations = (orderId: string) => {
 
 // 配送员接单
 export const acceptDelivery = (orderId: Scalars['PrimaryId']['input']) => {
-  return networkManager.mutate<{ acceptDelivery: Order }>(
+  return networkManager.mutate<{ acceptDelivery: OrderVo }>(
     `
     mutation AcceptDelivery($orderId: PrimaryId!) {
       acceptDelivery(orderId: $orderId) {
@@ -233,7 +233,7 @@ export const acceptDelivery = (orderId: Scalars['PrimaryId']['input']) => {
 
 // 开始配送
 export const startDelivery = (orderId: Scalars['PrimaryId']['input']) => {
-  return networkManager.mutate<{ startDelivery: Order }>(
+  return networkManager.mutate<{ startDelivery: OrderVo }>(
     `
     mutation StartDelivery($orderId: PrimaryId!) {
       startDelivery(orderId: $orderId) {
@@ -254,7 +254,7 @@ export const completeDelivery = (
   paymentType?: string,
   remark?: string,
 ) => {
-  return networkManager.mutate<{ completeDelivery: Order }>(
+  return networkManager.mutate<{ completeDelivery: OrderVo }>(
     `
     mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType, $remark: String) {
       completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType, remark: $remark) {
@@ -274,7 +274,7 @@ export const updateOrderAddress = (
   orderId: Scalars['PrimaryId']['input'],
   input: UpdateOrderAddressInput,
 ) => {
-  return networkManager.mutate<{ updateOrderAddress: Order }>(
+  return networkManager.mutate<{ updateOrderAddress: OrderVo }>(
     `
     mutation UpdateOrderAddress($orderId: PrimaryId!, $input: UpdateOrderAddressInput!) {
       updateOrderAddress(orderId: $orderId, input: $input) {
@@ -305,8 +305,8 @@ export const updateOrderAddress = (
  */
 export const getWorkbenchData = () => {
   return networkManager.query<{
-    todayStatistics: TodayStatistics | null;
-    weekStatistics: WeekStatistics | null;
+    todayStatistics: TodayStatisticsVo | null;
+    weekStatistics: WeekStatisticsVo | null;
   }>(`
     query GetWorkbenchData {
       todayStatistics {
@@ -380,7 +380,7 @@ export const getDeliveryWorkerHistoryOrders = (
 
 // 搜索所有地址 (管理员/配送员)
 export const searchAllAddresses = (keyword: string = '', size = 10) => {
-  return networkManager.query<{ searchAllAddresses: readonly Address[] }>(
+  return networkManager.query<{ searchAllAddresses: readonly AddressVo[] }>(
     `
     query searchAllAddresses($keyword: String, $size: Int) {
       searchAllAddresses(keyword: $keyword, size: $size) {
@@ -436,7 +436,7 @@ export const createOrder = (
   isSelfCollect: boolean = false,
   remark?: string,
 ) => {
-  return networkManager.mutate<{ createDeliveryOrder: Order }>(
+  return networkManager.mutate<{ createDeliveryOrder: OrderVo }>(
     `
     mutation CreateDeliveryOrder($input: CreateDeliveryOrderInput!) {
       createDeliveryOrder(input: $input) {
@@ -459,4 +459,4 @@ export const createOrder = (
   );
 };
 
-export type { Order, OrderStatus, OrderVoPage, ProductVoPage, Address };
+export type { OrderVo, OrderStatus, OrderVoPage, ProductVoPage, AddressVo };

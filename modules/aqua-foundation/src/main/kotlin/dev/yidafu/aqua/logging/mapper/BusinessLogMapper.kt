@@ -21,13 +21,13 @@ package dev.yidafu.aqua.logging.mapper
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import dev.yidafu.aqua.common.graphql.generated.BizLogLevel
-import dev.yidafu.aqua.common.graphql.generated.BusinessLog
+import dev.yidafu.aqua.common.graphql.generated.BusinessLogVo
 
 /**
  * 业务日志领域模型 → GraphQL 类型
  */
-fun BusinessLogModel.toGraphQL(): BusinessLog =
-  BusinessLog(
+fun BusinessLogModel.toGraphQL(): BusinessLogVo =
+  BusinessLogVo(
     correlationId = correlationId,
     createdAt = createdAt,
     id = id ?: 0L,

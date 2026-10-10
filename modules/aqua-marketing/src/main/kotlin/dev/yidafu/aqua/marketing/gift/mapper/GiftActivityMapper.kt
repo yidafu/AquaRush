@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.marketing.gift.mapper
 
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
-import dev.yidafu.aqua.common.graphql.generated.GiftActivity
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityType
+import dev.yidafu.aqua.common.graphql.generated.GiftActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
@@ -35,8 +35,8 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 fun GiftActivityModel.toGraphQL(
   currentStatus: PromotionActivityDisplayStatus,
   giftProductName: String?,
-): GiftActivity =
-  GiftActivity(
+): GiftActivityVo =
+  GiftActivityVo(
     id = id ?: 0L,
     name = name,
     giftType = giftType.toGraphQL(),

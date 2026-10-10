@@ -3,7 +3,7 @@ import { Alert, Button, Col, DatePicker, Row, Segmented, Space, Tooltip } from '
 import { ClockCircleOutlined, DollarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { centsToYuan, normalizeCents } from '@aquarush/common';
-import type { DailyStatistic, PendingOrderBreakdown } from '@aquarush/common';
+import type { DailyStatisticVo, PendingOrderBreakdownVo } from '@aquarush/common';
 import dayjs, { Dayjs } from 'dayjs';
 import StatisticsCard from '../../components/StatisticsCard';
 import RefreshControls from '../../components/RefreshControls';
@@ -13,8 +13,8 @@ import DailyOrderChart from './components/DailyOrderChart';
 import { DASHBOARD_PAGE_DATA_QUERY } from '../../graphql/queries/dashboard.graphql';
 
 interface DashboardPageData {
-  dailyStatistics: DailyStatistic[];
-  pendingOrderBreakdown: PendingOrderBreakdown;
+  dailyStatistics: DailyStatisticVo[];
+  pendingOrderBreakdown: PendingOrderBreakdownVo;
 }
 
 type Preset = '7D' | '30D' | 'MONTH';

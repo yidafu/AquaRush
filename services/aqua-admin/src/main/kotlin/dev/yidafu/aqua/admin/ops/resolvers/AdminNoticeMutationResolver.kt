@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.NoticeMutationService
 import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
-import dev.yidafu.aqua.common.graphql.generated.Notice
+import dev.yidafu.aqua.common.graphql.generated.NoticeVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
@@ -49,7 +49,7 @@ class AdminNoticeMutationResolver(
   fun createNotice(
     @Argument @Valid input: CreateNoticeInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Notice {
+  ): NoticeVo {
     logger.info("Admin {} creating notice: {}", principal.username, input.title)
     val notice =
       noticeMutationService.createNotice(
@@ -66,7 +66,7 @@ class AdminNoticeMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateNoticeInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Notice {
+  ): NoticeVo {
     logger.info("Admin {} updating notice {}", principal.username, id)
     val notice =
       noticeMutationService.updateNotice(
@@ -83,7 +83,7 @@ class AdminNoticeMutationResolver(
   fun publishNotice(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Notice {
+  ): NoticeVo {
     logger.info("Admin {} publishing notice {}", principal.username, id)
     return noticeMutationService.publishNotice(principal.id, principal.username, id).toGraphQL()
   }
@@ -93,7 +93,7 @@ class AdminNoticeMutationResolver(
   fun stopNotice(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Notice {
+  ): NoticeVo {
     logger.info("Admin {} stopping notice {}", principal.username, id)
     return noticeMutationService.stopNotice(principal.id, principal.username, id).toGraphQL()
   }
@@ -104,7 +104,7 @@ class AdminNoticeMutationResolver(
     @Argument id: Long,
     @Argument pinned: Boolean,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Notice {
+  ): NoticeVo {
     logger.info("Admin {} setting notice {} pinned={}", principal.username, id, pinned)
     return noticeMutationService.setNoticePinned(principal.id, principal.username, id, pinned).toGraphQL()
   }

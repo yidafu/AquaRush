@@ -8,7 +8,7 @@
  * 行序/文案/键与两端现状逐字一致:商品金额 → 水票抵扣 → 满减 → 首单立减 → 优惠券 → 赠品 → 配送费 → 水桶费(历史) → 实付。
  * 金额均为分(R-MON-01),仅展示格式化;所有分字段统一 normalizeCents(number|string 兼容 Long 传输)。
  */
-import type { Order, OrderPreviewVo } from '../types/graphql'
+import type { OrderVo, OrderPreviewVo } from '../types/graphql'
 import { displayCents, normalizeCents } from './money'
 
 /** 费用明细行(行唯一标识 / 标签 / 展示值;扣减项 discount;实付合计 total) */
@@ -153,10 +153,10 @@ export const maxTicketRedeem = (
 ): number => Math.max(0, Math.min(totalQuantity, availableTicketCount))
 
 /**
- * 订单快照(服务端 Order)→ 统一费用快照(订单详情页费用明细卡;商品金额=order.amountCents,
+ * 订单快照(服务端 OrderVo)→ 统一费用快照(订单详情页费用明细卡;商品金额=order.amountCents,
  * 营销优惠明细来自订单快照 —— R-MKT-02/07/08/09/10)。
  */
-export const orderCostSnapshotFromOrder = (order: Order): OrderCostSnapshot => ({
+export const orderCostSnapshotFromOrder = (order: OrderVo): OrderCostSnapshot => ({
   subtotalCents: order.amountCents,
   ticketRedeemCount: order.ticketRedeemCount ?? 0,
   ticketDiscountCents: order.ticketDiscountCents ?? 0,

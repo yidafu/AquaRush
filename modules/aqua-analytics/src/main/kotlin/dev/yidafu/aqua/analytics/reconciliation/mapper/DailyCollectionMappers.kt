@@ -22,10 +22,10 @@ package dev.yidafu.aqua.analytics.reconciliation.mapper
 import dev.yidafu.aqua.analytics.reconciliation.resolvers.MyTodayCollectionResult
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
-import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecord
+import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecordVo
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionStatus
-import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationStatus
+import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationVo
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
 import dev.yidafu.aqua.common.util.JsonHelper
 
@@ -49,11 +49,11 @@ fun MyTodayCollectionResult.toGraphQL(): MyTodayCollectionVo =
   )
 
 /**
- * Mapper from JPA entity DailyCollectionRecordModel to GraphQL type DailyCollectionRecord
+ * Mapper from JPA entity DailyCollectionRecordModel to GraphQL type DailyCollectionRecordVo
  * 处理类型转换（LocalDate -> String, Long? -> Long, 枚举跨包名）
  */
-fun DailyCollectionRecordModel.toGraphQL(): DailyCollectionRecord =
-  DailyCollectionRecord(
+fun DailyCollectionRecordModel.toGraphQL(): DailyCollectionRecordVo =
+  DailyCollectionRecordVo(
     // 处理 id: Long? -> Long
     id = id ?: 0L,
     deliveryWorkerId = deliveryWorkerId,
@@ -82,11 +82,11 @@ fun DailyCollectionRecordModel.toGraphQL(): DailyCollectionRecord =
   )
 
 /**
- * Mapper from JPA entity DailyReconciliationModel to GraphQL type DailyReconciliation
+ * Mapper from JPA entity DailyReconciliationModel to GraphQL type DailyReconciliationVo
  * 处理类型转换（LocalDate -> String, Long? -> Long, 状态枚举跨包名, reportData Map -> ObjectNode）
  */
-fun DailyReconciliationModel.toGraphQL(): DailyReconciliation =
-  DailyReconciliation(
+fun DailyReconciliationModel.toGraphQL(): DailyReconciliationVo =
+  DailyReconciliationVo(
     // 处理 id: Long? -> Long
     id = id ?: 0L,
     reconciliationDate = reconciliationDate.toString(),

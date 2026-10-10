@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
+import dev.yidafu.aqua.analytics.reconciliation.mapper.toGraphQL
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
@@ -84,7 +85,7 @@ class AdminDailyCollectionMutationResolverTest :
           user,
         )
 
-      result shouldBe record
+      result shouldBe record.toGraphQL()
       verify { bizLogger.logOperation("RECON_DAILY_SUBMIT", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
     }
     test("submitDailyCollection uses today when date omitted") {
@@ -119,7 +120,7 @@ class AdminDailyCollectionMutationResolverTest :
 
       val result = resolver.confirmDailyCollection(ConfirmDailyCollectionInput(recordId = 9L, notes = "OK"), user)
 
-      result shouldBe record
+      result shouldBe record.toGraphQL()
       verify { bizLogger.logOperation("RECON_DAILY_CONFIRM", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
     }
     test("reviewReconciliation requires login") {
@@ -143,7 +144,7 @@ class AdminDailyCollectionMutationResolverTest :
 
       val result = resolver.rejectDailyCollection(RejectDailyCollectionInput(recordId = 9L, reason = "金额不符"), user)
 
-      result shouldBe record
+      result shouldBe record.toGraphQL()
       verify { bizLogger.logOperation("RECON_DAILY_REJECT", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
     }
     test("reviewReconciliation rejects blank notes") {
@@ -158,7 +159,7 @@ class AdminDailyCollectionMutationResolverTest :
 
       val result = resolver.reviewReconciliation(ReviewReconciliationInput(reconciliationId = 3L, reviewNotes = "无误"), user)
 
-      result shouldBe model
+      result shouldBe model.toGraphQL()
       verify { bizLogger.logOperation("RECON_REVIEW", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
     }
     test("executeDailyReconciliation runs for explicit date") {

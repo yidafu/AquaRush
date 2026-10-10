@@ -37,7 +37,7 @@ import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductFavoriteStat
+import dev.yidafu.aqua.common.graphql.generated.ProductFavoriteStatVo
 import dev.yidafu.aqua.common.graphql.generated.StockWarningStatus
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -113,8 +113,8 @@ class ProductStatisticsServiceImplTest :
       every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
       every { productFavoriteService.getProductFavoriteStats() } returns
         listOf(
-          ProductFavoriteStat(favoriteCount = 4L, productId = 1L, productName = "怡宝"),
-          ProductFavoriteStat(favoriteCount = 2L, productId = 2L, productName = "农夫山泉"),
+          ProductFavoriteStatVo(favoriteCount = 4L, productId = 1L, productName = "怡宝"),
+          ProductFavoriteStatVo(favoriteCount = 2L, productId = 2L, productName = "农夫山泉"),
         )
 
       val result = service.getProductStatistics()

@@ -8,11 +8,11 @@ type Query {
 }
 
 type Mutation {
-  createAdmin(input: CreateAdminInput!): Admin!
-  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  createAdmin(input: CreateAdminInput!): AdminVO!
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorkerVO!
 }
 
-type Admin {
+type AdminVO {
   id: Long!
   username: String!
   realName: String
@@ -22,7 +22,7 @@ type Admin {
   isAvailable: Boolean!
 }
 
-type DeliveryWorker {
+type DeliveryWorkerVO {
   id: Long!
   name: String!
   phone: String!
@@ -60,7 +60,7 @@ input CreateDeliveryWorkerInput {
 }
 
 type DeliveryWorkerVOPage {
-  content: [DeliveryWorker!]!
+  content: [DeliveryWorkerVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!

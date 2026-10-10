@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.logging.partition.mapper
 
 import dev.yidafu.aqua.common.domain.model.LogBackupRecordModel
-import dev.yidafu.aqua.common.graphql.generated.LogBackupRecord
+import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordVo
 import dev.yidafu.aqua.common.graphql.generated.LogBackupStatus
 import dev.yidafu.aqua.common.graphql.generated.LogPartitionVo
 import dev.yidafu.aqua.common.graphql.generated.LogTableType
@@ -57,8 +57,8 @@ object LogPartitionVoMapper {
 /**
  * 离线备份记录 → GraphQL 类型
  */
-fun LogBackupRecordModel.toGraphQL(): LogBackupRecord =
-  LogBackupRecord(
+fun LogBackupRecordModel.toGraphQL(): LogBackupRecordVo =
+  LogBackupRecordVo(
     checksum = fileChecksum,
     coldTableName = coldTableName,
     errorMessage = errorMessage,

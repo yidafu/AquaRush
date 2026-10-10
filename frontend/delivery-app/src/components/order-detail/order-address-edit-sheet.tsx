@@ -8,14 +8,14 @@ import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { getCurrentPosition } from '@/utils/location';
-import type { Address, UpdateOrderAddressInput } from '@aquarush/common';
+import type { AddressVo, UpdateOrderAddressInput } from '@aquarush/common';
 
 const PHONE_RE = /^1[3-9]\d{9}$/;
 
 interface OrderAddressEditSheetProps {
   visible: boolean;
   /** 当前订单关联地址(编辑回显;无地址时隐藏编辑入口) */
-  address?: Address | null;
+  address?: AddressVo | null;
   saving: boolean;
   onClose: () => void;
   onSave: (input: UpdateOrderAddressInput) => void;

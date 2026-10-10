@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.BannerMutationService
-import dev.yidafu.aqua.common.graphql.generated.Banner
+import dev.yidafu.aqua.common.graphql.generated.BannerVo
 import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
 import dev.yidafu.aqua.common.graphql.generated.ReorderDirection
 import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
@@ -49,7 +49,7 @@ class AdminBannerMutationResolver(
   fun createBanner(
     @Argument @Valid input: CreateBannerInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Banner {
+  ): BannerVo {
     logger.info("Admin {} creating banner: {}", principal.username, input.title)
     val banner =
       bannerMutationService.createBanner(
@@ -66,7 +66,7 @@ class AdminBannerMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateBannerInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Banner {
+  ): BannerVo {
     logger.info("Admin {} updating banner {}", principal.username, id)
     val banner =
       bannerMutationService.updateBanner(
@@ -97,7 +97,7 @@ class AdminBannerMutationResolver(
     @Argument id: Long,
     @Argument direction: ReorderDirection,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): List<Banner> {
+  ): List<BannerVo> {
     logger.info("Admin {} reordering banner {} direction {}", principal.username, id, direction)
     val directionEnum =
       dev.yidafu.aqua.api.dto.ReorderDirection

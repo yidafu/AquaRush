@@ -5,7 +5,7 @@ import {
   DELIVERY_WORKER_RATING_STATISTICS_QUERY,
   REVIEWS_BY_DELIVERY_WORKER_QUERY,
 } from '../../../../../graphql/queries/user.graphql';
-import type { DeliveryWorkerStatisticsResponse, Review } from '@aquarush/common';
+import type { DeliveryWorkerStatisticsResponse, ReviewVo } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
@@ -49,7 +49,7 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
     }
   }, [deliveryWorkerId, page, pageSize]);
 
-  const reviews: Review[] = reviewsData?.reviewsByDeliveryWorker?.content || [];
+  const reviews: ReviewVo[] = reviewsData?.reviewsByDeliveryWorker?.content || [];
   const stats: DeliveryWorkerStatisticsResponse | undefined = statsData?.deliveryWorkerRatingStatistics;
 
   const totalReviews = stats?.totalReviews ?? 0;
@@ -107,7 +107,7 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
       title: '匿名',
       key: 'isAnonymous',
       width: 80,
-      render: (_: unknown, record: Review) =>
+      render: (_: unknown, record: ReviewVo) =>
         record.isAnonymous ? <Tag color="default">匿名</Tag> : <Tag color="green">实名</Tag>,
     },
     {

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, Col, Spin, Descriptions, Typography } from 'antd';
 import { AimOutlined } from '@ant-design/icons';
-import type { DeliveryTrajectory } from '@aquarush/common';
+import type { DeliveryTrajectoryVo } from '@aquarush/common';
 
 export interface LiveLocationCardProps {
-  latest: DeliveryTrajectory | null | undefined;
+  latest: DeliveryTrajectoryVo | null | undefined;
   loading: boolean;
 }
 

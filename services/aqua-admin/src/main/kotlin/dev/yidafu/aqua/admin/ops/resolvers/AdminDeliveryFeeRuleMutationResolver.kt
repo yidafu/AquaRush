@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
-import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
+import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRuleVo
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.ops.deliveryfeerule.mapper.toGraphQL
@@ -50,7 +50,7 @@ class AdminDeliveryFeeRuleMutationResolver(
   fun saveDeliveryFeeRule(
     @Argument @Valid input: SaveDeliveryFeeRuleInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): DeliveryFeeRule {
+  ): DeliveryFeeRuleVo {
     logger.info("Admin {} saving delivery fee rule", principal.username)
     val rule =
       deliveryFeeRuleMutationService.saveDeliveryFeeRule(

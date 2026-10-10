@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { GiftActivity } from '@aquarush/common';
+import type { GiftActivityVo } from '@aquarush/common';
 import {
   useGiftActivities,
   useCreateGiftActivity,
@@ -36,7 +36,7 @@ const BuyGift: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<GiftActivity | null>(null);
+  const [editingRecord, setEditingRecord] = useState<GiftActivityVo | null>(null);
 
   const [createActivity, { loading: creating }] = useCreateGiftActivity();
   const [updateActivity, { loading: updating }] = useUpdateGiftActivity();
@@ -65,12 +65,12 @@ const BuyGift: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: GiftActivity) => {
+  const handleEdit = (record: GiftActivityVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: GiftFormPayload, record: GiftActivity | null) => {
+  const handleSubmit = async (payload: GiftFormPayload, record: GiftActivityVo | null) => {
     if (record) {
       await updateActivity({ variables: { id: record.id, input: payload } });
     } else {
@@ -79,24 +79,24 @@ const BuyGift: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: GiftActivity) => {
+  const handleDisable = async (record: GiftActivityVo) => {
     await disableActivity({ variables: { id: record.id } });
   };
 
-  const renderThreshold = (record: GiftActivity) => {
+  const renderThreshold = (record: GiftActivityVo) => {
     if (record.giftType === 'FULL_GIFT') {
       return record.thresholdCents != null ? `满 ${displayCents(record.thresholdCents)} 元` : '--';
     }
     return record.thresholdQuantity != null ? `满 ${record.thresholdQuantity} 桶` : '--';
   };
 
-  const renderScope = (record: GiftActivity) => {
+  const renderScope = (record: GiftActivityVo) => {
     if (record.scope === 'ALL') return '全场';
     if (record.scope === 'PRODUCT') return '指定商品';
     return '指定分组';
   };
 
-  const columns: ColumnsType<GiftActivity> = [
+  const columns: ColumnsType<GiftActivityVo> = [
     { title: '活动名称', dataIndex: 'name', width: 180, ellipsis: true },
     {
       title: '类型',
@@ -177,7 +177,7 @@ const BuyGift: React.FC = () => {
         </Space>
       }
     >
-      <Table<GiftActivity>
+      <Table<GiftActivityVo>
         rowKey="id"
         columns={columns}
         dataSource={activities}

@@ -1,5 +1,5 @@
 /**
- * AquaRush Admin Order Query Resolver
+ * AquaRush Admin OrderVo Query Resolver
  *
  * Copyright (C) 2025 AquaRush Team
  *
@@ -22,8 +22,8 @@ package dev.yidafu.aqua.admin.order.resolvers
 import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.graphql.generated.GiftItemVo
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderListInput
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
@@ -40,10 +40,10 @@ class AdminOrderQueryResolver(
   private val adminOrderMapper: AdminOrderMapper,
 ) {
   /**
-   * Order 字段级解析:赠品行(随单快照,配置变更不影响已生成订单 —— R-MKT-09)
+   * OrderVo 字段级解析:赠品行(随单快照,配置变更不影响已生成订单 —— R-MKT-09)
    */
-  @SchemaMapping(typeName = "Order", field = "giftItems")
-  fun giftItems(order: Order): List<GiftItemVo> =
+  @SchemaMapping(typeName = "OrderVo", field = "giftItems")
+  fun giftItems(order: OrderVo): List<GiftItemVo> =
     orderGiftRepository.findByOrderId(order.id).map {
       GiftItemVo(
         productId = it.productId,
@@ -96,7 +96,7 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun order(
     @Argument orderId: Long,
-  ): Order? = adminOrderMapper.map(orderQueryService.getOrderById(orderId))
+  ): OrderVo? = adminOrderMapper.map(orderQueryService.getOrderById(orderId))
 
   /**
    * 根据订单号获取订单 - 管理员权限
@@ -105,5 +105,5 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orderByNo(
     @Argument orderNo: String,
-  ): Order? = adminOrderMapper.map(orderQueryService.getOrderByNo(orderNo))
+  ): OrderVo? = adminOrderMapper.map(orderQueryService.getOrderByNo(orderNo))
 }

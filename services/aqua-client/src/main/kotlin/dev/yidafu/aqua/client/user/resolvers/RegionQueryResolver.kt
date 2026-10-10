@@ -1,9 +1,10 @@
 package dev.yidafu.aqua.client.user.resolvers
 
-import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
+import dev.yidafu.aqua.common.graphql.generated.RegionVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -18,7 +19,7 @@ class RegionQueryResolver(
     @Argument level: Int?,
     @Argument parentCode: String?,
     @AuthenticationPrincipal userPrincipal: UserPrincipal?,
-  ): List<RegionModel> {
+  ): List<RegionVo> {
     // 记录操作日志
     logOperation(
       userPrincipal,
@@ -31,7 +32,7 @@ class RegionQueryResolver(
 
     // 地区查询通常不需要严格的权限控制，但保留日志记录
     return try {
-      val result: List<RegionModel> =
+      val result: List<RegionVo> =
         when {
           level != null && parentCode != null -> {
             regionRepository.findByParentCodeAndLevel(parentCode, level) ?: emptyList()
@@ -50,7 +51,7 @@ class RegionQueryResolver(
             // 客户端实际都按 level/parentCode 逐级查询
             regionRepository.findRootRegions(1)
           }
-        }
+        }.map { it.toGraphQL() }
       result
     } catch (e: Exception) {
       println("Error fetching regions: ${e.message}")
@@ -63,10 +64,10 @@ class RegionQueryResolver(
   fun region(
     @Argument code: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal?,
-  ): RegionModel? {
+  ): RegionVo? {
     // 记录操作日志
     logOperation(userPrincipal, "region", mapOf("code" to code))
 
-    return regionRepository.findByCode(code)
+    return regionRepository.findByCode(code)?.toGraphQL()
   }
 }

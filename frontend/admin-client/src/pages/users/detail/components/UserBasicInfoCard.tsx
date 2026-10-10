@@ -8,7 +8,7 @@ import {
   MailOutlined,
   CalendarOutlined,
 } from '@ant-design/icons';
-import type { User, UserRole } from '@aquarush/common';
+import type { UserVo, UserRole } from '@aquarush/common';
 import { UserRole as UserRoleEnum } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
 import { STATUS_MAPPINGS } from '../../components/types';
@@ -21,7 +21,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export interface UserBasicInfoCardProps {
-  user: User;
+  user: UserVo;
   /** 最近下单时间(已格式化的展示文案) */
   lastOrderTime: string;
 }

@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
-import dev.yidafu.aqua.common.graphql.generated.BarrelPurchase
+import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseAdminVo
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.barrel.mapper.BarrelPurchaseModelMapper
 import org.slf4j.LoggerFactory
@@ -59,7 +59,7 @@ class AdminBarrelPurchaseMutationResolver(
     @Argument purchaseId: Long,
     @Argument remark: String?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelPurchase {
+  ): BarrelPurchaseAdminVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }

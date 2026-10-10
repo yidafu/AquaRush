@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Select, Spin } from 'antd';
 import { useLazyQuery } from '@apollo/client';
-import type { Product } from '@aquarush/common';
+import type { ProductVo } from '@aquarush/common';
 import { GET_PRODUCTS_QUERY } from '../graphql/queries/product.graphql';
 
 interface Props {
@@ -33,7 +33,7 @@ const ProductSelect: React.FC<Props> = ({
 
   const options = useMemo(() => {
     const list = data?.productsPaginated?.list ?? [];
-    return list.map((product: Product) => ({
+    return list.map((product: ProductVo) => ({
       value: String(product.id),
       label: product.specification ? `${product.name}(${product.specification})` : product.name,
     }));

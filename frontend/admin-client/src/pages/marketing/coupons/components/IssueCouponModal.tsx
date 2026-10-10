@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Form, Radio, Select, Alert, message } from 'antd';
 import { useLazyQuery } from '@apollo/client';
 import { IssueTargetType } from '@aquarush/common';
-import type { CouponTemplate, CustomerGroup, User } from '@aquarush/common';
+import type { CouponTemplateAdminVo, CustomerGroupVo, UserVo } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
 import { useCustomerGroups, useIssueCoupons } from '../../../../services/marketing-graphql';
 
 interface Props {
   open: boolean;
-  couponTemplate: CouponTemplate | null;
+  couponTemplate: CouponTemplateAdminVo | null;
   onCancel: () => void;
 }
 
@@ -43,7 +43,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
     }).then((result) => {
       const list = result.data?.users?.list ?? [];
       setUserOptions(
-        list.map((u: User) => ({
+        list.map((u: UserVo) => ({
           value: String(u.id),
           label: `${u.nickname || '未设置昵称'}${u.phone ? `(${u.phone})` : ''}`,
         })),
@@ -117,7 +117,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
             <Select
               showSearch
               optionFilterProp="label"
-              options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+              options={groups.map((g: CustomerGroupVo) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
               placeholder="选择客户分组"
             />
           </Form.Item>

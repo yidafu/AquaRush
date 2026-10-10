@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { OrderStatus, ORDER_STATUS_TEXT, usePagedList } from '@aquarush/common';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 import { toast } from 'sonner-native';
 
 import { EmptyState } from '@/components/empty-state';
@@ -31,19 +31,19 @@ export default function OrdersScreen() {
   const { userInfo, isAdmin, isDeliveryWorker } = useAuth();
 
   // 三个任务列表(待接单/待配送/配送中)各自独立分页状态机 —— common usePagedList
-  const pendingList = usePagedList<Order>({
+  const pendingList = usePagedList<OrderVo>({
     fetchPage: async () => {
       const res = await getPendingDeliveryOrders();
       return { items: [...(res?.pendingDeliveryOrders ?? [])], hasMore: false };
     },
   });
-  const assignedList = usePagedList<Order>({
+  const assignedList = usePagedList<OrderVo>({
     fetchPage: async () => {
       const res = await getMyAssignedOrders();
       return { items: [...(res?.assignedOrders ?? [])], hasMore: false };
     },
   });
-  const deliveringList = usePagedList<Order>({
+  const deliveringList = usePagedList<OrderVo>({
     fetchPage: async () => {
       const res = await getMyDeliveringOrders();
       return { items: [...(res?.deliveringOrders ?? [])], hasMore: false };

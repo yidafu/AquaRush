@@ -5,9 +5,9 @@ import { toast } from 'sonner-native';
 import { Money } from '@aquarush/common';
 import type {
   DailyCollectionPage,
-  DailyCollectionRecord,
-  DailyCollectionSummary,
-  DailyReconciliation,
+  DailyCollectionRecordVo,
+  DailyCollectionSummaryVo,
+  DailyReconciliationVo,
   DailyReconciliationPage,
 } from '@aquarush/common';
 
@@ -37,15 +37,15 @@ const PAGE_SIZE = 10;
 const TABS = ['每日收款记录', '对账记录'];
 
 interface AdminCollectionData {
-  summary: DailyCollectionSummary | null;
+  summary: DailyCollectionSummaryVo | null;
   collections: DailyCollectionPage | null;
   reconciliations: DailyReconciliationPage | null;
 }
 
 type ActionTarget =
-  | { kind: 'confirm'; record: DailyCollectionRecord }
-  | { kind: 'reject'; record: DailyCollectionRecord }
-  | { kind: 'review'; record: DailyReconciliation };
+  | { kind: 'confirm'; record: DailyCollectionRecordVo }
+  | { kind: 'reject'; record: DailyCollectionRecordVo }
+  | { kind: 'review'; record: DailyReconciliationVo };
 
 /** 收银对账处置页(F-COL-010/011):日报确认/驳回 + 对账复核/执行 + 逐单明细下钻。 */
 export default function AdminCollectionScreen() {
@@ -277,27 +277,27 @@ export default function AdminCollectionScreen() {
         onChange={setCurrentTab}
       />
 
-      <FlatList<DailyCollectionRecord | DailyReconciliation>
-        data={currentTab === 0 ? (collections as (DailyCollectionRecord | DailyReconciliation)[]) : (reconciliations as (DailyCollectionRecord | DailyReconciliation)[])}
+      <FlatList<DailyCollectionRecordVo | DailyReconciliationVo>
+        data={currentTab === 0 ? (collections as (DailyCollectionRecordVo | DailyReconciliationVo)[]) : (reconciliations as (DailyCollectionRecordVo | DailyReconciliationVo)[])}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) =>
           currentTab === 0 ? (
             <DailyCollectionCard
-              record={item as DailyCollectionRecord}
+              record={item as DailyCollectionRecordVo}
               onConfirm={(r) => setActionTarget({ kind: 'confirm', record: r })}
               onReject={(r) => setActionTarget({ kind: 'reject', record: r })}
             />
           ) : (
             <View style={styles.reconItem}>
-              <Pressable onPress={() => setDetailDate((item as DailyReconciliation).reconciliationDate)}>
-                <ReconciliationCard record={item as DailyReconciliation} />
+              <Pressable onPress={() => setDetailDate((item as DailyReconciliationVo).reconciliationDate)}>
+                <ReconciliationCard record={item as DailyReconciliationVo} />
               </Pressable>
-              {(item as DailyReconciliation).status !== 'REVIEWED' ? (
+              {(item as DailyReconciliationVo).status !== 'REVIEWED' ? (
                 <Button
                   title="复核"
                   size="sm"
                   style={styles.reviewButton}
-                  onPress={() => setActionTarget({ kind: 'review', record: item as DailyReconciliation })}
+                  onPress={() => setActionTarget({ kind: 'review', record: item as DailyReconciliationVo })}
                 />
               ) : null}
             </View>

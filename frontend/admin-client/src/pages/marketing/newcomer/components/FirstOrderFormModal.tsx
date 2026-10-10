@@ -3,7 +3,7 @@ import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } f
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { FirstOrderActivityType, PromotionScope } from '@aquarush/common';
-import type { FirstOrderActivity } from '@aquarush/common';
+import type { FirstOrderActivityVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 
 const { RangePicker } = DatePicker;
@@ -37,10 +37,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: FirstOrderActivity | null;
+  record: FirstOrderActivityVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: FirstOrderFormPayload, record: FirstOrderActivity | null) => void;
+  onSubmit: (payload: FirstOrderFormPayload, record: FirstOrderActivityVo | null) => void;
 }
 
 const ACTIVITY_TYPE_OPTIONS = [

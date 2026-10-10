@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.marketing.pricing.mapper
 
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
-import dev.yidafu.aqua.common.graphql.generated.GroupProductPrice
+import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceVo
 
 /**
  * 分组商品专属价映射器:域实体 → GraphQL 类型(商品名称/规格/目录价由商品服务补充,PRD 10-marketing.md §F-MKT-002)
@@ -29,8 +29,8 @@ fun GroupProductPriceModel.toGraphQL(
   productName: String?,
   productSpecification: String?,
   catalogPriceCents: Long,
-): GroupProductPrice =
-  GroupProductPrice(
+): GroupProductPriceVo =
+  GroupProductPriceVo(
     id = id ?: 0L,
     customerGroupId = customerGroupId,
     productId = productId,

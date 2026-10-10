@@ -20,14 +20,14 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.mapper
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
-import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRule
+import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRuleVo
 
 /**
  * 配送费规则映射器:域实体 → GraphQL 类型
  * 金额字段两侧均为分制 Long,直接赋值无需转换。
  */
-fun DeliveryFeeRuleModel.toGraphQL(): DeliveryFeeRule =
-  DeliveryFeeRule(
+fun DeliveryFeeRuleModel.toGraphQL(): DeliveryFeeRuleVo =
+  DeliveryFeeRuleVo(
     freeFloorLimit = freeFloorLimit,
     surchargeCents = surchargeCents,
     updatedAt = updatedAt,

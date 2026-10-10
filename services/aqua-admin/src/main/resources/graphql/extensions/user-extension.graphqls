@@ -1,5 +1,5 @@
-# Extend the User type with admin-specific fields
-extend type User {
+# Extend the UserVO type with admin-specific fields
+extend type UserVO {
   status: UserStatus!
   role: UserRole!
   email: String!

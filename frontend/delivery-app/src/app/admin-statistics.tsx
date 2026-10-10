@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Money, ORDER_STATUS_TEXT, centsToYuan } from '@aquarush/common';
-import type { DeliveryWorkerRankingItem, DailyStatistic, OrderStatistics, OrderStatus } from '@aquarush/common';
+import type { DeliveryWorkerRankingItemVo, DailyStatisticVo, OrderStatisticsVo, OrderStatus } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { SegmentedTabs } from '@/components/segmented-tabs';
@@ -17,9 +17,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { getAdminStatistics } from '@/services/admin';
 
 interface AdminStatisticsData {
-  daily: readonly DailyStatistic[];
-  summary: OrderStatistics | null;
-  ranking: readonly DeliveryWorkerRankingItem[];
+  daily: readonly DailyStatisticVo[];
+  summary: OrderStatisticsVo | null;
+  ranking: readonly DeliveryWorkerRankingItemVo[];
 }
 
 function daysAgo(days: number): Date {

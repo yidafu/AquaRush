@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.MarketingPricingQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.client.marketing.mapper.toGraphQL
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductPriceVo
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -37,7 +37,7 @@ import dev.yidafu.aqua.common.graphql.generated.PriceSource as GraphQLPriceSourc
 /**
  * 用户端商品成交单价 Resolver(R-MKT-01/02)
  * 解析当前登录用户的成交单价:②熟客价(分组商品专属价)→ ③商品目录价;
- * Product 扩展字段 effectivePriceCents/hasGroupPrice 未登录时回退目录价。
+ * ProductVo 扩展字段 effectivePriceCents/hasGroupPrice 未登录时回退目录价。
  */
 @ClientService
 @Controller
@@ -60,11 +60,11 @@ class ClientProductPriceResolver(
   }
 
   /**
-   * Product 扩展字段:当前用户有效成交单价(分,熟客价优先,回退目录价;未登录回退目录价)
+   * ProductVo 扩展字段:当前用户有效成交单价(分,熟客价优先,回退目录价;未登录回退目录价)
    */
-  @SchemaMapping(typeName = "Product", field = "effectivePriceCents")
+  @SchemaMapping(typeName = "ProductVo", field = "effectivePriceCents")
   fun effectivePriceCents(
-    product: Product,
+    product: ProductVo,
     @AuthenticationPrincipal principal: UserPrincipal?,
   ): Long {
     if (principal == null) {
@@ -74,11 +74,11 @@ class ClientProductPriceResolver(
   }
 
   /**
-   * Product 扩展字段:是否命中熟客价(分组价)
+   * ProductVo 扩展字段:是否命中熟客价(分组价)
    */
-  @SchemaMapping(typeName = "Product", field = "hasGroupPrice")
+  @SchemaMapping(typeName = "ProductVo", field = "hasGroupPrice")
   fun hasGroupPrice(
-    product: Product,
+    product: ProductVo,
     @AuthenticationPrincipal principal: UserPrincipal?,
   ): Boolean {
     if (principal == null) {
@@ -88,11 +88,11 @@ class ClientProductPriceResolver(
   }
 
   /**
-   * Product 扩展字段:成交单价来源(展示标签依据:熟客价/特价/新人价/目录价;未登录回退目录价)
+   * ProductVo 扩展字段:成交单价来源(展示标签依据:熟客价/特价/新人价/目录价;未登录回退目录价)
    */
-  @SchemaMapping(typeName = "Product", field = "priceSource")
+  @SchemaMapping(typeName = "ProductVo", field = "priceSource")
   fun priceSource(
-    product: Product,
+    product: ProductVo,
     @AuthenticationPrincipal principal: UserPrincipal?,
   ): GraphQLPriceSource {
     if (principal == null) {

@@ -1,17 +1,17 @@
 import { networkManager } from '@/utils/network-manager';
 import type {
-  DailyStatistic,
-  DeliveryWorker,
-  DeliveryWorkerOverview,
-  DeliveryWorkerRankingItem,
-  Order,
+  DailyStatisticVo,
+  DeliveryWorkerVo,
+  DeliveryWorkerOverviewVo,
+  DeliveryWorkerRankingItemVo,
+  OrderVo,
   OrderListInput,
-  OrderStatistics,
+  OrderStatisticsVo,
   OrderStatus,
   OrderVoPage,
-  PendingOrderBreakdown,
+  PendingOrderBreakdownVo,
   Scalars,
-  UserStatistics,
+  UserStatisticsVo,
 } from '@aquarush/common';
 
 /** LocalDateTime 标量使用 ISO_LOCAL_DATE_TIME（如 2026-08-09T00:00:00）。 */
@@ -24,7 +24,7 @@ function toIsoDateTime(d: Date): string {
 
 /** 待处理订单三态细分 */
 export const getPendingOrderBreakdown = () => {
-  return networkManager.query<{ pendingOrderBreakdown: PendingOrderBreakdown }>(`
+  return networkManager.query<{ pendingOrderBreakdown: PendingOrderBreakdownVo }>(`
     query GetPendingOrderBreakdown {
       pendingOrderBreakdown {
         pendingPayment
@@ -38,7 +38,7 @@ export const getPendingOrderBreakdown = () => {
 
 /** 送水员统计概览 */
 export const getDeliveryWorkerStatistics = () => {
-  return networkManager.query<{ deliveryWorkerStatistics: DeliveryWorkerOverview }>(`
+  return networkManager.query<{ deliveryWorkerStatistics: DeliveryWorkerOverviewVo }>(`
     query GetDeliveryWorkerStatistics {
       deliveryWorkerStatistics {
         totalWorkers
@@ -52,7 +52,7 @@ export const getDeliveryWorkerStatistics = () => {
 
 /** 用户统计（管理员） */
 export const getUserStatistics = () => {
-  return networkManager.query<{ userStatistics: Pick<UserStatistics, 'totalUsers' | 'todayNewUsers' | 'activeUsers'> }>(`
+  return networkManager.query<{ userStatistics: Pick<UserStatisticsVo, 'totalUsers' | 'todayNewUsers' | 'activeUsers'> }>(`
     query GetUserStatistics {
       userStatistics {
         totalUsers
@@ -65,7 +65,7 @@ export const getUserStatistics = () => {
 
 /** 送水员排行榜 */
 export const getDeliveryWorkerRanking = (limit: number = 10) => {
-  return networkManager.query<{ deliveryWorkerRanking: readonly DeliveryWorkerRankingItem[] }>(
+  return networkManager.query<{ deliveryWorkerRanking: readonly DeliveryWorkerRankingItemVo[] }>(
     `
     query GetDeliveryWorkerRanking($limit: Int) {
       deliveryWorkerRanking(limit: $limit) {
@@ -83,7 +83,7 @@ export const getDeliveryWorkerRanking = (limit: number = 10) => {
 
 /** 按日统计（管理员）— 供看板近7天趋势 */
 export const getDailyStatistics = (startDate: Date, endDate: Date) => {
-  return networkManager.query<{ dailyStatistics: readonly DailyStatistic[] }>(
+  return networkManager.query<{ dailyStatistics: readonly DailyStatisticVo[] }>(
     `
     query GetDailyStatistics($input: DateRangeInput!) {
       dailyStatistics(input: $input) {
@@ -104,9 +104,9 @@ export const getDailyStatistics = (startDate: Date, endDate: Date) => {
  */
 export const getAdminStatistics = (startDate: Date, endDate: Date) => {
   return networkManager.query<{
-    dailyStatistics: readonly DailyStatistic[];
-    orderStatistics: OrderStatistics | null;
-    deliveryWorkerRanking: readonly DeliveryWorkerRankingItem[];
+    dailyStatistics: readonly DailyStatisticVo[];
+    orderStatistics: OrderStatisticsVo | null;
+    deliveryWorkerRanking: readonly DeliveryWorkerRankingItemVo[];
   }>(
     `
     query GetAdminStatistics($input: DateRangeInput!, $limit: Int) {
@@ -210,7 +210,7 @@ export const getAdminOrders = (options: AdminOrderListOptions = {}) => {
  */
 export const getDeliveryWorkers = (keyword?: string, role?: string, page = 0, size = 100) => {
   return networkManager.query<{
-    deliveryWorkers: { content: readonly DeliveryWorker[]; totalElements: number };
+    deliveryWorkers: { content: readonly DeliveryWorkerVo[]; totalElements: number };
   }>(
     `
     query GetDeliveryWorkers($keyword: String, $role: String, $page: Int, $size: Int) {
@@ -234,7 +234,7 @@ export const getDeliveryWorkers = (keyword?: string, role?: string, page = 0, si
 
 /** 在线送水员（管理员）— 派单候选 */
 export const getOnlineDeliveryWorkers = () => {
-  return networkManager.query<{ onlineDeliveryWorkers: readonly DeliveryWorker[] }>(`
+  return networkManager.query<{ onlineDeliveryWorkers: readonly DeliveryWorkerVo[] }>(`
     query GetOnlineDeliveryWorkers {
       onlineDeliveryWorkers {
         id
@@ -256,7 +256,7 @@ export const assignDeliveryWorker = (
   workerId: Scalars['PrimaryId']['input'],
   isSelfCollect: boolean,
 ) => {
-  return networkManager.mutate<{ assignDeliveryWorker: Order }>(
+  return networkManager.mutate<{ assignDeliveryWorker: OrderVo }>(
     `
     mutation AssignDeliveryWorker($orderId: PrimaryId!, $workerId: PrimaryId!, $isSelfCollect: Boolean!) {
       assignDeliveryWorker(orderId: $orderId, workerId: $workerId, isSelfCollect: $isSelfCollect) {
@@ -273,4 +273,4 @@ export const assignDeliveryWorker = (
   );
 };
 
-export type { DeliveryWorker, DeliveryWorkerOverview, DeliveryWorkerRankingItem, OrderVoPage, PendingOrderBreakdown, UserStatistics };
+export type { DeliveryWorkerVo, DeliveryWorkerOverviewVo, DeliveryWorkerRankingItemVo, OrderVoPage, PendingOrderBreakdownVo, UserStatisticsVo };

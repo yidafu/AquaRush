@@ -26,11 +26,11 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyPage
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationReport
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationTask
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationReportVo
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVo
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -116,7 +116,7 @@ class AdminReconciliationQueryResolver(
   fun reconciliationTask(
     @Argument taskId: String,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): ReconciliationTask? {
+  ): ReconciliationTaskVo? {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -181,7 +181,7 @@ class AdminReconciliationQueryResolver(
     @Argument taskId: String,
     @Argument reportType: String?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): List<ReconciliationReport> {
+  ): List<ReconciliationReportVo> {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }

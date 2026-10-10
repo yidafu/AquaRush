@@ -1,4 +1,4 @@
-# Shared GraphQL Types between User Service and Delivery/Admin Service
+# Shared GraphQL Types between UserVO Service and Delivery/AdminVO Service
 # These types are needed by both services and should be identical
 
 # Scalar types
@@ -145,6 +145,8 @@ enum OrderOperationType {
   DELIVERY_ASSIGNED      # 配送员分配
   DELIVERY_STARTED       # 开始配送
   DELIVERY_COMPLETED     # 配送完成
+  ORDER_CONFIRMED        # 用户确认收货(待确认收货→已完成 —— R-ORD-11)
+  AUTO_CONFIRMED         # 系统自动确认收货(送达 N 天未确认自动签收 —— R-ORD-11)
   ORDER_COMPLETED        # 订单完成
   REFUND_INITIATED       # 退款发起
   REFUND_COMPLETED       # 退款完成
@@ -163,7 +165,7 @@ enum OperatorType {
 }
 
 # 订单操作记录类型
-type OrderOperation {
+type OrderOperationVO {
   id: PrimaryId!
   orderId: PrimaryId!
   operationType: OrderOperationType!
@@ -175,7 +177,7 @@ type OrderOperation {
 }
 
 # Core Domain Types
-type User {
+type UserVO {
   # 用户唯一标识ID
   id: PrimaryId!
   # 微信OpenID
@@ -192,7 +194,7 @@ type User {
   updatedAt: LocalDateTime!
 }
 
-type Product {
+type ProductVO {
   # 商品唯一标识ID
   id: PrimaryId!
   # 商品名称
@@ -233,7 +235,7 @@ type Product {
   updatedAt: LocalDateTime!
 }
 
-type Address {
+type AddressVO {
   # 地址唯一标识ID
   id: PrimaryId!
   # 用户ID
@@ -270,7 +272,7 @@ type Address {
   updatedAt: LocalDateTime!
 }
 
-type DeliveryAddress {
+type DeliveryAddressVO {
   # 配送地址唯一标识ID
   id: PrimaryId!
   # 用户ID
@@ -297,15 +299,15 @@ type DeliveryAddress {
   updatedAt: LocalDateTime!
 }
 
-type Order {
+type OrderVO {
   # 订单唯一标识ID
   id: PrimaryId!
   # 订单编号
   orderNo: String!
   # 下单用户
-  user: User
+  user: UserVO
   # 配送地址
-  address: Address
+  address: AddressVO
   # 订单商品明细(F-ORD-004 多商品下单,权威数据源 order_items 表)
   items: [OrderItemVO!]!
   # 订单金额（分）
@@ -323,7 +325,7 @@ type Order {
   # 支付时间
   paymentTime: LocalDateTime
   # 配送员信息
-  deliveryWorker: DeliveryWorker
+  deliveryWorker: DeliveryWorkerVO
   # 配送照片列表
   deliveryPhotos: [String!]
   # 配送照片核验状态(PENDING/APPROVED/REJECTED;null=未核验 —— G23/F-ORD-021)
@@ -380,7 +382,7 @@ type Order {
 type OrderItemVO {
   productId: PrimaryId!
   # 商品信息(下单时快照:名称/规格/封面/目录价)
-  product: Product!
+  product: ProductVO!
   # 购买数量
   quantity: Int!
   # 成交单价(分,下单时营销引擎解析结果 —— R-MKT-02)
@@ -396,7 +398,7 @@ type GiftItemVO {
   quantity: Int!
 }
 
-type DeliveryWorker {
+type DeliveryWorkerVO {
   # 配送员唯一标识ID(送水员档案并入 admins 单表后=账号 id)
   id: PrimaryId!
   # 用户ID
@@ -442,7 +444,7 @@ type DeliveryWorker {
 # 配送轨迹点(PRD 05-address-delivery.md §F-ADR-012,R-ADR-03)
 # 送水工在订单「配送中」期间按设定频率(默认 5s)上报的实时位置点;
 # 轨迹涉及用户收货地址隐私,仅管理员可查(R-AUTH-02)。
-type DeliveryTrajectory {
+type DeliveryTrajectoryVO {
   id: PrimaryId!
   # 送水工账号 id(admins 单表,迁移 v1.2.1)
   deliveryWorkerId: PrimaryId!
@@ -461,7 +463,7 @@ type DeliveryTrajectory {
 }
 
 # 当日统计数据 - 用于配送员小程序
-type TodayStatistics {
+type TodayStatisticsVO {
   # 今日总订单数
   totalOrders: Int!
   # 今日已完成订单数
@@ -473,7 +475,7 @@ type TodayStatistics {
 }
 
 # 每日统计数据
-type DailyStat {
+type DailyStatVO {
   # 日期（MM/dd格式）
   date: String!
   # 订单数
@@ -483,16 +485,16 @@ type DailyStat {
 }
 
 # 一周统计数据
-type WeekStatistics {
+type WeekStatisticsVO {
   # 每日统计数据列表
-  dailyStats: [DailyStat!]!
+  dailyStats: [DailyStatVO!]!
   # 总订单数
   totalOrders: Int!
   # 总营收金额（分）
   totalEarningCents: Long!
 }
 
-type DeliveryArea {
+type DeliveryAreaVO {
   # 配送区域ID
   id: PrimaryId!
   # 配送区域名称
@@ -507,7 +509,7 @@ type DeliveryArea {
   enabled: Boolean!
 }
 
-type Region {
+type RegionVO {
   # 区域ID
   id: PrimaryId!
   # 区域名称
@@ -525,16 +527,16 @@ type Region {
 }
 
 # Authentication Types
-type AuthPayload {
+type AuthPayloadVO {
   # 访问令牌
   accessToken: String!
   # 刷新令牌
   refreshToken: String!
   # 用户信息
-  user: User!
+  user: UserVO!
 }
 
-type UserInfo {
+type UserInfoVO {
   # 用户ID
   id: PrimaryId!
   # 微信OpenID
@@ -551,7 +553,7 @@ type UserInfo {
   updatedAt: LocalDateTime!
 }
 
-type Admin {
+type AdminVO {
   # 管理员ID
   id: PrimaryId!
   # 用户名
@@ -600,7 +602,7 @@ type WeChatLoginResponse {
   # 过期时间（秒）
   expiresIn: Int!
   # 用户信息
-  userInfo: UserInfo!
+  userInfo: UserInfoVO!
 }
 
 type WeChatTokenResponse {
@@ -612,7 +614,7 @@ type WeChatTokenResponse {
   expiresIn: Int!
 }
 
-type PaymentData {
+type PaymentDataVO {
   # 支付二维码URL
   codeUrl: String!
   # 商户订单号
@@ -632,7 +634,7 @@ type PaymentData {
 }
 
 # Statistics Types
-type OrderStatistics {
+type OrderStatisticsVO {
   # 订单总数
   totalOrders: Int!
   # 已完成订单数（口径 = 状态为「已完成」的订单数，G38）
@@ -646,17 +648,17 @@ type OrderStatistics {
   # 净营收（= 已完成营收 − 已退款金额；跨窗口退款时可为负，F-STA-002）
   netRevenueCents: Long!
   # 日期范围
-  dateRange: DateRange!
+  dateRange: DateRangeVO!
   # 订单状态分布（G37，7 态聚合所选范围订单数，合计 = totalOrders）
-  statusDistribution: [OrderStatusStatistic!]!
+  statusDistribution: [OrderStatusStatisticVO!]!
   # 客单价分布（G37，按金额区间聚合订单数，合计 = totalOrders）
-  orderValueDistribution: [OrderValueBucketStatistic!]!
+  orderValueDistribution: [OrderValueBucketStatisticVO!]!
   # 高峰时段分析（G37，按订单创建小时 0-23 聚合，合计 = totalOrders）
-  peakHourDistribution: [PeakHourStatistic!]!
+  peakHourDistribution: [PeakHourStatisticVO!]!
 }
 
 # 订单状态分布项（G37）
-type OrderStatusStatistic {
+type OrderStatusStatisticVO {
   # 订单状态
   status: OrderStatus!
   # 该状态订单数
@@ -664,7 +666,7 @@ type OrderStatusStatistic {
 }
 
 # 客单价分布区间（G37，金额单位分；fromCents 含下限、toCents 不含上限，null = 开区间）
-type OrderValueBucketStatistic {
+type OrderValueBucketStatisticVO {
   # 区间下限（分，含）
   fromCents: Long
   # 区间上限（分，不含）
@@ -676,21 +678,21 @@ type OrderValueBucketStatistic {
 }
 
 # 高峰时段分析项（G37，0-23 时）
-type PeakHourStatistic {
+type PeakHourStatisticVO {
   # 小时（0-23）
   hour: Int!
   # 该小时订单数
   count: Int!
 }
 
-type DateRange {
+type DateRangeVO {
   # 开始日期
   startDate: LocalDateTime!
   # 结束日期
   endDate: LocalDateTime!
 }
 
-type DailyStatistic {
+type DailyStatisticVO {
   # 日期
   date: String!
   # 订单数量
@@ -702,7 +704,7 @@ type DailyStatistic {
   refundCents: Long!
 }
 
-type WeeklyStatistic {
+type WeeklyStatisticVO {
   # 周数
   weekNumber: Int!
   # 年份
@@ -720,7 +722,7 @@ type WeeklyStatistic {
   refundCents: Long!
 }
 
-type MonthlyStatistic {
+type MonthlyStatisticVO {
   # 月份
   month: Int!
   # 年份
@@ -1172,8 +1174,8 @@ input GeocodeInput {
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
 }
 
-# Review Types
-type Review {
+# ReviewVO Types
+type ReviewVO {
   reviewId: PrimaryId!
   orderId: PrimaryId!
   userId: PrimaryId
@@ -1198,10 +1200,10 @@ input CreateReviewRequest {
 type OrderReviewCheckResponse {
   hasReviewed: Boolean!
   canReview: Boolean!
-  review: Review
+  review: ReviewVO
 }
 
-type DeliveryWorkerStatistics {
+type DeliveryWorkerStatisticsVO {
   deliveryWorkerId: PrimaryId!
   totalReviews: Long!
   averageRating: BigDecimal!
@@ -1235,7 +1237,7 @@ type DeliveryWorkerRankingResponse {
 }
 
 # Payment Refund Types
-type RefundRequest {
+type RefundRequestVO {
   # 退款请求ID
   id: String!
   # 原交易ID
@@ -1275,7 +1277,7 @@ enum RefundType {
 }
 
 # Payment Transaction Types
-type PaymentTransaction {
+type PaymentTransactionVO {
   # 交易ID
   id: String!
   # 订单ID
@@ -1328,7 +1330,7 @@ input ExportTransactionsInput {
 }
 
 # Payment Statistics Types
-type PaymentStatistics {
+type PaymentStatisticsVO {
   totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
@@ -1336,10 +1338,10 @@ type PaymentStatistics {
   refundedAmountCents: Long!
   refundCount: Long!
   averageTransactionAmountCents: Long!
-  dailyStats: [DailyPaymentStats!]!
+  dailyStats: [DailyPaymentStatsVO!]!
 }
 
-type PaymentMethodStats {
+type PaymentMethodStatsVO {
   paymentMethod: PaymentMethod!
   totalAmountCents: Long!
   transactionCount: Long!
@@ -1350,7 +1352,7 @@ type PaymentMethodStats {
   successRate: Float!
 }
 
-type SuspiciousTransaction {
+type SuspiciousTransactionVO {
   id: String!
   orderId: PrimaryId!
   userId: PrimaryId!
@@ -1368,7 +1370,7 @@ type SuspiciousTransaction {
   adminNote: String
 }
 
-type DailyPaymentStats {
+type DailyPaymentStatsVO {
   date: String!
   totalAmountCents: Long!
   totalTransactions: Long!
@@ -1378,7 +1380,7 @@ type DailyPaymentStats {
   refundCount: Long!
   averageTransactionAmountCents: Long!
   peakHour: Int!
-  paymentMethodBreakdown: [PaymentMethodStats!]!
+  paymentMethodBreakdown: [PaymentMethodStatsVO!]!
 }
 
 # Additional Input Types for Payment Management
@@ -1402,7 +1404,7 @@ input ProcessSuspiciousTransactionInput {
 }
 
 # Additional Payment Types
-type OrderPaymentInfo {
+type OrderPaymentInfoVO {
   orderId: PrimaryId!
   orderNo: String!
   amountCents: Long!
@@ -1415,17 +1417,17 @@ type OrderPaymentInfo {
   refundAmountCents: Long
 }
 
-type PaymentPeriodStats {
+type PaymentPeriodStatsVO {
   period: String!
   totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
   averageTransactionAmountCents: Long!
-  paymentMethodBreakdown: [PaymentMethodStats!]!
+  paymentMethodBreakdown: [PaymentMethodStatsVO!]!
 }
 
-type RefundEligibility {
+type RefundEligibilityVO {
   eligible: Boolean!
   orderId: PrimaryId!
   orderAmountCents: Long!
@@ -1437,7 +1439,7 @@ type RefundEligibility {
 }
 
 # Pagination Types
-type PageInfo {
+type PageInfoVO {
   # 总记录数
   total: Int!
   # 每页大小
@@ -1452,10 +1454,10 @@ type PageInfo {
   totalPages: Int!
 }
 
-# User Management Types for Admin
+# UserVO Management Types for AdminVO
 type UserVOPage {
-  list: [User!]!
-  pageInfo: PageInfo!
+  list: [UserVO!]!
+  pageInfo: PageInfoVO!
 }
 
 input UserListInput {
@@ -1468,8 +1470,8 @@ input UserListInput {
   customerGroupId: PrimaryId
 }
 
-# Product Management Types for Admin
-type ProductStatistics {
+# ProductVO Management Types for AdminVO
+type ProductStatisticsVO {
   totalProducts: Int!
   onlineProducts: Int!
   offlineProducts: Int!
@@ -1478,17 +1480,17 @@ type ProductStatistics {
   lowStockProducts: Int!
   totalValueCents: Long!
   averagePriceCents: Long!
-  productRanking: [ProductSalesStat!]!
-  favoriteStatistics: [ProductFavoriteStat!]!
+  productRanking: [ProductSalesStatVO!]!
+  favoriteStatistics: [ProductFavoriteStatVO!]!
   totalSales: Int!
   totalFavorites: Int!
   # 库存预警明细(F-STA-006,G39):库存≤阈值的商品(任意状态,含 OFFLINE/OUT_OF_STOCK —— P1-4),
   # 缺货(库存=0)置顶、按库存升序;口径与 lowStockProducts 计数同源(R-PRO-02 阈值)
-  stockWarningItems: [StockWarningItem!]!
+  stockWarningItems: [StockWarningItemVO!]!
 }
 
 # 库存预警明细项(F-STA-006,G39,R-PRO-02)
-type StockWarningItem {
+type StockWarningItemVO {
   productId: PrimaryId!
   productName: String!
   specification: String!
@@ -1504,20 +1506,20 @@ enum StockWarningStatus {
   WARNING
 }
 
-type ProductSalesStat {
+type ProductSalesStatVO {
   productId: PrimaryId!
   productName: String!
   salesVolume: Int!
   revenueCents: Long!
 }
 
-type ProductFavoriteStat {
+type ProductFavoriteStatVO {
   productId: PrimaryId!
   productName: String!
   favoriteCount: Long!
 }
 
-type ProductDailySales {
+type ProductDailySalesVO {
   date: String!
   productId: PrimaryId!
   productName: String!
@@ -1526,13 +1528,13 @@ type ProductDailySales {
 }
 
 type ProductVOPage {
-  list: [Product!]!
-  pageInfo: PageInfo!
+  list: [ProductVO!]!
+  pageInfo: PageInfoVO!
 }
 
-# Order Management Types
+# OrderVO Management Types
 type OrderVOPage {
-  content: [Order!]!
+  content: [OrderVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -1554,7 +1556,7 @@ input OrderListInput {
 }
 
 # Favorites Management Types
-type FavoriteProduct {
+type FavoriteProductVO {
   id: PrimaryId!
   name: String!
   subtitle: String
@@ -1568,24 +1570,24 @@ type FavoriteProduct {
 }
 
 type FavoriteProductVOPage {
-  list: [FavoriteProduct!]!
-  pageInfo: PageInfo!
+  list: [FavoriteProductVO!]!
+  pageInfo: PageInfoVO!
 }
 
-# Admin Favorites Management Types
-type UserFavorite {
+# AdminVO Favorites Management Types
+type UserFavoriteVO {
   id: PrimaryId!
-  user: User!
-  product: Product!
+  user: UserVO!
+  product: ProductVO!
   createdAt: LocalDateTime!
 }
 
 type UserFavoriteVOPage {
-  list: [UserFavorite!]!
-  pageInfo: PageInfo!
+  list: [UserFavoriteVO!]!
+  pageInfo: PageInfoVO!
 }
 
-type UserFavoriteAnalytics {
+type UserFavoriteAnalyticsVO {
   totalFavorites: Long!
   activeUsersWithFavorites: Long!
   averageFavoritesPerUser: Float!
@@ -1594,23 +1596,23 @@ type UserFavoriteAnalytics {
   newFavoritesThisMonth: Long!
 }
 
-type ProductFavoriteCount {
-  product: Product!
+type ProductFavoriteCountVO {
+  product: ProductVO!
   favoriteCount: Long!
   addedThisWeek: Long!
   addedThisMonth: Long!
   addedToday: Long!
 }
 
-type FavoriteTrendData {
+type FavoriteTrendDataVO {
   date: String!
   newFavorites: Long!
   totalFavorites: Long!
   activeUsers: Long!
 }
 
-type UserFavoriteSummary {
-  user: User!
+type UserFavoriteSummaryVO {
+  user: UserVO!
   favoriteCount: Long!
   lastFavoriteAdded: LocalDateTime
   totalValueOfFavoritedProductsCents: Long!
@@ -1619,14 +1621,14 @@ type UserFavoriteSummary {
 }
 
 type UserSummaryVOPage {
-  list: [UserFavoriteSummary!]!
-  pageInfo: PageInfo!
+  list: [UserFavoriteSummaryVO!]!
+  pageInfo: PageInfoVO!
 }
 
-type UserFavoriteWithProduct {
+type UserFavoriteWithProductVO {
   id: PrimaryId!
-  user: User!
-  product: Product!
+  user: UserVO!
+  product: ProductVO!
   createdAt: LocalDateTime!
   productStatus: ProductStatus!
   productStock: Int!
@@ -1634,11 +1636,11 @@ type UserFavoriteWithProduct {
 }
 
 type UserFavoriteWithProductVOPage {
-  list: [UserFavoriteWithProduct!]!
-  pageInfo: PageInfo!
+  list: [UserFavoriteWithProductVO!]!
+  pageInfo: PageInfoVO!
 }
 
-type FavoriteProductStats {
+type FavoriteProductStatsVO {
   productId: PrimaryId!
   productName: String!
   favoriteCount: Long!
@@ -1647,24 +1649,24 @@ type FavoriteProductStats {
   revenueFromFavoritesCents: Long!
 }
 
-type AllProductsFavoriteStats {
+type AllProductsFavoriteStatsVO {
   totalProducts: Long!
   totalFavorites: Long!
   averageFavoritesPerProduct: Float!
 }
 
 type ProductFavoriteVOPage {
-  list: [ProductFavoriteItem!]!
-  pageInfo: PageInfo!
+  list: [ProductFavoriteItemVO!]!
+  pageInfo: PageInfoVO!
 }
 
-type ProductFavoriteItem {
-  product: Product!
+type ProductFavoriteItemVO {
+  product: ProductVO!
   favoriteCount: Long!
   lastFavoritedAt: LocalDateTime
 }
 
-type UserFavoriteInsights {
+type UserFavoriteInsightsVO {
   userId: PrimaryId!
   userNickname: String!
   totalFavorites: Long!
@@ -1682,7 +1684,7 @@ enum UserEngagementLevel {
   VERY_HIGH
 }
 
-# Admin Favorites Input Types
+# AdminVO Favorites Input Types
 input AdminFavoriteListInput {
   page: Int = 0
   size: Int = 20
@@ -1815,33 +1817,33 @@ input ProductUpdateRequest {
   certificateImages: JsonArray
 }
 
-# Enhanced Product Management Types
+# Enhanced ProductVO Management Types
 
-type WaterSourceStatistics {
+type WaterSourceStatisticsVO {
   waterSource: String!
   productCount: Int!
   totalSalesVolume: Int!
   averagePriceCents: Long!
 }
 
-type SpecificationStatistics {
+type SpecificationStatisticsVO {
   specification: String!
   productCount: Int!
   totalSalesVolume: Int!
   averagePriceCents: Long!
 }
 
-type SalesReport {
-  dateRange: DateRange!
+type SalesReportVO {
+  dateRange: DateRangeVO!
   totalSales: Int!
   totalRevenueCents: Long!
-  topSellingProducts: [ProductSalesInfo!]!
-  salesByWaterSource: [WaterSourceStatistics!]!
-  salesBySpecification: [SpecificationStatistics!]!
+  topSellingProducts: [ProductSalesInfoVO!]!
+  salesByWaterSource: [WaterSourceStatisticsVO!]!
+  salesBySpecification: [SpecificationStatisticsVO!]!
 }
 
-type ProductSalesInfo {
-  product: Product!
+type ProductSalesInfoVO {
+  product: ProductVO!
   salesVolume: Int!
   revenueCents: Long!
   salesPercentage: Float!
@@ -1912,12 +1914,12 @@ type DeliveryLoginResponse {
   token: String
   refreshToken: String
   needBindPhone: Boolean!
-  workerInfo: DeliveryWorkerInfo
+  workerInfo: DeliveryWorkerInfoVO
   message: String
   openId: String
 }
 
-type DeliveryWorkerInfo {
+type DeliveryWorkerInfoVO {
   id: ID!
   name: String!
   phone: String!
@@ -1926,7 +1928,7 @@ type DeliveryWorkerInfo {
 }
 
 # 用户统计
-type UserStatistics {
+type UserStatisticsVO {
   # 总用户数
   totalUsers: Int!
   # 今日新增用户数
@@ -1936,15 +1938,15 @@ type UserStatistics {
   # 活跃用户数（30天内有下单）
   activeUsers: Int!
   # 每日新增用户趋势
-  dailyNewUsers: [DailyStatistic!]!
+  dailyNewUsers: [DailyStatisticVO!]!
   # 登录统计
-  loginStatistics: LoginStatistics
+  loginStatistics: LoginStatisticsVO
   # 下单用户分布(近30天,G35):下单次数分层 + 下单用户占比 + 复购率
-  orderDistribution: OrderUserDistribution!
+  orderDistribution: OrderUserDistributionVO!
 }
 
 # 下单用户分布(F-STA-003,G35):按近30天下单用户去重聚合
-type OrderUserDistribution {
+type OrderUserDistributionVO {
   # 下单用户数(近30天下单用户去重)
   orderingUsers: Int!
   # 下单用户占比 = 下单用户数 / 总用户数(0..1,总用户数为 0 时为 0)
@@ -1952,11 +1954,11 @@ type OrderUserDistribution {
   # 复购率 = 下单≥2次用户数 / 下单用户数(0..1,无下单用户时为 0)
   repurchaseRate: Float!
   # 下单次数分层(1次/2~3次/4次以上)
-  tiers: [OrderUserTier!]!
+  tiers: [OrderUserTierVO!]!
 }
 
 # 下单次数分层项(F-STA-003,G35)
-type OrderUserTier {
+type OrderUserTierVO {
   # 分层标签:1次 / 2~3次 / 4次以上
   label: String!
   # 该分层用户数
@@ -1964,17 +1966,17 @@ type OrderUserTier {
 }
 
 # 用户登录统计
-type LoginStatistics {
+type LoginStatisticsVO {
   # 今日登录用户数
   todayLogins: Int!
   # 累计登录用户数
   totalLogins: Int!
   # 每日登录趋势
-  dailyLogins: [DailyLoginStatistic!]!
+  dailyLogins: [DailyLoginStatisticVO!]!
 }
 
 # 每日登录统计
-type DailyLoginStatistic {
+type DailyLoginStatisticVO {
   # 日期
   date: String!
   # 登录用户数
@@ -1982,7 +1984,7 @@ type DailyLoginStatistic {
 }
 
 # 送水员概览统计
-type DeliveryWorkerOverview {
+type DeliveryWorkerOverviewVO {
   # 送水员总数
   totalWorkers: Int!
   # 今日在岗送水员数
@@ -1998,7 +2000,7 @@ type DeliveryWorkerOverview {
 }
 
 # 送水员排行
-type DeliveryWorkerRankingItem {
+type DeliveryWorkerRankingItemVO {
   # 送水员ID
   workerId: ID!
   # 送水员姓名
@@ -2028,7 +2030,7 @@ enum DailyReconciliationStatus {
 }
 
 # 每日收款记录
-type DailyCollectionRecord {
+type DailyCollectionRecordVO {
   # 记录ID
   id: PrimaryId!
   # 配送员ID
@@ -2102,7 +2104,7 @@ type MyTodayCollectionVO {
 }
 
 # 每日对账记录
-type DailyReconciliation {
+type DailyReconciliationVO {
   # 记录ID
   id: PrimaryId!
   # 对账日期
@@ -2229,7 +2231,7 @@ enum SourceSystem {
 }
 
 # 对账任务
-type ReconciliationTask {
+type ReconciliationTaskVO {
   # 记录ID
   id: PrimaryId!
   # 任务唯一标识
@@ -2260,7 +2262,7 @@ type ReconciliationTask {
 
 # 对账任务分页
 type ReconciliationTaskPage {
-  content: [ReconciliationTask!]!
+  content: [ReconciliationTaskVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -2268,7 +2270,7 @@ type ReconciliationTaskPage {
 }
 
 # 对账差异
-type ReconciliationDiscrepancy {
+type ReconciliationDiscrepancyVO {
   # 记录ID
   id: PrimaryId!
   # 关联的对账任务ID
@@ -2297,7 +2299,7 @@ type ReconciliationDiscrepancy {
 
 # 对账差异分页
 type ReconciliationDiscrepancyPage {
-  content: [ReconciliationDiscrepancy!]!
+  content: [ReconciliationDiscrepancyVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -2305,7 +2307,7 @@ type ReconciliationDiscrepancyPage {
 }
 
 # 对账报表
-type ReconciliationReport {
+type ReconciliationReportVO {
   # 记录ID
   id: PrimaryId!
   # 关联的对账任务ID
@@ -2344,7 +2346,7 @@ input ResolveDiscrepancyInput {
 # 与 PRD 12-operations-config.md 保持一致;共享类型供 admin/client 两端使用
 
 # 轮播图(运营位)
-type Banner {
+type BannerVO {
   # 主键
   id: PrimaryId!
   # 图片地址(平台存储服务上传素材)
@@ -2406,7 +2408,7 @@ enum FeedbackStatus {
 }
 
 # 公告 (F-OPS-002)
-type Notice {
+type NoticeVO {
   # 主键
   id: PrimaryId!
   # 标题(≤50字)
@@ -2452,7 +2454,7 @@ enum NoticeStatus {
 }
 
 # 店铺信息 (F-OPS-004,单行配置;未配置时用户端按默认值兜底)
-type StoreProfile {
+type StoreProfileVO {
   # 店铺名称(≤20字)
   shopName: String!
   # LOGO 图片地址
@@ -2472,7 +2474,7 @@ type StoreProfile {
 }
 
 # 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元)
-type DeliveryFeeRule {
+type DeliveryFeeRuleVO {
   # 免费楼层(楼层 ≤ 该值免运费)
   freeFloorLimit: Int!
   # 超出免费楼层的一次性加价(分,0-99900)

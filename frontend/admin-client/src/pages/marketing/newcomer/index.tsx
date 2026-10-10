@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { FirstOrderActivity } from '@aquarush/common';
+import type { FirstOrderActivityVo } from '@aquarush/common';
 import {
   useFirstOrderActivities,
   useCreateFirstOrderActivity,
@@ -36,7 +36,7 @@ const Newcomer: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<FirstOrderActivity | null>(null);
+  const [editingRecord, setEditingRecord] = useState<FirstOrderActivityVo | null>(null);
 
   const [createActivity, { loading: creating }] = useCreateFirstOrderActivity();
   const [updateActivity, { loading: updating }] = useUpdateFirstOrderActivity();
@@ -65,12 +65,12 @@ const Newcomer: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: FirstOrderActivity) => {
+  const handleEdit = (record: FirstOrderActivityVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: FirstOrderFormPayload, record: FirstOrderActivity | null) => {
+  const handleSubmit = async (payload: FirstOrderFormPayload, record: FirstOrderActivityVo | null) => {
     if (record) {
       await updateActivity({ variables: { id: record.id, input: payload } });
     } else {
@@ -79,11 +79,11 @@ const Newcomer: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: FirstOrderActivity) => {
+  const handleDisable = async (record: FirstOrderActivityVo) => {
     await disableActivity({ variables: { id: record.id } });
   };
 
-  const renderBenefit = (record: FirstOrderActivity) => {
+  const renderBenefit = (record: FirstOrderActivityVo) => {
     if (record.activityType === 'NEWCOMER_PRICE') {
       return record.newcomerPriceCents != null ? `新人价 ${displayCents(record.newcomerPriceCents)}` : '--';
     }
@@ -97,7 +97,7 @@ const Newcomer: React.FC = () => {
     return '--';
   };
 
-  const renderScope = (record: FirstOrderActivity) => {
+  const renderScope = (record: FirstOrderActivityVo) => {
     if (record.activityType === 'NEWCOMER_PRICE') {
       return record.productName ?? '指定商品';
     }
@@ -106,7 +106,7 @@ const Newcomer: React.FC = () => {
     return '指定分组';
   };
 
-  const columns: ColumnsType<FirstOrderActivity> = [
+  const columns: ColumnsType<FirstOrderActivityVo> = [
     { title: '活动名称', dataIndex: 'name', width: 180, ellipsis: true },
     {
       title: '类型',
@@ -182,7 +182,7 @@ const Newcomer: React.FC = () => {
         </Space>
       }
     >
-      <Table<FirstOrderActivity>
+      <Table<FirstOrderActivityVo>
         rowKey="id"
         columns={columns}
         dataSource={activities}

@@ -9,17 +9,17 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { searchAllAddresses } from '@/services/delivery';
-import type { Address } from '@aquarush/common';
+import type { AddressVo } from '@aquarush/common';
 
 interface AddressDisplayProps {
   selectedId?: string;
-  onSelect?: (address: Address) => void;
+  onSelect?: (address: AddressVo) => void;
 }
 
 export function AddressDisplay({ selectedId, onSelect }: AddressDisplayProps) {
   const theme = useTheme();
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [filtered, setFiltered] = useState<Address[]>([]);
+  const [addresses, setAddresses] = useState<AddressVo[]>([]);
+  const [filtered, setFiltered] = useState<AddressVo[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
@@ -74,13 +74,13 @@ export function AddressDisplay({ selectedId, onSelect }: AddressDisplayProps) {
 
   const selectedAddress = addresses.find((a) => a.id === selectedId);
 
-  const handleSelect = (addr: Address) => {
+  const handleSelect = (addr: AddressVo) => {
     onSelect?.(addr);
     setModalVisible(false);
     setKeyword('');
   };
 
-  const renderAddressInfo = (addr: Address) => (
+  const renderAddressInfo = (addr: AddressVo) => (
     <>
       <View style={styles.infoRow}>
         <ThemedText type="smallBold">{addr.receiverName}</ThemedText>

@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.BannerQueryService
-import dev.yidafu.aqua.common.graphql.generated.Banner
 import dev.yidafu.aqua.common.graphql.generated.BannerListInput
+import dev.yidafu.aqua.common.graphql.generated.BannerVo
 import dev.yidafu.aqua.common.graphql.generated.BannerVoPage
 import dev.yidafu.aqua.ops.banner.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
@@ -62,5 +62,5 @@ class AdminBannerQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
   fun banner(
     @Argument id: Long,
-  ): Banner? = bannerQueryService.getBanner(id)?.let { it.toGraphQL() }
+  ): BannerVo? = bannerQueryService.getBanner(id)?.let { it.toGraphQL() }
 }

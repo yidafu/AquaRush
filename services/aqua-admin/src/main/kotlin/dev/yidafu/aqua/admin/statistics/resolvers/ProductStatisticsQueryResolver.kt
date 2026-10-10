@@ -21,8 +21,8 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServiceImpl
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
-import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
-import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
+import dev.yidafu.aqua.common.graphql.generated.ProductDailySalesVo
+import dev.yidafu.aqua.common.graphql.generated.ProductStatisticsVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,13 +37,13 @@ class ProductStatisticsQueryResolver(
 ) {
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
-  fun productStatistics(): ProductStatistics = productStatisticsService.getProductStatistics()
+  fun productStatistics(): ProductStatisticsVo = productStatisticsService.getProductStatistics()
 
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun productDailySales(
     @Argument input: DateRangeInput,
-  ): List<ProductDailySales> {
+  ): List<ProductDailySalesVo> {
     val startDate = input.startDate.toLocalDate()
     val endDate = input.endDate.toLocalDate()
     return productStatisticsService.getProductDailySales(startDate, endDate)

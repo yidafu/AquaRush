@@ -12,13 +12,13 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { createOrder, CreateDeliveryOrderItem } from '@/services/delivery';
-import type { Address } from '@aquarush/common';
+import type { AddressVo } from '@aquarush/common';
 
 export default function CreateOrderScreen() {
   const router = useRouter();
   const theme = useTheme();
 
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<AddressVo | null>(null);
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({
     isSelfCollect: false,

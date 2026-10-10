@@ -3,7 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { TicketType } from '@aquarush/common';
+import type { TicketTypeAdminVo } from '@aquarush/common';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { WATER_TICKETS_PAGE_DATA_QUERY } from '../../../graphql/queries/marketing.graphql';
@@ -21,11 +21,11 @@ const WaterTickets: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<TicketType | null>(null);
+  const [editingRecord, setEditingRecord] = useState<TicketTypeAdminVo | null>(null);
   const navigate = useNavigate();
 
   // 详情统计页入口(独立页面:/marketing/water-tickets/:id?name=&kind=)
-  const goDetail = (record: TicketType): void => {
+  const goDetail = (record: TicketTypeAdminVo): void => {
     navigate(`/marketing/water-tickets/${record.id}?name=${encodeURIComponent(record.name)}&kind=${record.ticketType}`);
   };
 
@@ -62,12 +62,12 @@ const WaterTickets: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: TicketType) => {
+  const handleEdit = (record: TicketTypeAdminVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: TicketTypeFormPayload, record: TicketType | null) => {
+  const handleSubmit = async (payload: TicketTypeFormPayload, record: TicketTypeAdminVo | null) => {
     if (record) {
       await updateTicketType({ variables: { id: record.id, input: payload } });
     } else {
@@ -76,11 +76,11 @@ const WaterTickets: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: TicketType) => {
+  const handleDisable = async (record: TicketTypeAdminVo) => {
     await disableTicketType({ variables: { id: record.id } });
   };
 
-  const renderValidity = (record: TicketType) => {
+  const renderValidity = (record: TicketTypeAdminVo) => {
     if (record.validityType === 'FIXED_RANGE') {
       return record.validFrom && record.validTo
         ? `${formatDateTime(record.validFrom)} ~ ${formatDateTime(record.validTo)}`
@@ -89,7 +89,7 @@ const WaterTickets: React.FC = () => {
     return `购买后${record.validDays ?? '—'}天内有效`;
   };
 
-  const columns: ColumnsType<TicketType> = [
+  const columns: ColumnsType<TicketTypeAdminVo> = [
     { title: '票种名', dataIndex: 'name', width: 180, ellipsis: true },
     {
       title: '类型',
@@ -184,7 +184,7 @@ const WaterTickets: React.FC = () => {
         </Space>
       }
     >
-      <Table<TicketType>
+      <Table<TicketTypeAdminVo>
         rowKey="id"
         columns={columns}
         dataSource={ticketTypes}

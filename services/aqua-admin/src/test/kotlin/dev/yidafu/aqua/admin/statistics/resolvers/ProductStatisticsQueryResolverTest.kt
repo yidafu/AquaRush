@@ -21,8 +21,8 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServiceImpl
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
-import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
-import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
+import dev.yidafu.aqua.common.graphql.generated.ProductDailySalesVo
+import dev.yidafu.aqua.common.graphql.generated.ProductStatisticsVo
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -42,7 +42,7 @@ class ProductStatisticsQueryResolverTest :
     }
     test("productStatistics should delegate to service") {
       // Given
-      val stats = mockk<ProductStatistics>(relaxed = true)
+      val stats = mockk<ProductStatisticsVo>(relaxed = true)
       every { stats.totalProducts } returns 12
       every { stats.onlineProducts } returns 10
       every { productStatisticsService.getProductStatistics() } returns stats
@@ -59,7 +59,7 @@ class ProductStatisticsQueryResolverTest :
       // Given
       every { productStatisticsService.getProductDailySales(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) } returns
         listOf(
-          ProductDailySales(
+          ProductDailySalesVo(
             date = "2025-06-01",
             productId = 1L,
             productName = "桶装水19L",

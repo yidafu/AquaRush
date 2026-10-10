@@ -22,8 +22,8 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryApiService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserListInput
+import dev.yidafu.aqua.common.graphql.generated.UserVo
 import dev.yidafu.aqua.common.graphql.generated.UserVoPage
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
@@ -44,10 +44,10 @@ class UserQueryResolver(
 ) {
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun me(): User? {
+  fun me(): UserVo? {
     val currentUserId =
       GraphQLSecurityContext.getCurrentUserId()
-        ?: throw IllegalArgumentException("User not authenticated")
+        ?: throw IllegalArgumentException("UserVo not authenticated")
     return userService.findById(currentUserId)?.let { mapWithGroupName(it) }
   }
 
@@ -55,7 +55,7 @@ class UserQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_USER_READ') or #id == authentication.principal.id")
   fun user(
     @Argument id: Long,
-  ): User? = userService.findById(id)?.let { mapWithGroupName(it) }
+  ): UserVo? = userService.findById(id)?.let { mapWithGroupName(it) }
 
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
@@ -115,7 +115,7 @@ class UserQueryResolver(
   /**
    * 映射用户并联查所属分组名称(F-MKT-001 营销受众维度,未分组=null)
    */
-  private fun mapWithGroupName(model: dev.yidafu.aqua.common.domain.model.UserModel): User {
+  private fun mapWithGroupName(model: dev.yidafu.aqua.common.domain.model.UserModel): UserVo {
     val groupName = model.customerGroupId?.let { customerGroupQueryApiService.findById(it)?.name }
     return model.toGraphQL().copy(customerGroupName = groupName)
   }

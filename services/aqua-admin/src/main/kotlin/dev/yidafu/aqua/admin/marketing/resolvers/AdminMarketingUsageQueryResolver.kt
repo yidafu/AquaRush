@@ -23,7 +23,7 @@ import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.dto.MarketingUsagePage
 import dev.yidafu.aqua.api.service.marketing.MarketingUsageQueryService
 import dev.yidafu.aqua.common.graphql.generated.MarketingUsageListInput
-import dev.yidafu.aqua.common.graphql.generated.MarketingUsageSummary
+import dev.yidafu.aqua.common.graphql.generated.MarketingUsageSummaryVo
 import dev.yidafu.aqua.common.graphql.generated.MarketingUsageVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Controller
 /**
  * 营销方式使用情况查询 Resolver(管理后台,PERMISSION_MKT_READ):
  * 营销方式详情页「营销使用情况 + 相关订单记录」(PRD 10-marketing.md F-MKT-003~009)。
- * 口径见 MarketingUsageKind / MarketingUsageSummary;限时特价/新人价按商品+活动价+时间窗近似匹配,
+ * 口径见 MarketingUsageKind / MarketingUsageSummaryVo;限时特价/新人价按商品+活动价+时间窗近似匹配,
  * 赠品让利按当前目录价估算。
  */
 @Controller
@@ -97,7 +97,7 @@ class AdminMarketingUsageQueryResolver(
     val (orderList, pageInfo) = orders.toPageInfo { adminOrderMapper.map(it) }
     return MarketingUsageVo(
       summary =
-        MarketingUsageSummary(
+        MarketingUsageSummaryVo(
           orderCount = summary.orderCount.toInt(),
           benefitCents = summary.benefitCents,
           usageCount = summary.usageCount.toInt(),

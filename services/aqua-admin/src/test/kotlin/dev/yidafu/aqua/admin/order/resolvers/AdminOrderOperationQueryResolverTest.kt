@@ -28,6 +28,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.graphql.generated.OrderOperationType as OrderOperationTypeG
 
 class AdminOrderOperationQueryResolverTest :
   FunSpec({
@@ -57,7 +58,7 @@ class AdminOrderOperationQueryResolverTest :
 
       // Then
       result.size shouldBe 1
-      result[0].operationType shouldBe OrderOperationType.ORDER_CREATED
+      result[0].operationType shouldBe OrderOperationTypeG.ORDER_CREATED
       verify { orderOperationService.getOrderOperations(1L) }
     }
     test("orderOperations should return empty list when no history") {

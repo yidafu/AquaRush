@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryService
-import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroupListInput
+import dev.yidafu.aqua.common.graphql.generated.CustomerGroupVo
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroupVoPage
 import dev.yidafu.aqua.marketing.customer.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
@@ -70,7 +70,7 @@ class AdminCustomerGroupQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun customerGroup(
     @Argument id: Long,
-  ): CustomerGroup? {
+  ): CustomerGroupVo? {
     val group =
       customerGroupQueryService.getGroup(id) ?: throw IllegalArgumentException("客户分组不存在")
     return group.toGraphQL(customerGroupQueryService.memberCount(id))

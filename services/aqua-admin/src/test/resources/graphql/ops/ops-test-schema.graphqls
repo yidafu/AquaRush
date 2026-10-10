@@ -1,4 +1,4 @@
-# Test Schema for Admin Ops Resolvers GraphQL Integration Tests
+# Test Schema for AdminVO Ops Resolvers GraphQL Integration Tests
 # 自包含 schema(仿 delivery-worker 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/ops/) 加载
 
 scalar Long
@@ -6,32 +6,32 @@ scalar LocalDateTime
 
 type Query {
   banners(input: BannerListInput): BannerVOPage
-  banner(id: Long!): Banner
+  banner(id: Long!): BannerVO
   feedbacks(input: FeedbackListInput): FeedbackVOPage
-  feedback(id: Long!): Feedback
+  feedback(id: Long!): FeedbackVO
   notices(input: NoticeListInput): NoticeVOPage
-  notice(id: Long!): Notice
-  storeProfile: StoreProfile
-  deliveryFeeRule: DeliveryFeeRule
+  notice(id: Long!): NoticeVO
+  storeProfile: StoreProfileVO
+  deliveryFeeRule: DeliveryFeeRuleVO
 }
 
 type Mutation {
-  createBanner(input: CreateBannerInput!): Banner!
-  updateBanner(id: Long!, input: UpdateBannerInput!): Banner!
+  createBanner(input: CreateBannerInput!): BannerVO!
+  updateBanner(id: Long!, input: UpdateBannerInput!): BannerVO!
   deleteBanner(id: Long!): Boolean!
-  reorderBanner(id: Long!, direction: ReorderDirection!): [Banner!]!
-  reviewFeedback(id: Long!, input: FeedbackReviewInput!): Feedback!
-  createNotice(input: CreateNoticeInput!): Notice!
-  updateNotice(id: Long!, input: UpdateNoticeInput!): Notice!
-  publishNotice(id: Long!): Notice!
-  stopNotice(id: Long!): Notice!
-  setNoticePinned(id: Long!, pinned: Boolean!): Notice!
+  reorderBanner(id: Long!, direction: ReorderDirection!): [BannerVO!]!
+  reviewFeedback(id: Long!, input: FeedbackReviewInput!): FeedbackVO!
+  createNotice(input: CreateNoticeInput!): NoticeVO!
+  updateNotice(id: Long!, input: UpdateNoticeInput!): NoticeVO!
+  publishNotice(id: Long!): NoticeVO!
+  stopNotice(id: Long!): NoticeVO!
+  setNoticePinned(id: Long!, pinned: Boolean!): NoticeVO!
   deleteNotice(id: Long!): Boolean!
-  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfile!
-  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRule!
+  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfileVO!
+  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRuleVO!
 }
 
-type Banner {
+type BannerVO {
   id: Long!
   imageUrl: String!
   title: String!
@@ -52,14 +52,14 @@ enum BannerLinkType {
 }
 
 type BannerVOPage {
-  content: [Banner!]!
+  content: [BannerVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type Feedback {
+type FeedbackVO {
   id: Long!
   userId: Long!
   feedbackType: FeedbackType!
@@ -95,7 +95,7 @@ enum ReorderDirection {
 }
 
 type FeedbackVOPage {
-  content: [Feedback!]!
+  content: [FeedbackVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
@@ -150,7 +150,7 @@ input FeedbackReviewInput {
   status: FeedbackStatus!
 }
 
-type Notice {
+type NoticeVO {
   id: Long!
   title: String!
   content: String!
@@ -177,14 +177,14 @@ enum NoticeStatus {
 }
 
 type NoticeVOPage {
-  content: [Notice!]!
+  content: [NoticeVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type StoreProfile {
+type StoreProfileVO {
   shopName: String!
   logoUrl: String
   serviceHotline: String!
@@ -195,7 +195,7 @@ type StoreProfile {
   updatedAt: LocalDateTime
 }
 
-type DeliveryFeeRule {
+type DeliveryFeeRuleVO {
   freeFloorLimit: Int!
   surchargeCents: Long!
   updatedAt: LocalDateTime

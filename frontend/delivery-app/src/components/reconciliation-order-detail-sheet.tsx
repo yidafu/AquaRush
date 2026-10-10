@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
-import type { ReconciliationOrderDetail } from '@aquarush/common';
+import type { ReconciliationOrderDetailVo } from '@aquarush/common';
 
 import { BottomSheet } from '@/components/bottom-sheet';
 import { OrderInfoRow } from '@/components/order-info-row';
@@ -33,7 +33,7 @@ export function ReconciliationOrderDetailSheet({
   reconciliationDate,
   onClose,
 }: ReconciliationOrderDetailSheetProps) {
-  const [orders, setOrders] = useState<ReconciliationOrderDetail[]>([]);
+  const [orders, setOrders] = useState<ReconciliationOrderDetailVo[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -3,7 +3,7 @@ import { Table, Space, Button, Card, Popconfirm } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '@aquarush/common';
-import type { CustomerGroup } from '@aquarush/common';
+import type { CustomerGroupVo } from '@aquarush/common';
 import {
   useCustomerGroups,
   useCreateCustomerGroup,
@@ -19,7 +19,7 @@ const CustomerGroups: React.FC = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<CustomerGroup | null>(null);
+  const [editingRecord, setEditingRecord] = useState<CustomerGroupVo | null>(null);
 
   const [createGroup, { loading: creating }] = useCreateCustomerGroup();
   const [updateGroup, { loading: updating }] = useUpdateCustomerGroup();
@@ -48,12 +48,12 @@ const CustomerGroups: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: CustomerGroup) => {
+  const handleEdit = (record: CustomerGroupVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: GroupFormPayload, record: CustomerGroup | null) => {
+  const handleSubmit = async (payload: GroupFormPayload, record: CustomerGroupVo | null) => {
     const { name, description, memberIds } = payload;
     // 成员覆盖式同步由后端完成(F-MKT-001:memberIds 划入/移出分组)
     if (record) {
@@ -66,11 +66,11 @@ const CustomerGroups: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDelete = async (record: CustomerGroup) => {
+  const handleDelete = async (record: CustomerGroupVo) => {
     await deleteGroup({ variables: { id: record.id } });
   };
 
-  const columns: ColumnsType<CustomerGroup> = [
+  const columns: ColumnsType<CustomerGroupVo> = [
     { title: '分组名称', dataIndex: 'name', width: 200 },
     {
       title: '描述',
@@ -121,7 +121,7 @@ const CustomerGroups: React.FC = () => {
         </Button>
       }
     >
-      <Table<CustomerGroup>
+      <Table<CustomerGroupVo>
         rowKey="id"
         columns={columns}
         dataSource={groups}

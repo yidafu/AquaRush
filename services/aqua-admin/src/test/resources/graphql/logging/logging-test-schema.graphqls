@@ -1,4 +1,4 @@
-# Test Schema for Admin BusinessLog Resolver GraphQL Integration Tests
+# Test Schema for AdminVO BusinessLogVO Resolver GraphQL Integration Tests
 # 自包含 schema(仿 ops/delivery-worker 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/logging/) 加载
 
 scalar Long
@@ -24,7 +24,7 @@ enum BizLogLevel {
   ERROR
 }
 
-type BusinessLog {
+type BusinessLogVO {
   id: Long!
   correlationId: String
   level: BizLogLevel!
@@ -48,7 +48,7 @@ input BusinessLogListInput {
   size: Int = 10
 }
 
-type PageInfo {
+type PageInfoVO {
   total: Int!
   pageSize: Int!
   pageNum: Int!
@@ -58,6 +58,6 @@ type PageInfo {
 }
 
 type BusinessLogVOPage {
-  list: [BusinessLog!]!
-  pageInfo: PageInfo!
+  list: [BusinessLogVO!]!
+  pageInfo: PageInfoVO!
 }

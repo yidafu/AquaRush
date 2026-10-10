@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.TicketTypeMutationService
 import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
-import dev.yidafu.aqua.common.graphql.generated.TicketType
+import dev.yidafu.aqua.common.graphql.generated.TicketTypeAdminVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.marketing.ticket.mapper.toGraphQL
@@ -48,7 +48,7 @@ class AdminTicketTypeMutationResolver(
   fun createTicketType(
     @Argument @Valid input: CreateTicketTypeInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): TicketType {
+  ): TicketTypeAdminVo {
     logger.info("Admin {} creating ticket type: {}", principal.username, input.name)
     val ticketType =
       ticketTypeMutationService.createTicketType(
@@ -65,7 +65,7 @@ class AdminTicketTypeMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateTicketTypeInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): TicketType {
+  ): TicketTypeAdminVo {
     logger.info("Admin {} updating ticket type {}", principal.username, id)
     val ticketType =
       ticketTypeMutationService.updateTicketType(
@@ -82,7 +82,7 @@ class AdminTicketTypeMutationResolver(
   fun disableTicketType(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): TicketType {
+  ): TicketTypeAdminVo {
     logger.info("Admin {} disabling ticket type {}", principal.username, id)
     val ticketType =
       ticketTypeMutationService.disableTicketType(principal.id, principal.username, id)

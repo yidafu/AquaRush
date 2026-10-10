@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import { useLazyQuery } from '@apollo/client';
-import type { CustomerGroup, User } from '@aquarush/common';
+import type { CustomerGroupVo, UserVo } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
 
 // 提交给 mutation 的表单载荷(memberIds 覆盖式成员列表,后端据此同步成员)
@@ -18,10 +18,10 @@ interface UserOption {
 
 interface Props {
   open: boolean;
-  record: CustomerGroup | null;
+  record: CustomerGroupVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: GroupFormPayload, record: CustomerGroup | null) => void;
+  onSubmit: (payload: GroupFormPayload, record: CustomerGroupVo | null) => void;
 }
 
 const GroupFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {
@@ -64,7 +64,7 @@ const GroupFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, o
     searchUsers({ variables: { input: { customerGroupId: record.id, page: 0, size: 1000 } } })
       .then((result) => {
         const list = result.data?.users?.list ?? [];
-        const ids = list.map((u: User) => String(u.id));
+        const ids = list.map((u: UserVo) => String(u.id));
         mergeOptions(list.map(toOption));
         form.setFieldsValue({
           name: record.name,

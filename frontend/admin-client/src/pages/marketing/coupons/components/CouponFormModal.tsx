@@ -3,7 +3,7 @@ import { Form, Input, InputNumber, Select, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents, COUPON_TYPE_LABELS } from '@aquarush/common';
 import { CouponType, CouponScope, ValidityType, CouponIssuanceType } from '@aquarush/common';
-import type { CouponTemplate } from '@aquarush/common';
+import type { CouponTemplateAdminVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 import FormModal from '@/components/FormModal';
 
@@ -43,10 +43,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: CouponTemplate | null;
+  record: CouponTemplateAdminVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: CouponFormPayload, record: CouponTemplate | null) => void;
+  onSubmit: (payload: CouponFormPayload, record: CouponTemplateAdminVo | null) => void;
 }
 
 const COUPON_TYPE_OPTIONS = (Object.keys(COUPON_TYPE_LABELS) as CouponType[]).map((value) => ({

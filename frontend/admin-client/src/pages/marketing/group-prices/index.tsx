@@ -3,7 +3,7 @@ import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typograp
 import type { ColumnsType } from 'antd/es/table';
 import { useLazyQuery } from '@apollo/client';
 import { displayCents, centsToYuan, yuanToCents } from '@aquarush/common';
-import type { CustomerGroup, GroupProductPrice, Product } from '@aquarush/common';
+import type { CustomerGroupVo, GroupProductPriceVo, ProductVo } from '@aquarush/common';
 import { GET_PRODUCTS_QUERY } from '../../../graphql/queries/product.graphql';
 import { pagination } from '@/utils/table';
 import {
@@ -63,11 +63,11 @@ const GroupPrices: React.FC = () => {
     if (products.length === 0) return;
     // 过滤保证价格属于当前分组,避免切换分组时旧分组价格瞬闪
     const prices = (pricesData?.groupProductPrices?.content ?? []).filter(
-      (p: GroupProductPrice) => groupId == null || String(p.customerGroupId) === groupId,
+      (p: GroupProductPriceVo) => groupId == null || String(p.customerGroupId) === groupId,
     );
-    const configured = new Map(prices.map((p: GroupProductPrice) => [p.productId, p.priceCents]));
+    const configured = new Map(prices.map((p: GroupProductPriceVo) => [p.productId, p.priceCents]));
     setRows(
-      products.map((product: Product) => ({
+      products.map((product: ProductVo) => ({
         productId: String(product.id),
         name: product.name,
         specification: product.specification,
@@ -191,7 +191,7 @@ const GroupPrices: React.FC = () => {
           onChange={handleGroupChange}
           showSearch
           optionFilterProp="label"
-          options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+          options={groups.map((g: CustomerGroupVo) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
         />
         <Table<PriceRow>
           rowKey="productId"

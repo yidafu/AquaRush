@@ -1,4 +1,4 @@
-# Admin-specific Input Types
+# AdminVO-specific Input Types
 
 input CreateAdminInput {
   # 送水员角色(DELIVERY_WORKER)可不传,后端自动生成 delivery_{账号ID}(F-USR-021)

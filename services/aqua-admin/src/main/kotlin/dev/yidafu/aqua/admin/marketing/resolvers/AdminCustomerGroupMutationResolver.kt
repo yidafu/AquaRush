@@ -22,7 +22,7 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupMutationService
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryService
 import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
-import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
+import dev.yidafu.aqua.common.graphql.generated.CustomerGroupVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.marketing.customer.mapper.toGraphQL
@@ -50,7 +50,7 @@ class AdminCustomerGroupMutationResolver(
   fun createCustomerGroup(
     @Argument @Valid input: CreateCustomerGroupInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): CustomerGroup {
+  ): CustomerGroupVo {
     logger.info("Admin {} creating customer group: {}", principal.username, input.name)
     val group =
       customerGroupMutationService.createGroup(
@@ -67,7 +67,7 @@ class AdminCustomerGroupMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateCustomerGroupInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): CustomerGroup {
+  ): CustomerGroupVo {
     logger.info("Admin {} updating customer group {}", principal.username, id)
     val group =
       customerGroupMutationService.updateGroup(

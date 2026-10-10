@@ -25,8 +25,10 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -56,7 +58,7 @@ class AdminProductMutationResolver(
   @MutationMapping
   fun createProduct(
     @Argument @Valid input: CreateProductInput,
-  ): ProductModel {
+  ): ProductVo {
     try {
       // 验证输入
       validateCreateProductInput(input)
@@ -64,7 +66,7 @@ class AdminProductMutationResolver(
       val product = productService.createProduct(input)
 
       logger.info("Successfully created product: ${product.id} - ${product.name}")
-      return product
+      return product.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to create product", e)
       throw BadRequestException("创建产品失败: ${e.message}")
@@ -80,7 +82,7 @@ class AdminProductMutationResolver(
   fun updateProduct(
     @Argument id: Long,
     @Argument @Valid input: UpdateProductInput,
-  ): ProductModel {
+  ): ProductVo {
     try {
       // 验证产品存在
       val existingProduct =
@@ -115,7 +117,7 @@ class AdminProductMutationResolver(
         )
 
       logger.info("Successfully updated product: $id - ${updatedProduct.name}")
-      return updatedProduct
+      return updatedProduct.toGraphQL()
     } catch (e: Exception) {
       logger.error("Failed to update product", e)
       throw BadRequestException("更新产品失败: ${e.message}")

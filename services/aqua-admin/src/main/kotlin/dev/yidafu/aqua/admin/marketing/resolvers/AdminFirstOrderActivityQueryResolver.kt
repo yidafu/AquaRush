@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.FirstOrderActivityQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityListInput
+import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityVo
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.marketing.firstorder.mapper.toGraphQL
@@ -69,9 +69,9 @@ class AdminFirstOrderActivityQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun firstOrderActivity(
     @Argument id: Long,
-  ): FirstOrderActivity? = firstOrderActivityQueryService.getActivity(id)?.let { toFirstOrderActivity(it) }
+  ): FirstOrderActivityVo? = firstOrderActivityQueryService.getActivity(id)?.let { toFirstOrderActivity(it) }
 
-  private fun toFirstOrderActivity(model: FirstOrderActivityModel): FirstOrderActivity {
+  private fun toFirstOrderActivity(model: FirstOrderActivityModel): FirstOrderActivityVo {
     val now = LocalDateTime.now()
     val currentStatus =
       when {

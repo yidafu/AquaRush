@@ -23,7 +23,7 @@ import { useQuery } from '@apollo/client';
 import MapLibreMap from '../../../../../components/MapLibreMap';
 import type { MapLine, MapMarker } from '../../../../../components/MapLibreMap';
 import { DEFAULT_MAP_CENTER } from '../../../../../lib/map/tianditu';
-import type { DeliveryTrajectory } from '@aquarush/common';
+import type { DeliveryTrajectoryVo } from '@aquarush/common';
 import dayjs from 'dayjs';
 import {
   GET_DELIVERY_TRAJECTORIES_QUERY,
@@ -54,7 +54,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
     data: latestData,
     loading: latestLoading,
     refetch: refetchLatest,
-  } = useQuery<{ deliveryWorkerLatestLocation?: DeliveryTrajectory | null }>(
+  } = useQuery<{ deliveryWorkerLatestLocation?: DeliveryTrajectoryVo | null }>(
     GET_DELIVERY_WORKER_LATEST_LOCATION_QUERY,
     {
       variables: { workerId },
@@ -67,7 +67,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
   const {
     data: trajData,
     refetch: refetchTrajectories,
-  } = useQuery<{ deliveryTrajectories: readonly DeliveryTrajectory[] }>(GET_DELIVERY_TRAJECTORIES_QUERY, {
+  } = useQuery<{ deliveryTrajectories: readonly DeliveryTrajectoryVo[] }>(GET_DELIVERY_TRAJECTORIES_QUERY, {
     variables: { workerId, orderId: null, startTime: range[0], endTime: range[1] },
     skip: !workerId,
     fetchPolicy: 'cache-and-network',

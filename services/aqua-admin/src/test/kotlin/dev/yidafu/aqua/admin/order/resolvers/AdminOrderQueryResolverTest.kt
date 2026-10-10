@@ -24,9 +24,9 @@ import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.OrderGiftModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderListInput
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -44,7 +44,7 @@ class AdminOrderQueryResolverTest :
     var orderGiftRepository: OrderGiftRepository = mockk()
     var adminOrderMapper: AdminOrderMapper = mockk()
     var resolver: AdminOrderQueryResolver = mockk()
-    val order: Order = mockk(relaxed = true)
+    val order: OrderVo = mockk(relaxed = true)
 
     fun createSampleOrder(): OrderModel =
       OrderModel(
@@ -75,7 +75,7 @@ class AdminOrderQueryResolverTest :
             quantity = 2,
           ),
         )
-      val order = mockk<Order>()
+      val order = mockk<OrderVo>()
       every { order.id } returns 1L
 
       // When

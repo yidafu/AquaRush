@@ -30,8 +30,8 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.UserNotFoundException
-import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -50,7 +50,7 @@ class WeappOrderQueryResolverTest :
     var adminService: AdminService = mockk()
     var adminOrderMapper: AdminOrderMapper = mockk()
     var resolver: WeappOrderQueryResolver = mockk()
-    val order: Order = mockk(relaxed = true)
+    val order: OrderVo = mockk(relaxed = true)
 
     fun createSampleAdmin(role: AdminRoleModel = AdminRoleModel.DELIVERY_WORKER): AdminModel =
       AdminModel(

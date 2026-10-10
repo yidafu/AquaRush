@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime, COUPON_TYPE_LABELS } from '@aquarush/common';
-import type { CouponTemplate, CouponType } from '@aquarush/common';
+import type { CouponTemplateAdminVo, CouponType } from '@aquarush/common';
 import {
   useCouponTemplates,
   useCreateCouponTemplate,
@@ -23,8 +23,8 @@ const Coupons: React.FC = () => {
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<CouponTemplate | null>(null);
-  const [issueTarget, setIssueTarget] = useState<CouponTemplate | null>(null);
+  const [editingRecord, setEditingRecord] = useState<CouponTemplateAdminVo | null>(null);
+  const [issueTarget, setIssueTarget] = useState<CouponTemplateAdminVo | null>(null);
 
   const [createTemplate, { loading: creating }] = useCreateCouponTemplate();
   const [updateTemplate, { loading: updating }] = useUpdateCouponTemplate();
@@ -53,12 +53,12 @@ const Coupons: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: CouponTemplate) => {
+  const handleEdit = (record: CouponTemplateAdminVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: CouponFormPayload, record: CouponTemplate | null) => {
+  const handleSubmit = async (payload: CouponFormPayload, record: CouponTemplateAdminVo | null) => {
     if (record) {
       await updateTemplate({ variables: { id: record.id, input: payload } });
     } else {
@@ -67,18 +67,18 @@ const Coupons: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handleDisable = async (record: CouponTemplate) => {
+  const handleDisable = async (record: CouponTemplateAdminVo) => {
     await disableTemplate({ variables: { id: record.id } });
   };
 
-  const renderDiscount = (record: CouponTemplate) => {
+  const renderDiscount = (record: CouponTemplateAdminVo) => {
     if (record.couponType === 'DISCOUNT') {
       return record.discountRatePermille != null ? `${(record.discountRatePermille / 1000).toFixed(1)}折` : '—';
     }
     return displayCents(record.discountAmountCents);
   };
 
-  const renderValidity = (record: CouponTemplate) => {
+  const renderValidity = (record: CouponTemplateAdminVo) => {
     if (record.validityType === 'FIXED_RANGE') {
       return record.validFrom && record.validTo
         ? `${formatDateTime(record.validFrom)} ~ ${formatDateTime(record.validTo)}`
@@ -87,7 +87,7 @@ const Coupons: React.FC = () => {
     return `领取后${record.validDays ?? '—'}天内有效`;
   };
 
-  const columns: ColumnsType<CouponTemplate> = [
+  const columns: ColumnsType<CouponTemplateAdminVo> = [
     { title: '券名称', dataIndex: 'name', width: 180, ellipsis: true },
     {
       title: '类型',
@@ -182,7 +182,7 @@ const Coupons: React.FC = () => {
         </Space>
       }
     >
-      <Table<CouponTemplate>
+      <Table<CouponTemplateAdminVo>
         rowKey="id"
         columns={columns}
         dataSource={templates}

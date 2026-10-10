@@ -31,7 +31,7 @@ import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.common.graphql.generated.DailyStatisticVo
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -74,7 +74,7 @@ class UserStatisticsServiceImpl(
   override fun getDailyNewUsers(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<DailyStatistic> {
+  ): List<DailyStatisticVo> {
     val today = LocalDate.now(StatisticsTime.STATS_ZONE)
     val yesterday = today.minusDays(1)
 
@@ -95,12 +95,12 @@ class UserStatisticsServiceImpl(
     }
 
     // Fill in missing dates with 0
-    val filledResults = mutableListOf<DailyStatistic>()
+    val filledResults = mutableListOf<DailyStatisticVo>()
     var currentDate = startDate
     while (!currentDate.isAfter(endDate)) {
       val count = dateCountMap[currentDate] ?: 0
       filledResults.add(
-        DailyStatistic(
+        DailyStatisticVo(
           date = currentDate.toString(),
           orderCount = count.toInt(),
           orderProductCount = 0,

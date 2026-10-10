@@ -22,7 +22,7 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductVo
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.toGraphQL
@@ -49,7 +49,7 @@ class ClientProductQueryResolver(
   @QueryMapping
   fun product(
     @Argument id: Long,
-  ): Product? {
+  ): ProductVo? {
     val product = productService.findById(id)
 
     return product?.toGraphQL()

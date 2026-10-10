@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.NoticeQueryService
-import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
+import dev.yidafu.aqua.common.graphql.generated.NoticeVo
 import dev.yidafu.aqua.common.graphql.generated.NoticeVoPage
 import dev.yidafu.aqua.ops.notice.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
@@ -62,5 +62,5 @@ class AdminNoticeQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_READ')")
   fun notice(
     @Argument id: Long,
-  ): Notice? = noticeQueryService.getNotice(id)?.let { it.toGraphQL() }
+  ): NoticeVo? = noticeQueryService.getNotice(id)?.let { it.toGraphQL() }
 }

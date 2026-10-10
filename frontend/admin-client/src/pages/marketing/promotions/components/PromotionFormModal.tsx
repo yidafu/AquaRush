@@ -5,8 +5,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { PromotionActivityType, PromotionScope } from '@aquarush/common';
 import type {
-  CustomerGroup,
-  PromotionActivity,
+  CustomerGroupVo,
+  PromotionActivityVo,
   PromotionTierInput,
 } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
@@ -44,10 +44,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: PromotionActivity | null;
+  record: PromotionActivityVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: PromotionFormPayload, record: PromotionActivity | null) => void;
+  onSubmit: (payload: PromotionFormPayload, record: PromotionActivityVo | null) => void;
 }
 
 const ACTIVITY_TYPE_OPTIONS = [
@@ -180,7 +180,7 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
             <Select
               showSearch
               optionFilterProp="label"
-              options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+              options={groups.map((g: CustomerGroupVo) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
               placeholder="选择客户分组"
             />
           </Form.Item>

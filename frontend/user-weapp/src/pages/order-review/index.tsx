@@ -3,7 +3,7 @@ import { View, Text, Textarea, Button, Switch } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 import OrderService from '../../services/OrderService'
-import { Review } from '@aquarush/common'
+import { ReviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 const MAX_COMMENT_LENGTH = 500
@@ -23,7 +23,7 @@ const OrderReview: React.FC = () => {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [hasReviewed, setHasReviewed] = useState(false)
-  const [existingReview, setExistingReview] = useState<Review | null>(null)
+  const [existingReview, setExistingReview] = useState<ReviewVo | null>(null)
   const [loading, setLoading] = useState(true)
 
   useLoad(() => {

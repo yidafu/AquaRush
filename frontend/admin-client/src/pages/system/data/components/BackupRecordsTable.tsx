@@ -1,17 +1,17 @@
 import React from 'react';
 import { Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { LogBackupRecord, LogTableType } from '@aquarush/common';
+import type { LogBackupRecordVo, LogTableType } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
 import { pagination } from '@/utils/table';
 
 export interface BackupRecordsTableProps {
-  records: readonly LogBackupRecord[];
+  records: readonly LogBackupRecordVo[];
   pageNum: number;
   pageSize: number;
   total: number;
   onPageChange: (page: number, size: number) => void;
-  onView: (record: LogBackupRecord) => void;
+  onView: (record: LogBackupRecordVo) => void;
 }
 
 /** 离线备份记录表(system/data/index.tsx 拆分) */
@@ -23,7 +23,7 @@ const BackupRecordsTable: React.FC<BackupRecordsTableProps> = ({
   onPageChange,
   onView,
 }) => {
-  const columns: ColumnsType<LogBackupRecord> = [
+  const columns: ColumnsType<LogBackupRecordVo> = [
     { title: '时间', dataIndex: 'startedAt', width: 170, render: (v: string) => formatDateTime(v) },
     {
       title: '日志表',
@@ -40,7 +40,7 @@ const BackupRecordsTable: React.FC<BackupRecordsTableProps> = ({
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (v: LogBackupRecord['status']) => {
+      render: (v: LogBackupRecordVo['status']) => {
         const c = BACKUP_STATUS_CONFIG[v];
         return <Tag color={c.color}>{c.label}</Tag>;
       },
@@ -59,7 +59,7 @@ const BackupRecordsTable: React.FC<BackupRecordsTableProps> = ({
   ];
 
   return (
-    <Table<LogBackupRecord>
+    <Table<LogBackupRecordVo>
       rowKey="id"
       columns={columns}
       dataSource={records}

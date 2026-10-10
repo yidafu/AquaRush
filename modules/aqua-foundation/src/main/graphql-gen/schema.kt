@@ -3,26 +3,6 @@ package dev.yidafu.aqua.common.graphql.generated
 
 import jakarta.validation.constraints.*
 
-data class Address(
-    val city: kotlin.String,
-    val cityCode: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val detailAddress: kotlin.String,
-    val district: kotlin.String,
-    val districtCode: kotlin.String?,
-    val floor: kotlin.Int?,
-    val id: kotlin.Long,
-    val isDefault: kotlin.Boolean,
-    val latitude: kotlin.Float?,
-    val longitude: kotlin.Float?,
-    val phone: kotlin.String,
-    val province: kotlin.String,
-    val provinceCode: kotlin.String?,
-    val receiverName: kotlin.String,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
-)
-
 data class AddressInput(
     @field:NotBlank(message = "城市不能为空")
     val city: kotlin.String,
@@ -72,34 +52,32 @@ data class AddressInput(
   )
 }
 
+data class AddressVo(
+    val city: kotlin.String,
+    val cityCode: kotlin.String?,
+    val createdAt: java.time.LocalDateTime,
+    val detailAddress: kotlin.String,
+    val district: kotlin.String,
+    val districtCode: kotlin.String?,
+    val floor: kotlin.Int?,
+    val id: kotlin.Long,
+    val isDefault: kotlin.Boolean,
+    val latitude: kotlin.Float?,
+    val longitude: kotlin.Float?,
+    val phone: kotlin.String,
+    val province: kotlin.String,
+    val provinceCode: kotlin.String?,
+    val receiverName: kotlin.String,
+    val updatedAt: java.time.LocalDateTime,
+    val userId: kotlin.Long
+)
+
 data class AddressVoPage(
-    val content: kotlin.collections.List<Address>,
+    val content: kotlin.collections.List<AddressVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
-)
-
-data class Admin(
-    val accountStatus: AdminAccountStatus,
-    val avatarUrl: kotlin.String?,
-    val averageRating: java.math.BigDecimal?,
-    val completedOrders: kotlin.Int,
-    val coordinates: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val currentLocation: kotlin.String?,
-    val earningCents: kotlin.Long?,
-    val id: kotlin.Long,
-    val isAvailable: kotlin.Boolean,
-    val lastLoginAt: java.time.LocalDateTime?,
-    val onlineStatus: DeliveryWorkerStatus,
-    val phone: kotlin.String?,
-    val rating: java.math.BigDecimal?,
-    val realName: kotlin.String?,
-    val role: kotlin.String,
-    val totalOrders: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime,
-    val username: kotlin.String
 )
 
 enum class AdminAccountStatus(val label: String) {
@@ -151,24 +129,46 @@ enum class AdminRole(val label: String) {
   }
 }
 
+data class AdminVo(
+    val accountStatus: AdminAccountStatus,
+    val avatarUrl: kotlin.String?,
+    val averageRating: java.math.BigDecimal?,
+    val completedOrders: kotlin.Int,
+    val coordinates: kotlin.String?,
+    val createdAt: java.time.LocalDateTime,
+    val currentLocation: kotlin.String?,
+    val earningCents: kotlin.Long?,
+    val id: kotlin.Long,
+    val isAvailable: kotlin.Boolean,
+    val lastLoginAt: java.time.LocalDateTime?,
+    val onlineStatus: DeliveryWorkerStatus,
+    val phone: kotlin.String?,
+    val rating: java.math.BigDecimal?,
+    val realName: kotlin.String?,
+    val role: kotlin.String,
+    val totalOrders: kotlin.Int,
+    val updatedAt: java.time.LocalDateTime,
+    val username: kotlin.String
+)
+
 data class AdminVoPage(
-    val content: kotlin.collections.List<Admin>,
+    val content: kotlin.collections.List<AdminVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
 )
 
-data class AllProductsFavoriteStats(
+data class AllProductsFavoriteStatsVo(
     val averageFavoritesPerProduct: kotlin.Float,
     val totalFavorites: kotlin.Long,
     val totalProducts: kotlin.Long
 )
 
-data class AuthPayload(
+data class AuthPayloadVo(
     val accessToken: kotlin.String,
     val refreshToken: kotlin.String,
-    val user: User
+    val user: UserVo
 )
 
 data class BackupLogPartitionInput(
@@ -182,21 +182,6 @@ data class BackupLogPartitionInput(
       args["partitionName"] as kotlin.String
   )
 }
-
-data class Banner(
-    val createdAt: java.time.LocalDateTime,
-    val enabled: kotlin.Boolean,
-    val endAt: java.time.LocalDateTime?,
-    val id: kotlin.Long,
-    val imageUrl: kotlin.String,
-    val linkTarget: kotlin.String,
-    val linkType: BannerLinkType,
-    val sortOrder: kotlin.Int,
-    val startAt: java.time.LocalDateTime?,
-    val subtitle: kotlin.String?,
-    val title: kotlin.String,
-    val updatedAt: java.time.LocalDateTime
-)
 
 enum class BannerLinkType(val label: String) {
       CUSTOM_PAGE("CUSTOM_PAGE"),
@@ -224,15 +209,30 @@ data class BannerListInput(
   )
 }
 
+data class BannerVo(
+    val createdAt: java.time.LocalDateTime,
+    val enabled: kotlin.Boolean,
+    val endAt: java.time.LocalDateTime?,
+    val id: kotlin.Long,
+    val imageUrl: kotlin.String,
+    val linkTarget: kotlin.String,
+    val linkType: BannerLinkType,
+    val sortOrder: kotlin.Int,
+    val startAt: java.time.LocalDateTime?,
+    val subtitle: kotlin.String?,
+    val title: kotlin.String,
+    val updatedAt: java.time.LocalDateTime
+)
+
 data class BannerVoPage(
-    val content: kotlin.collections.List<Banner>,
+    val content: kotlin.collections.List<BannerVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
 )
 
-data class BarrelFee(
+data class BarrelFeeAdminVo(
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
     val priceCents: kotlin.Long,
@@ -257,7 +257,7 @@ data class BarrelFeeListInput(
 }
 
 data class BarrelFeePage(
-    val content: kotlin.collections.List<BarrelFee>,
+    val content: kotlin.collections.List<BarrelFeeAdminVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -296,10 +296,10 @@ enum class BarrelPaymentStatus(val label: String) {
   }
 }
 
-data class BarrelPurchase(
+data class BarrelPurchaseAdminVo(
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
-    val items: kotlin.collections.List<BarrelPurchaseItem>,
+    val items: kotlin.collections.List<BarrelPurchaseItemAdminVo>,
     val orderNo: kotlin.String,
     val paidAt: java.time.LocalDateTime?,
     val paymentStatus: BarrelPaymentStatus,
@@ -312,7 +312,7 @@ data class BarrelPurchase(
     val userId: kotlin.Long
 )
 
-data class BarrelPurchaseItem(
+data class BarrelPurchaseItemAdminVo(
     val amountCents: kotlin.Long,
     val quantity: kotlin.Int,
     val specification: kotlin.String,
@@ -343,7 +343,7 @@ data class BarrelPurchaseListInput(
 }
 
 data class BarrelPurchasePage(
-    val content: kotlin.collections.List<BarrelPurchase>,
+    val content: kotlin.collections.List<BarrelPurchaseAdminVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -450,19 +450,6 @@ enum class BizLogLevel(val label: String) {
   }
 }
 
-data class BusinessLog(
-    val correlationId: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val level: BizLogLevel,
-    val loggerName: kotlin.String?,
-    val message: kotlin.String?,
-    val operation: kotlin.String?,
-    val stackTrace: kotlin.String?,
-    val userId: kotlin.Long?,
-    val username: kotlin.String?
-)
-
 data class BusinessLogListInput(
     val domain: BizLogDomain? = null,
     val endTime: java.time.LocalDateTime? = null,
@@ -485,9 +472,22 @@ data class BusinessLogListInput(
   )
 }
 
+data class BusinessLogVo(
+    val correlationId: kotlin.String?,
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val level: BizLogLevel,
+    val loggerName: kotlin.String?,
+    val message: kotlin.String?,
+    val operation: kotlin.String?,
+    val stackTrace: kotlin.String?,
+    val userId: kotlin.Long?,
+    val username: kotlin.String?
+)
+
 data class BusinessLogVoPage(
-    val list: kotlin.collections.List<BusinessLog>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<BusinessLogVo>,
+    val pageInfo: PageInfoVo
 )
 
 data class ConfirmDailyCollectionInput(
@@ -532,7 +532,7 @@ enum class CouponScope(val label: String) {
   }
 }
 
-data class CouponTemplate(
+data class CouponTemplateAdminVo(
     val couponType: CouponType,
     val createdAt: java.time.LocalDateTime,
     val discountAmountCents: kotlin.Long?,
@@ -598,7 +598,7 @@ data class CouponTemplateVo(
 )
 
 data class CouponTemplateVoPage(
-    val content: kotlin.collections.List<CouponTemplate>,
+    val content: kotlin.collections.List<CouponTemplateAdminVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1235,15 +1235,6 @@ data class CreateWechatPaymentInput(
   )
 }
 
-data class CustomerGroup(
-    val createdAt: java.time.LocalDateTime,
-    val description: kotlin.String?,
-    val id: kotlin.Long,
-    val memberCount: kotlin.Int,
-    val name: kotlin.String,
-    val updatedAt: java.time.LocalDateTime
-)
-
 data class CustomerGroupListInput(
     val keyword: kotlin.String? = null,
     val page: kotlin.Int? = 0,
@@ -1256,8 +1247,17 @@ data class CustomerGroupListInput(
   )
 }
 
+data class CustomerGroupVo(
+    val createdAt: java.time.LocalDateTime,
+    val description: kotlin.String?,
+    val id: kotlin.Long,
+    val memberCount: kotlin.Int,
+    val name: kotlin.String,
+    val updatedAt: java.time.LocalDateTime
+)
+
 data class CustomerGroupVoPage(
-    val content: kotlin.collections.List<CustomerGroup>,
+    val content: kotlin.collections.List<CustomerGroupVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1279,11 +1279,11 @@ data class DailyCollectionListInput(
 }
 
 data class DailyCollectionPage(
-    val list: kotlin.collections.List<DailyCollectionRecord>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<DailyCollectionRecordVo>,
+    val pageInfo: PageInfoVo
 )
 
-data class DailyCollectionRecord(
+data class DailyCollectionRecordVo(
     val calculatedCashAmountCents: kotlin.Long,
     val calculatedOrderAmountCents: kotlin.Long,
     val calculatedQrCodeAmountCents: kotlin.Long,
@@ -1322,7 +1322,7 @@ enum class DailyCollectionStatus(val label: String) {
   }
 }
 
-data class DailyCollectionSummary(
+data class DailyCollectionSummaryVo(
     val collectionDate: kotlin.String,
     val totalCashAmountCents: kotlin.Long,
     val totalOrderAmountCents: kotlin.Long,
@@ -1332,16 +1332,16 @@ data class DailyCollectionSummary(
     val totalWaterTicketCount: kotlin.Int
 )
 
-data class DailyLoginStatistic(
+data class DailyLoginStatisticVo(
     val date: kotlin.String,
     val loginCount: kotlin.Int
 )
 
-data class DailyPaymentStats(
+data class DailyPaymentStatsVo(
     val averageTransactionAmountCents: kotlin.Long,
     val date: kotlin.String,
     val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStats>,
+    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStatsVo>,
     val peakHour: kotlin.Int,
     val refundCount: kotlin.Long,
     val refundedAmountCents: kotlin.Long,
@@ -1350,7 +1350,36 @@ data class DailyPaymentStats(
     val totalTransactions: kotlin.Long
 )
 
-data class DailyReconciliation(
+data class DailyReconciliationListInput(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
+  )
+}
+
+data class DailyReconciliationPage(
+    val list: kotlin.collections.List<DailyReconciliationVo>,
+    val pageInfo: PageInfoVo
+)
+
+enum class DailyReconciliationStatus(val label: String) {
+      DISCREPANCY("DISCREPANCY"),
+      MATCHED("MATCHED"),
+      PENDING("PENDING"),
+      REVIEWED("REVIEWED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DailyReconciliationStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class DailyReconciliationVo(
     val createdAt: java.time.LocalDateTime,
     val discrepancyAmountCents: kotlin.Long,
     val id: kotlin.Long,
@@ -1369,42 +1398,13 @@ data class DailyReconciliation(
     val updatedAt: java.time.LocalDateTime
 )
 
-data class DailyReconciliationListInput(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 10
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 10
-  )
-}
-
-data class DailyReconciliationPage(
-    val list: kotlin.collections.List<DailyReconciliation>,
-    val pageInfo: PageInfo
-)
-
-enum class DailyReconciliationStatus(val label: String) {
-      DISCREPANCY("DISCREPANCY"),
-      MATCHED("MATCHED"),
-      PENDING("PENDING"),
-      REVIEWED("REVIEWED");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): DailyReconciliationStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}
-
-data class DailyStat(
+data class DailyStatVo(
     val date: kotlin.String,
     val earningCents: kotlin.Long,
     val orderCount: kotlin.Int
 )
 
-data class DailyStatistic(
+data class DailyStatisticVo(
     val date: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
@@ -1418,11 +1418,6 @@ data class DataMaintenanceOverviewVo(
     val settings: kotlin.collections.List<SystemConfigVo>
 )
 
-data class DateRange(
-    val endDate: java.time.LocalDateTime,
-    val startDate: java.time.LocalDateTime
-)
-
 data class DateRangeInput(
     val endDate: java.time.LocalDateTime,
     val startDate: java.time.LocalDateTime
@@ -1433,7 +1428,12 @@ data class DateRangeInput(
   )
 }
 
-data class DeliveryAddress(
+data class DateRangeVo(
+    val endDate: java.time.LocalDateTime,
+    val startDate: java.time.LocalDateTime
+)
+
+data class DeliveryAddressVo(
     val city: kotlin.String,
     val createdAt: java.time.LocalDateTime,
     val detailAddress: kotlin.String,
@@ -1448,7 +1448,7 @@ data class DeliveryAddress(
     val userId: kotlin.Long
 )
 
-data class DeliveryArea(
+data class DeliveryAreaVo(
     val city: kotlin.String,
     val district: kotlin.String,
     val enabled: kotlin.Boolean,
@@ -1457,7 +1457,7 @@ data class DeliveryArea(
     val province: kotlin.String
 )
 
-data class DeliveryFeeRule(
+data class DeliveryFeeRuleVo(
     val freeFloorLimit: kotlin.Int,
     val surchargeCents: kotlin.Long,
     val updatedAt: java.time.LocalDateTime?
@@ -1477,7 +1477,7 @@ data class DeliveryLoginResponse(
     val openId: kotlin.String?,
     val refreshToken: kotlin.String?,
     val token: kotlin.String?,
-    val workerInfo: DeliveryWorkerInfo?
+    val workerInfo: DeliveryWorkerInfoVo?
 )
 
 enum class DeliveryPhotoReviewAction(val label: String) {
@@ -1526,7 +1526,7 @@ enum class DeliveryTimeSlot(val label: String) {
   }
 }
 
-data class DeliveryTrajectory(
+data class DeliveryTrajectoryVo(
     val accuracy: kotlin.Float?,
     val createdAt: java.time.LocalDateTime,
     val deliveryWorkerId: kotlin.Long,
@@ -1537,7 +1537,77 @@ data class DeliveryTrajectory(
     val reportedAt: java.time.LocalDateTime
 )
 
-data class DeliveryWorker(
+data class DeliveryWorkerInfoVo(
+    val avatarUrl: kotlin.String?,
+    val id: Any,
+    val name: kotlin.String,
+    val phone: kotlin.String,
+    val wechatOpenId: kotlin.String
+)
+
+data class DeliveryWorkerOverviewVo(
+    val averageFulfillmentMinutes: kotlin.Float?,
+    val averageOrdersPerWorker: kotlin.Float?,
+    val deliveringOrders: kotlin.Int,
+    val todayActiveWorkers: kotlin.Int,
+    val todayCompletedOrders: kotlin.Int,
+    val totalWorkers: kotlin.Int
+)
+
+data class DeliveryWorkerRankingItemVo(
+    val name: kotlin.String,
+    val rating: kotlin.Float,
+    val todayCompletedOrders: kotlin.Int,
+    val totalEarningsCents: kotlin.Long,
+    val workerId: Any
+)
+
+data class DeliveryWorkerRankingResponse(
+    val averageRating: java.math.BigDecimal,
+    val positiveRatingPercentage: kotlin.Float,
+    val totalReviews: kotlin.Long,
+    val workerId: kotlin.Long,
+    val workerName: kotlin.String?
+)
+
+data class DeliveryWorkerStatisticsResponse(
+    val averageRating: java.math.BigDecimal,
+    val deliveryWorkerId: kotlin.Long,
+    val fiveStarReviews: kotlin.Long,
+    val fourStarReviews: kotlin.Long,
+    val lastUpdated: java.time.LocalDateTime,
+    val oneStarReviews: kotlin.Long,
+    val ratingDistribution: kotlin.collections.Map<String, Any>,
+    val threeStarReviews: kotlin.Long,
+    val totalReviews: kotlin.Long,
+    val twoStarReviews: kotlin.Long,
+    val workerName: kotlin.String?
+)
+
+data class DeliveryWorkerStatisticsVo(
+    val averageRating: java.math.BigDecimal,
+    val deliveryWorkerId: kotlin.Long,
+    val fiveStarReviews: kotlin.Long,
+    val fourStarReviews: kotlin.Long,
+    val oneStarReviews: kotlin.Long,
+    val threeStarReviews: kotlin.Long,
+    val totalReviews: kotlin.Long,
+    val twoStarReviews: kotlin.Long
+)
+
+enum class DeliveryWorkerStatus(val label: String) {
+      OFFLINE("OFFLINE"),
+      ONLINE("ONLINE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DeliveryWorkerStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class DeliveryWorkerVo(
     val accountStatus: AdminAccountStatus,
     val avatarUrl: kotlin.String?,
     val averageRating: java.math.BigDecimal?,
@@ -1560,78 +1630,8 @@ data class DeliveryWorker(
     val wechatOpenId: kotlin.String
 )
 
-data class DeliveryWorkerInfo(
-    val avatarUrl: kotlin.String?,
-    val id: Any,
-    val name: kotlin.String,
-    val phone: kotlin.String,
-    val wechatOpenId: kotlin.String
-)
-
-data class DeliveryWorkerOverview(
-    val averageFulfillmentMinutes: kotlin.Float?,
-    val averageOrdersPerWorker: kotlin.Float?,
-    val deliveringOrders: kotlin.Int,
-    val todayActiveWorkers: kotlin.Int,
-    val todayCompletedOrders: kotlin.Int,
-    val totalWorkers: kotlin.Int
-)
-
-data class DeliveryWorkerRankingItem(
-    val name: kotlin.String,
-    val rating: kotlin.Float,
-    val todayCompletedOrders: kotlin.Int,
-    val totalEarningsCents: kotlin.Long,
-    val workerId: Any
-)
-
-data class DeliveryWorkerRankingResponse(
-    val averageRating: java.math.BigDecimal,
-    val positiveRatingPercentage: kotlin.Float,
-    val totalReviews: kotlin.Long,
-    val workerId: kotlin.Long,
-    val workerName: kotlin.String?
-)
-
-data class DeliveryWorkerStatistics(
-    val averageRating: java.math.BigDecimal,
-    val deliveryWorkerId: kotlin.Long,
-    val fiveStarReviews: kotlin.Long,
-    val fourStarReviews: kotlin.Long,
-    val oneStarReviews: kotlin.Long,
-    val threeStarReviews: kotlin.Long,
-    val totalReviews: kotlin.Long,
-    val twoStarReviews: kotlin.Long
-)
-
-data class DeliveryWorkerStatisticsResponse(
-    val averageRating: java.math.BigDecimal,
-    val deliveryWorkerId: kotlin.Long,
-    val fiveStarReviews: kotlin.Long,
-    val fourStarReviews: kotlin.Long,
-    val lastUpdated: java.time.LocalDateTime,
-    val oneStarReviews: kotlin.Long,
-    val ratingDistribution: kotlin.collections.Map<String, Any>,
-    val threeStarReviews: kotlin.Long,
-    val totalReviews: kotlin.Long,
-    val twoStarReviews: kotlin.Long,
-    val workerName: kotlin.String?
-)
-
-enum class DeliveryWorkerStatus(val label: String) {
-      OFFLINE("OFFLINE"),
-      ONLINE("ONLINE");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): DeliveryWorkerStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}
-
 data class DeliveryWorkerVoPage(
-    val content: kotlin.collections.List<DeliveryWorker>,
+    val content: kotlin.collections.List<DeliveryWorkerVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1748,7 +1748,16 @@ data class ExportTransactionsInput(
   )
 }
 
-data class FavoriteProduct(
+data class FavoriteProductStatsVo(
+    val addToOrderRate: kotlin.Float,
+    val averageTimeToOrder: kotlin.Float,
+    val favoriteCount: kotlin.Long,
+    val productId: kotlin.Long,
+    val productName: kotlin.String,
+    val revenueFromFavoritesCents: kotlin.Long
+)
+
+data class FavoriteProductVo(
     val addedAt: java.time.LocalDateTime,
     val coverImageUrl: kotlin.String,
     val id: kotlin.Long,
@@ -1761,18 +1770,9 @@ data class FavoriteProduct(
     val subtitle: kotlin.String?
 )
 
-data class FavoriteProductStats(
-    val addToOrderRate: kotlin.Float,
-    val averageTimeToOrder: kotlin.Float,
-    val favoriteCount: kotlin.Long,
-    val productId: kotlin.Long,
-    val productName: kotlin.String,
-    val revenueFromFavoritesCents: kotlin.Long
-)
-
 data class FavoriteProductVoPage(
-    val list: kotlin.collections.List<FavoriteProduct>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<FavoriteProductVo>,
+    val pageInfo: PageInfoVo
 )
 
 enum class FavoriteSortBy(val label: String) {
@@ -1795,26 +1795,11 @@ enum class FavoriteSortBy(val label: String) {
   }
 }
 
-data class FavoriteTrendData(
+data class FavoriteTrendDataVo(
     val activeUsers: kotlin.Long,
     val date: kotlin.String,
     val newFavorites: kotlin.Long,
     val totalFavorites: kotlin.Long
-)
-
-data class Feedback(
-    val contactInfo: kotlin.String?,
-    val content: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val feedbackType: FeedbackType,
-    val handleResult: kotlin.String?,
-    val handledAt: java.time.LocalDateTime?,
-    val handledById: kotlin.Long?,
-    val handledByName: kotlin.String?,
-    val id: kotlin.Long,
-    val images: kotlin.collections.List<kotlin.String>?,
-    val status: FeedbackStatus,
-    val userId: kotlin.Long
 )
 
 data class FeedbackListInput(
@@ -1916,31 +1901,27 @@ enum class FeedbackType(val label: String) {
   }
 }
 
+data class FeedbackVo(
+    val contactInfo: kotlin.String?,
+    val content: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val feedbackType: FeedbackType,
+    val handleResult: kotlin.String?,
+    val handledAt: java.time.LocalDateTime?,
+    val handledById: kotlin.Long?,
+    val handledByName: kotlin.String?,
+    val id: kotlin.Long,
+    val images: kotlin.collections.List<kotlin.String>?,
+    val status: FeedbackStatus,
+    val userId: kotlin.Long
+)
+
 data class FeedbackVoPage(
-    val content: kotlin.collections.List<Feedback>,
+    val content: kotlin.collections.List<FeedbackVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
-)
-
-data class FirstOrderActivity(
-    val activityType: FirstOrderActivityType,
-    val createdAt: java.time.LocalDateTime,
-    val currentStatus: PromotionActivityDisplayStatus,
-    val discountAmountCents: kotlin.Long?,
-    val discountRatePermille: kotlin.Long?,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val newcomerPriceCents: kotlin.Long?,
-    val productId: kotlin.Long?,
-    val productName: kotlin.String?,
-    val scope: PromotionScope,
-    val status: PromotionActivityStatus,
-    val thresholdCents: kotlin.Long?,
-    val updatedAt: java.time.LocalDateTime,
-    val validFrom: java.time.LocalDateTime,
-    val validTo: java.time.LocalDateTime
 )
 
 data class FirstOrderActivityListInput(
@@ -1967,27 +1948,31 @@ enum class FirstOrderActivityType(val label: String) {
   }
 }
 
+data class FirstOrderActivityVo(
+    val activityType: FirstOrderActivityType,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val newcomerPriceCents: kotlin.Long?,
+    val productId: kotlin.Long?,
+    val productName: kotlin.String?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val thresholdCents: kotlin.Long?,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
 data class FirstOrderActivityVoPage(
-    val content: kotlin.collections.List<FirstOrderActivity>,
+    val content: kotlin.collections.List<FirstOrderActivityVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
-)
-
-data class FlashSaleActivity(
-    val catalogPriceCents: kotlin.Long?,
-    val createdAt: java.time.LocalDateTime,
-    val currentStatus: PromotionActivityDisplayStatus,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val productId: kotlin.Long,
-    val productName: kotlin.String?,
-    val salePriceCents: kotlin.Long,
-    val status: PromotionActivityStatus,
-    val updatedAt: java.time.LocalDateTime,
-    val validFrom: java.time.LocalDateTime,
-    val validTo: java.time.LocalDateTime
 )
 
 data class FlashSaleActivityListInput(
@@ -2002,8 +1987,23 @@ data class FlashSaleActivityListInput(
   )
 }
 
+data class FlashSaleActivityVo(
+    val catalogPriceCents: kotlin.Long?,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long,
+    val productName: kotlin.String?,
+    val salePriceCents: kotlin.Long,
+    val status: PromotionActivityStatus,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
 data class FlashSaleActivityVoPage(
-    val content: kotlin.collections.List<FlashSaleActivity>,
+    val content: kotlin.collections.List<FlashSaleActivityVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -2032,26 +2032,6 @@ data class GeocodeInput(
   )
 }
 
-data class GiftActivity(
-    val createdAt: java.time.LocalDateTime,
-    val currentStatus: PromotionActivityDisplayStatus,
-    val customerGroupId: kotlin.Long?,
-    val giftProductId: kotlin.Long,
-    val giftProductName: kotlin.String?,
-    val giftQuantity: kotlin.Int,
-    val giftType: GiftActivityType,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val productId: kotlin.Long?,
-    val scope: PromotionScope,
-    val status: PromotionActivityStatus,
-    val thresholdCents: kotlin.Long?,
-    val thresholdQuantity: kotlin.Int?,
-    val updatedAt: java.time.LocalDateTime,
-    val validFrom: java.time.LocalDateTime,
-    val validTo: java.time.LocalDateTime
-)
-
 data class GiftActivityListInput(
     val keyword: kotlin.String? = null,
     val page: kotlin.Int? = 0,
@@ -2076,8 +2056,28 @@ enum class GiftActivityType(val label: String) {
   }
 }
 
+data class GiftActivityVo(
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val customerGroupId: kotlin.Long?,
+    val giftProductId: kotlin.Long,
+    val giftProductName: kotlin.String?,
+    val giftQuantity: kotlin.Int,
+    val giftType: GiftActivityType,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val thresholdCents: kotlin.Long?,
+    val thresholdQuantity: kotlin.Int?,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
 data class GiftActivityVoPage(
-    val content: kotlin.collections.List<GiftActivity>,
+    val content: kotlin.collections.List<GiftActivityVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -2088,16 +2088,6 @@ data class GiftItemVo(
     val productId: kotlin.Long,
     val productName: kotlin.String,
     val quantity: kotlin.Int
-)
-
-data class GroupProductPrice(
-    val catalogPriceCents: kotlin.Long,
-    val customerGroupId: kotlin.Long,
-    val id: kotlin.Long,
-    val priceCents: kotlin.Long?,
-    val productId: kotlin.Long,
-    val productName: kotlin.String?,
-    val productSpecification: kotlin.String?
 )
 
 data class GroupProductPriceItemInput(
@@ -2128,8 +2118,18 @@ data class GroupProductPriceListInput(
   )
 }
 
+data class GroupProductPriceVo(
+    val catalogPriceCents: kotlin.Long,
+    val customerGroupId: kotlin.Long,
+    val id: kotlin.Long,
+    val priceCents: kotlin.Long?,
+    val productId: kotlin.Long,
+    val productName: kotlin.String?,
+    val productSpecification: kotlin.String?
+)
+
 data class GroupProductPriceVoPage(
-    val content: kotlin.collections.List<GroupProductPrice>,
+    val content: kotlin.collections.List<GroupProductPriceVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -2163,7 +2163,24 @@ enum class IssueTargetType(val label: String) {
   }
 }
 
-data class LogBackupRecord(
+data class LogBackupRecordListInput(
+    val logTable: LogTableType? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["logTable"] as LogTableType?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
+  )
+}
+
+data class LogBackupRecordPage(
+    val list: kotlin.collections.List<LogBackupRecordVo>,
+    val pageInfo: PageInfoVo
+)
+
+data class LogBackupRecordVo(
     val checksum: kotlin.String?,
     val coldTableName: kotlin.String,
     val errorMessage: kotlin.String?,
@@ -2178,23 +2195,6 @@ data class LogBackupRecord(
     val rowCount: kotlin.Long,
     val startedAt: java.time.LocalDateTime,
     val status: LogBackupStatus
-)
-
-data class LogBackupRecordListInput(
-    val logTable: LogTableType? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 10
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["logTable"] as LogTableType?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 10
-  )
-}
-
-data class LogBackupRecordPage(
-    val list: kotlin.collections.List<LogBackupRecord>,
-    val pageInfo: PageInfo
 )
 
 enum class LogBackupStatus(val label: String) {
@@ -2235,8 +2235,8 @@ enum class LogTableType(val label: String) {
   }
 }
 
-data class LoginStatistics(
-    val dailyLogins: kotlin.collections.List<DailyLoginStatistic>,
+data class LoginStatisticsVo(
+    val dailyLogins: kotlin.collections.List<DailyLoginStatisticVo>,
     val todayLogins: kotlin.Int,
     val totalLogins: kotlin.Int
 )
@@ -2256,7 +2256,7 @@ enum class MarketingBreakdownKind(val label: String) {
   }
 }
 
-data class MarketingDailyStatistic(
+data class MarketingDailyStatisticVo(
     val couponBenefitCents: kotlin.Long,
     val couponRedeemedCount: kotlin.Int,
     val date: kotlin.String,
@@ -2269,13 +2269,7 @@ data class MarketingDailyStatistic(
     val ticketSalesRevenueCents: kotlin.Long
 )
 
-data class MarketingStatistics(
-    val breakdown: kotlin.collections.List<MarketingUsageBreakdownRow>,
-    val daily: kotlin.collections.List<MarketingDailyStatistic>,
-    val summary: MarketingStatisticsSummary
-)
-
-data class MarketingStatisticsSummary(
+data class MarketingStatisticsSummaryVo(
     val couponBenefitCents: kotlin.Long,
     val couponRedeemedCount: kotlin.Int,
     val firstOrderBenefitCents: kotlin.Long,
@@ -2288,7 +2282,13 @@ data class MarketingStatisticsSummary(
     val totalBenefitCents: kotlin.Long
 )
 
-data class MarketingUsageBreakdownRow(
+data class MarketingStatisticsVo(
+    val breakdown: kotlin.collections.List<MarketingUsageBreakdownRowVo>,
+    val daily: kotlin.collections.List<MarketingDailyStatisticVo>,
+    val summary: MarketingStatisticsSummaryVo
+)
+
+data class MarketingUsageBreakdownRowVo(
     val benefitCents: kotlin.Long,
     val kind: MarketingBreakdownKind,
     val name: kotlin.String,
@@ -2310,7 +2310,7 @@ data class MarketingUsageListInput(
   )
 }
 
-data class MarketingUsageSummary(
+data class MarketingUsageSummaryVo(
     val benefitCents: kotlin.Long,
     val orderCount: kotlin.Int,
     val usageCount: kotlin.Int
@@ -2318,10 +2318,10 @@ data class MarketingUsageSummary(
 
 data class MarketingUsageVo(
     val orders: OrderVoPage,
-    val summary: MarketingUsageSummary
+    val summary: MarketingUsageSummaryVo
 )
 
-data class MonthlyStatistic(
+data class MonthlyStatisticVo(
     val month: kotlin.Int,
     val monthName: kotlin.String,
     val orderCount: kotlin.Int,
@@ -3203,37 +3203,37 @@ data class MutationUrgeOrderArgs(
 }
 data class Mutation(
     val _dummy: kotlin.String?,
-    val acceptDelivery: Order,
-    val assignDeliveryWorker: Order,
-    val backupLogPartition: LogBackupRecord,
-    val batchAssignOrders: kotlin.collections.List<Order>,
+    val acceptDelivery: OrderVo,
+    val assignDeliveryWorker: OrderVo,
+    val backupLogPartition: LogBackupRecordVo,
+    val batchAssignOrders: kotlin.collections.List<OrderVo>,
     val batchImportAddresses: BatchImportAddressesResult,
-    val cancelOrder: Order,
+    val cancelOrder: OrderVo,
     val claimCoupon: UserCouponVo,
-    val completeDelivery: Order,
-    val confirmDailyCollection: DailyCollectionRecord,
-    val confirmReceipt: Order,
-    val createAddress: Address,
-    val createAdmin: Admin,
-    val createAdminAddress: Address,
-    val createBanner: Banner,
-    val createBarrelFee: BarrelFee,
-    val createCouponTemplate: CouponTemplate,
-    val createCustomerGroup: CustomerGroup,
-    val createDeliveryOrder: Order,
-    val createDeliveryWorker: DeliveryWorker,
-    val createFirstOrderActivity: FirstOrderActivity,
-    val createFlashSaleActivity: FlashSaleActivity,
-    val createGiftActivity: GiftActivity,
-    val createNotice: Notice,
-    val createOrder: Order,
-    val createOrderPayment: OrderPaymentParams,
-    val createProduct: Product,
-    val createProductOption: ProductOption,
-    val createPromotionActivity: PromotionActivity,
-    val createReview: Review,
-    val createTicketType: TicketType,
-    val createUser: User,
+    val completeDelivery: OrderVo,
+    val confirmDailyCollection: DailyCollectionRecordVo,
+    val confirmReceipt: OrderVo,
+    val createAddress: AddressVo,
+    val createAdmin: AdminVo,
+    val createAdminAddress: AddressVo,
+    val createBanner: BannerVo,
+    val createBarrelFee: BarrelFeeAdminVo,
+    val createCouponTemplate: CouponTemplateAdminVo,
+    val createCustomerGroup: CustomerGroupVo,
+    val createDeliveryOrder: OrderVo,
+    val createDeliveryWorker: DeliveryWorkerVo,
+    val createFirstOrderActivity: FirstOrderActivityVo,
+    val createFlashSaleActivity: FlashSaleActivityVo,
+    val createGiftActivity: GiftActivityVo,
+    val createNotice: NoticeVo,
+    val createOrder: OrderVo,
+    val createOrderPayment: OrderPaymentParamsVo,
+    val createProduct: ProductVo,
+    val createProductOption: ProductOptionVo,
+    val createPromotionActivity: PromotionActivityVo,
+    val createReview: ReviewVo,
+    val createTicketType: TicketTypeAdminVo,
+    val createUser: UserVo,
     val deleteAddress: kotlin.Boolean,
     val deleteAdmin: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
@@ -3244,76 +3244,76 @@ data class Mutation(
     val deleteProduct: kotlin.Boolean,
     val deleteProductOption: kotlin.Boolean,
     val deleteUser: kotlin.Boolean,
-    val disableBarrelFee: BarrelFee,
-    val disableCouponTemplate: CouponTemplate,
-    val disableFirstOrderActivity: FirstOrderActivity,
-    val disableFlashSaleActivity: FlashSaleActivity,
-    val disableGiftActivity: GiftActivity,
-    val disablePromotionActivity: PromotionActivity,
-    val disableTicketType: TicketType,
-    val executeDailyReconciliation: DailyReconciliation,
-    val executeReconciliation: ReconciliationTask,
+    val disableBarrelFee: BarrelFeeAdminVo,
+    val disableCouponTemplate: CouponTemplateAdminVo,
+    val disableFirstOrderActivity: FirstOrderActivityVo,
+    val disableFlashSaleActivity: FlashSaleActivityVo,
+    val disableGiftActivity: GiftActivityVo,
+    val disablePromotionActivity: PromotionActivityVo,
+    val disableTicketType: TicketTypeAdminVo,
+    val executeDailyReconciliation: DailyReconciliationVo,
+    val executeReconciliation: ReconciliationTaskVo,
     val issueCoupons: kotlin.Int,
     val markAllNotificationsRead: kotlin.Boolean,
     val markAllWorkerNotificationsRead: kotlin.Boolean,
     val markNotificationRead: kotlin.Boolean,
     val markWorkerNotificationRead: kotlin.Boolean,
-    val offlineProduct: Product,
-    val onlineProduct: Product,
-    val processRefund: RefundRequest,
-    val publishNotice: Notice,
+    val offlineProduct: ProductVo,
+    val onlineProduct: ProductVo,
+    val processRefund: RefundRequestVo,
+    val publishNotice: NoticeVo,
     val purchaseBarrel: BarrelPurchaseVo,
     val purchaseTickets: TicketPurchaseVo,
     val recordSubscribeAuth: kotlin.Boolean,
-    val refundBarrelPurchase: BarrelPurchase,
-    val rejectDailyCollection: DailyCollectionRecord,
-    val reorderBanner: kotlin.collections.List<Banner>,
+    val refundBarrelPurchase: BarrelPurchaseAdminVo,
+    val rejectDailyCollection: DailyCollectionRecordVo,
+    val reorderBanner: kotlin.collections.List<BannerVo>,
     val reportTrajectory: kotlin.Boolean,
     val resendNotification: NotificationVo?,
     val resetAdminPassword: kotlin.Boolean,
     val resetDeliveryWorkerPassword: kotlin.Boolean,
     val resolveDiscrepancy: kotlin.Boolean,
     val restoreSystemConfig: SystemConfigVo,
-    val reviewDeliveryPhoto: Order,
-    val reviewFeedback: Feedback,
-    val reviewReconciliation: DailyReconciliation,
-    val saveDeliveryFeeRule: DeliveryFeeRule,
+    val reviewDeliveryPhoto: OrderVo,
+    val reviewFeedback: FeedbackVo,
+    val reviewReconciliation: DailyReconciliationVo,
+    val saveDeliveryFeeRule: DeliveryFeeRuleVo,
     val saveGroupProductPrices: kotlin.Boolean,
-    val saveStoreProfile: StoreProfile,
+    val saveStoreProfile: StoreProfileVo,
     val saveSystemConfigs: kotlin.collections.List<SystemConfigVo>,
     val setDefaultAddress: kotlin.Boolean,
-    val setNoticePinned: Notice,
+    val setNoticePinned: NoticeVo,
     val setUserCustomerGroup: kotlin.Boolean,
-    val startDelivery: Order,
-    val stopNotice: Notice,
-    val submitDailyCollection: DailyCollectionRecord,
+    val startDelivery: OrderVo,
+    val stopNotice: NoticeVo,
+    val submitDailyCollection: DailyCollectionRecordVo,
     val submitFeedback: kotlin.Boolean,
     val toggleProductFavorites: kotlin.Boolean,
-    val updateAddress: Address,
-    val updateAdmin: Admin,
-    val updateAdminAddress: Address,
-    val updateBanner: Banner,
-    val updateBarrelFee: BarrelFee,
-    val updateCouponTemplate: CouponTemplate,
-    val updateCustomerGroup: CustomerGroup,
-    val updateDeliveryWorker: DeliveryWorker,
-    val updateFirstOrderActivity: FirstOrderActivity,
-    val updateFlashSaleActivity: FlashSaleActivity,
-    val updateGiftActivity: GiftActivity,
-    val updateNotice: Notice,
-    val updateOrderAddress: Order,
-    val updateOrderStatus: Order,
-    val updateProduct: Product,
-    val updateProductOption: ProductOption,
-    val updateProductStatus: Product,
-    val updateProfile: UserInfo,
-    val updatePromotionActivity: PromotionActivity,
-    val updateTicketType: TicketType,
-    val updateUser: User,
+    val updateAddress: AddressVo,
+    val updateAdmin: AdminVo,
+    val updateAdminAddress: AddressVo,
+    val updateBanner: BannerVo,
+    val updateBarrelFee: BarrelFeeAdminVo,
+    val updateCouponTemplate: CouponTemplateAdminVo,
+    val updateCustomerGroup: CustomerGroupVo,
+    val updateDeliveryWorker: DeliveryWorkerVo,
+    val updateFirstOrderActivity: FirstOrderActivityVo,
+    val updateFlashSaleActivity: FlashSaleActivityVo,
+    val updateGiftActivity: GiftActivityVo,
+    val updateNotice: NoticeVo,
+    val updateOrderAddress: OrderVo,
+    val updateOrderStatus: OrderVo,
+    val updateProduct: ProductVo,
+    val updateProductOption: ProductOptionVo,
+    val updateProductStatus: ProductVo,
+    val updateProfile: UserInfoVo,
+    val updatePromotionActivity: PromotionActivityVo,
+    val updateTicketType: TicketTypeAdminVo,
+    val updateUser: UserVo,
     val urgeOrder: kotlin.Boolean
 )
 
-data class MyOrderStatistics(
+data class MyOrderStatisticsVo(
     val awaitingConfirmation: kotlin.Int,
     val cancelled: kotlin.Int,
     val completed: kotlin.Int,
@@ -3337,20 +3337,6 @@ data class MyTodayCollectionVo(
     val qrCodeAmountCents: kotlin.Long?,
     val status: DailyCollectionStatus?,
     val waterTicketCount: kotlin.Int?
-)
-
-data class Notice(
-    val content: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val endAt: java.time.LocalDateTime?,
-    val id: kotlin.Long,
-    val pinned: kotlin.Boolean,
-    val publishedAt: java.time.LocalDateTime?,
-    val startAt: java.time.LocalDateTime?,
-    val status: NoticeStatus,
-    val title: kotlin.String,
-    val type: NoticeType,
-    val updatedAt: java.time.LocalDateTime
 )
 
 data class NoticeListInput(
@@ -3395,8 +3381,22 @@ enum class NoticeType(val label: String) {
   }
 }
 
+data class NoticeVo(
+    val content: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val endAt: java.time.LocalDateTime?,
+    val id: kotlin.Long,
+    val pinned: kotlin.Boolean,
+    val publishedAt: java.time.LocalDateTime?,
+    val startAt: java.time.LocalDateTime?,
+    val status: NoticeStatus,
+    val title: kotlin.String,
+    val type: NoticeType,
+    val updatedAt: java.time.LocalDateTime
+)
+
 data class NoticeVoPage(
-    val content: kotlin.collections.List<Notice>,
+    val content: kotlin.collections.List<NoticeVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -3481,47 +3481,6 @@ enum class OperatorType(val label: String) {
   }
 }
 
-data class Order(
-    val address: Address?,
-    val amountCents: kotlin.Long,
-    val completedAt: java.time.LocalDateTime?,
-    val couponDiscountCents: kotlin.Long?,
-    val couponName: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val deliveryConfirmedAt: java.time.LocalDateTime?,
-    val deliveryFeeCents: kotlin.Long,
-    val deliveryPhotoReviewRemark: kotlin.String?,
-    val deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus?,
-    val deliveryPhotoReviewedAt: java.time.LocalDateTime?,
-    val deliveryPhotoReviewedBy: kotlin.Long?,
-    val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
-    val deliveryRemark: kotlin.String?,
-    val deliveryStartedAt: java.time.LocalDateTime?,
-    val deliveryTimeSlot: DeliveryTimeSlot?,
-    val deliveryWorker: DeliveryWorker?,
-    val depositCents: kotlin.Long,
-    val firstOrderActivityName: kotlin.String?,
-    val firstOrderDiscountCents: kotlin.Long?,
-    val giftItems: kotlin.collections.List<GiftItemVo>?,
-    val id: kotlin.Long,
-    val isSelfCollect: kotlin.Boolean,
-    val items: kotlin.collections.List<OrderItemVo>,
-    val orderNo: kotlin.String,
-    val payAmountCents: kotlin.Long,
-    val paymentMethod: kotlin.String?,
-    val paymentTime: java.time.LocalDateTime?,
-    val paymentTransactionId: kotlin.String?,
-    val paymentType: PaymentType?,
-    val promotionActivityName: kotlin.String?,
-    val promotionDiscountCents: kotlin.Long?,
-    val remark: kotlin.String?,
-    val status: OrderStatus,
-    val ticketDiscountCents: kotlin.Long?,
-    val ticketRedeemCount: kotlin.Int?,
-    val updatedAt: java.time.LocalDateTime,
-    val user: User?
-)
-
 data class OrderItemInput(
     @field:Positive(message = "商品ID必须为正数")
     val productId: kotlin.Long,
@@ -3536,7 +3495,7 @@ data class OrderItemInput(
 }
 
 data class OrderItemVo(
-    val product: Product,
+    val product: ProductVo,
     val productId: kotlin.Long,
     val quantity: kotlin.Int,
     val totalPriceCents: kotlin.Long,
@@ -3571,19 +3530,9 @@ data class OrderListInput(
   )
 }
 
-data class OrderOperation(
-    val createdAt: java.time.LocalDateTime,
-    val description: kotlin.String?,
-    val extraData: tools.jackson.databind.node.ObjectNode?,
-    val id: kotlin.Long,
-    val operationType: OrderOperationType,
-    val operatorId: kotlin.Long?,
-    val operatorType: OperatorType?,
-    val orderId: kotlin.Long
-)
-
 enum class OrderOperationType(val label: String) {
       ADDRESS_UPDATED("ADDRESS_UPDATED"),
+      AUTO_CONFIRMED("AUTO_CONFIRMED"),
       DELIVERY_ASSIGNED("DELIVERY_ASSIGNED"),
       DELIVERY_COMPLETED("DELIVERY_COMPLETED"),
       DELIVERY_PHOTO_APPROVED("DELIVERY_PHOTO_APPROVED"),
@@ -3591,6 +3540,7 @@ enum class OrderOperationType(val label: String) {
       DELIVERY_STARTED("DELIVERY_STARTED"),
       ORDER_CANCELLED("ORDER_CANCELLED"),
       ORDER_COMPLETED("ORDER_COMPLETED"),
+      ORDER_CONFIRMED("ORDER_CONFIRMED"),
       ORDER_CREATED("ORDER_CREATED"),
       ORDER_PAID("ORDER_PAID"),
       ORDER_URGING("ORDER_URGING"),
@@ -3606,7 +3556,18 @@ enum class OrderOperationType(val label: String) {
   }
 }
 
-data class OrderPaymentInfo(
+data class OrderOperationVo(
+    val createdAt: java.time.LocalDateTime,
+    val description: kotlin.String?,
+    val extraData: tools.jackson.databind.node.ObjectNode?,
+    val id: kotlin.Long,
+    val operationType: OrderOperationType,
+    val operatorId: kotlin.Long?,
+    val operatorType: OperatorType?,
+    val orderId: kotlin.Long
+)
+
+data class OrderPaymentInfoVo(
     val amountCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val orderId: kotlin.Long,
@@ -3619,7 +3580,7 @@ data class OrderPaymentInfo(
     val transactionId: kotlin.String?
 )
 
-data class OrderPaymentParams(
+data class OrderPaymentParamsVo(
     val autoCompleted: kotlin.Boolean,
     val paymentParams: tools.jackson.databind.node.ObjectNode?,
     val requiresSimulation: kotlin.Boolean
@@ -3686,18 +3647,18 @@ data class OrderPreviewVo(
 data class OrderReviewCheckResponse(
     val canReview: kotlin.Boolean,
     val hasReviewed: kotlin.Boolean,
-    val review: Review?
+    val review: ReviewVo?
 )
 
-data class OrderStatistics(
+data class OrderStatisticsVo(
     val averageOrderValueCents: kotlin.Long,
     val completedOrders: kotlin.Int,
-    val dateRange: DateRange,
+    val dateRange: DateRangeVo,
     val netRevenueCents: kotlin.Long,
-    val orderValueDistribution: kotlin.collections.List<OrderValueBucketStatistic>,
-    val peakHourDistribution: kotlin.collections.List<PeakHourStatistic>,
+    val orderValueDistribution: kotlin.collections.List<OrderValueBucketStatisticVo>,
+    val peakHourDistribution: kotlin.collections.List<PeakHourStatisticVo>,
     val refundAmountCents: kotlin.Long,
-    val statusDistribution: kotlin.collections.List<OrderStatusStatistic>,
+    val statusDistribution: kotlin.collections.List<OrderStatusStatisticVo>,
     val totalOrders: kotlin.Int,
     val totalRevenueCents: kotlin.Long
 )
@@ -3720,39 +3681,80 @@ enum class OrderStatus(val label: String) {
   }
 }
 
-data class OrderStatusStatistic(
+data class OrderStatusStatisticVo(
     val count: kotlin.Int,
     val status: OrderStatus
 )
 
-data class OrderUserDistribution(
+data class OrderUserDistributionVo(
     val orderingUserRatio: kotlin.Float,
     val orderingUsers: kotlin.Int,
     val repurchaseRate: kotlin.Float,
-    val tiers: kotlin.collections.List<OrderUserTier>
+    val tiers: kotlin.collections.List<OrderUserTierVo>
 )
 
-data class OrderUserTier(
+data class OrderUserTierVo(
     val label: kotlin.String,
     val userCount: kotlin.Int
 )
 
+data class OrderVo(
+    val address: AddressVo?,
+    val amountCents: kotlin.Long,
+    val completedAt: java.time.LocalDateTime?,
+    val couponDiscountCents: kotlin.Long?,
+    val couponName: kotlin.String?,
+    val createdAt: java.time.LocalDateTime,
+    val deliveryConfirmedAt: java.time.LocalDateTime?,
+    val deliveryFeeCents: kotlin.Long,
+    val deliveryPhotoReviewRemark: kotlin.String?,
+    val deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus?,
+    val deliveryPhotoReviewedAt: java.time.LocalDateTime?,
+    val deliveryPhotoReviewedBy: kotlin.Long?,
+    val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
+    val deliveryRemark: kotlin.String?,
+    val deliveryStartedAt: java.time.LocalDateTime?,
+    val deliveryTimeSlot: DeliveryTimeSlot?,
+    val deliveryWorker: DeliveryWorkerVo?,
+    val depositCents: kotlin.Long,
+    val firstOrderActivityName: kotlin.String?,
+    val firstOrderDiscountCents: kotlin.Long?,
+    val giftItems: kotlin.collections.List<GiftItemVo>?,
+    val id: kotlin.Long,
+    val isSelfCollect: kotlin.Boolean,
+    val items: kotlin.collections.List<OrderItemVo>,
+    val orderNo: kotlin.String,
+    val payAmountCents: kotlin.Long,
+    val paymentMethod: kotlin.String?,
+    val paymentTime: java.time.LocalDateTime?,
+    val paymentTransactionId: kotlin.String?,
+    val paymentType: PaymentType?,
+    val promotionActivityName: kotlin.String?,
+    val promotionDiscountCents: kotlin.Long?,
+    val remark: kotlin.String?,
+    val status: OrderStatus,
+    val ticketDiscountCents: kotlin.Long?,
+    val ticketRedeemCount: kotlin.Int?,
+    val updatedAt: java.time.LocalDateTime,
+    val user: UserVo?
+)
+
 data class OrderVoPage(
-    val content: kotlin.collections.List<Order>,
+    val content: kotlin.collections.List<OrderVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
 )
 
-data class OrderValueBucketStatistic(
+data class OrderValueBucketStatisticVo(
     val count: kotlin.Int,
     val fromCents: kotlin.Long?,
     val label: kotlin.String,
     val toCents: kotlin.Long?
 )
 
-data class PageInfo(
+data class PageInfoVo(
     val hasNext: kotlin.Boolean,
     val hasPrevious: kotlin.Boolean,
     val pageNum: kotlin.Int,
@@ -3761,7 +3763,7 @@ data class PageInfo(
     val totalPages: kotlin.Int
 )
 
-data class PaymentData(
+data class PaymentDataVo(
     val appId: kotlin.String,
     val codeUrl: kotlin.String,
     val nonceStr: kotlin.String,
@@ -3785,7 +3787,7 @@ enum class PaymentMethod(val label: String) {
   }
 }
 
-data class PaymentMethodStats(
+data class PaymentMethodStatsVo(
     val averageAmountCents: kotlin.Long,
     val failureCount: kotlin.Long,
     val paymentMethod: PaymentMethod,
@@ -3796,19 +3798,19 @@ data class PaymentMethodStats(
     val transactionCount: kotlin.Long
 )
 
-data class PaymentPeriodStats(
+data class PaymentPeriodStatsVo(
     val averageTransactionAmountCents: kotlin.Long,
     val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStats>,
+    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStatsVo>,
     val period: kotlin.String,
     val successfulTransactions: kotlin.Long,
     val totalAmountCents: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
-data class PaymentStatistics(
+data class PaymentStatisticsVo(
     val averageTransactionAmountCents: kotlin.Long,
-    val dailyStats: kotlin.collections.List<DailyPaymentStats>,
+    val dailyStats: kotlin.collections.List<DailyPaymentStatsVo>,
     val failedTransactions: kotlin.Long,
     val refundCount: kotlin.Long,
     val refundedAmountCents: kotlin.Long,
@@ -3831,7 +3833,7 @@ enum class PaymentStatus(val label: String) {
   }
 }
 
-data class PaymentTransaction(
+data class PaymentTransactionVo(
     val adminNote: kotlin.String?,
     val amountCents: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
@@ -3862,12 +3864,12 @@ enum class PaymentType(val label: String) {
   }
 }
 
-data class PeakHourStatistic(
+data class PeakHourStatisticVo(
     val count: kotlin.Int,
     val hour: kotlin.Int
 )
 
-data class PendingOrderBreakdown(
+data class PendingOrderBreakdownVo(
     val pendingDelivery: kotlin.Int,
     val pendingDispatch: kotlin.Int,
     val pendingPayment: kotlin.Int,
@@ -3940,32 +3942,7 @@ data class ProcessSuspiciousTransactionInput(
   )
 }
 
-data class Product(
-    val certificateImages: tools.jackson.databind.node.ArrayNode?,
-    val coverImageUrl: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val detailContent: kotlin.String?,
-    val effectivePriceCents: kotlin.Long,
-    val hasGroupPrice: kotlin.Boolean,
-    val id: kotlin.Long,
-    val imageGallery: tools.jackson.databind.node.ArrayNode?,
-    val mineralContent: kotlin.String?,
-    val name: kotlin.String,
-    val originalPriceCents: kotlin.Long?,
-    val priceCents: kotlin.Long,
-    val priceSource: PriceSource,
-    val salesVolume: kotlin.Int,
-    val sortOrder: kotlin.Int,
-    val specification: kotlin.String,
-    val status: ProductStatus,
-    val stock: kotlin.Int,
-    val subtitle: kotlin.String?,
-    val tags: tools.jackson.databind.node.ArrayNode?,
-    val updatedAt: java.time.LocalDateTime,
-    val waterSource: kotlin.String?
-)
-
-data class ProductDailySales(
+data class ProductDailySalesVo(
     val date: kotlin.String,
     val productId: kotlin.Long,
     val productName: kotlin.String,
@@ -3973,29 +3950,29 @@ data class ProductDailySales(
     val salesVolume: kotlin.Int
 )
 
-data class ProductFavoriteCount(
+data class ProductFavoriteCountVo(
     val addedThisMonth: kotlin.Long,
     val addedThisWeek: kotlin.Long,
     val addedToday: kotlin.Long,
     val favoriteCount: kotlin.Long,
-    val product: Product
+    val product: ProductVo
 )
 
-data class ProductFavoriteItem(
+data class ProductFavoriteItemVo(
     val favoriteCount: kotlin.Long,
     val lastFavoritedAt: java.time.LocalDateTime?,
-    val product: Product
+    val product: ProductVo
 )
 
-data class ProductFavoriteStat(
+data class ProductFavoriteStatVo(
     val favoriteCount: kotlin.Long,
     val productId: kotlin.Long,
     val productName: kotlin.String
 )
 
 data class ProductFavoriteVoPage(
-    val list: kotlin.collections.List<ProductFavoriteItem>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<ProductFavoriteItemVo>,
+    val pageInfo: PageInfoVo
 )
 
 data class ProductListInput(
@@ -4030,16 +4007,6 @@ data class ProductListInput(
   )
 }
 
-data class ProductOption(
-    val createdAt: java.time.LocalDateTime,
-    val enabled: kotlin.Boolean,
-    val id: kotlin.Long,
-    val optionType: ProductOptionType,
-    val sortOrder: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime,
-    val value: kotlin.String
-)
-
 enum class ProductOptionType(val label: String) {
       SPECIFICATION("SPECIFICATION"),
       WATER_SOURCE("WATER_SOURCE");
@@ -4052,6 +4019,16 @@ enum class ProductOptionType(val label: String) {
   }
 }
 
+data class ProductOptionVo(
+    val createdAt: java.time.LocalDateTime,
+    val enabled: kotlin.Boolean,
+    val id: kotlin.Long,
+    val optionType: ProductOptionType,
+    val sortOrder: kotlin.Int,
+    val updatedAt: java.time.LocalDateTime,
+    val value: kotlin.String
+)
+
 data class ProductPriceVo(
     val catalogPriceCents: kotlin.Long,
     val effectivePriceCents: kotlin.Long,
@@ -4060,14 +4037,14 @@ data class ProductPriceVo(
     val productId: kotlin.Long
 )
 
-data class ProductSalesInfo(
-    val product: Product,
+data class ProductSalesInfoVo(
+    val product: ProductVo,
     val revenueCents: kotlin.Long,
     val salesPercentage: kotlin.Float,
     val salesVolume: kotlin.Int
 )
 
-data class ProductSalesStat(
+data class ProductSalesStatVo(
     val productId: kotlin.Long,
     val productName: kotlin.String,
     val revenueCents: kotlin.Long,
@@ -4135,15 +4112,15 @@ enum class ProductSortBy(val label: String) {
   }
 }
 
-data class ProductStatistics(
+data class ProductStatisticsVo(
     val averagePriceCents: kotlin.Long,
-    val favoriteStatistics: kotlin.collections.List<ProductFavoriteStat>,
+    val favoriteStatistics: kotlin.collections.List<ProductFavoriteStatVo>,
     val lowStockProducts: kotlin.Int,
     val offlineProducts: kotlin.Int,
     val onlineProducts: kotlin.Int,
     val outOfStockProducts: kotlin.Int,
-    val productRanking: kotlin.collections.List<ProductSalesStat>,
-    val stockWarningItems: kotlin.collections.List<StockWarningItem>,
+    val productRanking: kotlin.collections.List<ProductSalesStatVo>,
+    val stockWarningItems: kotlin.collections.List<StockWarningItemVo>,
     val totalFavorites: kotlin.Int,
     val totalProducts: kotlin.Int,
     val totalSales: kotlin.Int,
@@ -4223,25 +4200,34 @@ data class ProductUpdateRequestInput(
   )
 }
 
-data class ProductVoPage(
-    val list: kotlin.collections.List<Product>,
-    val pageInfo: PageInfo
+data class ProductVo(
+    val certificateImages: tools.jackson.databind.node.ArrayNode?,
+    val coverImageUrl: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val detailContent: kotlin.String?,
+    val effectivePriceCents: kotlin.Long,
+    val hasGroupPrice: kotlin.Boolean,
+    val id: kotlin.Long,
+    val imageGallery: tools.jackson.databind.node.ArrayNode?,
+    val mineralContent: kotlin.String?,
+    val name: kotlin.String,
+    val originalPriceCents: kotlin.Long?,
+    val priceCents: kotlin.Long,
+    val priceSource: PriceSource,
+    val salesVolume: kotlin.Int,
+    val sortOrder: kotlin.Int,
+    val specification: kotlin.String,
+    val status: ProductStatus,
+    val stock: kotlin.Int,
+    val subtitle: kotlin.String?,
+    val tags: tools.jackson.databind.node.ArrayNode?,
+    val updatedAt: java.time.LocalDateTime,
+    val waterSource: kotlin.String?
 )
 
-data class PromotionActivity(
-    val activityType: PromotionActivityType,
-    val createdAt: java.time.LocalDateTime,
-    val currentStatus: PromotionActivityDisplayStatus,
-    val customerGroupId: kotlin.Long?,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val productId: kotlin.Long?,
-    val scope: PromotionScope,
-    val status: PromotionActivityStatus,
-    val tiers: kotlin.collections.List<PromotionActivityTier>,
-    val updatedAt: java.time.LocalDateTime,
-    val validFrom: java.time.LocalDateTime,
-    val validTo: java.time.LocalDateTime
+data class ProductVoPage(
+    val list: kotlin.collections.List<ProductVo>,
+    val pageInfo: PageInfoVo
 )
 
 enum class PromotionActivityDisplayStatus(val label: String) {
@@ -4282,7 +4268,7 @@ enum class PromotionActivityStatus(val label: String) {
   }
 }
 
-data class PromotionActivityTier(
+data class PromotionActivityTierVo(
     val discountAmountCents: kotlin.Long?,
     val discountRatePermille: kotlin.Long?,
     val id: kotlin.Long,
@@ -4301,8 +4287,24 @@ enum class PromotionActivityType(val label: String) {
   }
 }
 
+data class PromotionActivityVo(
+    val activityType: PromotionActivityType,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val customerGroupId: kotlin.Long?,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val tiers: kotlin.collections.List<PromotionActivityTierVo>,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
 data class PromotionActivityVoPage(
-    val content: kotlin.collections.List<PromotionActivity>,
+    val content: kotlin.collections.List<PromotionActivityVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -5175,125 +5177,133 @@ data class QueryWeeklyStatisticsArgs(
 }
 data class Query(
     val _dummy: kotlin.String?,
-    val activeBanners: kotlin.collections.List<Banner>,
-    val activeNotices: kotlin.collections.List<Notice>,
+    val activeBanners: kotlin.collections.List<BannerVo>,
+    val activeNotices: kotlin.collections.List<NoticeVo>,
     val activeProducts: ProductVoPage,
-    val address: Address?,
-    val admin: Admin?,
+    val address: AddressVo?,
+    val admin: AdminVo?,
     val admins: AdminVoPage,
-    val assignedOrders: kotlin.collections.List<Order>,
-    val banner: Banner?,
+    val assignedOrders: kotlin.collections.List<OrderVo>,
+    val banner: BannerVo?,
     val banners: BannerVoPage?,
     val barrelFees: BarrelFeePage,
     val barrelPurchases: BarrelPurchasePage,
     val barrelShop: kotlin.collections.List<BarrelFeeVo>,
     val businessLogs: BusinessLogVoPage?,
     val couponCenter: kotlin.collections.List<CouponTemplateVo>,
-    val couponTemplate: CouponTemplate?,
+    val couponTemplate: CouponTemplateAdminVo?,
     val couponTemplateUsage: MarketingUsageVo?,
     val couponTemplates: CouponTemplateVoPage?,
-    val customerGroup: CustomerGroup?,
+    val customerGroup: CustomerGroupVo?,
     val customerGroups: CustomerGroupVoPage?,
-    val dailyCollectionSummary: DailyCollectionSummary,
+    val dailyCollectionSummary: DailyCollectionSummaryVo,
     val dailyCollections: DailyCollectionPage,
     val dailyReconciliationOrderDetails: ReconciliationOrderDetailPage,
     val dailyReconciliations: DailyReconciliationPage,
-    val dailyStatistics: kotlin.collections.List<DailyStatistic>,
+    val dailyStatistics: kotlin.collections.List<DailyStatisticVo>,
     val dataMaintenanceOverview: DataMaintenanceOverviewVo,
-    val deliveringOrders: kotlin.collections.List<Order>,
-    val deliveryFeeRule: DeliveryFeeRule,
+    val deliveringOrders: kotlin.collections.List<OrderVo>,
+    val deliveryFeeRule: DeliveryFeeRuleVo,
     val deliverySlots: kotlin.collections.List<DeliverySlotVo>,
-    val deliveryTrajectories: kotlin.collections.List<DeliveryTrajectory>,
-    val deliveryWorker: DeliveryWorker?,
+    val deliveryTrajectories: kotlin.collections.List<DeliveryTrajectoryVo>,
+    val deliveryWorker: DeliveryWorkerVo?,
     val deliveryWorkerHistoryOrders: OrderVoPage,
-    val deliveryWorkerLatestLocation: DeliveryTrajectory?,
-    val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItem>,
+    val deliveryWorkerLatestLocation: DeliveryTrajectoryVo?,
+    val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItemVo>,
     val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse,
-    val deliveryWorkerStatistics: DeliveryWorkerOverview,
+    val deliveryWorkerStatistics: DeliveryWorkerOverviewVo,
     val deliveryWorkers: DeliveryWorkerVoPage,
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
-    val feedback: Feedback?,
+    val feedback: FeedbackVo?,
     val feedbacks: FeedbackVoPage?,
     val firstOrderActivities: FirstOrderActivityVoPage?,
-    val firstOrderActivity: FirstOrderActivity?,
+    val firstOrderActivity: FirstOrderActivityVo?,
     val firstOrderActivityUsage: MarketingUsageVo?,
     val flashSaleActivities: FlashSaleActivityVoPage?,
-    val flashSaleActivity: FlashSaleActivity?,
+    val flashSaleActivity: FlashSaleActivityVo?,
     val flashSaleActivityUsage: MarketingUsageVo?,
     val giftActivities: GiftActivityVoPage?,
-    val giftActivity: GiftActivity?,
+    val giftActivity: GiftActivityVo?,
     val giftActivityUsage: MarketingUsageVo?,
     val groupProductPrices: GroupProductPriceVoPage?,
     val isProductFavorited: kotlin.Boolean,
-    val marketingStatistics: MarketingStatistics,
-    val me: UserInfo?,
-    val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
+    val marketingStatistics: MarketingStatisticsVo,
+    val me: UserInfoVo?,
+    val monthlyStatistics: kotlin.collections.List<MonthlyStatisticVo>,
     val myBarrelPurchase: BarrelPurchaseVo?,
     val myCoupons: kotlin.collections.List<UserCouponVo>,
     val myFeedbacks: FeedbackRecordVoPage,
     val myNotifications: NotificationVoPage,
-    val myOrderStatistics: MyOrderStatistics,
+    val myOrderStatistics: MyOrderStatisticsVo,
     val myOrders: OrderVoPage,
     val myTickets: kotlin.collections.List<UserTicketVo>,
     val myTodayCollection: MyTodayCollectionVo?,
     val myWorkerNotifications: NotificationVoPage,
-    val notice: Notice?,
+    val notice: NoticeVo?,
     val notices: NoticeVoPage?,
     val notification: NotificationVo?,
     val notifications: NotificationVoPage,
-    val onlineDeliveryWorkers: kotlin.collections.List<DeliveryWorker>,
-    val order: Order?,
-    val orderByNo: Order?,
-    val orderOperations: kotlin.collections.List<OrderOperation>,
+    val onlineDeliveryWorkers: kotlin.collections.List<DeliveryWorkerVo>,
+    val order: OrderVo?,
+    val orderByNo: OrderVo?,
+    val orderOperations: kotlin.collections.List<OrderOperationVo>,
     val orderPreview: OrderPreviewVo,
     val orderReviewCheck: OrderReviewCheckResponse,
-    val orderStatistics: OrderStatistics,
+    val orderStatistics: OrderStatisticsVo,
     val orders: OrderVoPage?,
-    val pendingDeliveryOrders: kotlin.collections.List<Order>,
-    val pendingOrderBreakdown: PendingOrderBreakdown,
-    val product: Product?,
-    val productDailySales: kotlin.collections.List<ProductDailySales>,
-    val productOptions: kotlin.collections.List<ProductOption>,
+    val pendingDeliveryOrders: kotlin.collections.List<OrderVo>,
+    val pendingOrderBreakdown: PendingOrderBreakdownVo,
+    val product: ProductVo?,
+    val productDailySales: kotlin.collections.List<ProductDailySalesVo>,
+    val productOptions: kotlin.collections.List<ProductOptionVo>,
     val productPrice: ProductPriceVo?,
-    val productStatistics: ProductStatistics?,
+    val productStatistics: ProductStatisticsVo?,
     val productsPaginated: ProductVoPage?,
     val promotionActivities: PromotionActivityVoPage?,
-    val promotionActivity: PromotionActivity?,
+    val promotionActivity: PromotionActivityVo?,
     val promotionActivityUsage: MarketingUsageVo?,
     val reconciliationDiscrepancies: ReconciliationDiscrepancyPage,
-    val reconciliationReports: kotlin.collections.List<ReconciliationReport>,
-    val reconciliationTask: ReconciliationTask?,
+    val reconciliationReports: kotlin.collections.List<ReconciliationReportVo>,
+    val reconciliationTask: ReconciliationTaskVo?,
     val reconciliationTasks: ReconciliationTaskPage,
-    val refundRequest: RefundRequest?,
+    val refundRequest: RefundRequestVo?,
     val refundRequests: RefundRequestPage,
-    val region: Region?,
-    val regions: kotlin.collections.List<Region>,
+    val region: RegionVo?,
+    val regions: kotlin.collections.List<RegionVo>,
     val reviewsByDeliveryWorker: ReviewVoPage,
     val reviewsByUser: ReviewVoPage,
     val searchAllAddresses: AddressVoPage,
-    val stockWarningThresholds: StockWarningThresholds,
-    val storeProfile: StoreProfile?,
+    val stockWarningThresholds: StockWarningThresholdsVo,
+    val storeProfile: StoreProfileVo?,
     val subscribeTemplates: kotlin.collections.List<SubscribeTemplateVo>,
     val systemConfigs: kotlin.collections.List<SystemConfigVo>,
     val ticketShop: kotlin.collections.List<TicketTypeVo>,
-    val ticketType: TicketType?,
+    val ticketType: TicketTypeAdminVo?,
     val ticketTypeStats: TicketTypeStatsVo,
     val ticketTypes: TicketTypeVoPage?,
-    val todayStatistics: TodayStatistics?,
+    val todayStatistics: TodayStatisticsVo?,
     val unreadNotificationCount: kotlin.Int,
-    val user: User?,
-    val userAddresses: kotlin.collections.List<Address>,
+    val user: UserVo?,
+    val userAddresses: kotlin.collections.List<AddressVo>,
     val userCoupons: kotlin.collections.List<UserCouponVo>,
-    val userStatistics: UserStatistics,
+    val userStatistics: UserStatisticsVo,
     val userTickets: kotlin.collections.List<UserTicketVo>,
     val users: UserVoPage,
-    val weekStatistics: WeekStatistics?,
-    val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>,
+    val weekStatistics: WeekStatisticsVo?,
+    val weeklyStatistics: kotlin.collections.List<WeeklyStatisticVo>,
     val workerUnreadNotificationCount: kotlin.Long
 )
 
-data class ReconciliationDiscrepancy(
+data class ReconciliationDiscrepancyPage(
+    val content: kotlin.collections.List<ReconciliationDiscrepancyVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class ReconciliationDiscrepancyVo(
     val createdAt: java.time.LocalDateTime,
     val discrepancyType: DiscrepancyType,
     val id: kotlin.Long,
@@ -5308,15 +5318,12 @@ data class ReconciliationDiscrepancy(
     val updatedAt: java.time.LocalDateTime
 )
 
-data class ReconciliationDiscrepancyPage(
-    val content: kotlin.collections.List<ReconciliationDiscrepancy>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
+data class ReconciliationOrderDetailPage(
+    val list: kotlin.collections.List<ReconciliationOrderDetailVo>,
+    val pageInfo: PageInfoVo
 )
 
-data class ReconciliationOrderDetail(
+data class ReconciliationOrderDetailVo(
     val amountCents: kotlin.Long,
     val deliveredAt: java.time.LocalDateTime?,
     val deliveryWorkerId: kotlin.Long?,
@@ -5326,12 +5333,7 @@ data class ReconciliationOrderDetail(
     val status: OrderStatus
 )
 
-data class ReconciliationOrderDetailPage(
-    val list: kotlin.collections.List<ReconciliationOrderDetail>,
-    val pageInfo: PageInfo
-)
-
-data class ReconciliationReport(
+data class ReconciliationReportVo(
     val fileName: kotlin.String?,
     val filePath: kotlin.String?,
     val fileSize: kotlin.Long?,
@@ -5342,24 +5344,8 @@ data class ReconciliationReport(
     val taskId: kotlin.String
 )
 
-data class ReconciliationTask(
-    val createdAt: java.time.LocalDateTime,
-    val endTime: java.time.LocalDateTime?,
-    val errorMessage: kotlin.String?,
-    val id: kotlin.Long,
-    val matchedRecords: kotlin.Int,
-    val startTime: java.time.LocalDateTime?,
-    val status: ReconciliationTaskStatus,
-    val taskDate: java.time.LocalDateTime,
-    val taskId: kotlin.String,
-    val taskType: ReconciliationTaskType,
-    val totalRecords: kotlin.Int,
-    val unmatchedRecords: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime
-)
-
 data class ReconciliationTaskPage(
-    val content: kotlin.collections.List<ReconciliationTask>,
+    val content: kotlin.collections.List<ReconciliationTaskVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -5393,6 +5379,22 @@ enum class ReconciliationTaskType(val label: String) {
   }
 }
 
+data class ReconciliationTaskVo(
+    val createdAt: java.time.LocalDateTime,
+    val endTime: java.time.LocalDateTime?,
+    val errorMessage: kotlin.String?,
+    val id: kotlin.Long,
+    val matchedRecords: kotlin.Int,
+    val startTime: java.time.LocalDateTime?,
+    val status: ReconciliationTaskStatus,
+    val taskDate: java.time.LocalDateTime,
+    val taskId: kotlin.String,
+    val taskType: ReconciliationTaskType,
+    val totalRecords: kotlin.Int,
+    val unmatchedRecords: kotlin.Int,
+    val updatedAt: java.time.LocalDateTime
+)
+
 data class RefreshTokenInput(
     @field:NotBlank(message = "刷新令牌不能为空")
     @field:Size(min = 10, max = 1000, message = "刷新令牌长度应在10-1000个字符之间")
@@ -5415,7 +5417,7 @@ enum class RefundAction(val label: String) {
   }
 }
 
-data class RefundEligibility(
+data class RefundEligibilityVo(
     val deadline: java.time.LocalDateTime?,
     val eligible: kotlin.Boolean,
     val orderAmountCents: kotlin.Long,
@@ -5446,7 +5448,15 @@ data class RefundInput(
   )
 }
 
-data class RefundRequest(
+data class RefundRequestPage(
+    val content: kotlin.collections.List<RefundRequestVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class RefundRequestVo(
     val adminNote: kotlin.String?,
     val amountCents: kotlin.Long,
     val id: kotlin.String,
@@ -5458,14 +5468,6 @@ data class RefundRequest(
     val requestedAt: java.time.LocalDateTime,
     val status: RefundStatus,
     val userId: kotlin.Long
-)
-
-data class RefundRequestPage(
-    val content: kotlin.collections.List<RefundRequest>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
 )
 
 enum class RefundStatus(val label: String) {
@@ -5495,7 +5497,7 @@ enum class RefundType(val label: String) {
   }
 }
 
-data class Region(
+data class RegionVo(
     val code: kotlin.String,
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
@@ -5554,7 +5556,17 @@ data class ResolveDiscrepancyInput(
   )
 }
 
-data class Review(
+data class ReviewReconciliationInput(
+    val reconciliationId: kotlin.Long,
+    val reviewNotes: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["reconciliationId"] as kotlin.Long,
+      args["reviewNotes"] as kotlin.String
+  )
+}
+
+data class ReviewVo(
     val comment: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
     val deliveryWorkerId: kotlin.Long,
@@ -5566,31 +5578,12 @@ data class Review(
     val userId: kotlin.Long?
 )
 
-data class ReviewReconciliationInput(
-    val reconciliationId: kotlin.Long,
-    val reviewNotes: kotlin.String
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["reconciliationId"] as kotlin.Long,
-      args["reviewNotes"] as kotlin.String
-  )
-}
-
 data class ReviewVoPage(
-    val content: kotlin.collections.List<Review>,
+    val content: kotlin.collections.List<ReviewVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
-)
-
-data class SalesReport(
-    val dateRange: DateRange,
-    val salesBySpecification: kotlin.collections.List<SpecificationStatistics>,
-    val salesByWaterSource: kotlin.collections.List<WaterSourceStatistics>,
-    val topSellingProducts: kotlin.collections.List<ProductSalesInfo>,
-    val totalRevenueCents: kotlin.Long,
-    val totalSales: kotlin.Int
 )
 
 enum class SalesReportGroupBy(val label: String) {
@@ -5624,6 +5617,15 @@ data class SalesReportInput(
       args["topProductLimit"] as kotlin.Int? ?: 10
   )
 }
+
+data class SalesReportVo(
+    val dateRange: DateRangeVo,
+    val salesBySpecification: kotlin.collections.List<SpecificationStatisticsVo>,
+    val salesByWaterSource: kotlin.collections.List<WaterSourceStatisticsVo>,
+    val topSellingProducts: kotlin.collections.List<ProductSalesInfoVo>,
+    val totalRevenueCents: kotlin.Long,
+    val totalSales: kotlin.Int
+)
 
 data class SaveDeliveryFeeRuleInput(
     @field:Min(value = 0, message = "免费楼层不能小于0")
@@ -5708,14 +5710,14 @@ enum class SourceSystem(val label: String) {
   }
 }
 
-data class SpecificationStatistics(
+data class SpecificationStatisticsVo(
     val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val specification: kotlin.String,
     val totalSalesVolume: kotlin.Int
 )
 
-data class StockWarningItem(
+data class StockWarningItemVo(
     val currentStock: kotlin.Int,
     val productId: kotlin.Long,
     val productName: kotlin.String,
@@ -5736,12 +5738,12 @@ enum class StockWarningStatus(val label: String) {
   }
 }
 
-data class StockWarningThresholds(
+data class StockWarningThresholdsVo(
     val lowThreshold: kotlin.Int,
     val midThreshold: kotlin.Int
 )
 
-data class StoreProfile(
+data class StoreProfileVo(
     val aboutUs: kotlin.String?,
     val businessHoursEnd: kotlin.String?,
     val businessHoursStart: kotlin.String?,
@@ -5774,7 +5776,7 @@ data class SubscribeTemplateVo(
     val templateId: kotlin.String
 )
 
-data class SuspiciousTransaction(
+data class SuspiciousTransactionVo(
     val adminNote: kotlin.String?,
     val amountCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
@@ -5877,7 +5879,7 @@ data class TicketStatsSummaryVo(
     val soldCount: kotlin.Int
 )
 
-data class TicketType(
+data class TicketTypeAdminVo(
     val createdAt: java.time.LocalDateTime,
     val giftCount: kotlin.Int,
     val id: kotlin.Long,
@@ -5960,7 +5962,7 @@ data class TicketTypeVo(
 )
 
 data class TicketTypeVoPage(
-    val content: kotlin.collections.List<TicketType>,
+    val content: kotlin.collections.List<TicketTypeAdminVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -5974,7 +5976,7 @@ data class TicketUsagePointVo(
     val returnedCount: kotlin.Int
 )
 
-data class TodayStatistics(
+data class TodayStatisticsVo(
     val completedOrders: kotlin.Int,
     val earningCents: kotlin.Long,
     val totalOrders: kotlin.Int,
@@ -6557,23 +6559,6 @@ data class UpdateUserInput(
   )
 }
 
-data class User(
-    val avatarUrl: kotlin.String?,
-    val balanceCents: kotlin.Long,
-    val createdAt: java.time.LocalDateTime,
-    val customerGroupId: kotlin.Long?,
-    val customerGroupName: kotlin.String?,
-    val email: kotlin.String,
-    val id: kotlin.Long,
-    val nickname: kotlin.String?,
-    val phone: kotlin.String?,
-    val role: UserRole,
-    val status: UserStatus,
-    val totalSpentCents: kotlin.Long,
-    val updatedAt: java.time.LocalDateTime,
-    val wechatOpenId: kotlin.String
-)
-
 enum class UserCouponStatus(val label: String) {
       EXPIRED("EXPIRED"),
       RECEIVED("RECEIVED"),
@@ -6616,14 +6601,7 @@ enum class UserEngagementLevel(val label: String) {
   }
 }
 
-data class UserFavorite(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val product: Product,
-    val user: User
-)
-
-data class UserFavoriteAnalytics(
+data class UserFavoriteAnalyticsVo(
     val activeUsersWithFavorites: kotlin.Long,
     val averageFavoritesPerUser: kotlin.Float,
     val newFavoritesThisMonth: kotlin.Long,
@@ -6632,7 +6610,7 @@ data class UserFavoriteAnalytics(
     val totalFavorites: kotlin.Long
 )
 
-data class UserFavoriteInsights(
+data class UserFavoriteInsightsVo(
     val averageFavoritePriceCents: kotlin.Long,
     val engagementLevel: UserEngagementLevel,
     val favoriteCategories: kotlin.collections.List<kotlin.String>,
@@ -6643,36 +6621,43 @@ data class UserFavoriteInsights(
     val userNickname: kotlin.String
 )
 
-data class UserFavoriteSummary(
+data class UserFavoriteSummaryVo(
     val categories: kotlin.collections.List<kotlin.String>,
     val favoriteCount: kotlin.Long,
     val lastFavoriteAdded: java.time.LocalDateTime?,
     val mostFavoritedCategory: kotlin.String?,
     val totalValueOfFavoritedProductsCents: kotlin.Long,
-    val user: User
+    val user: UserVo
+)
+
+data class UserFavoriteVo(
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val product: ProductVo,
+    val user: UserVo
 )
 
 data class UserFavoriteVoPage(
-    val list: kotlin.collections.List<UserFavorite>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<UserFavoriteVo>,
+    val pageInfo: PageInfoVo
 )
 
-data class UserFavoriteWithProduct(
+data class UserFavoriteWithProductVo(
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
-    val product: Product,
+    val product: ProductVo,
     val productSalesVolume: kotlin.Int,
     val productStatus: ProductStatus,
     val productStock: kotlin.Int,
-    val user: User
+    val user: UserVo
 )
 
 data class UserFavoriteWithProductVoPage(
-    val list: kotlin.collections.List<UserFavoriteWithProduct>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<UserFavoriteWithProductVo>,
+    val pageInfo: PageInfoVo
 )
 
-data class UserInfo(
+data class UserInfoVo(
     val avatarUrl: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
@@ -6714,12 +6699,12 @@ enum class UserRole(val label: String) {
   }
 }
 
-data class UserStatistics(
+data class UserStatisticsVo(
     val activeUsers: kotlin.Int,
-    val dailyNewUsers: kotlin.collections.List<DailyStatistic>,
-    val loginStatistics: LoginStatistics?,
+    val dailyNewUsers: kotlin.collections.List<DailyStatisticVo>,
+    val loginStatistics: LoginStatisticsVo?,
     val monthNewUsers: kotlin.Int,
-    val orderDistribution: OrderUserDistribution,
+    val orderDistribution: OrderUserDistributionVo,
     val todayNewUsers: kotlin.Int,
     val totalUsers: kotlin.Int
 )
@@ -6740,8 +6725,8 @@ enum class UserStatus(val label: String) {
 }
 
 data class UserSummaryVoPage(
-    val list: kotlin.collections.List<UserFavoriteSummary>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<UserFavoriteSummaryVo>,
+    val pageInfo: PageInfoVo
 )
 
 enum class UserTicketStatus(val label: String) {
@@ -6768,9 +6753,26 @@ data class UserTicketVo(
     val ticketTypeName: kotlin.String
 )
 
+data class UserVo(
+    val avatarUrl: kotlin.String?,
+    val balanceCents: kotlin.Long,
+    val createdAt: java.time.LocalDateTime,
+    val customerGroupId: kotlin.Long?,
+    val customerGroupName: kotlin.String?,
+    val email: kotlin.String,
+    val id: kotlin.Long,
+    val nickname: kotlin.String?,
+    val phone: kotlin.String?,
+    val role: UserRole,
+    val status: UserStatus,
+    val totalSpentCents: kotlin.Long,
+    val updatedAt: java.time.LocalDateTime,
+    val wechatOpenId: kotlin.String
+)
+
 data class UserVoPage(
-    val list: kotlin.collections.List<User>,
-    val pageInfo: PageInfo
+    val list: kotlin.collections.List<UserVo>,
+    val pageInfo: PageInfoVo
 )
 
 data class ValidateAddressInput(
@@ -6804,7 +6806,7 @@ enum class ValidityType(val label: String) {
   }
 }
 
-data class WaterSourceStatistics(
+data class WaterSourceStatisticsVo(
     val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val totalSalesVolume: kotlin.Int,
@@ -6815,7 +6817,7 @@ data class WeChatLoginResponse(
     val accessToken: kotlin.String,
     val expiresIn: kotlin.Int,
     val refreshToken: kotlin.String,
-    val userInfo: UserInfo
+    val userInfo: UserInfoVo
 )
 
 data class WeChatTokenResponse(
@@ -6863,13 +6865,13 @@ data class WechatLoginInput(
   )
 }
 
-data class WeekStatistics(
-    val dailyStats: kotlin.collections.List<DailyStat>,
+data class WeekStatisticsVo(
+    val dailyStats: kotlin.collections.List<DailyStatVo>,
     val totalEarningCents: kotlin.Long,
     val totalOrders: kotlin.Int
 )
 
-data class WeeklyStatistic(
+data class WeeklyStatisticVo(
     val endDate: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,

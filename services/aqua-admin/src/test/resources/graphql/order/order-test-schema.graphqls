@@ -1,4 +1,4 @@
-# Test Schema for Admin Review Resolver GraphQL Integration Tests
+# Test Schema for AdminVO ReviewVO Resolver GraphQL Integration Tests
 # 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/order/) 加载
 # 与 services/aqua-admin/src/main/resources/graphql/modules/order.graphqls 的 reviewsByUser/reviewsByDeliveryWorker
 # 保持一致(用户详情页「评价记录」Tab,F-USR-022;账号详情页「评价记录」Tab,F-USR-020/021)
@@ -15,14 +15,14 @@ type Query {
 }
 
 type ReviewVOPage {
-  content: [Review!]!
+  content: [ReviewVO!]!
   totalElements: Int!
   totalPages: Int!
   size: Int!
   number: Int!
 }
 
-type Review {
+type ReviewVO {
   reviewId: Long!
   orderId: Long!
   userId: Long

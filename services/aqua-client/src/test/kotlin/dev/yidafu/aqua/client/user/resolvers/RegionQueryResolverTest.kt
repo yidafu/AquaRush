@@ -22,6 +22,7 @@ package dev.yidafu.aqua.client.user.resolvers
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
+import dev.yidafu.aqua.user.mapper.toGraphQL
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -104,7 +105,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 1
-      result shouldBe listOf(sampleProvince)
+      result shouldBe listOf(sampleProvince.toGraphQL())
       verify { regionRepository.findRootRegions(1) }
     }
     test("should return regions by level when only level provided") {
@@ -116,7 +117,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 1
-      result[0] shouldBe sampleProvince
+      result[0] shouldBe sampleProvince.toGraphQL()
       verify { regionRepository.findRootRegions(1) }
     }
     test("should return root regions when level is 1") {
@@ -128,7 +129,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 1
-      result[0] shouldBe sampleProvince
+      result[0] shouldBe sampleProvince.toGraphQL()
       verify { regionRepository.findRootRegions(1) }
     }
     test("should call findByLevel for levels other than 1") {
@@ -151,8 +152,8 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 2
-      result[0] shouldBe sampleCity
-      result[1] shouldBe anotherCity
+      result[0] shouldBe sampleCity.toGraphQL()
+      result[1] shouldBe anotherCity.toGraphQL()
       verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
     }
     test("should return region by code") {
@@ -164,7 +165,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.shouldNotBeNull()
-      result shouldBe sampleDistrict
+      result shouldBe sampleDistrict.toGraphQL()
       verify { regionRepository.findByCode("440305") }
     }
     test("should return null when region code not found") {
@@ -187,7 +188,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 1
-      result[0] shouldBe sampleProvince
+      result[0] shouldBe sampleProvince.toGraphQL()
       verify { regionRepository.findRootRegions(1) }
     }
     test("should handle regions query with mixed parameters correctly") {
@@ -200,7 +201,7 @@ class RegionQueryResolverTest :
 
       // Then
       result.size shouldBe 2
-      result shouldBe cities
+      result shouldBe cities.map { it.toGraphQL() }
       verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
     }
     test("should return empty list when no regions found for given criteria") {

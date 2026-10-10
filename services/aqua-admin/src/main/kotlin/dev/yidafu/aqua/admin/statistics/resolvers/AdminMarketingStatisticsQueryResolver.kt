@@ -22,10 +22,10 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 import dev.yidafu.aqua.analytics.statistics.service.MarketingStatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
 import dev.yidafu.aqua.common.graphql.generated.MarketingBreakdownKind
-import dev.yidafu.aqua.common.graphql.generated.MarketingDailyStatistic
-import dev.yidafu.aqua.common.graphql.generated.MarketingStatistics
-import dev.yidafu.aqua.common.graphql.generated.MarketingStatisticsSummary
-import dev.yidafu.aqua.common.graphql.generated.MarketingUsageBreakdownRow
+import dev.yidafu.aqua.common.graphql.generated.MarketingDailyStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.MarketingStatisticsSummaryVo
+import dev.yidafu.aqua.common.graphql.generated.MarketingStatisticsVo
+import dev.yidafu.aqua.common.graphql.generated.MarketingUsageBreakdownRowVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -45,16 +45,16 @@ class AdminMarketingStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun marketingStatistics(
     @Argument input: DateRangeInput,
-  ): MarketingStatistics {
+  ): MarketingStatisticsVo {
     val result =
       marketingStatisticsService.getMarketingStatistics(
         input.startDate.toLocalDate(),
         input.endDate.toLocalDate(),
       )
     val summary = result.summary
-    return MarketingStatistics(
+    return MarketingStatisticsVo(
       summary =
-        MarketingStatisticsSummary(
+        MarketingStatisticsSummaryVo(
           marketingOrderCount = summary.marketingOrderCount.toInt(),
           totalBenefitCents = summary.totalBenefitCents,
           couponBenefitCents = summary.couponBenefitCents,
@@ -68,7 +68,7 @@ class AdminMarketingStatisticsQueryResolver(
         ),
       daily =
         result.daily.map { dto ->
-          MarketingDailyStatistic(
+          MarketingDailyStatisticVo(
             date = dto.date.toString(),
             marketingOrderCount = dto.marketingOrderCount.toInt(),
             couponBenefitCents = dto.couponBenefitCents,
@@ -83,7 +83,7 @@ class AdminMarketingStatisticsQueryResolver(
         },
       breakdown =
         result.breakdown.map { row ->
-          MarketingUsageBreakdownRow(
+          MarketingUsageBreakdownRowVo(
             kind = MarketingBreakdownKind.valueOf(row.kind.name),
             refId = row.refId,
             name = row.name,

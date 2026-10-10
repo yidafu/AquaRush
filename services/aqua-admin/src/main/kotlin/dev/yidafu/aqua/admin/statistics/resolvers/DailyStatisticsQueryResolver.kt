@@ -20,9 +20,9 @@
 package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.common.graphql.generated.DailyStatisticVo
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
-import dev.yidafu.aqua.common.graphql.generated.PendingOrderBreakdown
+import dev.yidafu.aqua.common.graphql.generated.PendingOrderBreakdownVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -44,11 +44,11 @@ class DailyStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun dailyStatistics(
     @Argument input: DateRangeInput,
-  ): List<DailyStatistic> =
+  ): List<DailyStatisticVo> =
     statisticsService
       .getDailyStatistics(input.startDate.toLocalDate(), input.endDate.toLocalDate())
       .map {
-        DailyStatistic(
+        DailyStatisticVo(
           date = it.date.toString(),
           orderCount = it.orderCount.toInt(),
           orderProductCount = it.orderProductCount.toInt(),
@@ -62,9 +62,9 @@ class DailyStatisticsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
-  fun pendingOrderBreakdown(): PendingOrderBreakdown {
+  fun pendingOrderBreakdown(): PendingOrderBreakdownVo {
     val result = statisticsService.getPendingOrderBreakdown()
-    return PendingOrderBreakdown(
+    return PendingOrderBreakdownVo(
       pendingPayment = result.pendingPayment.toInt(),
       pendingDispatch = result.pendingDispatch.toInt(),
       pendingDelivery = result.pendingDelivery.toInt(),

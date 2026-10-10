@@ -26,10 +26,10 @@ import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
-import dev.yidafu.aqua.common.graphql.generated.MyOrderStatistics
-import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.MyOrderStatisticsVo
 import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckResponse
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.springframework.graphql.data.method.annotation.Argument
@@ -54,7 +54,7 @@ class ClientOrderQueryResolver(
   fun order(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): Order {
+  ): OrderVo {
     val order =
       orderQueryApiService.findById(id)
         ?: throw NotFoundException("订单不存在: $id")
@@ -106,7 +106,7 @@ class ClientOrderQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myOrderStatistics(
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): MyOrderStatistics {
+  ): MyOrderStatisticsVo {
     val counts = orderQueryApiService.countByUserIdGroupByStatus(principal.id)
 
     fun countOf(status: OrderModelStatus): Int = counts[status]?.toInt() ?: 0
@@ -119,7 +119,7 @@ class ClientOrderQueryResolver(
     val completed = countOf(OrderModelStatus.COMPLETED)
     val cancelled = countOf(OrderModelStatus.CANCELLED)
     val refunded = countOf(OrderModelStatus.REFUNDED)
-    return MyOrderStatistics(
+    return MyOrderStatisticsVo(
       total = pendingPayment + pendingDispatch + pendingDelivery + delivering + awaitingConfirmation + completed + cancelled + refunded,
       pendingPayment = pendingPayment,
       pendingDispatch = pendingDispatch,

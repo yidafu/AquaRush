@@ -1,4 +1,4 @@
-# Test Schema for Admin System Config Resolvers GraphQL Integration Tests
+# Test Schema for AdminVO System Config Resolvers GraphQL Integration Tests
 # 自包含 schema(仿 ops 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/system/) 加载
 # 含 productStatistics 声明,供库存阈值消费断言(AC-SYS-003)在同一测试切片内执行
 
@@ -7,7 +7,7 @@ scalar LocalDateTime
 
 type Query {
   systemConfigs(group: SystemConfigGroup!): [SystemConfigVO!]!
-  productStatistics: ProductStatistics
+  productStatistics: ProductStatisticsVO
 }
 
 type Mutation {
@@ -50,6 +50,6 @@ input SaveSystemConfigInput {
   settingValue: String
 }
 
-type ProductStatistics {
+type ProductStatisticsVO {
   lowStockProducts: Int!
 }

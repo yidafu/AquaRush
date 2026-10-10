@@ -2,10 +2,10 @@ import React from 'react';
 import { Row, Col } from 'antd';
 import StatisticsCard from '@/components/StatisticsCard';
 import { centsToYuan } from '@aquarush/common';
-import type { MarketingStatisticsSummary } from '@aquarush/common';
+import type { MarketingStatisticsSummaryVo } from '@aquarush/common';
 
 interface MarketingSummaryCardsProps {
-  summary?: MarketingStatisticsSummary | null;
+  summary?: MarketingStatisticsSummaryVo | null;
   loading: boolean;
 }
 

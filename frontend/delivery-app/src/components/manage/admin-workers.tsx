@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Money, DeliveryWorkerStatus } from '@aquarush/common';
-import type { DeliveryWorker, DeliveryWorkerOverview } from '@aquarush/common';
+import type { DeliveryWorkerVo, DeliveryWorkerOverviewVo } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
@@ -14,8 +14,8 @@ import { Spacing } from '@/constants/theme';
 import { getDeliveryWorkerStatistics, getDeliveryWorkers } from '@/services/admin';
 
 interface WorkersData {
-  overview: DeliveryWorkerOverview | null;
-  workers: readonly DeliveryWorker[];
+  overview: DeliveryWorkerOverviewVo | null;
+  workers: readonly DeliveryWorkerVo[];
 }
 
 export function AdminWorkers() {

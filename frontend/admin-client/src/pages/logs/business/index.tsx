@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Pagination } from 'antd';
-import type { BusinessLog } from '@aquarush/common';
+import type { BusinessLogVo } from '@aquarush/common';
 import { useBusinessLogs } from '../../../services/log-graphql';
 import BusinessLogTimeline, { OPERATION_CONFIG, DOMAIN_OPERATIONS } from '../../../components/BusinessLogTimeline';
 import { BusinessLogFilters, BusinessLogTable, BusinessLogDetailModal } from './components';
@@ -12,7 +12,7 @@ const BusinessLogs: React.FC = () => {
   const [view, setView] = useState<'table' | 'timeline'>('table');
   const [pageNum, setPageNum] = useState(0); // 0 基
   const [pageSize, setPageSize] = useState(20); // 表格 20 / 时间线 10
-  const [selectedLog, setSelectedLog] = useState<BusinessLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<BusinessLogVo | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
 
   const [loadBusinessLogs, { data, loading }] = useBusinessLogs();

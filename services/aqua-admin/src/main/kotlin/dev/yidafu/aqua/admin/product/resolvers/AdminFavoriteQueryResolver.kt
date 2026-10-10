@@ -21,9 +21,9 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.graphql.generated.FavoriteProduct
+import dev.yidafu.aqua.common.graphql.generated.FavoriteProductVo
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProductVoPage
-import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.product.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -61,7 +61,7 @@ class AdminFavoriteQueryResolver(
     return FavoriteProductVoPage(
       list = list,
       pageInfo =
-        PageInfo(
+        PageInfoVo(
           total = productPage.totalElements.toInt(),
           pageSize = productPage.size,
           pageNum = productPage.number,
@@ -75,8 +75,8 @@ class AdminFavoriteQueryResolver(
   private fun createFavoriteProduct(
     product: ProductModel,
     addedAt: LocalDateTime?,
-  ): FavoriteProduct =
-    FavoriteProduct(
+  ): FavoriteProductVo =
+    FavoriteProductVo(
       id = product.id!!,
       name = product.name,
       subtitle = product.subtitle ?: "",

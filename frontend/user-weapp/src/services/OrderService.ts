@@ -1,12 +1,12 @@
 import { networkManager } from '../utils/networkManager'
 import {
-  MyOrderStatistics,
-  Order,
+  MyOrderStatisticsVo,
+  OrderVo,
   OrderReviewCheckResponse,
   OrderStatus,
   OrderVoPage,
   OrderPreviewVo,
-  Review
+  ReviewVo
 } from '@aquarush/common'
 import {
   ProductServiceError,
@@ -200,9 +200,9 @@ class OrderService {
   /**
    * 订单详情(仅本人可见,F-ORD-003):支付结果回显与「去支付」依赖真实订单状态
    */
-  public async getOrder(id: string): Promise<ProductServiceResult<Order>> {
+  public async getOrder(id: string): Promise<ProductServiceResult<OrderVo>> {
     const query = `
-      query Order($id: PrimaryId!) {
+      query OrderVo($id: PrimaryId!) {
         order(id: $id) {
           id
           orderNo
@@ -260,7 +260,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.query<{ order: Order }>(query, { id })
+      const response = await networkManager.query<{ order: OrderVo }>(query, { id })
       return {
         success: true,
         data: response.order
@@ -279,7 +279,7 @@ class OrderService {
    */
   public async createOrder(
     input: CreateOrderRequest
-  ): Promise<ProductServiceResult<Order>> {
+  ): Promise<ProductServiceResult<OrderVo>> {
     const mutation = `
       mutation CreateOrder($input: CreateOrderInput!) {
         createOrder(input: $input) {
@@ -294,7 +294,7 @@ class OrderService {
 
     try {
       const variables = { input }
-      const response = await networkManager.mutate<{ createOrder: Order }>(
+      const response = await networkManager.mutate<{ createOrder: OrderVo }>(
         mutation,
         variables
       )
@@ -391,7 +391,7 @@ class OrderService {
   /**
    * 取消订单(F-ORD-006):未支付即时取消恢复库存;已支付(待派单)取消自动退款
    */
-  public async cancelOrder(orderId: string): Promise<ProductServiceResult<Order>> {
+  public async cancelOrder(orderId: string): Promise<ProductServiceResult<OrderVo>> {
     const mutation = `
       mutation CancelOrder($orderId: PrimaryId!) {
         cancelOrder(orderId: $orderId) {
@@ -403,7 +403,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.mutate<{ cancelOrder: Order }>(
+      const response = await networkManager.mutate<{ cancelOrder: OrderVo }>(
         mutation,
         { orderId }
       )
@@ -423,7 +423,7 @@ class OrderService {
    * 确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,按确认时间计入营收;
    * 送达 N 天未确认由系统自动签收(配置 auto_confirm_receipt_days,默认 7)
    */
-  public async confirmReceipt(orderId: string): Promise<ProductServiceResult<Order>> {
+  public async confirmReceipt(orderId: string): Promise<ProductServiceResult<OrderVo>> {
     const mutation = `
       mutation ConfirmReceipt($orderId: PrimaryId!) {
         confirmReceipt(orderId: $orderId) {
@@ -436,7 +436,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.mutate<{ confirmReceipt: Order }>(
+      const response = await networkManager.mutate<{ confirmReceipt: OrderVo }>(
         mutation,
         { orderId }
       )
@@ -524,7 +524,7 @@ class OrderService {
     rating: number
     comment?: string
     isAnonymous?: boolean
-  }): Promise<ProductServiceResult<Review>> {
+  }): Promise<ProductServiceResult<ReviewVo>> {
     const mutation = `
       mutation CreateReview($input: CreateReviewRequest!) {
         createReview(input: $input) {
@@ -539,7 +539,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.mutate<{ createReview: Review }>(
+      const response = await networkManager.mutate<{ createReview: ReviewVo }>(
         mutation,
         {
           input: {
@@ -566,9 +566,9 @@ class OrderService {
    * 我的订单状态计数(F-USR-002,G31):我的页订单角标真实数据,
    * 单请求返回当前用户各状态订单数(仅本人,服务端强制)。
    */
-  public async getMyOrderStatistics(): Promise<ProductServiceResult<MyOrderStatistics>> {
+  public async getMyOrderStatistics(): Promise<ProductServiceResult<MyOrderStatisticsVo>> {
     const query = `
-      query MyOrderStatistics {
+      query MyOrderStatisticsVo {
         myOrderStatistics {
           total
           pendingPayment
@@ -583,7 +583,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.query<{ myOrderStatistics: MyOrderStatistics }>(query)
+      const response = await networkManager.query<{ myOrderStatistics: MyOrderStatisticsVo }>(query)
       return {
         success: true,
         data: response.myOrderStatistics

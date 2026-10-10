@@ -3,7 +3,7 @@ import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } f
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { GiftActivityType, PromotionScope } from '@aquarush/common';
-import type { CustomerGroup, GiftActivity } from '@aquarush/common';
+import type { CustomerGroupVo, GiftActivityVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 import { useCustomerGroups } from '../../../../services/marketing-graphql';
 
@@ -39,10 +39,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: GiftActivity | null;
+  record: GiftActivityVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: GiftFormPayload, record: GiftActivity | null) => void;
+  onSubmit: (payload: GiftFormPayload, record: GiftActivityVo | null) => void;
 }
 
 const GIFT_TYPE_OPTIONS = [
@@ -193,7 +193,7 @@ const GiftActivityFormModal: React.FC<Props> = ({ open, record, submitting, onCa
             <Select
               showSearch
               optionFilterProp="label"
-              options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+              options={groups.map((g: CustomerGroupVo) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
               placeholder="选择客户分组"
             />
           </Form.Item>

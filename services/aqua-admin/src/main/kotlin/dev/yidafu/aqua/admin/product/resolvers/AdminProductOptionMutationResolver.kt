@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.service.product.ProductOptionMutationService
 import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
-import dev.yidafu.aqua.common.graphql.generated.ProductOption
+import dev.yidafu.aqua.common.graphql.generated.ProductOptionVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.product.mapper.toGraphQL
@@ -48,7 +48,7 @@ class AdminProductOptionMutationResolver(
   fun createProductOption(
     @Argument @Valid input: CreateProductOptionInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): ProductOption {
+  ): ProductOptionVo {
     logger.info("Admin {} creating product option: {}", principal.username, input.value)
     val option =
       productOptionMutationService.createOption(
@@ -65,7 +65,7 @@ class AdminProductOptionMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateProductOptionInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): ProductOption {
+  ): ProductOptionVo {
     logger.info("Admin {} updating product option {}", principal.username, id)
     val option =
       productOptionMutationService.updateOption(

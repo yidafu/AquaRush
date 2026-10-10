@@ -115,7 +115,7 @@ export const GET_PRODUCT_DETAIL_QUERY = gql`
 
 // 商品属性选项字典(规格/水源地下拉候选,F-PRO-009):按类型查询
 const PRODUCT_OPTION_FIELDS = gql`
-  fragment ProductOptionFields on ProductOption {
+  fragment ProductOptionFields on ProductOptionVo {
     id
     optionType
     value

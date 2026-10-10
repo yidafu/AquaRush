@@ -9,7 +9,7 @@ import {
   FEEDBACK_TYPE_LABELS,
   formatDateTime,
 } from '@aquarush/common';
-import type { Feedback, FeedbackType, FeedbackStatus } from '@aquarush/common';
+import type { FeedbackVo, FeedbackType, FeedbackStatus } from '@aquarush/common';
 import { getToneColor } from '../../../constants/status';
 import { useFeedbacks, useReviewFeedback } from '../../../services/ops-graphql';
 import FeedbackDetailModal, { type ReviewPayload } from './components/FeedbackDetailModal';
@@ -34,7 +34,7 @@ const Feedbacks: React.FC = () => {
   const [size, setSize] = useState(20);
   const [filters, setFilters] = useState<Filters>({});
   const [detailOpen, setDetailOpen] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<Feedback | null>(null);
+  const [detailRecord, setDetailRecord] = useState<FeedbackVo | null>(null);
 
   const buildVariables = useCallback(
     (p: number, s: number, f: Filters) => {
@@ -83,17 +83,17 @@ const Feedbacks: React.FC = () => {
     load(nextPage, pagination.pageSize, filters);
   };
 
-  const handleOpenDetail = (record: Feedback) => {
+  const handleOpenDetail = (record: FeedbackVo) => {
     setDetailRecord(record);
     setDetailOpen(true);
   };
 
-  const handleSubmit = async (payload: ReviewPayload, record: Feedback) => {
+  const handleSubmit = async (payload: ReviewPayload, record: FeedbackVo) => {
     await reviewFeedback({ variables: { id: record.id, input: payload } });
     setDetailOpen(false);
   };
 
-  const columns: ColumnsType<Feedback> = [
+  const columns: ColumnsType<FeedbackVo> = [
     {
       title: '类型',
       dataIndex: 'feedbackType',
@@ -176,7 +176,7 @@ const Feedbacks: React.FC = () => {
         </Button>
       </Space>
 
-      <Table<Feedback>
+      <Table<FeedbackVo>
         rowKey="id"
         columns={columns}
         dataSource={feedbacks}

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
-import type { RefundRequest, RefundStatus } from '@aquarush/common';
+import type { RefundRequestVo, RefundStatus } from '@aquarush/common';
 import type { StatusTone } from '@/constants/theme';
 
 import { Button } from '@/components/button';
@@ -21,11 +21,11 @@ export const REFUND_STATUS_MAP: Record<RefundStatus, { label: string; tone: Stat
 };
 
 interface RefundRequestCardProps {
-  request: RefundRequest;
+  request: RefundRequestVo;
   /** 通过/重试(FAILED 时文案为「重试」) */
-  onApprove?: (request: RefundRequest) => void;
+  onApprove?: (request: RefundRequestVo) => void;
   /** 驳回(仅 PENDING) */
-  onReject?: (request: RefundRequest) => void;
+  onReject?: (request: RefundRequestVo) => void;
 }
 
 /** 退单(退款)申请卡片(R-PAY-02):金额/原因/状态 + 通过/驳回操作。 */

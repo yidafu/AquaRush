@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { Notice } from '@aquarush/common'
+import { NoticeVo } from '@aquarush/common'
 import NoticeService from '../../services/NoticeService'
 import StatusTag from '../../components/StatusTag'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
@@ -22,7 +22,7 @@ const NoticeDetailPage: React.FC = () => {
   usePageViewTracking()
 
   const router = useRouter()
-  const [notices, setNotices] = useState<Notice[]>([])
+  const [notices, setNotices] = useState<NoticeVo[]>([])
   const [selectedId, setSelectedId] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
 

@@ -6,12 +6,12 @@ import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { DeliveryWorkerStatus } from '@aquarush/common';
-import type { DeliveryWorker } from '@aquarush/common';
+import type { DeliveryWorkerVo } from '@aquarush/common';
 
 interface AssignWorkerSheetProps {
   visible: boolean;
   onClose: () => void;
-  workers: DeliveryWorker[];
+  workers: DeliveryWorkerVo[];
   isSelfCollect: boolean;
   assigning: boolean;
   /** 当前订单配送员 id(用于「当前」角标) */

@@ -21,13 +21,13 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
-import dev.yidafu.aqua.common.graphql.generated.DailyLoginStatistic
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerOverview
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerRankingItem
-import dev.yidafu.aqua.common.graphql.generated.LoginStatistics
-import dev.yidafu.aqua.common.graphql.generated.OrderUserDistribution
-import dev.yidafu.aqua.common.graphql.generated.OrderUserTier
-import dev.yidafu.aqua.common.graphql.generated.UserStatistics
+import dev.yidafu.aqua.common.graphql.generated.DailyLoginStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerOverviewVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerRankingItemVo
+import dev.yidafu.aqua.common.graphql.generated.LoginStatisticsVo
+import dev.yidafu.aqua.common.graphql.generated.OrderUserDistributionVo
+import dev.yidafu.aqua.common.graphql.generated.OrderUserTierVo
+import dev.yidafu.aqua.common.graphql.generated.UserStatisticsVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -48,7 +48,7 @@ class AdminStatisticsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
-  fun userStatistics(): UserStatistics {
+  fun userStatistics(): UserStatisticsVo {
     val result = userStatisticsService.getUserStatistics()
     val thirtyDaysAgo = LocalDate.now().minusDays(30)
     val dailyStats = userStatisticsService.getDailyNewUsers(thirtyDaysAgo, LocalDate.now())
@@ -57,13 +57,13 @@ class AdminStatisticsQueryResolver(
     val loginResult = userStatisticsService.getLoginStatistics(thirtyDaysAgo, LocalDate.now())
     val loginStats =
       loginResult.dailyLogins.map {
-        DailyLoginStatistic(
+        DailyLoginStatisticVo(
           date = it.date,
           loginCount = it.loginCount,
         )
       }
     val loginStatistics =
-      LoginStatistics(
+      LoginStatisticsVo(
         todayLogins = loginResult.todayLogins.toInt(),
         totalLogins = loginResult.totalLogins.toInt(),
         dailyLogins = loginStats,
@@ -72,20 +72,20 @@ class AdminStatisticsQueryResolver(
     // 下单用户分布(G35,近30天窗口,与 activeUsers 同窗口)
     val distribution = userStatisticsService.getOrderUserDistribution(thirtyDaysAgo, LocalDate.now())
     val orderDistribution =
-      OrderUserDistribution(
+      OrderUserDistributionVo(
         orderingUsers = distribution.orderingUsers.toInt(),
         orderingUserRatio = distribution.orderingUserRatio,
         repurchaseRate = distribution.repurchaseRate,
         tiers =
           distribution.tiers.map {
-            OrderUserTier(
+            OrderUserTierVo(
               label = it.label,
               userCount = it.userCount.toInt(),
             )
           },
       )
 
-    return UserStatistics(
+    return UserStatisticsVo(
       totalUsers = result.totalUsers.toInt(),
       todayNewUsers = result.todayNewUsers.toInt(),
       monthNewUsers = result.monthNewUsers.toInt(),
@@ -101,9 +101,9 @@ class AdminStatisticsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
-  fun deliveryWorkerStatistics(): DeliveryWorkerOverview {
+  fun deliveryWorkerStatistics(): DeliveryWorkerOverviewVo {
     val result = deliveryWorkerStatisticsService.getDeliveryWorkerStatistics()
-    return DeliveryWorkerOverview(
+    return DeliveryWorkerOverviewVo(
       totalWorkers = result.totalWorkers.toInt(),
       todayActiveWorkers = result.todayActiveWorkers.toInt(),
       deliveringOrders = result.deliveringOrders.toInt(),
@@ -120,11 +120,11 @@ class AdminStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun deliveryWorkerRanking(
     @Argument limit: Int = 10,
-  ): List<DeliveryWorkerRankingItem> =
+  ): List<DeliveryWorkerRankingItemVo> =
     deliveryWorkerStatisticsService
       .getDeliveryWorkerRanking(limit)
       .map {
-        DeliveryWorkerRankingItem(
+        DeliveryWorkerRankingItemVo(
           workerId = it.workerId.toString(),
           name = it.name,
           todayCompletedOrders = it.todayCompletedOrders,

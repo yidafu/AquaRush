@@ -21,11 +21,11 @@ package dev.yidafu.aqua.marketing.promotion.mapper
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
-import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.PromotionActivityTier
+import dev.yidafu.aqua.common.graphql.generated.PromotionActivityTierVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityType
+import dev.yidafu.aqua.common.graphql.generated.PromotionActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType as DomainPromotionActivityType
@@ -37,8 +37,8 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 fun PromotionActivityModel.toGraphQL(
   tiers: List<PromotionActivityTierModel>,
   currentStatus: PromotionActivityDisplayStatus,
-): PromotionActivity =
-  PromotionActivity(
+): PromotionActivityVo =
+  PromotionActivityVo(
     id = id ?: 0L,
     name = name,
     activityType = activityType.toGraphQL(),
@@ -57,8 +57,8 @@ fun PromotionActivityModel.toGraphQL(
 /**
  * 活动档位映射器:域实体 → GraphQL 类型
  */
-fun PromotionActivityTierModel.toGraphQL(): PromotionActivityTier =
-  PromotionActivityTier(
+fun PromotionActivityTierModel.toGraphQL(): PromotionActivityTierVo =
+  PromotionActivityTierVo(
     id = id ?: 0L,
     thresholdCents = thresholdCents,
     discountAmountCents = discountAmountCents,

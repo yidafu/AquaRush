@@ -1,14 +1,14 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtCard } from 'taro-ui'
-import type { Review } from '@aquarush/common'
+import type { ReviewVo } from '@aquarush/common'
 import StarRating from '../../../components/StarRating'
 
 import "taro-ui/dist/style/components/card.scss"
 import './OrderReviewCard.scss'
 
 interface OrderReviewCardProps {
-  review: Review
+  review: ReviewVo
 }
 
 /**

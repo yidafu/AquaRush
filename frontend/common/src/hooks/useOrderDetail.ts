@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { Order } from '../types/graphql'
+import type { OrderVo } from '../types/graphql'
 import { buildCostRows, orderCostSnapshotFromOrder, type CostRow } from '../utils/order-cost'
 import { getStatusView } from '../utils/order-status'
 import type { StatusTone } from '../utils/status-tone'
@@ -16,7 +16,7 @@ import { toOrderDetailView, type OrderDetailView } from './order-view'
 
 export interface UseOrderDetailOptions {
   /** 数据获取(各端注入:返回 null 表示无数据) */
-  fetchOrder: () => Promise<Order | null>
+  fetchOrder: () => Promise<OrderVo | null>
 }
 
 export interface OrderStatusView {
@@ -29,7 +29,7 @@ export function useOrderDetail(
   orderNo: string | undefined,
   { fetchOrder }: UseOrderDetailOptions
 ): {
-  order: Order | null
+  order: OrderVo | null
   loading: boolean
   error: string | null
   refresh: () => Promise<void>
@@ -37,7 +37,7 @@ export function useOrderDetail(
   costRows: CostRow[]
   status: OrderStatusView
 } {
-  const [order, setOrder] = useState<Order | null>(null)
+  const [order, setOrder] = useState<OrderVo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const fetchingRef = useRef(false)

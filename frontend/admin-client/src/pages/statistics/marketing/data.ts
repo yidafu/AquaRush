@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { MarketingBreakdownKind } from '@aquarush/common';
-import type { MarketingStatistics } from '@aquarush/common';
+import type { MarketingStatisticsVo } from '@aquarush/common';
 
 /**
  * 营销统计页(MarketingStatisticsPage)单页查询(F-STA-007):
@@ -50,7 +50,7 @@ export const GET_MARKETING_STATISTICS = gql`
 `;
 
 export interface MarketingStatisticsData {
-  marketingStatistics: MarketingStatistics;
+  marketingStatistics: MarketingStatisticsVo;
 }
 
 /** 营销方式使用明细 Segmented 选项与列配置 */

@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.FeedbackQueryService
-import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
+import dev.yidafu.aqua.common.graphql.generated.FeedbackVo
 import dev.yidafu.aqua.common.graphql.generated.FeedbackVoPage
 import dev.yidafu.aqua.ops.feedback.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
@@ -62,5 +62,5 @@ class AdminFeedbackQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_FEEDBACK_READ')")
   fun feedback(
     @Argument id: Long,
-  ): Feedback? = feedbackQueryService.getFeedback(id)?.let { it.toGraphQL() }
+  ): FeedbackVo? = feedbackQueryService.getFeedback(id)?.let { it.toGraphQL() }
 }

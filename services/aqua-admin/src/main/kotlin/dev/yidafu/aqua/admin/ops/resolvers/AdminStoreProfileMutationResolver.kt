@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.StoreProfileMutationService
 import dev.yidafu.aqua.common.graphql.generated.SaveStoreProfileInput
-import dev.yidafu.aqua.common.graphql.generated.StoreProfile
+import dev.yidafu.aqua.common.graphql.generated.StoreProfileVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.ops.storeprofile.mapper.toGraphQL
 import dev.yidafu.aqua.ops.storeprofile.mapper.toRequest
@@ -51,7 +51,7 @@ class AdminStoreProfileMutationResolver(
   fun saveStoreProfile(
     @Argument @Valid input: SaveStoreProfileInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): StoreProfile {
+  ): StoreProfileVo {
     logger.info("Admin {} saving store profile", principal.username)
     val profile =
       storeProfileMutationService.saveStoreProfile(

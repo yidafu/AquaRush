@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { Money, centsToYuan } from '@aquarush/common';
 import type {
-  DeliveryWorkerOverview,
-  DeliveryWorkerRankingItem,
-  DailyStatistic,
-  PendingOrderBreakdown,
-  UserStatistics,
+  DeliveryWorkerOverviewVo,
+  DeliveryWorkerRankingItemVo,
+  DailyStatisticVo,
+  PendingOrderBreakdownVo,
+  UserStatisticsVo,
 } from '@aquarush/common';
 
 import { Card } from '@/components/card';
@@ -25,11 +25,11 @@ import {
 } from '@/services/admin';
 
 interface DashboardData {
-  breakdown: PendingOrderBreakdown | null;
-  workers: DeliveryWorkerOverview | null;
-  users: Pick<UserStatistics, 'totalUsers' | 'todayNewUsers' | 'activeUsers'> | null;
-  ranking: readonly DeliveryWorkerRankingItem[];
-  daily: readonly DailyStatistic[];
+  breakdown: PendingOrderBreakdownVo | null;
+  workers: DeliveryWorkerOverviewVo | null;
+  users: Pick<UserStatisticsVo, 'totalUsers' | 'todayNewUsers' | 'activeUsers'> | null;
+  ranking: readonly DeliveryWorkerRankingItemVo[];
+  daily: readonly DailyStatisticVo[];
 }
 
 function daysAgo(days: number): Date {

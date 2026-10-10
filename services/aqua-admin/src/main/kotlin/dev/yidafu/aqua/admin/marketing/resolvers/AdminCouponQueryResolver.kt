@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.CouponQueryService
-import dev.yidafu.aqua.common.graphql.generated.CouponTemplate
+import dev.yidafu.aqua.common.graphql.generated.CouponTemplateAdminVo
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateListInput
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateVoPage
 import dev.yidafu.aqua.marketing.coupon.mapper.toDomain
@@ -78,7 +78,7 @@ class AdminCouponQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun couponTemplate(
     @Argument id: Long,
-  ): CouponTemplate? {
+  ): CouponTemplateAdminVo? {
     val template = couponQueryService.getTemplate(id) ?: return null
     return template.toGraphQL(
       receivedCount = couponQueryService.receivedCount(id).toInt(),

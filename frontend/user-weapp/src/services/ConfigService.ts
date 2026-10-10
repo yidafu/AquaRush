@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import { Banner, DeliveryFeeRule, DeliverySlotVo } from '@aquarush/common'
+import { BannerVo, DeliveryFeeRuleVo, DeliverySlotVo } from '@aquarush/common'
 
 export interface ConfigServiceResult<T> {
   success: true
@@ -37,7 +37,7 @@ class ConfigService {
   /**
    * 获取当前生效的轮播图列表(按排序号升序;未配置/无生效条目返回空数组)
    */
-  public async getActiveBanners(): Promise<ConfigServiceResponse<Banner[]>> {
+  public async getActiveBanners(): Promise<ConfigServiceResponse<BannerVo[]>> {
     const query = `
       query ActiveBanners {
         activeBanners {
@@ -54,7 +54,7 @@ class ConfigService {
     `
 
     try {
-      const response = await networkManager.query<{ activeBanners: Banner[] }>(query)
+      const response = await networkManager.query<{ activeBanners: BannerVo[] }>(query)
       return {
         success: true,
         data: response.data?.activeBanners ?? []
@@ -75,9 +75,9 @@ class ConfigService {
    * 获取配送费规则(F-OPS-005,楼层口径):免费楼层 + 超出一次性加价
    * 未配置时服务端返回默认规则(免费4楼/加价2元);金额为分(Long 以字符串返回,normalize 转 number)。
    */
-  public async getDeliveryFeeRule(): Promise<ConfigServiceResponse<DeliveryFeeRule>> {
+  public async getDeliveryFeeRule(): Promise<ConfigServiceResponse<DeliveryFeeRuleVo>> {
     const query = `
-      query DeliveryFeeRule {
+      query DeliveryFeeRuleVo {
         deliveryFeeRule {
           freeFloorLimit
           surchargeCents
@@ -87,7 +87,7 @@ class ConfigService {
     `
 
     try {
-      const response = await networkManager.query<{ deliveryFeeRule: DeliveryFeeRule }>(query)
+      const response = await networkManager.query<{ deliveryFeeRule: DeliveryFeeRuleVo }>(query)
       const rule = response.data?.deliveryFeeRule
       return {
         success: true,

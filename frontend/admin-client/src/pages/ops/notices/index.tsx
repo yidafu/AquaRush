@@ -3,7 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Switch, message } from 'an
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '@aquarush/common';
-import type { Notice, NoticeStatus } from '@aquarush/common';
+import type { NoticeVo, NoticeStatus } from '@aquarush/common';
 import {
   useNotices,
   useCreateNotice,
@@ -28,7 +28,7 @@ const Notices: React.FC = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<Notice | null>(null);
+  const [editingRecord, setEditingRecord] = useState<NoticeVo | null>(null);
 
   const [createNotice, { loading: creating }] = useCreateNotice();
   const [updateNotice, { loading: updating }] = useUpdateNotice();
@@ -60,12 +60,12 @@ const Notices: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: Notice) => {
+  const handleEdit = (record: NoticeVo) => {
     setEditingRecord(record);
     setModalOpen(true);
   };
 
-  const handleSubmit = async (payload: NoticeFormPayload, record: Notice | null) => {
+  const handleSubmit = async (payload: NoticeFormPayload, record: NoticeVo | null) => {
     if (record) {
       await updateNotice({ variables: { id: record.id, input: payload } });
     } else {
@@ -74,23 +74,23 @@ const Notices: React.FC = () => {
     setModalOpen(false);
   };
 
-  const handlePublish = async (record: Notice) => {
+  const handlePublish = async (record: NoticeVo) => {
     await publishNotice({ variables: { id: record.id } });
   };
 
-  const handleStop = async (record: Notice) => {
+  const handleStop = async (record: NoticeVo) => {
     await stopNotice({ variables: { id: record.id } });
   };
 
-  const handleTogglePinned = async (record: Notice, pinned: boolean) => {
+  const handleTogglePinned = async (record: NoticeVo, pinned: boolean) => {
     await setNoticePinned({ variables: { id: record.id, pinned } });
   };
 
-  const handleDelete = async (record: Notice) => {
+  const handleDelete = async (record: NoticeVo) => {
     await deleteNotice({ variables: { id: record.id } });
   };
 
-  const columns: ColumnsType<Notice> = [
+  const columns: ColumnsType<NoticeVo> = [
     { title: '标题', dataIndex: 'title', width: 220, ellipsis: true },
     {
       title: '类型',
@@ -182,7 +182,7 @@ const Notices: React.FC = () => {
         </Button>
       }
     >
-      <Table<Notice>
+      <Table<NoticeVo>
         rowKey="id"
         columns={columns}
         dataSource={notices}

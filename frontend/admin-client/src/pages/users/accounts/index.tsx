@@ -23,7 +23,7 @@ import {
   type UpdateAdminInput,
   type UpdateDeliveryWorkerInput,
 } from '../../../services/user-graphql';
-import type { Admin as AdminDTO, DeliveryWorker as DeliveryWorkerDTO } from '@aquarush/common';
+import type { AdminVo as AdminDTO, DeliveryWorkerVo as DeliveryWorkerDTO } from '@aquarush/common';
 import type {
   AdminFormData,
   DeliveryWorkerFormData,

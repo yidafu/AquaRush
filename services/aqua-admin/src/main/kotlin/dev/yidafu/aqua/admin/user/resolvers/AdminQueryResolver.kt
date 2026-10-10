@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.common.graphql.generated.AdminVo
 import dev.yidafu.aqua.common.graphql.generated.AdminVoPage
+import dev.yidafu.aqua.common.graphql.generated.RegionVo
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.mapper.toGraphQL
@@ -90,13 +90,15 @@ class AdminQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun regions(
     @Argument parentCode: String?,
-  ): List<RegionModel> =
+  ): List<RegionVo> =
     try {
-      if (parentCode.isNullOrBlank()) {
-        regionRepository.findRootRegions(1)
-      } else {
-        regionRepository.findByParentCodeOrderByCode(parentCode)
-      }
+      (
+        if (parentCode.isNullOrBlank()) {
+          regionRepository.findRootRegions(1)
+        } else {
+          regionRepository.findByParentCodeOrderByCode(parentCode)
+        }
+      ).map { it.toGraphQL() }
     } catch (e: Exception) {
       logger.error("Error fetching regions for parentCode={}", parentCode, e)
       emptyList()

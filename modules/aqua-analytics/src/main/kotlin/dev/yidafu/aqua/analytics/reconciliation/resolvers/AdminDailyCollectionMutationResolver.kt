@@ -19,14 +19,15 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
+import dev.yidafu.aqua.analytics.reconciliation.mapper.toGraphQL
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
-import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
-import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
+import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecordVo
+import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationVo
 import dev.yidafu.aqua.common.graphql.generated.RejectDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
@@ -60,7 +61,7 @@ class AdminDailyCollectionMutationResolver(
   fun submitDailyCollection(
     @Argument input: SubmitDailyCollectionInput,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): DailyCollectionRecordModel {
+  ): DailyCollectionRecordVo {
     // 从当前用户获取配送员ID(账号 id 即送水员 id)
     val workerId = adminService.findByUsername(userDetails.username)?.id ?: throw BadRequestException("用户不存在")
 
@@ -93,7 +94,7 @@ class AdminDailyCollectionMutationResolver(
           "qrCodeAmountCents" to input.qrCodeAmountCents,
         ),
     )
-    return record
+    return record.toGraphQL()
   }
 
   /**
@@ -104,7 +105,7 @@ class AdminDailyCollectionMutationResolver(
   fun confirmDailyCollection(
     @Argument input: ConfirmDailyCollectionInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyCollectionRecordModel {
+  ): DailyCollectionRecordVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -132,7 +133,7 @@ class AdminDailyCollectionMutationResolver(
       username = userDetails.username,
       additionalData = mapOf("recordId" to input.recordId, "notes" to (input.notes ?: "")),
     )
-    return record
+    return record.toGraphQL()
   }
 
   /**
@@ -143,7 +144,7 @@ class AdminDailyCollectionMutationResolver(
   fun rejectDailyCollection(
     @Argument input: RejectDailyCollectionInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyCollectionRecordModel {
+  ): DailyCollectionRecordVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -174,7 +175,7 @@ class AdminDailyCollectionMutationResolver(
       username = userDetails.username,
       additionalData = mapOf("recordId" to input.recordId, "reason" to input.reason),
     )
-    return record
+    return record.toGraphQL()
   }
 
   /**
@@ -185,7 +186,7 @@ class AdminDailyCollectionMutationResolver(
   fun reviewReconciliation(
     @Argument input: ReviewReconciliationInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyReconciliationModel {
+  ): DailyReconciliationVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -216,7 +217,7 @@ class AdminDailyCollectionMutationResolver(
       username = userDetails.username,
       additionalData = mapOf("reviewNotes" to input.reviewNotes),
     )
-    return model
+    return model.toGraphQL()
   }
 
   /**
@@ -229,7 +230,7 @@ class AdminDailyCollectionMutationResolver(
   fun executeDailyReconciliation(
     @Argument reconciliationDate: String?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyReconciliationModel {
+  ): DailyReconciliationVo {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -254,6 +255,6 @@ class AdminDailyCollectionMutationResolver(
       username = userDetails.username,
       additionalData = mapOf("reconciliationDate" to date.toString()),
     )
-    return result
+    return result.toGraphQL()
   }
 }

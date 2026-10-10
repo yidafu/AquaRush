@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.marketing.flashsale.mapper
 
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
-import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
+import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
@@ -32,8 +32,8 @@ fun FlashSaleActivityModel.toGraphQL(
   currentStatus: PromotionActivityDisplayStatus,
   productName: String?,
   catalogPriceCents: Long?,
-): FlashSaleActivity =
-  FlashSaleActivity(
+): FlashSaleActivityVo =
+  FlashSaleActivityVo(
     id = id ?: 0L,
     name = name,
     productId = productId,

@@ -3,7 +3,7 @@ import { Form, Input, InputNumber, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { TicketTypeKind, ValidityType } from '@aquarush/common';
-import type { TicketType } from '@aquarush/common';
+import type { TicketTypeAdminVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 import FormModal from '@/components/FormModal';
 
@@ -41,10 +41,10 @@ interface FormValues {
 
 interface Props {
   open: boolean;
-  record: TicketType | null;
+  record: TicketTypeAdminVo | null;
   submitting: boolean;
   onCancel: () => void;
-  onSubmit: (payload: TicketTypeFormPayload, record: TicketType | null) => void;
+  onSubmit: (payload: TicketTypeFormPayload, record: TicketTypeAdminVo | null) => void;
 }
 
 const TICKET_TYPE_OPTIONS = [

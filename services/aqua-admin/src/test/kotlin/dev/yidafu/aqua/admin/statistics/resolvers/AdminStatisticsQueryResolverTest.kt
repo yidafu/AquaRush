@@ -28,7 +28,7 @@ import dev.yidafu.aqua.analytics.statistics.dto.OrderUserTierDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.common.graphql.generated.DailyStatisticVo
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -51,7 +51,7 @@ class AdminStatisticsQueryResolverTest :
       every { userStatisticsService.getUserStatistics() } returns
         UserStatisticsDTO(totalUsers = 100L, todayNewUsers = 5L, monthNewUsers = 30L, activeUsers = 50L)
       every { userStatisticsService.getDailyNewUsers(any(), any()) } returns
-        listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L, refundCents = 0L))
+        listOf(DailyStatisticVo(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L, refundCents = 0L))
       every { userStatisticsService.getLoginStatistics(any(), any()) } returns
         LoginStatisticsDTO(todayLogins = 10L, totalLogins = 1000L, dailyLogins = listOf(DailyLoginStatisticDTO("2025-01-01", 3)))
       every { userStatisticsService.getOrderUserDistribution(any(), any()) } returns

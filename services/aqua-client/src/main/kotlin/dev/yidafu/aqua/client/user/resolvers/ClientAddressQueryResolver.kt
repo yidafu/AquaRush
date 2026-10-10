@@ -21,7 +21,7 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
@@ -46,7 +46,7 @@ class ClientAddressQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun userAddresses(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<Address> = addressService.findByUserId(userPrincipal.id).map { it.toGraphQL() }
+  ): List<AddressVo> = addressService.findByUserId(userPrincipal.id).map { it.toGraphQL() }
 
   /**
    * 根据ID获取用户地址（只能查看自己的地址）
@@ -56,7 +56,7 @@ class ClientAddressQueryResolver(
   fun address(
     @Argument id: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Address? {
+  ): AddressVo? {
     // 先获取地址，再验证所有权
     val address = addressService.findById(id)
     if (address != null && address.userId != userPrincipal.id) {

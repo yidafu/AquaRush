@@ -30,7 +30,7 @@ enum BizLogLevel {
 }
 
 # 业务日志
-type BusinessLog {
+type BusinessLogVO {
   # 主键
   id: PrimaryId!
   # 关联ID(关联订单操作时间线与请求链)
@@ -73,8 +73,8 @@ input BusinessLogListInput {
   size: Int = 10
 }
 
-# 业务日志分页结果(PageInfo 风格,恒 createdAt 倒序)
+# 业务日志分页结果(PageInfoVO 风格,恒 createdAt 倒序)
 type BusinessLogVOPage {
-  list: [BusinessLog!]!
-  pageInfo: PageInfo!
+  list: [BusinessLogVO!]!
+  pageInfo: PageInfoVO!
 }

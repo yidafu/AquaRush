@@ -21,15 +21,15 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
-import dev.yidafu.aqua.common.graphql.generated.DateRange
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
-import dev.yidafu.aqua.common.graphql.generated.MonthlyStatistic
-import dev.yidafu.aqua.common.graphql.generated.OrderStatistics
+import dev.yidafu.aqua.common.graphql.generated.DateRangeVo
+import dev.yidafu.aqua.common.graphql.generated.MonthlyStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.OrderStatisticsVo
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
-import dev.yidafu.aqua.common.graphql.generated.OrderStatusStatistic
-import dev.yidafu.aqua.common.graphql.generated.OrderValueBucketStatistic
-import dev.yidafu.aqua.common.graphql.generated.PeakHourStatistic
-import dev.yidafu.aqua.common.graphql.generated.WeeklyStatistic
+import dev.yidafu.aqua.common.graphql.generated.OrderStatusStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.OrderValueBucketStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.PeakHourStatisticVo
+import dev.yidafu.aqua.common.graphql.generated.WeeklyStatisticVo
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -57,7 +57,7 @@ class AdminOrderStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun orderStatistics(
     @Argument input: DateRangeInput,
-  ): OrderStatistics {
+  ): OrderStatisticsVo {
     val startDate = input.startDate.toLocalDate()
     val endDate = input.endDate.toLocalDate()
     val result = statisticsService.getOrderStatistics(startDate, endDate)
@@ -67,7 +67,7 @@ class AdminOrderStatisticsQueryResolver(
       } else {
         0L
       }
-    return OrderStatistics(
+    return OrderStatisticsVo(
       totalOrders = result.totalOrders.toInt(),
       completedOrders = result.completedOrders.toInt(),
       totalRevenueCents = result.completedAmountCents,
@@ -75,7 +75,7 @@ class AdminOrderStatisticsQueryResolver(
       refundAmountCents = result.refundedAmountCents,
       netRevenueCents = result.netRevenueCents,
       dateRange =
-        DateRange(
+        DateRangeVo(
           startDate = input.startDate,
           endDate = input.endDate,
         ),
@@ -83,7 +83,7 @@ class AdminOrderStatisticsQueryResolver(
         statisticsService
           .getOrderStatusDistribution(startDate, endDate)
           .map {
-            OrderStatusStatistic(
+            OrderStatusStatisticVo(
               status = OrderStatus.valueOf(it.status.name),
               count = it.count.toInt(),
             )
@@ -92,7 +92,7 @@ class AdminOrderStatisticsQueryResolver(
         statisticsService
           .getOrderValueDistribution(startDate, endDate)
           .map {
-            OrderValueBucketStatistic(
+            OrderValueBucketStatisticVo(
               fromCents = it.fromCents,
               toCents = it.toCents,
               label = it.label,
@@ -103,7 +103,7 @@ class AdminOrderStatisticsQueryResolver(
         statisticsService
           .getPeakHourDistribution(startDate, endDate)
           .map {
-            PeakHourStatistic(
+            PeakHourStatisticVo(
               hour = it.hour,
               count = it.count.toInt(),
             )
@@ -118,7 +118,7 @@ class AdminOrderStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun weeklyStatistics(
     @Argument input: DateRangeInput,
-  ): List<WeeklyStatistic> =
+  ): List<WeeklyStatisticVo> =
     statisticsService
       .getWeeklyStatistics(input.startDate.toLocalDate(), input.endDate.toLocalDate())
       .map { it.toWeeklyStatistic() }
@@ -130,14 +130,14 @@ class AdminOrderStatisticsQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun monthlyStatistics(
     @Argument input: DateRangeInput,
-  ): List<MonthlyStatistic> =
+  ): List<MonthlyStatisticVo> =
     statisticsService
       .getMonthlyStatistics(input.startDate.toLocalDate(), input.endDate.toLocalDate())
       .map { it.toMonthlyStatistic() }
 
-  private fun DailyStatisticsDTO.toWeeklyStatistic(): WeeklyStatistic {
+  private fun DailyStatisticsDTO.toWeeklyStatistic(): WeeklyStatisticVo {
     val weekStart = date
-    return WeeklyStatistic(
+    return WeeklyStatisticVo(
       weekNumber = weekStart.get(isoWeekFields.weekOfWeekBasedYear()),
       year = weekStart.get(isoWeekFields.weekBasedYear()),
       startDate = weekStart.toString(),
@@ -149,9 +149,9 @@ class AdminOrderStatisticsQueryResolver(
     )
   }
 
-  private fun DailyStatisticsDTO.toMonthlyStatistic(): MonthlyStatistic {
+  private fun DailyStatisticsDTO.toMonthlyStatistic(): MonthlyStatisticVo {
     val monthStart = date
-    return MonthlyStatistic(
+    return MonthlyStatisticVo(
       month = monthStart.monthValue,
       year = monthStart.year,
       monthName = "${monthStart.monthValue}月",

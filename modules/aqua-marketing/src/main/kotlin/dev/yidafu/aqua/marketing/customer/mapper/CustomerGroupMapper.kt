@@ -20,13 +20,13 @@
 package dev.yidafu.aqua.marketing.customer.mapper
 
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
-import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
+import dev.yidafu.aqua.common.graphql.generated.CustomerGroupVo
 
 /**
  * 客户分组映射器:域实体 → GraphQL 类型(成员数由服务统计后传入,PRD 10-marketing.md §F-MKT-001)
  */
-fun CustomerGroupModel.toGraphQL(memberCount: Long): CustomerGroup =
-  CustomerGroup(
+fun CustomerGroupModel.toGraphQL(memberCount: Long): CustomerGroupVo =
+  CustomerGroupVo(
     id = id ?: 0L,
     name = name,
     description = description,

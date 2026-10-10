@@ -22,7 +22,7 @@ package dev.yidafu.aqua.admin.order.resolvers
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.common.domain.model.ReviewModel
-import dev.yidafu.aqua.common.graphql.generated.Review
+import dev.yidafu.aqua.common.graphql.generated.ReviewVo
 import dev.yidafu.aqua.common.graphql.generated.ReviewVoPage
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -81,8 +81,8 @@ class AdminReviewQueryResolver(
     )
   }
 
-  private fun ReviewModel.toGraphQL(): Review =
-    Review(
+  private fun ReviewModel.toGraphQL(): ReviewVo =
+    ReviewVo(
       reviewId = id ?: 0L,
       orderId = orderId,
       userId = userId,

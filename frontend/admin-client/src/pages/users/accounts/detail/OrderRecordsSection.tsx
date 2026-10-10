@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Select, Table, Tag } from 'antd';
 import { useQuery } from '@apollo/client';
 import { DELIVERY_WORKER_ORDERS_QUERY } from '../../../../graphql/queries/user.graphql';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
@@ -69,7 +69,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
     }
   }, [status, page, pageSize, deliveryWorkerId, refetchOrders]);
 
-  const orders: Order[] = ordersData?.orders.content || [];
+  const orders: OrderVo[] = ordersData?.orders.content || [];
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
@@ -88,7 +88,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       dataIndex: ['user', 'nickname'],
       key: 'userNickname',
       width: 120,
-      render: (nickname: string, record: Order) => (
+      render: (nickname: string, record: OrderVo) => (
         <div>
           <div>{nickname || '未知用户'}</div>
           <div style={{ fontSize: '12px', color: '#999' }}>
@@ -101,7 +101,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       title: '商品信息',
       dataIndex: 'items',
       key: 'items',
-      render: (items: Order['items']) => {
+      render: (items: OrderVo['items']) => {
         const productNames = (items ?? []).map((item) => item.product?.name).filter(Boolean);
         const quantity = (items ?? []).reduce((sum, item) => sum + item.quantity, 0);
         return (
@@ -128,7 +128,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       dataIndex: ['address', 'detailAddress'],
       key: 'address',
       width: 200,
-      render: (detailAddress: string, record: Order) => (
+      render: (detailAddress: string, record: OrderVo) => (
         <div>
           <div>{detailAddress}</div>
           <div style={{ fontSize: '12px', color: '#999' }}>

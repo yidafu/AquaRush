@@ -22,7 +22,7 @@ package dev.yidafu.aqua.analytics.statistics.service
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.common.graphql.generated.DailyStatisticVo
 import java.time.LocalDate
 
 /**
@@ -40,7 +40,7 @@ interface UserStatisticsService {
   fun getDailyNewUsers(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<DailyStatistic>
+  ): List<DailyStatisticVo>
 
   /**
    * 获取用户登录统计

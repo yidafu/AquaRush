@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
 import { formatCentsToCurrency, formatDateTime, normalizeCents } from '@aquarush/common';
-import type { Order } from '@aquarush/common';
+import type { OrderVo } from '@aquarush/common';
 
 import { resolveAssetUrl } from '@/utils/url';
 
@@ -32,7 +32,7 @@ export interface PosterOrderData {
 }
 
 /** 订单详情 Order → 海报数据（处理 Maybe 空值） */
-export function toPosterOrderData(order: Order): PosterOrderData {
+export function toPosterOrderData(order: OrderVo): PosterOrderData {
   return {
     orderNo: order.orderNo,
     amountCents: order.amountCents,

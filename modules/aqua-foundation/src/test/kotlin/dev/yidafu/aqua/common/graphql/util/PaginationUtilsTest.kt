@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.graphql.util
 
-import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.springframework.data.domain.PageImpl
@@ -73,8 +73,8 @@ class PaginationUtilsTest :
       pageInfo.hasNext shouldBe false
       pageInfo.total shouldBe 0
     }
-    test("PageInfo should be data class with fields") {
-      val info = PageInfo(hasNext = true, hasPrevious = false, pageNum = 0, pageSize = 10, total = 1, totalPages = 1)
-      PageInfo(hasNext = true, hasPrevious = false, pageNum = 0, pageSize = 10, total = 1, totalPages = 1) shouldBe info
+    test("PageInfoVo should be data class with fields") {
+      val info = PageInfoVo(hasNext = true, hasPrevious = false, pageNum = 0, pageSize = 10, total = 1, totalPages = 1)
+      PageInfoVo(hasNext = true, hasPrevious = false, pageNum = 0, pageSize = 10, total = 1, totalPages = 1) shouldBe info
     }
   })

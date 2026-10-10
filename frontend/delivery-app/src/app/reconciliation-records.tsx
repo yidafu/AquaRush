@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { usePagedList } from '@aquarush/common';
-import type { DailyReconciliation } from '@aquarush/common';
+import type { DailyReconciliationVo } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { ListFooterStatus } from '@/components/list-footer-status';
@@ -24,7 +24,7 @@ export default function ReconciliationRecordsScreen() {
     hasMore,
     refresh,
     loadMore,
-  } = usePagedList<DailyReconciliation>({
+  } = usePagedList<DailyReconciliationVo>({
     // 服务端分页(规则 #13):按对账日期倒序,pageInfo.hasNext 驱动触底加载
     fetchPage: async (page) => {
       const res = await getDailyReconciliations(page, PAGE_SIZE);
@@ -56,7 +56,7 @@ export default function ReconciliationRecordsScreen() {
     loadMore().catch(() => {});
   }, [loadMore]);
 
-  const handleOpenDetail = useCallback((record: DailyReconciliation) => {
+  const handleOpenDetail = useCallback((record: DailyReconciliationVo) => {
     setDetailDate(record.reconciliationDate);
   }, []);
 

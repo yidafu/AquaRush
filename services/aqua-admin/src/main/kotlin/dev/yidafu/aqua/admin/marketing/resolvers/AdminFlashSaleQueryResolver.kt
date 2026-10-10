@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.FlashSaleActivityQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityListInput
+import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityVo
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.marketing.flashsale.mapper.toGraphQL
@@ -69,9 +69,9 @@ class AdminFlashSaleQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_MKT_READ')")
   fun flashSaleActivity(
     @Argument id: Long,
-  ): FlashSaleActivity? = flashSaleActivityQueryService.getActivity(id)?.let { toFlashSaleActivity(it) }
+  ): FlashSaleActivityVo? = flashSaleActivityQueryService.getActivity(id)?.let { toFlashSaleActivity(it) }
 
-  private fun toFlashSaleActivity(model: FlashSaleActivityModel): FlashSaleActivity {
+  private fun toFlashSaleActivity(model: FlashSaleActivityModel): FlashSaleActivityVo {
     val product = productQueryApiService.findById(model.productId)
     val now = LocalDateTime.now()
     val currentStatus =

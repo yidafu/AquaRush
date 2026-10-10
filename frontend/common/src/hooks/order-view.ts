@@ -1,13 +1,13 @@
 /**
- * 订单详情视图映射 —— 服务端 Order 快照 → 各端共用的展示模型(纯函数,无平台依赖)
+ * 订单详情视图映射 —— 服务端 OrderVo 快照 → 各端共用的展示模型(纯函数,无平台依赖)
  *
  * 收敛来源:user-weapp pages/order-detail/index.tsx 的 mapStatus/mapRealOrder/时间轴组装;
- * delivery-app 直接消费原始 Order(本视图为其可选迁移目标)。
+ * delivery-app 直接消费原始 OrderVo(本视图为其可选迁移目标)。
  * 平台相关渲染语义(taro-ui 图标名/CSS 变量色)不进入本模块,由各端映射:
  * - timeline.icon 为语义键,weapp 映射为 AtIcon value;
  * - timeline.tone 为 StatusTone,weapp 映射为 CSS 变量色。
  */
-import type { Order } from '../types/graphql'
+import type { OrderVo } from '../types/graphql'
 import { OrderStatus } from '../types/graphql'
 import { normalizeCents } from '../utils/money'
 import type { StatusTone } from '../utils/status-tone'
@@ -55,7 +55,7 @@ export interface OrderStatusFlags {
 }
 
 export interface OrderDetailView {
-  order: Order
+  order: OrderVo
   items: OrderItemView[]
   timeline: OrderTimelineView[]
   address: OrderAddressView | null
@@ -72,7 +72,7 @@ export const statusFlagsOf = (status: OrderStatus): OrderStatusFlags => ({
 })
 
 /** 订单状态 → 时间轴条目(仅已发生节点;time 为空则跳过) */
-export const buildOrderTimeline = (order: Order): OrderTimelineView[] => {
+export const buildOrderTimeline = (order: OrderVo): OrderTimelineView[] => {
   const timeline: OrderTimelineView[] = []
   if (order.createdAt) {
     timeline.push({ time: order.createdAt, title: '订单创建', content: '您的订单已创建', icon: 'order-created', tone: 'info' })
@@ -99,8 +99,8 @@ export const buildOrderTimeline = (order: Order): OrderTimelineView[] => {
   return timeline
 }
 
-/** 服务端 Order → 展示模型 */
-export const toOrderDetailView = (order: Order): OrderDetailView => {
+/** 服务端 OrderVo → 展示模型 */
+export const toOrderDetailView = (order: OrderVo): OrderDetailView => {
   const items: OrderItemView[] = (order.items ?? []).map((item) => {
     // 成交单价(分,快照);目录价(分,商品快照)—— 划线价判定:成交单价 ≠ 目录价即命中营销价(AC-ORD-003-09,R-MKT-01/02)
     const unitPriceCents = normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0

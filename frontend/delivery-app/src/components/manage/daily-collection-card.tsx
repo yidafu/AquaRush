@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
-import type { DailyCollectionRecord } from '@aquarush/common';
+import type { DailyCollectionRecordVo } from '@aquarush/common';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -12,11 +12,11 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 interface DailyCollectionCardProps {
-  record: DailyCollectionRecord;
+  record: DailyCollectionRecordVo;
   /** 管理员确认收款 */
-  onConfirm?: (record: DailyCollectionRecord) => void;
+  onConfirm?: (record: DailyCollectionRecordVo) => void;
   /** 管理员驳回收款 */
-  onReject?: (record: DailyCollectionRecord) => void;
+  onReject?: (record: DailyCollectionRecordVo) => void;
 }
 
 /** 收银对账-每日收款记录卡片(F-COL-010):送水员/日期/填报与系统计算值/差异/状态 + 确认/驳回操作。 */

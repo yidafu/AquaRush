@@ -42,7 +42,7 @@ import {
   updateOrderAddress,
 } from '@/services/delivery';
 import { buildOrderDeepLink, shareOrderToWechat } from '@/services/wechat-share';
-import type { DeliveryWorker, UpdateOrderAddressInput } from '@aquarush/common';
+import type { DeliveryWorkerVo, UpdateOrderAddressInput } from '@aquarush/common';
 
 export default function OrderDetailScreen() {
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
@@ -61,7 +61,7 @@ export default function OrderDetailScreen() {
 
   // 管理员派单
   const [assignSheetVisible, setAssignSheetVisible] = useState(false);
-  const [assignWorkers, setAssignWorkers] = useState<DeliveryWorker[]>([]);
+  const [assignWorkers, setAssignWorkers] = useState<DeliveryWorkerVo[]>([]);
   const [assignIsSelfCollect, setAssignIsSelfCollect] = useState(false);
   const [assignLoading, setAssignLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);

@@ -26,7 +26,7 @@ import dev.yidafu.aqua.api.service.barrel.BarrelFeeMutationService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
-import dev.yidafu.aqua.common.graphql.generated.BarrelFee
+import dev.yidafu.aqua.common.graphql.generated.BarrelFeeAdminVo
 import dev.yidafu.aqua.common.graphql.generated.CreateBarrelFeeInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateBarrelFeeInput
 import dev.yidafu.aqua.marketing.barrel.mapper.toGraphQL
@@ -54,7 +54,7 @@ class AdminBarrelFeeMutationResolver(
   fun createBarrelFee(
     @Argument @Valid input: CreateBarrelFeeInput,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelFee {
+  ): BarrelFeeAdminVo {
     requireLogin(userDetails)
     val fee =
       barrelFeeMutationService.create(
@@ -74,7 +74,7 @@ class AdminBarrelFeeMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateBarrelFeeInput,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelFee {
+  ): BarrelFeeAdminVo {
     requireLogin(userDetails)
     val fee =
       barrelFeeMutationService.update(
@@ -94,7 +94,7 @@ class AdminBarrelFeeMutationResolver(
   fun disableBarrelFee(
     @Argument id: Long,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelFee {
+  ): BarrelFeeAdminVo {
     requireLogin(userDetails)
     val fee = barrelFeeMutationService.disable(id)
     logger.info("Admin {} 停用水桶费价目: id={}", userDetails?.username, id)

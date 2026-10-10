@@ -5,10 +5,10 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import type { Address } from '@aquarush/common';
+import type { AddressVo } from '@aquarush/common';
 
 interface AddressCardProps {
-  address?: Address;
+  address?: AddressVo;
   /** 提供时渲染「修改」入口(F-ORD-024 订单页地址信息修正) */
   onEdit?: () => void;
 }

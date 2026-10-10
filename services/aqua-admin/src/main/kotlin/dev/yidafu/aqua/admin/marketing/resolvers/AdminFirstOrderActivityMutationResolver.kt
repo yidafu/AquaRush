@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateFirstOrderActivityInput
-import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
+import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityVo
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -50,7 +50,7 @@ class AdminFirstOrderActivityMutationResolver(
   fun createFirstOrderActivity(
     @Argument @Valid input: CreateFirstOrderActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FirstOrderActivity {
+  ): FirstOrderActivityVo {
     logger.info("Admin {} creating first order activity: {}", principal.username, input.name)
     val activity =
       firstOrderActivityMutationService.createActivity(
@@ -67,7 +67,7 @@ class AdminFirstOrderActivityMutationResolver(
     @Argument id: Long,
     @Argument @Valid input: UpdateFirstOrderActivityInput,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FirstOrderActivity {
+  ): FirstOrderActivityVo {
     logger.info("Admin {} updating first order activity {}", principal.username, id)
     val activity =
       firstOrderActivityMutationService.updateActivity(
@@ -84,14 +84,14 @@ class AdminFirstOrderActivityMutationResolver(
   fun disableFirstOrderActivity(
     @Argument id: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): FirstOrderActivity {
+  ): FirstOrderActivityVo {
     logger.info("Admin {} disabling first order activity {}", principal.username, id)
     val activity =
       firstOrderActivityMutationService.disableActivity(principal.id, principal.username, id)
     return toFirstOrderActivity(activity)
   }
 
-  private fun toFirstOrderActivity(model: FirstOrderActivityModel): FirstOrderActivity {
+  private fun toFirstOrderActivity(model: FirstOrderActivityModel): FirstOrderActivityVo {
     val now = LocalDateTime.now()
     val currentStatus =
       when {

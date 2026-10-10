@@ -20,7 +20,8 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.api.service.order.OrderOperationService
-import dev.yidafu.aqua.common.domain.model.OrderOperationModel
+import dev.yidafu.aqua.common.graphql.generated.OrderOperationVo
+import dev.yidafu.aqua.order.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,5 +38,5 @@ class AdminOrderOperationQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orderOperations(
     @Argument orderId: Long,
-  ): List<OrderOperationModel> = orderOperationService.getOrderOperations(orderId)
+  ): List<OrderOperationVo> = orderOperationService.getOrderOperations(orderId).map { it.toGraphQL() }
 }

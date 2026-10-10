@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.service.product.ProductOptionQueryService
-import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.ProductOptionType
+import dev.yidafu.aqua.common.graphql.generated.ProductOptionVo
 import dev.yidafu.aqua.product.mapper.toDomain
 import dev.yidafu.aqua.product.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
@@ -42,7 +42,7 @@ class AdminProductOptionQueryResolver(
   fun productOptions(
     @Argument type: ProductOptionType,
     @Argument enabledOnly: Boolean = false,
-  ): List<ProductOption> =
+  ): List<ProductOptionVo> =
     productOptionQueryService
       .listOptions(
         type = type.toDomain(),

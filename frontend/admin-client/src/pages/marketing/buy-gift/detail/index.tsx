@@ -5,7 +5,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import type { GiftActivity, MarketingUsageVo } from '@aquarush/common';
+import type { GiftActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { GIFT_ACTIVITY_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
@@ -52,7 +52,7 @@ const GiftDetailPage: React.FC = () => {
   const variables = id ? { id, input: { page, size } } : null;
 
   const { data, loading, error } = useQuery<{
-    giftActivity?: GiftActivity | null;
+    giftActivity?: GiftActivityVo | null;
     giftActivityUsage?: MarketingUsageVo | null;
   }>(GIFT_ACTIVITY_USAGE_PAGE_DATA_QUERY, {
     variables: variables ?? undefined,
@@ -69,7 +69,7 @@ const GiftDetailPage: React.FC = () => {
     setSize(pagination.pageSize);
   };
 
-  const renderThreshold = (record: GiftActivity) => {
+  const renderThreshold = (record: GiftActivityVo) => {
     if (record.giftType === 'FULL_GIFT') {
       return record.thresholdCents ? `订单现金小计满 ${displayCents(record.thresholdCents)}` : '—';
     }
