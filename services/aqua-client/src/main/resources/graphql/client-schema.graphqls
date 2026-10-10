@@ -41,7 +41,7 @@ type Query {
   # 我的订单状态计数(F-USR-002,G31):仅本人,单请求返回各状态订单数(我的页订单角标)
   myOrderStatistics: MyOrderStatisticsVO!
   # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
-  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckResponse!
+  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckVO!
 
   # Operations config queries (运营配置域 F-OPS-001/002/004/005)
   activeBanners: [BannerVO!]!

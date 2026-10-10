@@ -1,5 +1,5 @@
 import { networkManager } from '@/utils/network-manager';
-import type { ProcessRefundInput, RefundRequestVo, RefundRequestPage, RefundStatus } from '@aquarush/common';
+import type { ProcessRefundInput, RefundRequestVo, RefundRequestVoPage, RefundStatus } from '@aquarush/common';
 
 // ==================== 退单(退款)处置(R-PAY-02) ====================
 
@@ -8,7 +8,7 @@ import type { ProcessRefundInput, RefundRequestVo, RefundRequestPage, RefundStat
  * 服务端分页(规则 #13),支持状态筛选。
  */
 export const getRefundRequests = (status?: RefundStatus, page = 0, size = 10) => {
-  return networkManager.query<{ refundRequests: RefundRequestPage }>(
+  return networkManager.query<{ refundRequests: RefundRequestVoPage }>(
     `
     query GetRefundRequests($status: RefundStatus, $page: Int, $size: Int) {
       refundRequests(status: $status, page: $page, size: $size) {
@@ -62,4 +62,4 @@ export const processRefund = (input: ProcessRefundInput) => {
   );
 };
 
-export type { ProcessRefundInput, RefundRequestVo, RefundRequestPage, RefundStatus };
+export type { ProcessRefundInput, RefundRequestVo, RefundRequestVoPage, RefundStatus };

@@ -42,7 +42,7 @@ input UpdateUserInput {
 }
 
 # Batch Import Result Types
-type BatchImportAddressesResult {
+type BatchImportAddressesVO {
   successCount: Int!
   failureCount: Int!
   totalCount: Int!

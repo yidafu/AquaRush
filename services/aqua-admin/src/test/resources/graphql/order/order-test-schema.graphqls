@@ -11,7 +11,7 @@ scalar BigDecimal
 type Query {
   reviewsByUser(userId: Long!, page: Int = 0, size: Int = 20): ReviewVOPage!
   reviewsByDeliveryWorker(deliveryWorkerId: Long!, page: Int = 0, size: Int = 20): ReviewVOPage!
-  deliveryWorkerRatingStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse!
+  deliveryWorkerRatingStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsVO!
 }
 
 type ReviewVOPage {
@@ -34,7 +34,7 @@ type ReviewVO {
   createdAt: LocalDateTime!
 }
 
-type DeliveryWorkerStatisticsResponse {
+type DeliveryWorkerStatisticsVO {
   deliveryWorkerId: Long!
   workerName: String
   averageRating: BigDecimal!

@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVoPage
 import dev.yidafu.aqua.delivery.mapper.toDeliveryWorker
@@ -109,11 +109,11 @@ class AdminDeliveryWorkerQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorkerRatingStatistics(
     @Argument deliveryWorkerId: Long,
-  ): DeliveryWorkerStatisticsResponse {
+  ): DeliveryWorkerStatisticsVo {
     val stats = deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(deliveryWorkerId)
     val workerName = adminService.findById(deliveryWorkerId)?.realName
     if (stats == null) {
-      return DeliveryWorkerStatisticsResponse(
+      return DeliveryWorkerStatisticsVo(
         deliveryWorkerId = deliveryWorkerId,
         workerName = workerName,
         averageRating = BigDecimal.ZERO,
@@ -127,7 +127,7 @@ class AdminDeliveryWorkerQueryResolver(
         lastUpdated = LocalDateTime.now(),
       )
     }
-    return DeliveryWorkerStatisticsResponse(
+    return DeliveryWorkerStatisticsVo(
       deliveryWorkerId = deliveryWorkerId,
       workerName = workerName,
       averageRating = stats.averageRating,

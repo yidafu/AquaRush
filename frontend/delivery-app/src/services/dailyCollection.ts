@@ -2,14 +2,14 @@ import { networkManager } from '@/utils/network-manager';
 import { todayDateString } from '@/utils/date';
 import type {
   ConfirmDailyCollectionInput,
-  DailyCollectionPage,
+  DailyCollectionVoPage,
   DailyCollectionRecordVo,
   DailyCollectionSummaryVo,
   DailyReconciliationVo,
-  DailyReconciliationPage,
+  DailyReconciliationVoPage,
   DailyReconciliationStatus,
   MyTodayCollectionVo,
-  ReconciliationOrderDetailPage,
+  ReconciliationOrderDetailVoPage,
   RejectDailyCollectionInput,
   ReviewReconciliationInput,
   SubmitDailyCollectionInput,
@@ -65,7 +65,7 @@ export const submitDailyCollection = (input: SubmitDailyCollectionInput) => {
 
 // 获取对账记录列表(服务端分页,规则 #13;按对账日期倒序)
 export const getDailyReconciliations = (page: number, size: number) => {
-  return networkManager.query<{ dailyReconciliations: DailyReconciliationPage }>(`
+  return networkManager.query<{ dailyReconciliations: DailyReconciliationVoPage }>(`
     query GetDailyReconciliations($input: DailyReconciliationListInput) {
       dailyReconciliations(input: $input) {
         list {
@@ -103,7 +103,7 @@ export const getDailyReconciliationOrderDetails = (
   size: number,
 ) => {
   return networkManager.query<{
-    dailyReconciliationOrderDetails: ReconciliationOrderDetailPage;
+    dailyReconciliationOrderDetails: ReconciliationOrderDetailVoPage;
   }>(`
     query GetReconciliationOrderDetails($reconciliationDate: String!, $page: Int!, $size: Int!) {
       dailyReconciliationOrderDetails(reconciliationDate: $reconciliationDate, page: $page, size: $size) {
@@ -145,8 +145,8 @@ export const getAdminCollectionPage = (
 ) => {
   return networkManager.query<{
     dailyCollectionSummary: DailyCollectionSummaryVo;
-    dailyCollections: DailyCollectionPage;
-    dailyReconciliations: DailyReconciliationPage;
+    dailyCollections: DailyCollectionVoPage;
+    dailyReconciliations: DailyReconciliationVoPage;
   }>(
     `
     query GetAdminCollectionPage(

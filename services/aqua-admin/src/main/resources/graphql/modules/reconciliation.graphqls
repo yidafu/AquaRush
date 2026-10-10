@@ -27,13 +27,13 @@ input DailyReconciliationListInput {
 }
 
 # 收款记录分页结果
-type DailyCollectionPage {
+type DailyCollectionVOPage {
   list: [DailyCollectionRecordVO!]!
   pageInfo: PageInfoVO!
 }
 
 # 对账记录分页结果
-type DailyReconciliationPage {
+type DailyReconciliationVOPage {
   list: [DailyReconciliationVO!]!
   pageInfo: PageInfoVO!
 }
@@ -75,16 +75,16 @@ type ReconciliationOrderDetailVO {
 }
 
 # 对账逐单明细分页结果
-type ReconciliationOrderDetailPage {
+type ReconciliationOrderDetailVOPage {
   list: [ReconciliationOrderDetailVO!]!
   pageInfo: PageInfoVO!
 }
 
 extend type Query {
   # 每日收款分页查询(按收款日期/送水工筛选)
-  dailyCollections(input: DailyCollectionListInput): DailyCollectionPage!
+  dailyCollections(input: DailyCollectionListInput): DailyCollectionVOPage!
   # 对账记录分页查询(恒按对账日期倒序)
-  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationPage!
+  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationVOPage!
   # 指定日期收银汇总(默认今日)
   dailyCollectionSummary(collectionDate: String): DailyCollectionSummaryVO!
   # 对账逐单差异明细(G29:按对账日期分页返回当日已送达订单流水)
@@ -93,7 +93,7 @@ extend type Query {
     deliveryWorkerId: Long
     page: Int = 0
     size: Int = 20
-  ): ReconciliationOrderDetailPage!
+  ): ReconciliationOrderDetailVOPage!
   # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
   myTodayCollection: MyTodayCollectionVO
 
@@ -105,7 +105,7 @@ extend type Query {
     dateTo: String
     page: Int = 0
     size: Int = 20
-  ): ReconciliationTaskPage!
+  ): ReconciliationTaskVOPage!
   # 对账任务详情
   reconciliationTask(taskId: String!): ReconciliationTaskVO
   # 对账差异分页查询(任务ID/解决状态筛选)
@@ -114,7 +114,7 @@ extend type Query {
     status: DiscrepancyStatus
     page: Int = 0
     size: Int = 20
-  ): ReconciliationDiscrepancyPage!
+  ): ReconciliationDiscrepancyVOPage!
   # 对账报表列表(按任务,可选报表类型过滤)
   reconciliationReports(taskId: String!, reportType: String): [ReconciliationReportVO!]!
 }

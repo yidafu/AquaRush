@@ -27,8 +27,8 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.ProcessRefundInput
 import dev.yidafu.aqua.common.graphql.generated.RefundAction
-import dev.yidafu.aqua.common.graphql.generated.RefundRequestPage
 import dev.yidafu.aqua.common.graphql.generated.RefundRequestVo
+import dev.yidafu.aqua.common.graphql.generated.RefundRequestVoPage
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.payment.service.RefundReviewService
@@ -60,7 +60,7 @@ class AdminRefundResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): RefundRequestPage {
+  ): RefundRequestVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -72,7 +72,7 @@ class AdminRefundResolver(
         page = page,
         size = size,
       )
-    return RefundRequestPage(
+    return RefundRequestVoPage(
       content = result.content.map { it.toRefundRequest(resolveTransactionId(it.paymentId)) },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,

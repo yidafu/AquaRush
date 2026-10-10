@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.barrel.BarrelFeeQueryService
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.BarrelFeeListInput
-import dev.yidafu.aqua.common.graphql.generated.BarrelFeePage
+import dev.yidafu.aqua.common.graphql.generated.BarrelFeeVoPage
 import dev.yidafu.aqua.marketing.barrel.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -45,7 +45,7 @@ class AdminBarrelFeeQueryResolver(
   fun barrelFees(
     @Argument input: BarrelFeeListInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelFeePage {
+  ): BarrelFeeVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -56,7 +56,7 @@ class AdminBarrelFeeQueryResolver(
         page = input?.page ?: 0,
         size = input?.size ?: 20,
       )
-    return BarrelFeePage(
+    return BarrelFeeVoPage(
       content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,

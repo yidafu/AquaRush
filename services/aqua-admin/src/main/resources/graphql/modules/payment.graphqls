@@ -10,7 +10,7 @@ extend type Query {
     dateTo: LocalDateTime
     page: Int = 0
     size: Int = 20
-  ): RefundRequestPage!
+  ): RefundRequestVOPage!
   # 退款申请详情
   refundRequest(id: String!): RefundRequestVO
 }
@@ -21,7 +21,7 @@ extend type Mutation {
 }
 
 # 退款申请分页
-type RefundRequestPage {
+type RefundRequestVOPage {
   content: [RefundRequestVO!]!
   totalElements: Int!
   totalPages: Int!

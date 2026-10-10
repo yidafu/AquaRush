@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router';
 import { toast } from 'sonner-native';
 import { Money } from '@aquarush/common';
 import type {
-  DailyCollectionPage,
+  DailyCollectionVoPage,
   DailyCollectionRecordVo,
   DailyCollectionSummaryVo,
   DailyReconciliationVo,
-  DailyReconciliationPage,
+  DailyReconciliationVoPage,
 } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
@@ -38,8 +38,8 @@ const TABS = ['每日收款记录', '对账记录'];
 
 interface AdminCollectionData {
   summary: DailyCollectionSummaryVo | null;
-  collections: DailyCollectionPage | null;
-  reconciliations: DailyReconciliationPage | null;
+  collections: DailyCollectionVoPage | null;
+  reconciliations: DailyReconciliationVoPage | null;
 }
 
 type ActionTarget =

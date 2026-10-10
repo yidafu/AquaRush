@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.product.controller
 
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
-import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesResult
+import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesVo
 import dev.yidafu.aqua.common.graphql.generated.ExportFormat
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -35,8 +35,8 @@ class AdminProductFavoriteControllerTest :
     var productFavoriteService: ProductFavoriteService = mockk()
     var controller: AdminProductFavoriteController = mockk()
 
-    fun successResult(): ExportFavoritesResult =
-      ExportFavoritesResult(
+    fun successResult(): ExportFavoritesVo =
+      ExportFavoritesVo(
         success = true,
         message = "导出成功",
         downloadUrl = "http://x/download.csv",
@@ -56,7 +56,7 @@ class AdminProductFavoriteControllerTest :
       val request = ExportFavoritesRequest(format = ExportFormat.CSV, userId = 1L)
 
       // When
-      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
+      val result: ResponseEntity<ExportFavoritesVo> = controller.exportFavorites(request)
 
       // Then
       result.body!!.success shouldBe true
@@ -72,7 +72,7 @@ class AdminProductFavoriteControllerTest :
         )
 
       // When
-      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
+      val result: ResponseEntity<ExportFavoritesVo> = controller.exportFavorites(request)
 
       // Then
       result.body!!.success shouldBe false
@@ -83,7 +83,7 @@ class AdminProductFavoriteControllerTest :
       every { productFavoriteService.exportFavorites(any()) } throws RuntimeException("boom")
 
       // When
-      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(ExportFavoritesRequest())
+      val result: ResponseEntity<ExportFavoritesVo> = controller.exportFavorites(ExportFavoritesRequest())
 
       // Then
       result.body!!.success shouldBe false

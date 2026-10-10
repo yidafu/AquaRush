@@ -140,9 +140,9 @@ Modules are structured with clear dependency hierarchy:
 
 **Type Naming Conventions**:
 - Input types: `XxxxInput` (e.g., `CreateOrderInput`, `UpdateProductInput`)
-- Response types (root): `XxxxResponse` (e.g., `OrderResponse`, `ProductListResponse`)
-- pagination type: `XxxVoPage`(e.g., `ProductVoPage`, `OrderVoPage`)
-- Other types: `XxxxVO` (e.g., `OrderVO`, `ProductVO`)
+- Return types: unified `XxxxVO` suffix — no `Response`/`Result` variants (e.g., `OrderVO`, `WeChatLoginVO`, `BatchOperationVO`)
+- Pagination wrapper types: `XxxVOPage` (e.g., `ProductVOPage`, `OrderVOPage`)
+- Note: codegen lowercases the suffix in generated Kotlin/TS class names (`OrderVO` → `OrderVo`, `ProductVOPage` → `ProductVoPage`); the GraphQL schema spelling is always `VO`/`VOPage`
 
 ## Configuration Management
 

@@ -28,7 +28,7 @@ extend type Query {
   deliveryWorkerLatestLocation(workerId: PrimaryId!): DeliveryTrajectoryVO
   # 配送员评分分布/总评价数(账号详情页「评价记录」Tab,F-USR-020/021;
   # 数据源 delivery_worker_statistics,deliveryWorkerId=账号 id,PERMISSION_DELIVERY_WORKER_READ)
-  deliveryWorkerRatingStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsResponse!
+  deliveryWorkerRatingStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsVO!
 }
 
 extend type Mutation {

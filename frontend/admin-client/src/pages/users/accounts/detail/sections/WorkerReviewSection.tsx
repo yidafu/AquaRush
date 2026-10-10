@@ -5,7 +5,7 @@ import {
   DELIVERY_WORKER_RATING_STATISTICS_QUERY,
   REVIEWS_BY_DELIVERY_WORKER_QUERY,
 } from '../../../../../graphql/queries/user.graphql';
-import type { DeliveryWorkerStatisticsResponse, ReviewVo } from '@aquarush/common';
+import type { DeliveryWorkerStatisticsVo, ReviewVo } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
@@ -50,7 +50,7 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
   }, [deliveryWorkerId, page, pageSize]);
 
   const reviews: ReviewVo[] = reviewsData?.reviewsByDeliveryWorker?.content || [];
-  const stats: DeliveryWorkerStatisticsResponse | undefined = statsData?.deliveryWorkerRatingStatistics;
+  const stats: DeliveryWorkerStatisticsVo | undefined = statsData?.deliveryWorkerRatingStatistics;
 
   const totalReviews = stats?.totalReviews ?? 0;
 

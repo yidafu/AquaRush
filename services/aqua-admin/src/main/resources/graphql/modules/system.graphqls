@@ -170,7 +170,7 @@ input LogBackupRecordListInput {
 }
 
 # 离线备份记录分页结果
-type LogBackupRecordPage {
+type LogBackupRecordVOPage {
   list: [LogBackupRecordVO!]!
   pageInfo: PageInfoVO!
 }
@@ -192,5 +192,5 @@ type DataMaintenanceOverviewVO {
   # 三类日志热表分区合并(每项含 logTable)
   partitions: [LogPartitionVO!]!
   # 离线备份记录分页
-  backupRecords: LogBackupRecordPage!
+  backupRecords: LogBackupRecordVOPage!
 }

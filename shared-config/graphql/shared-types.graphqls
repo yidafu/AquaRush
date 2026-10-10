@@ -594,7 +594,7 @@ type AdminVO {
   updatedAt: LocalDateTime!
 }
 
-type WeChatLoginResponse {
+type WeChatLoginVO {
   # 访问令牌
   accessToken: String!
   # 刷新令牌
@@ -605,7 +605,7 @@ type WeChatLoginResponse {
   userInfo: UserInfoVO!
 }
 
-type WeChatTokenResponse {
+type WeChatTokenVO {
   # 访问令牌
   accessToken: String!
   # 刷新令牌
@@ -1197,24 +1197,13 @@ input CreateReviewRequest {
   isAnonymous: Boolean
 }
 
-type OrderReviewCheckResponse {
+type OrderReviewCheckVO {
   hasReviewed: Boolean!
   canReview: Boolean!
   review: ReviewVO
 }
 
 type DeliveryWorkerStatisticsVO {
-  deliveryWorkerId: PrimaryId!
-  totalReviews: Long!
-  averageRating: BigDecimal!
-  oneStarReviews: Long!
-  twoStarReviews: Long!
-  threeStarReviews: Long!
-  fourStarReviews: Long!
-  fiveStarReviews: Long!
-}
-
-type DeliveryWorkerStatisticsResponse {
   deliveryWorkerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
@@ -1228,7 +1217,7 @@ type DeliveryWorkerStatisticsResponse {
   lastUpdated: LocalDateTime!
 }
 
-type DeliveryWorkerRankingResponse {
+type DeliveryWorkerRankingVO {
   workerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
@@ -1742,7 +1731,7 @@ enum ExportFormat {
   JSON
 }
 
-type BatchOperationResult {
+type BatchOperationVO {
   success: Boolean!
   message: String!
   processedCount: Int!
@@ -1752,7 +1741,7 @@ type BatchOperationResult {
   details: Map!
 }
 
-type ExportFavoritesResult {
+type ExportFavoritesVO {
   success: Boolean!
   message: String!
   downloadUrl: String
@@ -1910,7 +1899,7 @@ input BindDeliveryPhoneInput {
   phoneNumber: String!
 }
 
-type DeliveryLoginResponse {
+type DeliveryLoginVO {
   token: String
   refreshToken: String
   needBindPhone: Boolean!
@@ -2261,7 +2250,7 @@ type ReconciliationTaskVO {
 }
 
 # 对账任务分页
-type ReconciliationTaskPage {
+type ReconciliationTaskVOPage {
   content: [ReconciliationTaskVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -2298,7 +2287,7 @@ type ReconciliationDiscrepancyVO {
 }
 
 # 对账差异分页
-type ReconciliationDiscrepancyPage {
+type ReconciliationDiscrepancyVOPage {
   content: [ReconciliationDiscrepancyVO!]!
   totalElements: Int!
   totalPages: Int!

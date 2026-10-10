@@ -1,4 +1,4 @@
-import { OrderReviewCheckResponse } from '@aquarush/common'
+import { OrderReviewCheckVo } from '@aquarush/common'
 
 // 商品行(R-MKT-02 优惠价快照;成交单价 ≠ 目录价 = 命中营销价,划线目录价展示依据)
 export interface OrderItem {
@@ -23,7 +23,7 @@ export interface OrderGiftItem {
 }
 
 // 评价信息(F-ORD-007):服务端返回结构,含已评价内容与是否可评
-export type ReviewCheckState = OrderReviewCheckResponse
+export type ReviewCheckState = OrderReviewCheckVo
 
 export interface DeliveryInfo {
   deliveryWorkerId?: string

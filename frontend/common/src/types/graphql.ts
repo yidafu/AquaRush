@@ -188,14 +188,6 @@ export type BarrelFeeListInput = {
   readonly status?: InputMaybe<BarrelFeeStatus>;
 };
 
-export type BarrelFeePage = {
-  readonly content: ReadonlyArray<BarrelFeeAdminVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
-};
-
 export enum BarrelFeeStatus {
   DISABLED = 'DISABLED',
   ENABLED = 'ENABLED'
@@ -205,6 +197,14 @@ export type BarrelFeeVo = {
   readonly id: Scalars['PrimaryId']['output'];
   readonly priceCents: Scalars['Long']['output'];
   readonly specification: Scalars['String']['output'];
+};
+
+export type BarrelFeeVoPage = {
+  readonly content: ReadonlyArray<BarrelFeeAdminVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
 };
 
 export enum BarrelPaymentStatus {
@@ -252,14 +252,6 @@ export type BarrelPurchaseListInput = {
   readonly status?: InputMaybe<BarrelPaymentStatus>;
 };
 
-export type BarrelPurchasePage = {
-  readonly content: ReadonlyArray<BarrelPurchaseAdminVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
-};
-
 export type BarrelPurchaseVo = {
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly id: Scalars['PrimaryId']['output'];
@@ -271,6 +263,14 @@ export type BarrelPurchaseVo = {
   readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly requiresSimulation: Scalars['Boolean']['output'];
   readonly totalAmountCents: Scalars['Long']['output'];
+};
+
+export type BarrelPurchaseVoPage = {
+  readonly content: ReadonlyArray<BarrelPurchaseAdminVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
 };
 
 export enum BatchFavoriteOperation {
@@ -287,13 +287,13 @@ export type BatchFavoriteOperationInput = {
   readonly userIds: ReadonlyArray<Scalars['PrimaryId']['input']>;
 };
 
-export type BatchImportAddressesResult = {
+export type BatchImportAddressesVo = {
   readonly failureCount: Scalars['Int']['output'];
   readonly successCount: Scalars['Int']['output'];
   readonly totalCount: Scalars['Int']['output'];
 };
 
-export type BatchOperationResult = {
+export type BatchOperationVo = {
   readonly details: Scalars['Map']['output'];
   readonly errors: ReadonlyArray<Scalars['String']['output']>;
   readonly failureCount: Scalars['Int']['output'];
@@ -698,11 +698,6 @@ export type DailyCollectionListInput = {
   readonly size?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type DailyCollectionPage = {
-  readonly list: ReadonlyArray<DailyCollectionRecordVo>;
-  readonly pageInfo: PageInfoVo;
-};
-
 export type DailyCollectionRecordVo = {
   readonly calculatedCashAmountCents: Scalars['Long']['output'];
   readonly calculatedOrderAmountCents: Scalars['Long']['output'];
@@ -745,6 +740,11 @@ export type DailyCollectionSummaryVo = {
   readonly totalWaterTicketCount: Scalars['Int']['output'];
 };
 
+export type DailyCollectionVoPage = {
+  readonly list: ReadonlyArray<DailyCollectionRecordVo>;
+  readonly pageInfo: PageInfoVo;
+};
+
 export type DailyLoginStatisticVo = {
   readonly date: Scalars['String']['output'];
   readonly loginCount: Scalars['Int']['output'];
@@ -766,11 +766,6 @@ export type DailyPaymentStatsVo = {
 export type DailyReconciliationListInput = {
   readonly page?: InputMaybe<Scalars['Int']['input']>;
   readonly size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type DailyReconciliationPage = {
-  readonly list: ReadonlyArray<DailyReconciliationVo>;
-  readonly pageInfo: PageInfoVo;
 };
 
 export enum DailyReconciliationStatus {
@@ -799,6 +794,11 @@ export type DailyReconciliationVo = {
   readonly updatedAt: Scalars['LocalDateTime']['output'];
 };
 
+export type DailyReconciliationVoPage = {
+  readonly list: ReadonlyArray<DailyReconciliationVo>;
+  readonly pageInfo: PageInfoVo;
+};
+
 export type DailyStatVo = {
   readonly date: Scalars['String']['output'];
   readonly earningCents: Scalars['Long']['output'];
@@ -814,7 +814,7 @@ export type DailyStatisticVo = {
 };
 
 export type DataMaintenanceOverviewVo = {
-  readonly backupRecords: LogBackupRecordPage;
+  readonly backupRecords: LogBackupRecordVoPage;
   readonly partitions: ReadonlyArray<LogPartitionVo>;
   readonly settings: ReadonlyArray<SystemConfigVo>;
 };
@@ -863,7 +863,7 @@ export type DeliveryLoginInput = {
   readonly code: Scalars['String']['input'];
 };
 
-export type DeliveryLoginResponse = {
+export type DeliveryLoginVo = {
   readonly message?: Maybe<Scalars['String']['output']>;
   readonly needBindPhone: Scalars['Boolean']['output'];
   readonly openId?: Maybe<Scalars['String']['output']>;
@@ -933,7 +933,7 @@ export type DeliveryWorkerRankingItemVo = {
   readonly workerId: Scalars['ID']['output'];
 };
 
-export type DeliveryWorkerRankingResponse = {
+export type DeliveryWorkerRankingVo = {
   readonly averageRating: Scalars['BigDecimal']['output'];
   readonly positiveRatingPercentage: Scalars['Float']['output'];
   readonly totalReviews: Scalars['Long']['output'];
@@ -941,7 +941,7 @@ export type DeliveryWorkerRankingResponse = {
   readonly workerName?: Maybe<Scalars['String']['output']>;
 };
 
-export type DeliveryWorkerStatisticsResponse = {
+export type DeliveryWorkerStatisticsVo = {
   readonly averageRating: Scalars['BigDecimal']['output'];
   readonly deliveryWorkerId: Scalars['PrimaryId']['output'];
   readonly fiveStarReviews: Scalars['Long']['output'];
@@ -953,17 +953,6 @@ export type DeliveryWorkerStatisticsResponse = {
   readonly totalReviews: Scalars['Long']['output'];
   readonly twoStarReviews: Scalars['Long']['output'];
   readonly workerName?: Maybe<Scalars['String']['output']>;
-};
-
-export type DeliveryWorkerStatisticsVo = {
-  readonly averageRating: Scalars['BigDecimal']['output'];
-  readonly deliveryWorkerId: Scalars['PrimaryId']['output'];
-  readonly fiveStarReviews: Scalars['Long']['output'];
-  readonly fourStarReviews: Scalars['Long']['output'];
-  readonly oneStarReviews: Scalars['Long']['output'];
-  readonly threeStarReviews: Scalars['Long']['output'];
-  readonly totalReviews: Scalars['Long']['output'];
-  readonly twoStarReviews: Scalars['Long']['output'];
 };
 
 export enum DeliveryWorkerStatus {
@@ -1028,7 +1017,7 @@ export type ExportFavoritesInput = {
   readonly userId?: InputMaybe<Scalars['PrimaryId']['input']>;
 };
 
-export type ExportFavoritesResult = {
+export type ExportFavoritesVo = {
   readonly downloadUrl?: Maybe<Scalars['String']['output']>;
   readonly expiresAt: Scalars['LocalDateTime']['output'];
   readonly fileName: Scalars['String']['output'];
@@ -1351,11 +1340,6 @@ export type LogBackupRecordListInput = {
   readonly size?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type LogBackupRecordPage = {
-  readonly list: ReadonlyArray<LogBackupRecordVo>;
-  readonly pageInfo: PageInfoVo;
-};
-
 export type LogBackupRecordVo = {
   readonly checksum?: Maybe<Scalars['String']['output']>;
   readonly coldTableName: Scalars['String']['output'];
@@ -1371,6 +1355,11 @@ export type LogBackupRecordVo = {
   readonly rowCount: Scalars['Long']['output'];
   readonly startedAt: Scalars['LocalDateTime']['output'];
   readonly status: LogBackupStatus;
+};
+
+export type LogBackupRecordVoPage = {
+  readonly list: ReadonlyArray<LogBackupRecordVo>;
+  readonly pageInfo: PageInfoVo;
 };
 
 export enum LogBackupStatus {
@@ -1487,7 +1476,7 @@ export type Mutation = {
   readonly assignDeliveryWorker: OrderVo;
   readonly backupLogPartition: LogBackupRecordVo;
   readonly batchAssignOrders: ReadonlyArray<OrderVo>;
-  readonly batchImportAddresses: BatchImportAddressesResult;
+  readonly batchImportAddresses: BatchImportAddressesVo;
   readonly cancelOrder: OrderVo;
   readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: OrderVo;
@@ -2398,7 +2387,7 @@ export type OrderPreviewVo = {
   readonly unitPriceCents: Scalars['Long']['output'];
 };
 
-export type OrderReviewCheckResponse = {
+export type OrderReviewCheckVo = {
   readonly canReview: Scalars['Boolean']['output'];
   readonly hasReviewed: Scalars['Boolean']['output'];
   readonly review?: Maybe<ReviewVo>;
@@ -2899,8 +2888,8 @@ export type Query = {
   readonly assignedOrders: ReadonlyArray<OrderVo>;
   readonly banner?: Maybe<BannerVo>;
   readonly banners?: Maybe<BannerVoPage>;
-  readonly barrelFees: BarrelFeePage;
-  readonly barrelPurchases: BarrelPurchasePage;
+  readonly barrelFees: BarrelFeeVoPage;
+  readonly barrelPurchases: BarrelPurchaseVoPage;
   readonly barrelShop: ReadonlyArray<BarrelFeeVo>;
   readonly businessLogs?: Maybe<BusinessLogVoPage>;
   readonly couponCenter: ReadonlyArray<CouponTemplateVo>;
@@ -2910,9 +2899,9 @@ export type Query = {
   readonly customerGroup?: Maybe<CustomerGroupVo>;
   readonly customerGroups?: Maybe<CustomerGroupVoPage>;
   readonly dailyCollectionSummary: DailyCollectionSummaryVo;
-  readonly dailyCollections: DailyCollectionPage;
-  readonly dailyReconciliationOrderDetails: ReconciliationOrderDetailPage;
-  readonly dailyReconciliations: DailyReconciliationPage;
+  readonly dailyCollections: DailyCollectionVoPage;
+  readonly dailyReconciliationOrderDetails: ReconciliationOrderDetailVoPage;
+  readonly dailyReconciliations: DailyReconciliationVoPage;
   readonly dailyStatistics: ReadonlyArray<DailyStatisticVo>;
   readonly dataMaintenanceOverview: DataMaintenanceOverviewVo;
   readonly deliveringOrders: ReadonlyArray<OrderVo>;
@@ -2923,7 +2912,7 @@ export type Query = {
   readonly deliveryWorkerHistoryOrders: OrderVoPage;
   readonly deliveryWorkerLatestLocation?: Maybe<DeliveryTrajectoryVo>;
   readonly deliveryWorkerRanking: ReadonlyArray<DeliveryWorkerRankingItemVo>;
-  readonly deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse;
+  readonly deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsVo;
   readonly deliveryWorkerStatistics: DeliveryWorkerOverviewVo;
   readonly deliveryWorkers: DeliveryWorkerVoPage;
   readonly favoriteProducts: FavoriteProductVoPage;
@@ -2962,7 +2951,7 @@ export type Query = {
   readonly orderByNo?: Maybe<OrderVo>;
   readonly orderOperations: ReadonlyArray<OrderOperationVo>;
   readonly orderPreview: OrderPreviewVo;
-  readonly orderReviewCheck: OrderReviewCheckResponse;
+  readonly orderReviewCheck: OrderReviewCheckVo;
   readonly orderStatistics: OrderStatisticsVo;
   readonly orders?: Maybe<OrderVoPage>;
   readonly pendingDeliveryOrders: ReadonlyArray<OrderVo>;
@@ -2976,12 +2965,12 @@ export type Query = {
   readonly promotionActivities?: Maybe<PromotionActivityVoPage>;
   readonly promotionActivity?: Maybe<PromotionActivityVo>;
   readonly promotionActivityUsage?: Maybe<MarketingUsageVo>;
-  readonly reconciliationDiscrepancies: ReconciliationDiscrepancyPage;
+  readonly reconciliationDiscrepancies: ReconciliationDiscrepancyVoPage;
   readonly reconciliationReports: ReadonlyArray<ReconciliationReportVo>;
   readonly reconciliationTask?: Maybe<ReconciliationTaskVo>;
-  readonly reconciliationTasks: ReconciliationTaskPage;
+  readonly reconciliationTasks: ReconciliationTaskVoPage;
   readonly refundRequest?: Maybe<RefundRequestVo>;
-  readonly refundRequests: RefundRequestPage;
+  readonly refundRequests: RefundRequestVoPage;
   readonly region?: Maybe<RegionVo>;
   readonly regions: ReadonlyArray<RegionVo>;
   readonly reviewsByDeliveryWorker: ReviewVoPage;
@@ -3525,14 +3514,6 @@ export type QueryWeeklyStatisticsArgs = {
   input: DateRangeInput;
 };
 
-export type ReconciliationDiscrepancyPage = {
-  readonly content: ReadonlyArray<ReconciliationDiscrepancyVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
-};
-
 export type ReconciliationDiscrepancyVo = {
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly discrepancyType: DiscrepancyType;
@@ -3548,9 +3529,12 @@ export type ReconciliationDiscrepancyVo = {
   readonly updatedAt: Scalars['LocalDateTime']['output'];
 };
 
-export type ReconciliationOrderDetailPage = {
-  readonly list: ReadonlyArray<ReconciliationOrderDetailVo>;
-  readonly pageInfo: PageInfoVo;
+export type ReconciliationDiscrepancyVoPage = {
+  readonly content: ReadonlyArray<ReconciliationDiscrepancyVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
 };
 
 export type ReconciliationOrderDetailVo = {
@@ -3563,6 +3547,11 @@ export type ReconciliationOrderDetailVo = {
   readonly status: OrderStatus;
 };
 
+export type ReconciliationOrderDetailVoPage = {
+  readonly list: ReadonlyArray<ReconciliationOrderDetailVo>;
+  readonly pageInfo: PageInfoVo;
+};
+
 export type ReconciliationReportVo = {
   readonly fileName?: Maybe<Scalars['String']['output']>;
   readonly filePath?: Maybe<Scalars['String']['output']>;
@@ -3572,14 +3561,6 @@ export type ReconciliationReportVo = {
   readonly reportData: Scalars['JsonObject']['output'];
   readonly reportType: Scalars['String']['output'];
   readonly taskId: Scalars['String']['output'];
-};
-
-export type ReconciliationTaskPage = {
-  readonly content: ReadonlyArray<ReconciliationTaskVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
 };
 
 export enum ReconciliationTaskStatus {
@@ -3611,6 +3592,14 @@ export type ReconciliationTaskVo = {
   readonly updatedAt: Scalars['LocalDateTime']['output'];
 };
 
+export type ReconciliationTaskVoPage = {
+  readonly content: ReadonlyArray<ReconciliationTaskVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type RefreshTokenInput = {
   readonly refreshToken: Scalars['String']['input'];
 };
@@ -3637,14 +3626,6 @@ export type RefundInput = {
   readonly transactionId: Scalars['String']['input'];
 };
 
-export type RefundRequestPage = {
-  readonly content: ReadonlyArray<RefundRequestVo>;
-  readonly number: Scalars['Int']['output'];
-  readonly size: Scalars['Int']['output'];
-  readonly totalElements: Scalars['Int']['output'];
-  readonly totalPages: Scalars['Int']['output'];
-};
-
 export type RefundRequestVo = {
   readonly adminNote?: Maybe<Scalars['String']['output']>;
   readonly amountCents: Scalars['Long']['output'];
@@ -3657,6 +3638,14 @@ export type RefundRequestVo = {
   readonly requestedAt: Scalars['LocalDateTime']['output'];
   readonly status: RefundStatus;
   readonly userId: Scalars['PrimaryId']['output'];
+};
+
+export type RefundRequestVoPage = {
+  readonly content: ReadonlyArray<RefundRequestVo>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
 };
 
 export enum RefundStatus {
@@ -4406,14 +4395,14 @@ export type WaterSourceStatisticsVo = {
   readonly waterSource: Scalars['String']['output'];
 };
 
-export type WeChatLoginResponse = {
+export type WeChatLoginVo = {
   readonly accessToken: Scalars['String']['output'];
   readonly expiresIn: Scalars['Int']['output'];
   readonly refreshToken: Scalars['String']['output'];
   readonly userInfo: UserInfoVo;
 };
 
-export type WeChatTokenResponse = {
+export type WeChatTokenVo = {
   readonly accessToken: Scalars['String']['output'];
   readonly expiresIn: Scalars['Int']['output'];
   readonly refreshToken: Scalars['String']['output'];

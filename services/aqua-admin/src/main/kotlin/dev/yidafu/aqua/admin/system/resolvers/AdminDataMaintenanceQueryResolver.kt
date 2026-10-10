@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.DataMaintenanceOverviewVo
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordListInput
-import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordPage
+import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordVoPage
 import dev.yidafu.aqua.common.graphql.generated.LogTableType
 import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.logging.partition.mapper.LogPartitionVoMapper
@@ -80,7 +80,7 @@ class AdminDataMaintenanceQueryResolver(
       settings = settings.map { it.toGraphQL() },
       partitions = partitions,
       backupRecords =
-        LogBackupRecordPage(
+        LogBackupRecordVoPage(
           list = recordsPage.content.map { it.toGraphQL() },
           pageInfo =
             PageInfoVo(

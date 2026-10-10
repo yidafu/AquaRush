@@ -96,7 +96,7 @@ input LogBackupRecordListInput {
   size: Int = 10
 }
 
-type LogBackupRecordPage {
+type LogBackupRecordVOPage {
   list: [LogBackupRecordVO!]!
   pageInfo: PageInfoVO!
 }
@@ -109,7 +109,7 @@ input BackupLogPartitionInput {
 type DataMaintenanceOverviewVO {
   settings: [SystemConfigVO!]!
   partitions: [LogPartitionVO!]!
-  backupRecords: LogBackupRecordPage!
+  backupRecords: LogBackupRecordVOPage!
 }
 
 type PageInfoVO {

@@ -17,7 +17,7 @@ export interface RefundRequest {
   adminNote?: string
 }
 
-export interface RefundRequestPage {
+export interface RefundRequestVoPage {
   content: RefundRequest[]
   totalElements: number
   totalPages: number

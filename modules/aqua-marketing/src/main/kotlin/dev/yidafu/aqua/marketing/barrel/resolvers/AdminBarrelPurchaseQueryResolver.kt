@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseQueryService
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseListInput
-import dev.yidafu.aqua.common.graphql.generated.BarrelPurchasePage
+import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseVoPage
 import dev.yidafu.aqua.marketing.barrel.mapper.BarrelPurchaseModelMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -45,7 +45,7 @@ class AdminBarrelPurchaseQueryResolver(
   fun barrelPurchases(
     @Argument input: BarrelPurchaseListInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): BarrelPurchasePage {
+  ): BarrelPurchaseVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -57,7 +57,7 @@ class AdminBarrelPurchaseQueryResolver(
         page = input?.page ?: 0,
         size = input?.size ?: 20,
       )
-    return BarrelPurchasePage(
+    return BarrelPurchaseVoPage(
       content =
         result.content.map { purchase ->
           BarrelPurchaseModelMapper.map(

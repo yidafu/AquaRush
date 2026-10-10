@@ -29,7 +29,7 @@ type BarrelFeeAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type BarrelFeePage {
+type BarrelFeeVOPage {
   content: [BarrelFeeAdminVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -60,7 +60,7 @@ type BarrelPurchaseAdminVO {
   updatedAt: LocalDateTime!
 }
 
-type BarrelPurchasePage {
+type BarrelPurchaseVOPage {
   content: [BarrelPurchaseAdminVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -96,8 +96,8 @@ input BarrelPurchaseListInput {
 }
 
 type Query {
-  barrelFees(input: BarrelFeeListInput): BarrelFeePage!
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchasePage!
+  barrelFees(input: BarrelFeeListInput): BarrelFeeVOPage!
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVOPage!
 }
 
 type Mutation {

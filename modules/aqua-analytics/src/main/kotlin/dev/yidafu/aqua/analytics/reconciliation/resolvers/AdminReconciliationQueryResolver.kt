@@ -25,12 +25,12 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyStatus
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyPage
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyVoPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationReportVo
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVo
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVoPage
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -64,7 +64,7 @@ class AdminReconciliationQueryResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): ReconciliationTaskPage {
+  ): ReconciliationTaskVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -99,7 +99,7 @@ class AdminReconciliationQueryResolver(
         dateTo = dateToParsed,
         pageable = pageable,
       )
-    return ReconciliationTaskPage(
+    return ReconciliationTaskVoPage(
       content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,
@@ -139,7 +139,7 @@ class AdminReconciliationQueryResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): ReconciliationDiscrepancyPage {
+  ): ReconciliationDiscrepancyVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -163,7 +163,7 @@ class AdminReconciliationQueryResolver(
         status = statusDomain,
         pageable = pageable,
       )
-    return ReconciliationDiscrepancyPage(
+    return ReconciliationDiscrepancyVoPage(
       content = result.content.map { it.toGraphQL() },
       totalElements = result.totalElements.toInt(),
       totalPages = result.totalPages,

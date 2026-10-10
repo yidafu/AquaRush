@@ -22,7 +22,7 @@ package dev.yidafu.aqua.admin.product.controller
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesInput
-import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesResult
+import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesVo
 import dev.yidafu.aqua.common.graphql.generated.ExportFormat
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -58,14 +58,14 @@ class AdminProductFavoriteController(
   @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   fun exportFavorites(
     @RequestBody @Valid request: ExportFavoritesRequest,
-  ): ResponseEntity<ExportFavoritesResult> {
+  ): ResponseEntity<ExportFavoritesVo> {
     return try {
       // Validate export parameters
       val dateFrom = request.dateFrom
       val dateTo = request.dateTo
       if (dateFrom != null && dateTo != null && dateFrom.isAfter(dateTo)) {
         return ResponseEntity.ok(
-          ExportFavoritesResult(
+          ExportFavoritesVo(
             success = false,
             message = "开始时间不能晚于结束时间",
             downloadUrl = null,
@@ -107,7 +107,7 @@ class AdminProductFavoriteController(
     } catch (e: Exception) {
       logger.error("Failed to export favorites", e)
       ResponseEntity.ok(
-        ExportFavoritesResult(
+        ExportFavoritesVo(
           success = false,
           message = "导出失败: ${e.message}",
           downloadUrl = null,

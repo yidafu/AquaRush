@@ -205,8 +205,8 @@ type Mutation {
   executeDailyReconciliation(reconciliationDate: String): DailyReconciliationVO!
 
   # AdminVO UserVO Favorites Management - AdminVO only
-  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationResult!
-  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesResult!
+  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationVO!
+  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesVO!
 
   # AdminVO UserVO Management
   createAdmin(input: CreateAdminInput!): AdminVO!
@@ -215,7 +215,7 @@ type Mutation {
 
   # AdminVO AddressVO Management
   createAdminAddress(input: AddressInput!): AddressVO!
-  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesResult!
+  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVO!
   deleteAdminAddress(id: PrimaryId!): Boolean!
 }
 
@@ -251,7 +251,7 @@ extend type UserVO {
 }
 
 # Batch Import Result Types
-type BatchImportAddressesResult {
+type BatchImportAddressesVO {
   successCount: Int!
   failureCount: Int!
   totalCount: Int!

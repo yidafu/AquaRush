@@ -256,14 +256,6 @@ data class BarrelFeeListInput(
   )
 }
 
-data class BarrelFeePage(
-    val content: kotlin.collections.List<BarrelFeeAdminVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
-)
-
 enum class BarrelFeeStatus(val label: String) {
       DISABLED("DISABLED"),
       ENABLED("ENABLED");
@@ -280,6 +272,14 @@ data class BarrelFeeVo(
     val id: kotlin.Long,
     val priceCents: kotlin.Long,
     val specification: kotlin.String
+)
+
+data class BarrelFeeVoPage(
+    val content: kotlin.collections.List<BarrelFeeAdminVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 enum class BarrelPaymentStatus(val label: String) {
@@ -342,14 +342,6 @@ data class BarrelPurchaseListInput(
   )
 }
 
-data class BarrelPurchasePage(
-    val content: kotlin.collections.List<BarrelPurchaseAdminVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
-)
-
 data class BarrelPurchaseVo(
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
@@ -361,6 +353,14 @@ data class BarrelPurchaseVo(
     val refundedAt: java.time.LocalDateTime?,
     val requiresSimulation: kotlin.Boolean,
     val totalAmountCents: kotlin.Long
+)
+
+data class BarrelPurchaseVoPage(
+    val content: kotlin.collections.List<BarrelPurchaseAdminVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 enum class BatchFavoriteOperation(val label: String) {
@@ -394,13 +394,13 @@ data class BatchFavoriteOperationInput(
   )
 }
 
-data class BatchImportAddressesResult(
+data class BatchImportAddressesVo(
     val failureCount: kotlin.Int,
     val successCount: kotlin.Int,
     val totalCount: kotlin.Int
 )
 
-data class BatchOperationResult(
+data class BatchOperationVo(
     val details: kotlin.collections.Map<String, Any>,
     val errors: kotlin.collections.List<kotlin.String>,
     val failureCount: kotlin.Int,
@@ -1278,11 +1278,6 @@ data class DailyCollectionListInput(
   )
 }
 
-data class DailyCollectionPage(
-    val list: kotlin.collections.List<DailyCollectionRecordVo>,
-    val pageInfo: PageInfoVo
-)
-
 data class DailyCollectionRecordVo(
     val calculatedCashAmountCents: kotlin.Long,
     val calculatedOrderAmountCents: kotlin.Long,
@@ -1332,6 +1327,11 @@ data class DailyCollectionSummaryVo(
     val totalWaterTicketCount: kotlin.Int
 )
 
+data class DailyCollectionVoPage(
+    val list: kotlin.collections.List<DailyCollectionRecordVo>,
+    val pageInfo: PageInfoVo
+)
+
 data class DailyLoginStatisticVo(
     val date: kotlin.String,
     val loginCount: kotlin.Int
@@ -1359,11 +1359,6 @@ data class DailyReconciliationListInput(
       args["size"] as kotlin.Int? ?: 10
   )
 }
-
-data class DailyReconciliationPage(
-    val list: kotlin.collections.List<DailyReconciliationVo>,
-    val pageInfo: PageInfoVo
-)
 
 enum class DailyReconciliationStatus(val label: String) {
       DISCREPANCY("DISCREPANCY"),
@@ -1398,6 +1393,11 @@ data class DailyReconciliationVo(
     val updatedAt: java.time.LocalDateTime
 )
 
+data class DailyReconciliationVoPage(
+    val list: kotlin.collections.List<DailyReconciliationVo>,
+    val pageInfo: PageInfoVo
+)
+
 data class DailyStatVo(
     val date: kotlin.String,
     val earningCents: kotlin.Long,
@@ -1413,7 +1413,7 @@ data class DailyStatisticVo(
 )
 
 data class DataMaintenanceOverviewVo(
-    val backupRecords: LogBackupRecordPage,
+    val backupRecords: LogBackupRecordVoPage,
     val partitions: kotlin.collections.List<LogPartitionVo>,
     val settings: kotlin.collections.List<SystemConfigVo>
 )
@@ -1471,7 +1471,7 @@ data class DeliveryLoginInput(
   )
 }
 
-data class DeliveryLoginResponse(
+data class DeliveryLoginVo(
     val message: kotlin.String?,
     val needBindPhone: kotlin.Boolean,
     val openId: kotlin.String?,
@@ -1562,7 +1562,7 @@ data class DeliveryWorkerRankingItemVo(
     val workerId: Any
 )
 
-data class DeliveryWorkerRankingResponse(
+data class DeliveryWorkerRankingVo(
     val averageRating: java.math.BigDecimal,
     val positiveRatingPercentage: kotlin.Float,
     val totalReviews: kotlin.Long,
@@ -1570,7 +1570,7 @@ data class DeliveryWorkerRankingResponse(
     val workerName: kotlin.String?
 )
 
-data class DeliveryWorkerStatisticsResponse(
+data class DeliveryWorkerStatisticsVo(
     val averageRating: java.math.BigDecimal,
     val deliveryWorkerId: kotlin.Long,
     val fiveStarReviews: kotlin.Long,
@@ -1582,17 +1582,6 @@ data class DeliveryWorkerStatisticsResponse(
     val totalReviews: kotlin.Long,
     val twoStarReviews: kotlin.Long,
     val workerName: kotlin.String?
-)
-
-data class DeliveryWorkerStatisticsVo(
-    val averageRating: java.math.BigDecimal,
-    val deliveryWorkerId: kotlin.Long,
-    val fiveStarReviews: kotlin.Long,
-    val fourStarReviews: kotlin.Long,
-    val oneStarReviews: kotlin.Long,
-    val threeStarReviews: kotlin.Long,
-    val totalReviews: kotlin.Long,
-    val twoStarReviews: kotlin.Long
 )
 
 enum class DeliveryWorkerStatus(val label: String) {
@@ -1693,7 +1682,7 @@ data class ExportFavoritesInput(
   )
 }
 
-data class ExportFavoritesResult(
+data class ExportFavoritesVo(
     val downloadUrl: kotlin.String?,
     val expiresAt: java.time.LocalDateTime,
     val fileName: kotlin.String,
@@ -2175,11 +2164,6 @@ data class LogBackupRecordListInput(
   )
 }
 
-data class LogBackupRecordPage(
-    val list: kotlin.collections.List<LogBackupRecordVo>,
-    val pageInfo: PageInfoVo
-)
-
 data class LogBackupRecordVo(
     val checksum: kotlin.String?,
     val coldTableName: kotlin.String,
@@ -2195,6 +2179,11 @@ data class LogBackupRecordVo(
     val rowCount: kotlin.Long,
     val startedAt: java.time.LocalDateTime,
     val status: LogBackupStatus
+)
+
+data class LogBackupRecordVoPage(
+    val list: kotlin.collections.List<LogBackupRecordVo>,
+    val pageInfo: PageInfoVo
 )
 
 enum class LogBackupStatus(val label: String) {
@@ -3207,7 +3196,7 @@ data class Mutation(
     val assignDeliveryWorker: OrderVo,
     val backupLogPartition: LogBackupRecordVo,
     val batchAssignOrders: kotlin.collections.List<OrderVo>,
-    val batchImportAddresses: BatchImportAddressesResult,
+    val batchImportAddresses: BatchImportAddressesVo,
     val cancelOrder: OrderVo,
     val claimCoupon: UserCouponVo,
     val completeDelivery: OrderVo,
@@ -3644,7 +3633,7 @@ data class OrderPreviewVo(
     val unitPriceCents: kotlin.Long
 )
 
-data class OrderReviewCheckResponse(
+data class OrderReviewCheckVo(
     val canReview: kotlin.Boolean,
     val hasReviewed: kotlin.Boolean,
     val review: ReviewVo?
@@ -5186,8 +5175,8 @@ data class Query(
     val assignedOrders: kotlin.collections.List<OrderVo>,
     val banner: BannerVo?,
     val banners: BannerVoPage?,
-    val barrelFees: BarrelFeePage,
-    val barrelPurchases: BarrelPurchasePage,
+    val barrelFees: BarrelFeeVoPage,
+    val barrelPurchases: BarrelPurchaseVoPage,
     val barrelShop: kotlin.collections.List<BarrelFeeVo>,
     val businessLogs: BusinessLogVoPage?,
     val couponCenter: kotlin.collections.List<CouponTemplateVo>,
@@ -5197,9 +5186,9 @@ data class Query(
     val customerGroup: CustomerGroupVo?,
     val customerGroups: CustomerGroupVoPage?,
     val dailyCollectionSummary: DailyCollectionSummaryVo,
-    val dailyCollections: DailyCollectionPage,
-    val dailyReconciliationOrderDetails: ReconciliationOrderDetailPage,
-    val dailyReconciliations: DailyReconciliationPage,
+    val dailyCollections: DailyCollectionVoPage,
+    val dailyReconciliationOrderDetails: ReconciliationOrderDetailVoPage,
+    val dailyReconciliations: DailyReconciliationVoPage,
     val dailyStatistics: kotlin.collections.List<DailyStatisticVo>,
     val dataMaintenanceOverview: DataMaintenanceOverviewVo,
     val deliveringOrders: kotlin.collections.List<OrderVo>,
@@ -5210,7 +5199,7 @@ data class Query(
     val deliveryWorkerHistoryOrders: OrderVoPage,
     val deliveryWorkerLatestLocation: DeliveryTrajectoryVo?,
     val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItemVo>,
-    val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse,
+    val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsVo,
     val deliveryWorkerStatistics: DeliveryWorkerOverviewVo,
     val deliveryWorkers: DeliveryWorkerVoPage,
     val favoriteProducts: FavoriteProductVoPage,
@@ -5249,7 +5238,7 @@ data class Query(
     val orderByNo: OrderVo?,
     val orderOperations: kotlin.collections.List<OrderOperationVo>,
     val orderPreview: OrderPreviewVo,
-    val orderReviewCheck: OrderReviewCheckResponse,
+    val orderReviewCheck: OrderReviewCheckVo,
     val orderStatistics: OrderStatisticsVo,
     val orders: OrderVoPage?,
     val pendingDeliveryOrders: kotlin.collections.List<OrderVo>,
@@ -5263,12 +5252,12 @@ data class Query(
     val promotionActivities: PromotionActivityVoPage?,
     val promotionActivity: PromotionActivityVo?,
     val promotionActivityUsage: MarketingUsageVo?,
-    val reconciliationDiscrepancies: ReconciliationDiscrepancyPage,
+    val reconciliationDiscrepancies: ReconciliationDiscrepancyVoPage,
     val reconciliationReports: kotlin.collections.List<ReconciliationReportVo>,
     val reconciliationTask: ReconciliationTaskVo?,
-    val reconciliationTasks: ReconciliationTaskPage,
+    val reconciliationTasks: ReconciliationTaskVoPage,
     val refundRequest: RefundRequestVo?,
-    val refundRequests: RefundRequestPage,
+    val refundRequests: RefundRequestVoPage,
     val region: RegionVo?,
     val regions: kotlin.collections.List<RegionVo>,
     val reviewsByDeliveryWorker: ReviewVoPage,
@@ -5295,14 +5284,6 @@ data class Query(
     val workerUnreadNotificationCount: kotlin.Long
 )
 
-data class ReconciliationDiscrepancyPage(
-    val content: kotlin.collections.List<ReconciliationDiscrepancyVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
-)
-
 data class ReconciliationDiscrepancyVo(
     val createdAt: java.time.LocalDateTime,
     val discrepancyType: DiscrepancyType,
@@ -5318,9 +5299,12 @@ data class ReconciliationDiscrepancyVo(
     val updatedAt: java.time.LocalDateTime
 )
 
-data class ReconciliationOrderDetailPage(
-    val list: kotlin.collections.List<ReconciliationOrderDetailVo>,
-    val pageInfo: PageInfoVo
+data class ReconciliationDiscrepancyVoPage(
+    val content: kotlin.collections.List<ReconciliationDiscrepancyVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 data class ReconciliationOrderDetailVo(
@@ -5333,6 +5317,11 @@ data class ReconciliationOrderDetailVo(
     val status: OrderStatus
 )
 
+data class ReconciliationOrderDetailVoPage(
+    val list: kotlin.collections.List<ReconciliationOrderDetailVo>,
+    val pageInfo: PageInfoVo
+)
+
 data class ReconciliationReportVo(
     val fileName: kotlin.String?,
     val filePath: kotlin.String?,
@@ -5342,14 +5331,6 @@ data class ReconciliationReportVo(
     val reportData: tools.jackson.databind.node.ObjectNode,
     val reportType: kotlin.String,
     val taskId: kotlin.String
-)
-
-data class ReconciliationTaskPage(
-    val content: kotlin.collections.List<ReconciliationTaskVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
 )
 
 enum class ReconciliationTaskStatus(val label: String) {
@@ -5393,6 +5374,14 @@ data class ReconciliationTaskVo(
     val totalRecords: kotlin.Int,
     val unmatchedRecords: kotlin.Int,
     val updatedAt: java.time.LocalDateTime
+)
+
+data class ReconciliationTaskVoPage(
+    val content: kotlin.collections.List<ReconciliationTaskVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 data class RefreshTokenInput(
@@ -5448,14 +5437,6 @@ data class RefundInput(
   )
 }
 
-data class RefundRequestPage(
-    val content: kotlin.collections.List<RefundRequestVo>,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Int,
-    val totalPages: kotlin.Int
-)
-
 data class RefundRequestVo(
     val adminNote: kotlin.String?,
     val amountCents: kotlin.Long,
@@ -5468,6 +5449,14 @@ data class RefundRequestVo(
     val requestedAt: java.time.LocalDateTime,
     val status: RefundStatus,
     val userId: kotlin.Long
+)
+
+data class RefundRequestVoPage(
+    val content: kotlin.collections.List<RefundRequestVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 enum class RefundStatus(val label: String) {
@@ -6813,14 +6802,14 @@ data class WaterSourceStatisticsVo(
     val waterSource: kotlin.String
 )
 
-data class WeChatLoginResponse(
+data class WeChatLoginVo(
     val accessToken: kotlin.String,
     val expiresIn: kotlin.Int,
     val refreshToken: kotlin.String,
     val userInfo: UserInfoVo
 )
 
-data class WeChatTokenResponse(
+data class WeChatTokenVo(
     val accessToken: kotlin.String,
     val expiresIn: kotlin.Int,
     val refreshToken: kotlin.String

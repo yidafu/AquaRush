@@ -2,7 +2,7 @@ import { networkManager } from '../utils/networkManager'
 import {
   MyOrderStatisticsVo,
   OrderVo,
-  OrderReviewCheckResponse,
+  OrderReviewCheckVo,
   OrderStatus,
   OrderVoPage,
   OrderPreviewVo,
@@ -482,7 +482,7 @@ class OrderService {
   /**
    * 订单评价检查(F-ORD-007):返回已评价内容与是否可评(仅已完成订单)
    */
-  public async getReviewCheck(orderId: string): Promise<ProductServiceResult<OrderReviewCheckResponse>> {
+  public async getReviewCheck(orderId: string): Promise<ProductServiceResult<OrderReviewCheckVo>> {
     const query = `
       query OrderReviewCheck($orderId: PrimaryId!) {
         orderReviewCheck(orderId: $orderId) {
@@ -500,7 +500,7 @@ class OrderService {
     `
 
     try {
-      const response = await networkManager.query<{ orderReviewCheck: OrderReviewCheckResponse }>(
+      const response = await networkManager.query<{ orderReviewCheck: OrderReviewCheckVo }>(
         query,
         { orderId }
       )

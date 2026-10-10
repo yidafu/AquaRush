@@ -30,16 +30,16 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionListInput
-import dev.yidafu.aqua.common.graphql.generated.DailyCollectionPage
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionSummaryVo
+import dev.yidafu.aqua.common.graphql.generated.DailyCollectionVoPage
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationListInput
-import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationPage
+import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationVoPage
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
 import dev.yidafu.aqua.common.graphql.generated.PaymentType
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailVo
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailVoPage
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.graphql.data.method.annotation.Argument
@@ -81,7 +81,7 @@ class AdminDailyCollectionQueryResolver(
   fun dailyCollections(
     @Argument input: DailyCollectionListInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyCollectionPage {
+  ): DailyCollectionVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -102,7 +102,7 @@ class AdminDailyCollectionQueryResolver(
         size = input?.size ?: 10,
       )
 
-    return DailyCollectionPage(
+    return DailyCollectionVoPage(
       list = page.content.map { it.toGraphQL() },
       pageInfo = pageInfoOf(page),
     )
@@ -116,7 +116,7 @@ class AdminDailyCollectionQueryResolver(
   fun dailyReconciliations(
     @Argument input: DailyReconciliationListInput?,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): DailyReconciliationPage {
+  ): DailyReconciliationVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -128,7 +128,7 @@ class AdminDailyCollectionQueryResolver(
         size = input?.size ?: 10,
       )
 
-    return DailyReconciliationPage(
+    return DailyReconciliationVoPage(
       list = page.content.map { it.toGraphQL() },
       pageInfo = pageInfoOf(page),
     )
@@ -171,7 +171,7 @@ class AdminDailyCollectionQueryResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userDetails: UserDetails?,
-  ): ReconciliationOrderDetailPage {
+  ): ReconciliationOrderDetailVoPage {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
@@ -192,7 +192,7 @@ class AdminDailyCollectionQueryResolver(
         size = size,
       )
 
-    return ReconciliationOrderDetailPage(
+    return ReconciliationOrderDetailVoPage(
       list = orderPage.content.map { order -> orderToDetail(order) },
       pageInfo = pageInfoOf(orderPage),
     )

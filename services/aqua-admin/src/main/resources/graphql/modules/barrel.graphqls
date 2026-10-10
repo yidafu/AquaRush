@@ -32,7 +32,7 @@ type BarrelFeeAdminVO {
 }
 
 # 水桶费价目分页
-type BarrelFeePage {
+type BarrelFeeVOPage {
   content: [BarrelFeeAdminVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -78,7 +78,7 @@ type BarrelPurchaseAdminVO {
 }
 
 # 购桶单分页
-type BarrelPurchasePage {
+type BarrelPurchaseVOPage {
   content: [BarrelPurchaseAdminVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -119,9 +119,9 @@ input BarrelPurchaseListInput {
 
 extend type Query {
   # 水桶费价目分页查询(状态/关键词筛选;PERMISSION_PAYMENT_READ)
-  barrelFees(input: BarrelFeeListInput): BarrelFeePage!
+  barrelFees(input: BarrelFeeListInput): BarrelFeeVOPage!
   # 购桶单分页查询(状态/时间范围筛选;PERMISSION_PAYMENT_READ)
-  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchasePage!
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchaseVOPage!
 }
 
 extend type Mutation {

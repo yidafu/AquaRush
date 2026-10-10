@@ -7,7 +7,7 @@ import { GET_RECONCILIATION_ORDER_DETAILS } from '../../../graphql/queries/daily
 import type {
   DailyReconciliation,
   ReconciliationOrderDetail,
-  ReconciliationOrderDetailPage,
+  ReconciliationOrderDetailVoPage,
 } from '../../../types/daily-collection';
 import { PAYMENT_TYPE_TEXT } from '../../../types/daily-collection';
 import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './constants';
@@ -45,7 +45,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
   }, [record, reviewForm]);
 
   const { data: detailData, loading: detailLoading } = useQuery<{
-    dailyReconciliationOrderDetails: ReconciliationOrderDetailPage;
+    dailyReconciliationOrderDetails: ReconciliationOrderDetailVoPage;
   }>(GET_RECONCILIATION_ORDER_DETAILS, {
     variables: {
       reconciliationDate: record?.reconciliationDate ?? '',

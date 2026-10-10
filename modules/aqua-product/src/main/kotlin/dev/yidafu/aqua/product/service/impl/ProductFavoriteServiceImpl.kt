@@ -330,7 +330,7 @@ class ProductFavoriteServiceImpl(
   /**
    * Perform batch operations on user favorites
    */
-  override fun performBatchOperation(input: BatchFavoriteOperationInput): BatchOperationResult {
+  override fun performBatchOperation(input: BatchFavoriteOperationInput): BatchOperationVo {
     val results = mutableListOf<String>()
     var successCount = 0
     var failureCount = 0
@@ -356,7 +356,7 @@ class ProductFavoriteServiceImpl(
       results.add("Operation failed: ${e.message}")
     }
 
-    return BatchOperationResult(
+    return BatchOperationVo(
       success = failureCount == 0,
       successCount = successCount,
       failureCount = failureCount,
@@ -370,7 +370,7 @@ class ProductFavoriteServiceImpl(
   /**
    * Export favorites data to CSV/Excel format
    */
-  override fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesResult {
+  override fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesVo {
     val outputStream = ByteArrayOutputStream()
     var recordCount = 0
 
@@ -514,7 +514,7 @@ class ProductFavoriteServiceImpl(
     }
 
     if (recordCount == 0) {
-      return ExportFavoritesResult(
+      return ExportFavoritesVo(
         success = false,
         message = "No data found for the given criteria",
         downloadUrl = null,
@@ -537,7 +537,7 @@ class ProductFavoriteServiceImpl(
     val fileSize = outputStream.size().toLong()
     val expiresAt = LocalDateTime.now().plusDays(7)
 
-    return ExportFavoritesResult(
+    return ExportFavoritesVo(
       success = true,
       message = "Export completed successfully",
       downloadUrl = "/api/exports/$fileName",

@@ -106,10 +106,10 @@ interface ProductFavoriteService {
   /**
    * Perform batch operations on user favorites
    */
-  fun performBatchOperation(input: BatchFavoriteOperationInput): BatchOperationResult
+  fun performBatchOperation(input: BatchFavoriteOperationInput): BatchOperationVo
 
   /**
    * Export favorites data to CSV/Excel format
    */
-  fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesResult
+  fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesVo
 }

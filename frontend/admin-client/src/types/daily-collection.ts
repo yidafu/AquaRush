@@ -61,12 +61,12 @@ export interface PageInfo {
   totalPages: number
 }
 
-export interface DailyCollectionPage {
+export interface DailyCollectionVoPage {
   list: DailyCollectionRecord[]
   pageInfo: PageInfo
 }
 
-export interface DailyReconciliationPage {
+export interface DailyReconciliationVoPage {
   list: DailyReconciliation[]
   pageInfo: PageInfo
 }
@@ -93,7 +93,7 @@ export interface ReconciliationOrderDetail {
   deliveredAt?: string
 }
 
-export interface ReconciliationOrderDetailPage {
+export interface ReconciliationOrderDetailVoPage {
   list: ReconciliationOrderDetail[]
   pageInfo: PageInfo
 }

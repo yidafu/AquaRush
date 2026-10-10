@@ -20,6 +20,6 @@ extend type Mutation {
   # AddressVO mutations
   createAdminAddress(input: AddressInput!): AddressVO!
   updateAdminAddress(id: PrimaryId!, input: UpdateAddressInput!): AddressVO!
-  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesResult!
+  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesVO!
   deleteAdminAddress(id: PrimaryId!): Boolean!
 }

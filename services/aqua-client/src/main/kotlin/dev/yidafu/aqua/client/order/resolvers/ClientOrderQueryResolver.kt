@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.MyOrderStatisticsVo
-import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckResponse
+import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckVo
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
@@ -140,7 +140,7 @@ class ClientOrderQueryResolver(
   fun orderReviewCheck(
     @Argument orderId: Long,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): OrderReviewCheckResponse {
+  ): OrderReviewCheckVo {
     val order =
       orderQueryApiService.findById(orderId)
         ?: throw NotFoundException("订单不存在: $orderId")
@@ -148,7 +148,7 @@ class ClientOrderQueryResolver(
       throw BadRequestException("无权查看此订单")
     }
     val review = reviewQueryService.findByOrderId(orderId)
-    return OrderReviewCheckResponse(
+    return OrderReviewCheckVo(
       hasReviewed = review != null,
       canReview = order.status == OrderModelStatus.COMPLETED && review == null,
       review = review?.toGraphQL(),

@@ -25,15 +25,15 @@ enum PaymentType {
 
 type Query {
   _dummy: String
-  dailyCollections(input: DailyCollectionListInput): DailyCollectionPage!
-  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationPage!
+  dailyCollections(input: DailyCollectionListInput): DailyCollectionVOPage!
+  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationVOPage!
   dailyCollectionSummary(collectionDate: String): DailyCollectionSummaryVO!
   dailyReconciliationOrderDetails(
     reconciliationDate: String!
     deliveryWorkerId: Long
     page: Int = 0
     size: Int = 20
-  ): ReconciliationOrderDetailPage!
+  ): ReconciliationOrderDetailVOPage!
 }
 
 type Mutation {
@@ -57,12 +57,12 @@ input DailyReconciliationListInput {
   size: Int = 10
 }
 
-type DailyCollectionPage {
+type DailyCollectionVOPage {
   list: [DailyCollectionRecordVO!]!
   pageInfo: PageInfoVO!
 }
 
-type DailyReconciliationPage {
+type DailyReconciliationVOPage {
   list: [DailyReconciliationVO!]!
   pageInfo: PageInfoVO!
 }
@@ -87,7 +87,7 @@ type ReconciliationOrderDetailVO {
   deliveredAt: LocalDateTime
 }
 
-type ReconciliationOrderDetailPage {
+type ReconciliationOrderDetailVOPage {
   list: [ReconciliationOrderDetailVO!]!
   pageInfo: PageInfoVO!
 }
@@ -186,7 +186,7 @@ type ReconciliationTaskVO {
   updatedAt: LocalDateTime!
 }
 
-type ReconciliationTaskPage {
+type ReconciliationTaskVOPage {
   content: [ReconciliationTaskVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -209,7 +209,7 @@ type ReconciliationDiscrepancyVO {
   updatedAt: LocalDateTime!
 }
 
-type ReconciliationDiscrepancyPage {
+type ReconciliationDiscrepancyVOPage {
   content: [ReconciliationDiscrepancyVO!]!
   totalElements: Int!
   totalPages: Int!
@@ -247,14 +247,14 @@ extend type Query {
     dateTo: String
     page: Int = 0
     size: Int = 20
-  ): ReconciliationTaskPage!
+  ): ReconciliationTaskVOPage!
   reconciliationTask(taskId: String!): ReconciliationTaskVO
   reconciliationDiscrepancies(
     taskId: String
     status: DiscrepancyStatus
     page: Int = 0
     size: Int = 20
-  ): ReconciliationDiscrepancyPage!
+  ): ReconciliationDiscrepancyVOPage!
   reconciliationReports(taskId: String!, reportType: String): [ReconciliationReportVO!]!
 }
 

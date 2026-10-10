@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.AddressVo
 import dev.yidafu.aqua.common.graphql.generated.AddressVoPage
-import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
+import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesVo
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.user.mapper.merge
 import dev.yidafu.aqua.user.mapper.toDomain
@@ -128,7 +128,7 @@ class AddressResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
   fun batchImportAddresses(
     @Argument input: List<AddressInput>,
-  ): BatchImportAddressesResult {
+  ): BatchImportAddressesVo {
     try {
       val totalCount = input.size
       var successCount = 0
@@ -156,7 +156,7 @@ class AddressResolver(
 
       logger.info("Batch import completed: $successCount success, $failureCount failed out of $totalCount")
 
-      return BatchImportAddressesResult(
+      return BatchImportAddressesVo(
         successCount = successCount,
         failureCount = failureCount,
         totalCount = totalCount,
