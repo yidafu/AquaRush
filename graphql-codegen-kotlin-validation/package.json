@@ -18,6 +18,7 @@
   "author": "AquaRush Team",
   "license": "AGPL-3.0",
   "dependencies": {
+    "@graphql-codegen/java-common": "^3.0.1",
     "@graphql-codegen/kotlin": "^3.0.2",
     "@graphql-codegen/visitor-plugin-common": "^6.2.1",
     "@graphql-codegen/plugin-helpers": "^5.0.0"
