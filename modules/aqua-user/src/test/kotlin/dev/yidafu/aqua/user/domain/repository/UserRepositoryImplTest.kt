@@ -21,8 +21,8 @@ package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport.reset
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 
 class UserRepositoryImplTest :
   FunSpec({
-    val repo = UserRepositoryImpl(UserExposedH2TestSupport.database)
+    val repo = UserRepositoryImpl(UserPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -48,7 +48,7 @@ class UserRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = UserExposedH2TestSupport.user()
+      val id = UserPgTestSupport.user()
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       repo.save(loaded.apply { nickname = "新昵称" })
       repo
@@ -59,8 +59,8 @@ class UserRepositoryImplTest :
     }
 
     test("findAll/分页/count/existsById/findAllById 与软删过滤") {
-      val keep = UserExposedH2TestSupport.user()
-      UserExposedH2TestSupport.user(deleted = true)
+      val keep = UserPgTestSupport.user()
+      UserPgTestSupport.user(deleted = true)
 
       repo.findAll() shouldHaveSize 1
       repo.findAll(PageRequest.of(0, 10)).totalElements shouldBe 1L
@@ -71,14 +71,14 @@ class UserRepositoryImplTest :
     }
 
     test("deleteById 软删后不可见") {
-      val id = UserExposedH2TestSupport.user()
+      val id = UserPgTestSupport.user()
       repo.deleteById(id)
       repo.existsById(id) shouldBe false
       repo.count() shouldBe 0L
     }
 
     test("findByWechatOpenId/findByPhone/existsByWechatOpenId") {
-      UserExposedH2TestSupport.user()
+      UserPgTestSupport.user()
       val found = repo.findAll().first()
       repo.findByWechatOpenId("openid-x") shouldBe null
       repo.findByWechatOpenId(found.wechatOpenId).shouldNotBeNull()
@@ -87,8 +87,8 @@ class UserRepositoryImplTest :
     }
 
     test("昵称/手机号分页搜索与状态分页") {
-      UserExposedH2TestSupport.user(nickname = "张三丰", phone = "13811112222")
-      UserExposedH2TestSupport.user(nickname = "李四", phone = "13833334444")
+      UserPgTestSupport.user(nickname = "张三丰", phone = "13811112222")
+      UserPgTestSupport.user(nickname = "李四", phone = "13833334444")
 
       repo
         .findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase("张三", "x", PageRequest.of(0, 10))
@@ -100,9 +100,9 @@ class UserRepositoryImplTest :
     }
 
     test("客户分组:列表/分页/计数") {
-      UserExposedH2TestSupport.user(customerGroupId = 5L)
-      UserExposedH2TestSupport.user(customerGroupId = 5L)
-      UserExposedH2TestSupport.user(customerGroupId = 6L)
+      UserPgTestSupport.user(customerGroupId = 5L)
+      UserPgTestSupport.user(customerGroupId = 5L)
+      UserPgTestSupport.user(customerGroupId = 6L)
 
       repo.findByCustomerGroupId(5L) shouldHaveSize 2
       repo.findByCustomerGroupId(5L, PageRequest.of(0, 1)).totalElements shouldBe 2L
@@ -112,8 +112,8 @@ class UserRepositoryImplTest :
 
     test("创建时间窗口查询(严格开区间)") {
       val base = LocalDateTime.of(2026, 1, 10, 0, 0)
-      UserExposedH2TestSupport.user(createdAt = base.plusHours(5))
-      UserExposedH2TestSupport.user(createdAt = base.plusDays(2))
+      UserPgTestSupport.user(createdAt = base.plusHours(5))
+      UserPgTestSupport.user(createdAt = base.plusDays(2))
 
       repo.findByCreatedAtGreaterThan(base) shouldHaveSize 2
       repo.findByCreatedAtGreaterThanAndCreatedAtLessThan(base.plusHours(1), base.plusDays(1)) shouldHaveSize 1
@@ -121,8 +121,8 @@ class UserRepositoryImplTest :
     }
 
     test("Custom 查询:金额/地址数/评价资格/关键词状态分页") {
-      val id = UserExposedH2TestSupport.user(totalSpentCents = 12300L, balanceCents = 456L)
-      UserExposedH2TestSupport.address(userId = id)
+      val id = UserPgTestSupport.user(totalSpentCents = 12300L, balanceCents = 456L)
+      UserPgTestSupport.address(userId = id)
 
       repo.getUserTotalSpent(id) shouldBe 123.0
       repo.getUserBalance(id) shouldBe 4.56

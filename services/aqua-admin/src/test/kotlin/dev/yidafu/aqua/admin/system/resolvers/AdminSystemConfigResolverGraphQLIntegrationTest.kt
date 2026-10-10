@@ -52,7 +52,7 @@ import org.springframework.web.context.WebApplicationContext
 /**
  * AdminSystemConfig Resolver GraphQL 集成测试(F-SYS-001~006, AC-SYS-001/002/003)
  * 权限:查询 PERMISSION_SYSTEM_CONFIG_READ,变更 PERMISSION_SYSTEM_CONFIG_WRITE(仅超级管理员,R-SYS-03)。
- * 测试环境 Liquibase 禁用(H2 + create-drop),@BeforeEach 经仓库播种 system_settings 行;
+ * 测试环境 Liquibase 禁用(Testcontainers PG + create-drop),@BeforeEach 经仓库播种 system_settings 行;
  * 生产种子参数(含 F-SYS-004/005/006)由 Liquibase v1.2.4 提供,不在测试环境自动生效。
  */
 @SpringBootTest(

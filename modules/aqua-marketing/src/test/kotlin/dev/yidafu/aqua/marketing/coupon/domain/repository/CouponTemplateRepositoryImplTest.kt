@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.coupon.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -31,11 +31,11 @@ import io.kotest.matchers.shouldBe
 import org.springframework.data.domain.PageRequest
 
 /**
- * 优惠券模板仓储 Exposed 实现测试(H2):save/软删/派生查询/分页。
+ * 优惠券模板仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/派生查询/分页。
  */
 class CouponTemplateRepositoryImplTest :
   FunSpec({
-    val repo = CouponTemplateRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = CouponTemplateRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -51,7 +51,7 @@ class CouponTemplateRepositoryImplTest :
     }
 
     test("save 更新已有实体走 update 分支") {
-      val id = MarketingExposedH2TestSupport.couponTemplate(name = "旧名", status = "ACTIVE")
+      val id = MarketingPgTestSupport.couponTemplate(name = "旧名", status = "ACTIVE")
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       loaded.name = "新名"
       loaded.status = CouponTemplateStatus.DISABLED
@@ -65,9 +65,9 @@ class CouponTemplateRepositoryImplTest :
     }
 
     test("软删模板不可见:findByName/findByStatus/findById/findAllById 均过滤") {
-      val keep = MarketingExposedH2TestSupport.couponTemplate(name = "存活", status = "ACTIVE")
-      MarketingExposedH2TestSupport.couponTemplate(name = "已删", status = "ACTIVE", deleted = true)
-      val other = MarketingExposedH2TestSupport.couponTemplate(name = "停用", status = "DISABLED")
+      val keep = MarketingPgTestSupport.couponTemplate(name = "存活", status = "ACTIVE")
+      MarketingPgTestSupport.couponTemplate(name = "已删", status = "ACTIVE", deleted = true)
+      val other = MarketingPgTestSupport.couponTemplate(name = "停用", status = "DISABLED")
 
       repo.findByName("已删") shouldBe null
       repo.findByStatus(CouponTemplateStatus.ACTIVE) shouldHaveSize 1
@@ -77,9 +77,9 @@ class CouponTemplateRepositoryImplTest :
     }
 
     test("searchTemplates:关键词+状态,软删不进结果") {
-      MarketingExposedH2TestSupport.couponTemplate(name = "春日券", status = "ACTIVE")
-      MarketingExposedH2TestSupport.couponTemplate(name = "夏日券", status = "DISABLED")
-      MarketingExposedH2TestSupport.couponTemplate(name = "春日隐藏券", status = "ACTIVE", deleted = true)
+      MarketingPgTestSupport.couponTemplate(name = "春日券", status = "ACTIVE")
+      MarketingPgTestSupport.couponTemplate(name = "夏日券", status = "DISABLED")
+      MarketingPgTestSupport.couponTemplate(name = "春日隐藏券", status = "ACTIVE", deleted = true)
 
       repo.searchTemplates("券", null, PageRequest.of(0, 10)).totalElements shouldBe 2L
       repo.searchTemplates("春日", null, PageRequest.of(0, 10)).totalElements shouldBe 1L
@@ -89,9 +89,9 @@ class CouponTemplateRepositoryImplTest :
     }
 
     test("searchTemplates:固定 id 升序破平,跨页不重不漏") {
-      val a = MarketingExposedH2TestSupport.couponTemplate(name = "A")
-      val b = MarketingExposedH2TestSupport.couponTemplate(name = "B")
-      val c = MarketingExposedH2TestSupport.couponTemplate(name = "C")
+      val a = MarketingPgTestSupport.couponTemplate(name = "A")
+      val b = MarketingPgTestSupport.couponTemplate(name = "B")
+      val c = MarketingPgTestSupport.couponTemplate(name = "C")
 
       val page0 = repo.searchTemplates(null, null, PageRequest.of(0, 2))
       val page1 = repo.searchTemplates(null, null, PageRequest.of(1, 2))

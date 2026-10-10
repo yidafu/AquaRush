@@ -115,7 +115,7 @@ class AdminCouponResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子 2 用户 + 1 分组(按 openid/名称去重,避免共享 H2 遗留数据重复)
+      // 幂等种子 2 用户 + 1 分组(按 openid/名称去重,避免共享测试库遗留数据重复)
       if (userRepository.findByWechatOpenId("mkt-coupon-seed-a") == null) {
         userRepository.save(
           UserModel(

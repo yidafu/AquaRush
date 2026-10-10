@@ -1,5 +1,7 @@
 plugins {
   id("aqua.spring.boot.application")
+  // Testcontainers 真实 PG 测试(容器运行时接线见 build-logic/aqua.testcontainers.gradle.kts)
+  id("aqua.testcontainers")
 }
 
 // Specify the main class
@@ -90,6 +92,8 @@ dependencies {
   runtimeOnly(libs.postgresql)
 
   // Test dependencies
-  testImplementation(libs.h2)
+  // 集成测试数据源 = Testcontainers 真实 PG(共享基建在 foundation testFixtures;
+  // 容器运行时接线见 aqua.testcontainers 插件),不再用 H2
+  testImplementation(testFixtures(project(":modules:aqua-foundation")))
   testImplementation("org.springframework.security:spring-security-test")
 }

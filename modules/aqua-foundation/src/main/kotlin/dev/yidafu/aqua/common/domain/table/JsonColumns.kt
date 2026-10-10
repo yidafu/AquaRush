@@ -28,6 +28,6 @@ import org.jetbrains.exposed.v1.json.json
  *
  * 不能用 [text] 代替:PostgreSQL 不接受 varchar 绑定插入 json 列
  * (`column "x" is of type json but expression is of type character varying`),
- * text() 只在宽松的 H2 测试里侥幸通过。
+ * 此前测试栈用 H2(宽松,会静默容忍 varchar→json),掩盖了这个问题;现已改为真实 PG。
  */
 fun Table.jsonString(name: String): Column<String> = json(name, { it }, { it })

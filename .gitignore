@@ -76,7 +76,6 @@ secrets/
 # Database
 *.db
 *.sqlite
-*.h2.db
 
 # MacOS
 .DS_Store

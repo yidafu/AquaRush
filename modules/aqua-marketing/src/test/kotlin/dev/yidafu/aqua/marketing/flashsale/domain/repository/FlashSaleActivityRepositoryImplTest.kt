@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.flashsale.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -31,11 +31,11 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 限时特价活动仓储 Exposed 实现测试(H2):save/软删/分页/findActiveByProductId/existsOverlap。
+ * 限时特价活动仓储 Exposed 实现测试(Testcontainers 真实 PG):save/软删/分页/findActiveByProductId/existsOverlap。
  */
 class FlashSaleActivityRepositoryImplTest :
   FunSpec({
-    val repo = FlashSaleActivityRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = FlashSaleActivityRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -57,15 +57,15 @@ class FlashSaleActivityRepositoryImplTest :
         .shouldNotBeNull()
         .salePriceCents shouldBe 80L
 
-      val gone = MarketingExposedH2TestSupport.flashSale(name = "已删", deleted = true)
+      val gone = MarketingPgTestSupport.flashSale(name = "已删", deleted = true)
       repo.findById(gone).isPresent shouldBe false
       repo.searchActivities(null, PageRequest.of(0, 10)).totalElements shouldBe 1L
     }
 
     test("searchActivities:关键词 + 分页 id 破平 + 软删过滤") {
-      val a = MarketingExposedH2TestSupport.flashSale(name = "限时一")
-      val b = MarketingExposedH2TestSupport.flashSale(name = "限时二")
-      MarketingExposedH2TestSupport.flashSale(name = "隐藏", deleted = true)
+      val a = MarketingPgTestSupport.flashSale(name = "限时一")
+      val b = MarketingPgTestSupport.flashSale(name = "限时二")
+      MarketingPgTestSupport.flashSale(name = "隐藏", deleted = true)
 
       repo.searchActivities("限时", PageRequest.of(0, 10)).totalElements shouldBe 2L
       repo.searchActivities("三", PageRequest.of(0, 10)).totalElements shouldBe 0L
@@ -78,32 +78,32 @@ class FlashSaleActivityRepositoryImplTest :
 
     test("findActiveByProductId:时间窗内最新 validFrom 优先") {
       val now = LocalDateTime.of(2026, 5, 1, 0, 0)
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "早窗",
         productId = 1L,
         validFrom = now.minusDays(10),
         validTo = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "晚窗",
         productId = 1L,
         validFrom = now.minusDays(2),
         validTo = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "他品",
         productId = 2L,
         validFrom = now.minusDays(1),
         validTo = now.plusDays(10),
       )
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "停用",
         productId = 1L,
         validFrom = now.minusDays(1),
         validTo = now.plusDays(10),
         status = "DISABLED",
       )
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "软删",
         productId = 1L,
         validFrom = now,
@@ -120,13 +120,13 @@ class FlashSaleActivityRepositoryImplTest :
     test("existsOverlap:时间窗重叠校验 + excludeId + 软删不冲突") {
       val base = LocalDateTime.of(2026, 5, 1, 0, 0)
       val overlapId =
-        MarketingExposedH2TestSupport.flashSale(
+        MarketingPgTestSupport.flashSale(
           name = "重叠",
           productId = 1L,
           validFrom = base,
           validTo = base.plusDays(10),
         )
-      MarketingExposedH2TestSupport.flashSale(
+      MarketingPgTestSupport.flashSale(
         name = "软删",
         productId = 1L,
         validFrom = base,

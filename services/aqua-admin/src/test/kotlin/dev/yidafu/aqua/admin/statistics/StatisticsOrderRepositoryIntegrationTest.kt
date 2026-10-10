@@ -53,7 +53,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 
 /**
- * 订单统计仓储集成测试(H2 PostgreSQL 模式)
+ * 订单统计仓储集成测试(Testcontainers 真实 PG)
  * 覆盖 PRD F-STA-002/005 营收口径的数据正确性:
  * - 多商品订单(F-ORD-004)营收按订单只计一次,不得按明细行数重复求和(P1-3);
  * - 营收口径 = 已完成订单金额合计(COMPLETED 过滤在服务层传入 statuses);
@@ -218,7 +218,7 @@ class StatisticsOrderRepositoryIntegrationTest(
 
     test("getWeeklyOrderStatistics aggregates per week without revenue overcount") {
       // 种子数据在独立周内(7 月),避免与日/月用例互相污染;不断言桶键具体日期 ——
-      // DATE_TRUNC('week') 在 H2 与 Postgres 的周起始日不同(周日/周一),属既有方言差异,与本用例口径无关
+      // DATE_TRUNC('week') 的周起始日属数据库方言,与本用例口径无关,故不断言具体桶键日期
       val orderId =
         seedOrder(
           amountCents = 12000L,

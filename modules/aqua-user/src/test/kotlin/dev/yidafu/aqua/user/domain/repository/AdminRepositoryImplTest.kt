@@ -22,8 +22,8 @@ package dev.yidafu.aqua.user.domain.repository
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport
-import dev.yidafu.aqua.user.common.exposed.UserExposedH2TestSupport.reset
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport
+import dev.yidafu.aqua.user.common.exposed.UserPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -31,7 +31,7 @@ import io.kotest.matchers.shouldBe
 
 class AdminRepositoryImplTest :
   FunSpec({
-    val repo = AdminRepositoryImpl(UserExposedH2TestSupport.database)
+    val repo = AdminRepositoryImpl(UserPgTestSupport.database)
 
     beforeTest { reset() }
 
@@ -49,7 +49,7 @@ class AdminRepositoryImplTest :
     }
 
     test("save 更新走 update 分支") {
-      val id = UserExposedH2TestSupport.admin()
+      val id = UserPgTestSupport.admin()
       val loaded = repo.findById(id).orElse(null).shouldNotBeNull()
       repo.save(loaded.apply { realName = "改名" })
       repo
@@ -60,8 +60,8 @@ class AdminRepositoryImplTest :
     }
 
     test("deleteById 软删;deleteAll 全表软删") {
-      val a = UserExposedH2TestSupport.admin()
-      UserExposedH2TestSupport.admin()
+      val a = UserPgTestSupport.admin()
+      UserPgTestSupport.admin()
       repo.deleteById(a)
       repo.findAll() shouldHaveSize 1
 
@@ -70,8 +70,8 @@ class AdminRepositoryImplTest :
     }
 
     test("按用户名/手机/角色/在线状态查询") {
-      UserExposedH2TestSupport.admin(username = "w1", role = "DELIVERY_WORKER", onlineStatus = "ONLINE")
-      UserExposedH2TestSupport.admin(username = "boss", role = "ADMIN", phone = "13999991111")
+      UserPgTestSupport.admin(username = "w1", role = "DELIVERY_WORKER", onlineStatus = "ONLINE")
+      UserPgTestSupport.admin(username = "boss", role = "ADMIN", phone = "13999991111")
 
       repo.findByUsername("w1").shouldNotBeNull()
       repo.findByUsername("nobody") shouldBe null
@@ -87,8 +87,8 @@ class AdminRepositoryImplTest :
     }
 
     test("角色集合查询与计数(空集合回退)") {
-      UserExposedH2TestSupport.admin(role = "DELIVERY_WORKER")
-      UserExposedH2TestSupport.admin(role = "ADMIN")
+      UserPgTestSupport.admin(role = "DELIVERY_WORKER")
+      UserPgTestSupport.admin(role = "ADMIN")
 
       val roles = listOf(AdminRoleModel.DELIVERY_WORKER, AdminRoleModel.ADMIN)
       repo.findAllByRoleIn(roles) shouldHaveSize 2
@@ -99,7 +99,7 @@ class AdminRepositoryImplTest :
 
     test("findByUsernameAndRole 与 findByUserId") {
       val uid = 555L
-      UserExposedH2TestSupport.admin(username = "wx", role = "DELIVERY_WORKER", userId = uid)
+      UserPgTestSupport.admin(username = "wx", role = "DELIVERY_WORKER", userId = uid)
 
       repo.findByUsernameAndRole("wx", AdminRoleModel.DELIVERY_WORKER).shouldNotBeNull()
       repo.findByUsernameAndRole("wx", AdminRoleModel.ADMIN) shouldBe null

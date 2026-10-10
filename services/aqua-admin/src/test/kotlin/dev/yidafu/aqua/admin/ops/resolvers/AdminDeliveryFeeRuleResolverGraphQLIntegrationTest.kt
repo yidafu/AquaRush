@@ -81,7 +81,7 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest(
     }
     test("deliveryFeeRule returns default when unconfigured") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_READ"))
-      // 清空已保存规则(共享 H2 可能被其他用例/历史运行写入),回到未配置态
+      // 清空已保存规则(共享测试库可能被其他用例/历史运行写入),回到未配置态
       deliveryFeeRuleRepository.hardDeleteAll()
       val json = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
       json.contains("\"freeFloorLimit\" : 4") && json.contains("\"surchargeCents\" : \"200\"") && !json.contains("\"errors\"") shouldBe true

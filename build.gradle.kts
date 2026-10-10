@@ -186,7 +186,7 @@ subprojects {
     }
   }
 
-  // 集成测试(Spring 上下文 + Artemis + H2)在默认 512m worker 堆下会 OOM,
+  // 集成测试(Spring 上下文 + Artemis + Testcontainers PG)在默认 512m worker 堆下会 OOM,
   // 显式分配 1g 保证测试进程稳定运行。
   tasks.withType<Test>().configureEach {
     maxHeapSize = "1g"

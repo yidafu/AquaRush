@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.notification.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport
-import dev.yidafu.aqua.common.exposed.PlatformExposedH2TestSupport.reset
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport
+import dev.yidafu.aqua.common.exposed.PlatformPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -29,7 +29,7 @@ import io.kotest.matchers.shouldBe
 
 class UserSubscriptionAuthRepositoryImplTest :
   FunSpec({
-    val repo = UserSubscriptionAuthRepositoryImpl(PlatformExposedH2TestSupport.database)
+    val repo = UserSubscriptionAuthRepositoryImpl(PlatformPgTestSupport.database)
 
     beforeTest { reset() }
 

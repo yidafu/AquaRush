@@ -1,7 +1,7 @@
 /**
  * AquaRush
  *
- * Copyright (C) 2025 AquaRush Team
+ * Copyright (C) 2026 AquaRush Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -22,6 +22,7 @@ package dev.yidafu.aqua.product.common.exposed
 import dev.yidafu.aqua.common.domain.table.ProductFavoritesTable
 import dev.yidafu.aqua.common.domain.table.ProductOptionsTable
 import dev.yidafu.aqua.common.domain.table.ProductsTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -31,18 +32,14 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
 
 /**
- * product 仓储实现测试的 H2 内存库支撑(JPA→Exposed 迁移 P4 覆盖率门禁配套),
- * 模式与 user 的 UserExposedH2TestSupport 一致。
+ * product 仓储实现测试的 **Testcontainers 真实 PostgreSQL** 支撑。
+ *
+ * 不用 H2 的原因见 `PostgresTestContainer` 的类注释。
+ *
  * products/product_favorites/product_options 均无跨表 FK reference,可直接 insert。
  */
-object ProductExposedH2TestSupport {
-  val database: Database =
-    Database.connect(
-      url = "jdbc:h2:mem:aquaproductrepo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE",
-      driver = "org.h2.Driver",
-      user = "sa",
-      password = "",
-    )
+object ProductPgTestSupport {
+  val database: Database = PostgresTestContainer.connect("aquaproduct")
 
   private val allTables: Array<Table> =
     arrayOf(ProductsTable, ProductFavoritesTable, ProductOptionsTable)
@@ -51,7 +48,7 @@ object ProductExposedH2TestSupport {
   private var schemaCreated = false
 
   fun reset() {
-    transaction(ProductExposedH2TestSupport.database) {
+    transaction(ProductPgTestSupport.database) {
       if (schemaCreated) {
         allTables.forEach { it.deleteAll() }
       } else {
@@ -81,7 +78,7 @@ object ProductExposedH2TestSupport {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(ProductExposedH2TestSupport.database) {
+    transaction(ProductPgTestSupport.database) {
       ProductsTable.insert {
         it[ProductsTable.id] = id
         it[ProductsTable.name] = name
@@ -111,7 +108,7 @@ object ProductExposedH2TestSupport {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(ProductExposedH2TestSupport.database) {
+    transaction(ProductPgTestSupport.database) {
       ProductFavoritesTable.insert {
         it[ProductFavoritesTable.id] = id
         it[ProductFavoritesTable.userId] = userId
@@ -133,7 +130,7 @@ object ProductExposedH2TestSupport {
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
   ): Long =
-    transaction(ProductExposedH2TestSupport.database) {
+    transaction(ProductPgTestSupport.database) {
       ProductOptionsTable.insert {
         it[ProductOptionsTable.id] = id
         it[ProductOptionsTable.optionType] = optionType

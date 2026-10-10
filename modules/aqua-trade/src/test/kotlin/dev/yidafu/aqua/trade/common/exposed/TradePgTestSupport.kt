@@ -31,12 +31,12 @@ import dev.yidafu.aqua.common.domain.table.OrdersTable
 import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
 import dev.yidafu.aqua.common.domain.table.PaymentsTable
 import dev.yidafu.aqua.common.domain.table.ReviewsTable
+import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.testcontainers.containers.PostgreSQLContainer
 
 /**
  * trade 仓储实现测试的 **Testcontainers 真实 PostgreSQL** 支撑(JPA→Exposed 迁移 P4 覆盖率门禁配套)。
@@ -46,13 +46,8 @@ import org.testcontainers.containers.PostgreSQLContainer
  * - `jsonString` 列绑定、varchar 长度校验、类型转换等 PG 方言差异 H2 测不出;
  * - 复审已指出「H2 单线程验证」不背书生产 PG 语义 —— 这里直接对真实 PG 验证。
  *
- * 运行要求(本机开发):
- * - Docker 或 podman 提供容器运行时;本机只有 podman 时由 `modules/aqua-trade/build.gradle.kts`
- *   的 test task 把 DOCKER_HOST 指到 podman machine socket,并禁用 ryuk
- *   (rootless podman 无法把宿主 socket 挂进 ryuk 清理容器),无需手工 export。
- * - 镜像默认 `postgres:17-alpine`;Testcontainers 检测到本地已有即不 pull。
- *   海外/CI 可用环境变量 `AQUA_TEST_PG_IMAGE` 覆盖其他 tag。
- * - 容器随测试 JVM 退出由 shutdown hook 清理(ryuk 已禁用)。
+ * 容器启动/镜像/参数统一由 foundation testFixtures 的 [PostgresTestContainer] 提供
+ * (含 podman 运行时接线与内存参数,见其类注释);本文件只声明本域的表集合与种子辅助。
  *
  * 生命周期:JVM 级单例容器 + 单例 [database],随测试 JVM 退出由 Testcontainers shutdown hook 停容器。
  *
@@ -62,24 +57,7 @@ import org.testcontainers.containers.PostgreSQLContainer
  *   避免并行迁移分支合并冲突。
  */
 object TradePgTestSupport {
-  // 官方镜像名(Testcontainers 检测到本地存在即不 pull;podman 短名 inspect 可命中
-  // localhost/ 前缀 tag)。覆盖用 AQUA_TEST_PG_IMAGE。必须是 `postgres` 仓库名 ——
-  // mirror 全名会因 Testcontainers 的 compatible-substitute 校验被拒。
-  private val image: String = System.getenv("AQUA_TEST_PG_IMAGE") ?: "postgres:17-alpine"
-
-  private val container: PostgreSQLContainer<*> =
-    PostgreSQLContainer(image).apply {
-      withDatabaseName("aquatrade")
-      start()
-    }
-
-  val database: Database =
-    Database.connect(
-      url = container.jdbcUrl,
-      driver = "org.postgresql.Driver",
-      user = container.username,
-      password = container.password,
-    )
+  val database: Database = PostgresTestContainer.connect("aquatrade")
 
   private val allTables: Array<Table> =
     arrayOf(

@@ -21,26 +21,26 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DepositRecordModel
 import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport
-import dev.yidafu.aqua.marketing.common.exposed.MarketingExposedH2TestSupport.reset
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport
+import dev.yidafu.aqua.marketing.common.exposed.MarketingPgTestSupport.reset
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 
 /**
- * 桶押金记录仓储 Exposed 实现测试(H2):saveAll 双分支/软删可见性/派生查询。
+ * 桶押金记录仓储 Exposed 实现测试(Testcontainers 真实 PG):saveAll 双分支/软删可见性/派生查询。
  */
 class DepositRecordRepositoryImplTest :
   FunSpec({
-    val repo = DepositRecordRepositoryImpl(MarketingExposedH2TestSupport.database)
+    val repo = DepositRecordRepositoryImpl(MarketingPgTestSupport.database)
 
     beforeTest { reset() }
 
     test("findByOrderIdAndStatus 过滤软删与状态") {
-      MarketingExposedH2TestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED")
-      MarketingExposedH2TestSupport.depositRecord(orderId = 10L, userId = 100L, status = "REFUNDED")
-      MarketingExposedH2TestSupport.depositRecord(orderId = 11L, userId = 100L, status = "COLLECTED")
-      MarketingExposedH2TestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED", deleted = true)
+      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED")
+      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "REFUNDED")
+      MarketingPgTestSupport.depositRecord(orderId = 11L, userId = 100L, status = "COLLECTED")
+      MarketingPgTestSupport.depositRecord(orderId = 10L, userId = 100L, status = "COLLECTED", deleted = true)
 
       repo.findByOrderIdAndStatus(10L, DepositStatus.COLLECTED) shouldHaveSize 1
       repo.findByOrderIdAndStatus(10L, DepositStatus.REFUNDED) shouldHaveSize 1

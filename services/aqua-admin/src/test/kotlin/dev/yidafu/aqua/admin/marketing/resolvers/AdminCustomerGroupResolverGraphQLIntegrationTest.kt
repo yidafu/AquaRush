@@ -82,7 +82,7 @@ class AdminCustomerGroupResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子 2 用户 + 2 分组(按 openid/名称去重,避免共享 H2 遗留数据重复)
+      // 幂等种子 2 用户 + 2 分组(按 openid/名称去重,避免共享测试库遗留数据重复)
       if (userRepository.findByWechatOpenId("mkt-group-seed-a") == null) {
         userRepository.save(
           UserModel(

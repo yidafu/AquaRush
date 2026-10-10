@@ -623,7 +623,11 @@ class ReconciliationDiscrepancyRepositoryImpl(
     }
 }
 
-/** H2 的 json 列 setString 会把文本再包一层 JSON string;读回时剥掉这层(幂等)。 */
+/**
+ * 读回 json 列时的**兼容性容错**:历史上 H2(测试栈已移除,现为 Testcontainers 真实 PG)
+ * 的 json 列 `setString` 会把文本再包一层 JSON string。真实 PG 不会这样,但仍按需剥一层
+ * (幂等,对正常单层 JSON 无影响),以免历史上被双重编码的存量数据读不出来。
+ */
 private fun parseJsonMap(
   objectMapper: ObjectMapper,
   json: String,

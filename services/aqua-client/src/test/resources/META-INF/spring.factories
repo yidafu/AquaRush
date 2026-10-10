@@ -1,0 +1,4 @@
+# client 集成测试的数据源改由 Testcontainers 真实 PostgreSQL 提供。
+# 见 dev.yidafu.aqua.client.testutil.PostgresTestContextInitializer 的类注释。
+org.springframework.context.ApplicationContextInitializer=\
+dev.yidafu.aqua.client.testutil.PostgresTestContextInitializer

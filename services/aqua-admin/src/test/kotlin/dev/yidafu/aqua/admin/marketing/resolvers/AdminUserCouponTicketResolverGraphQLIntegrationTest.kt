@@ -161,7 +161,7 @@ class AdminUserCouponTicketResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子 2 用户(按 openid 去重,避免共享 H2 遗留数据重复)
+      // 幂等种子 2 用户(按 openid 去重,避免共享测试库遗留数据重复)
       if (userRepository.findByWechatOpenId("mkt-user-coupon-a") == null) {
         userRepository.save(
           UserModel(

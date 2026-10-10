@@ -179,7 +179,7 @@ class ProductRepositoryImpl(
           it[tags] = jsonArray.convertToDatabaseColumn(entity.tags)
           it[description] = entity.detailContent
           it[certificateImages] = jsonArray.convertToDatabaseColumn(entity.certificateImages)
-          // 实体无押金字段(JPA 依赖 DDL DEFAULT 0);H2 建表无默认值,显式写 0,更新分支不触碰
+          // 实体无押金字段(JPA 依赖 DDL DEFAULT 0);建表不带默认值时该列为 NULL,显式写 0,更新分支不触碰
           it[depositPriceCents] = 0L
           it[ProductsTable.createdAt] = entity.createdAt
           it[updatedAt] = entity.updatedAt

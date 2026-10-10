@@ -20,21 +20,21 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
 /**
- * 配送费规则仓储实现测试（H2 + Exposed，F-OPS-005 单行配置）。
+ * 配送费规则仓储实现测试（Testcontainers 真实 PG + Exposed，F-OPS-005 单行配置）。
  * 覆盖「固定主键插入/覆盖更新」与 hardDeleteAll 的物理删除语义。
  */
 class DeliveryFeeRuleRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = DeliveryFeeRuleRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun rule(
       id: Long? = DeliveryFeeRuleRepository.SINGLETON_ID,
@@ -50,7 +50,7 @@ class DeliveryFeeRuleRepositoryTest :
       )
 
     test("save 新建 + findById 回读") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(rule(freeFloorLimit = 6, surchargeCents = 500L))
 
       val loaded = repository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).orElseThrow()
@@ -59,7 +59,7 @@ class DeliveryFeeRuleRepositoryTest :
     }
 
     test("save 覆盖更新单行配置") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(rule())
       repository.save(rule(freeFloorLimit = 3, surchargeCents = 300L))
 
@@ -69,12 +69,12 @@ class DeliveryFeeRuleRepositoryTest :
     }
 
     test("findById 不存在返回 empty") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).isPresent shouldBe false
     }
 
     test("hardDeleteAll 物理删除（软删行也清掉，复位主键占用）") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(rule())
       repository.hardDeleteAll()
 

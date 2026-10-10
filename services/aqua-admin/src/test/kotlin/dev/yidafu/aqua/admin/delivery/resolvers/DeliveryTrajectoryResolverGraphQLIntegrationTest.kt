@@ -100,7 +100,7 @@ class DeliveryTrajectoryResolverGraphQLIntegrationTest(
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
 
-      // 幂等种子化一个在线送水员账号(findByPhone 去重,避免共享 H2 遗留行导致的唯一键冲突)
+      // 幂等种子化一个在线送水员账号(findByPhone 去重,避免共享测试库遗留行导致的唯一键冲突)
       val worker =
         adminRepository.findByPhone("13900139001")
           ?: adminRepository.save(

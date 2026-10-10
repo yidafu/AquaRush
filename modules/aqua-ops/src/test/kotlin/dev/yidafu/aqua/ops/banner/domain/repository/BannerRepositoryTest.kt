@@ -21,7 +21,7 @@ package dev.yidafu.aqua.ops.banner.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
-import dev.yidafu.aqua.ops.common.exposed.ExposedH2TestSupport
+import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -30,15 +30,15 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
 /**
- * 轮播图仓储实现测试（H2 + Exposed，JPA -> Exposed 迁移的回归网）。
+ * 轮播图仓储实现测试（Testcontainers 真实 PG + Exposed，JPA -> Exposed 迁移的回归网）。
  * 重点覆盖软删过滤、时间窗生效条件与分页（迁移方案 §9 R3/R5）。
  */
 class BannerRepositoryTest :
   FunSpec({
-    val database = ExposedH2TestSupport.database
+    val database = OpsPgTestSupport.database
     val repository = BannerRepository(database)
 
-    beforeSpec { ExposedH2TestSupport.reset() }
+    beforeSpec { OpsPgTestSupport.reset() }
 
     fun banner(
       sortOrder: Int,
@@ -61,7 +61,7 @@ class BannerRepositoryTest :
       )
 
     test("save 新建：生成 Snowflake 主键并落库") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(banner(1))
 
       saved.id.shouldNotBeNull()
@@ -72,7 +72,7 @@ class BannerRepositoryTest :
     }
 
     test("save 更新：字段覆盖且 updatedAt 刷新") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(banner(1))
       val before = saved.updatedAt
 
@@ -85,7 +85,7 @@ class BannerRepositoryTest :
     }
 
     test("delete 后软删过滤生效：findById/findBySortOrder 查不到") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val saved = repository.save(banner(1))
 
       repository.delete(saved)
@@ -96,7 +96,7 @@ class BannerRepositoryTest :
     }
 
     test("findMaxSortOrder 返回当前最大排序号") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(banner(3))
       repository.save(banner(7))
 
@@ -104,7 +104,7 @@ class BannerRepositoryTest :
     }
 
     test("findActiveBanners：仅启用且在时间窗内，按 sort_order 升序") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       val now = LocalDateTime.now()
       repository.save(banner(2, enabled = false))
       repository.save(banner(1, enabled = true))
@@ -118,7 +118,7 @@ class BannerRepositoryTest :
     }
 
     test("findPage：关键字与启用状态过滤 + 分页") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(banner(1, enabled = true, title = "新品上市"))
       repository.save(banner(2, enabled = false, title = "新品促销"))
       repository.save(banner(3, enabled = true, title = "老客回馈"))
@@ -131,7 +131,7 @@ class BannerRepositoryTest :
     }
 
     test("findPage：分页参数生效（第二页为空）") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(banner(1))
       repository.save(banner(2))
 
@@ -142,7 +142,7 @@ class BannerRepositoryTest :
     }
 
     test("findPage：关键字大小写不敏感") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(banner(1, title = "Fresh水"))
 
       val page = repository.findPage(BannerFilter(keyword = "fresh"), PageRequest.of(0, 10))
@@ -152,7 +152,7 @@ class BannerRepositoryTest :
     }
 
     test("findAllOrderedForUpdate 按排序号升序返回") {
-      ExposedH2TestSupport.reset()
+      OpsPgTestSupport.reset()
       repository.save(banner(2))
       repository.save(banner(1))
 
