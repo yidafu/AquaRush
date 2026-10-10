@@ -65,6 +65,9 @@ class PostgresTestContextInitializer : ApplicationContextInitializer<Configurabl
           "spring.datasource.driver-class-name" to "org.postgresql.Driver",
           "spring.jpa.hibernate.ddl-auto" to "create",
           "spring.jpa.generate-ddl" to "true",
+          // 本机残留的 application-test.yml 可能把方言钉成 H2Dialect;连接已是真实 PG,
+          // 方言不对会按 H2 生成 DDL(表建不出来),必须显式钉成 PostgreSQL。
+          "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.PostgreSQLDialect",
           // main application.yml 用 metadata-then-scripts(生产靠 Liquibase 脚本),
           // 但测试禁用 Liquibase 且没有 scripts 源 → 必须显式改回 metadata,
           // 否则 Hibernate 报 "Unrecognized schema generation source type"。
