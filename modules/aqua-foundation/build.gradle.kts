@@ -35,6 +35,8 @@ dependencies {
   implementation(libs.exposed.jdbc)
   implementation(libs.exposed.java.time)
   implementation(libs.exposed.json)
+  // SpringTransactionManager(spring7-transaction):ExposedAutoConfiguration 的主事务管理器
+  implementation(libs.exposed.spring.transaction)
   testImplementation(libs.spring.boot.starter.test)
   // 表定义 H2 冒烟测试(TableDefinitionsSmokeTest)的内存库驱动
   testImplementation(libs.h2)

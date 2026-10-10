@@ -40,6 +40,12 @@ import java.util.zip.GZIPOutputStream
 /**
  * 日志分区元数据/操作 Repository 实现(PostgreSQL)
  * 日志表按月分区,备份直接操作分区表:分区导出(COPY)、并入年度冷表、DROP 分区、事务级 advisory lock。
+ *
+ * 事务性:P5 收口后主事务管理器是 Exposed `SpringTransactionManager`,它在 `doBegin` 把事务连接以
+ * Spring `ConnectionHolder` 绑定到 DataSource —— 因此本类的 JdbcTemplate / [DataSourceUtils] 与
+ * Exposed 仓储**共享同一连接与事务**,`LogBackupTransactionService.doBackup` 的
+ * 「advisory xact lock → 导出 → 并入冷表 → DROP 分区 → 落库」才是原子的。
+ * 改事务管理器前必须先评估这里(`COPY` 只能用 JDBC 连接,不能改成 Exposed DSL)。
  */
 @Repository
 class LogPartitionRepositoryImpl(
