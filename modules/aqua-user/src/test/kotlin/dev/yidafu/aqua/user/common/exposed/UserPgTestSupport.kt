@@ -69,7 +69,6 @@ object UserPgTestSupport {
     status: String = "ACTIVE",
     email: String = "u$id@t.cn",
     customerGroupId: Long? = null,
-    balanceCents: Long = 0L,
     totalSpentCents: Long = 0L,
     createdAt: LocalDateTime = LocalDateTime.now(),
     deleted: Boolean = false,
@@ -83,7 +82,6 @@ object UserPgTestSupport {
         it[UsersTable.email] = email
         it[UsersTable.status] = status
         it[role] = "USER"
-        it[UsersTable.balanceCents] = balanceCents
         it[UsersTable.totalSpentCents] = totalSpentCents
         it[UsersTable.customerGroupId] = customerGroupId
         it[UsersTable.createdAt] = createdAt

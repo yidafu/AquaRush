@@ -120,11 +120,10 @@ class UserRepositoryImplTest :
     }
 
     test("Custom 查询:金额/地址数/评价资格/关键词状态分页") {
-      val id = UserPgTestSupport.user(totalSpentCents = 12300L, balanceCents = 456L)
+      val id = UserPgTestSupport.user(totalSpentCents = 12300L)
       UserPgTestSupport.address(userId = id)
 
       repo.getUserTotalSpent(id) shouldBe 123.0
-      repo.getUserBalance(id) shouldBe 4.56
       repo.getUserAddressCount(id) shouldBe 1
       repo.canUserReview(id, 1L) shouldBe true
       repo.canUserReview(999L, 1L) shouldBe false
@@ -140,6 +139,5 @@ class UserRepositoryImplTest :
 
     test("金额查询的空值回退(无行)") {
       repo.getUserTotalSpent(999L) shouldBe 0.0
-      repo.getUserBalance(999L) shouldBe 0.0
     }
   })

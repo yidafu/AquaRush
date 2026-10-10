@@ -37,7 +37,6 @@ open class UserModel(
   // 后台用户管理可编辑状态(F-USR-022;微信登录创建时为 ACTIVE)
   var status: UserStatus = UserStatus.INACTIVE,
   val role: UserRole = UserRole.NONE,
-  val balanceCents: Long = 0L,
   val totalSpentCents: Long = 0L,
   // 所属客户分组(单分组,空=未分组;营销受众维度,PRD 10-marketing.md §F-MKT-001)
   var customerGroupId: Long? = null,
@@ -47,10 +46,6 @@ open class UserModel(
   override var deletedAt: LocalDateTime? = null,
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  // Backward compatibility property
-  val balance: BigDecimal
-    get() = MoneyUtils.fromCents(balanceCents)
-
   // Backward compatibility property
   val totalSpent: BigDecimal
     get() = MoneyUtils.fromCents(totalSpentCents)

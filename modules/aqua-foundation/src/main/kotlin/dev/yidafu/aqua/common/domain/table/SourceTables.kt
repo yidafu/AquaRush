@@ -105,7 +105,6 @@ object UsersTable : SoftDeletableTable("users") {
   val email = varchar("email", 255)
   val status = varchar("status", 50)
   val role = varchar("role", 50)
-  val balanceCents = long("balance_cents").default(0L)
   val totalSpentCents = long("total_spent_cents").default(0L)
   val customerGroupId = long("customer_group_id").nullable()
   val createdAt = datetime("created_at")

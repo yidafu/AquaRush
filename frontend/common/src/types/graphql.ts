@@ -4356,7 +4356,6 @@ export type UserTicketVo = {
 
 export type UserVo = {
   readonly avatarUrl?: Maybe<Scalars['String']['output']>;
-  readonly balanceCents: Scalars['Long']['output'];
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly customerGroupId?: Maybe<Scalars['PrimaryId']['output']>;
   readonly customerGroupName?: Maybe<Scalars['String']['output']>;

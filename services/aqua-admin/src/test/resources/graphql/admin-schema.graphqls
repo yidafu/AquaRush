@@ -246,7 +246,6 @@ extend type UserVo {
   status: UserStatus!
   role: UserRole!
   email: String!
-  balanceCents: Long!
   totalSpentCents: Long!
 }
 

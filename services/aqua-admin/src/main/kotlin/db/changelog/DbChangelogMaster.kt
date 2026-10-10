@@ -64,4 +64,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V310AddNotificationSettings", logicalFilePath = "db/changelog/changes/v3.1.0-add-notification-settings.xml")
     // Outbox 替代 Artemis MQ:重建 V100 遗留的 outbox_events(从未被读写)
     include(file = "db/changelog/changes/V320RecreateOutboxEvents", logicalFilePath = "db/changelog/changes/v3.2.0-recreate-outbox-events.xml")
+    // 缺陷 #6:删除 users.balance_cents(储值不做,PRD 2026-10-09 决策)
+    include(file = "db/changelog/changes/V330DropUsersBalanceCents", logicalFilePath = "db/changelog/changes/v3.3.0-drop-users-balance-cents.xml")
   })

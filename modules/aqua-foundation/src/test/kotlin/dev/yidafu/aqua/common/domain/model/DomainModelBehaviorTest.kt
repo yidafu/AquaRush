@@ -127,22 +127,19 @@ class DomainModelBehaviorTest :
       order.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH
       order.status shouldBe dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH
     }
-    test("UserModel balance and totalSpent should convert cents") {
+    test("UserModel totalSpent should convert cents") {
       val user =
         UserModel(
           wechatOpenId = "openid",
           email = "e@e.com",
-          balanceCents = 500L,
           totalSpentCents = 12345L,
           status = UserStatus.ACTIVE,
           role = UserRole.USER,
         )
-      user.balance shouldBe BigDecimal("5.00")
       user.totalSpent shouldBe BigDecimal("123.45")
     }
     test("UserModel defaults should apply") {
       val user = UserModel(wechatOpenId = "openid", email = "e@e.com")
-      user.balanceCents shouldBe 0L
       user.totalSpentCents shouldBe 0L
       user.status shouldBe UserStatus.INACTIVE
       user.role shouldBe UserRole.NONE

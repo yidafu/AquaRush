@@ -92,8 +92,6 @@ interface UserRepository {
   // ===== 用户域跨模块查询(F-MKT/统计口径)=====
   fun getUserTotalSpent(userId: Long): Double
 
-  fun getUserBalance(userId: Long): Double
-
   fun getUserAddressCount(userId: Long): Int
 
   fun canUserReview(
