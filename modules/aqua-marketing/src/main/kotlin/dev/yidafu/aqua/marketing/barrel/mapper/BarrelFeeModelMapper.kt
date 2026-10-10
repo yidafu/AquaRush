@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus as DomainBarrelFeeStatus
 
 /**
- * 水桶费价目实体 → GraphQL BarrelFeeAdminVo(状态枚举同名 valueOf 互转)
+ * 水桶费价目实体 → GraphQL BarrelFeeAdminVo(状态枚举同名枚举 when 穷举互转)
  */
 fun BarrelFeeModel.toGraphQL(): BarrelFeeAdminVo =
   BarrelFeeAdminVo(
@@ -39,6 +39,10 @@ fun BarrelFeeModel.toGraphQL(): BarrelFeeAdminVo =
   )
 
 /**
- * 价目状态:领域枚举 → GraphQL 枚举同名 valueOf 互转
+ * 价目状态:领域枚举 → GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainBarrelFeeStatus.toGraphQL(): BarrelFeeStatus = BarrelFeeStatus.valueOf(name)
+fun DomainBarrelFeeStatus.toGraphQL(): BarrelFeeStatus =
+  when (this) {
+    DomainBarrelFeeStatus.ENABLED -> BarrelFeeStatus.ENABLED
+    DomainBarrelFeeStatus.DISABLED -> BarrelFeeStatus.DISABLED
+  }

@@ -99,11 +99,15 @@ class AdminBannerMutationResolver(
     @AuthenticationPrincipal principal: UserPrincipal,
   ): List<BannerVo> {
     logger.info("Admin {} reordering banner {} direction {}", principal.username, id, direction)
-    val directionEnum =
-      dev.yidafu.aqua.api.dto.ReorderDirection
-        .valueOf(direction.name)
+    val directionEnum = direction.toDomain()
     return bannerMutationService
       .reorderBanner(principal.id, principal.username, id, directionEnum)
       .map { it.toGraphQL() }
   }
 }
+
+private fun ReorderDirection.toDomain(): dev.yidafu.aqua.api.dto.ReorderDirection =
+  when (this) {
+    ReorderDirection.DOWN -> dev.yidafu.aqua.api.dto.ReorderDirection.DOWN
+    ReorderDirection.UP -> dev.yidafu.aqua.api.dto.ReorderDirection.UP
+  }

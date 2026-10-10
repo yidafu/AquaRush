@@ -68,7 +68,7 @@ class LogBackupRecordRepositoryImpl(
   private fun toModel(row: ResultRow): LogBackupRecordModel =
     LogBackupRecordModel(
       id = row[LogBackupRecordsTable.id],
-      logTable = LogTableType.valueOf(row[LogBackupRecordsTable.logTable]),
+      logTable = LogTableType.fromValue(row[LogBackupRecordsTable.logTable]),
       partitionName = row[LogBackupRecordsTable.partitionName],
       partitionMonth = row[LogBackupRecordsTable.partitionMonth],
       coldTableName = row[LogBackupRecordsTable.coldTableName],
@@ -78,7 +78,7 @@ class LogBackupRecordRepositoryImpl(
       filePath = row[LogBackupRecordsTable.filePath],
       fileSizeBytes = row[LogBackupRecordsTable.fileSizeBytes],
       fileChecksum = row[LogBackupRecordsTable.fileChecksum],
-      status = LogBackupStatus.valueOf(row[LogBackupRecordsTable.status]),
+      status = LogBackupStatus.fromValue(row[LogBackupRecordsTable.status]),
       errorMessage = row[LogBackupRecordsTable.errorMessage],
       operatorId = row[LogBackupRecordsTable.operatorId],
       operatorName = row[LogBackupRecordsTable.operatorName],

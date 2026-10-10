@@ -52,22 +52,48 @@ fun TicketTypeModel.toGraphQL(): TicketTypeAdminVo =
   )
 
 /**
- * 票种类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 票种类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainTicketTypeKind.toGraphQL(): TicketTypeKind = TicketTypeKind.valueOf(name)
+fun DomainTicketTypeKind.toGraphQL(): TicketTypeKind =
+  when (this) {
+    DomainTicketTypeKind.SPECIFIC_PRODUCT -> TicketTypeKind.SPECIFIC_PRODUCT
+    DomainTicketTypeKind.UNIVERSAL -> TicketTypeKind.UNIVERSAL
+  }
 
-fun TicketTypeKind.toDomain(): DomainTicketTypeKind = DomainTicketTypeKind.valueOf(name)
+fun TicketTypeKind.toDomain(): DomainTicketTypeKind =
+  when (this) {
+    TicketTypeKind.SPECIFIC_PRODUCT -> DomainTicketTypeKind.SPECIFIC_PRODUCT
+    TicketTypeKind.UNIVERSAL -> DomainTicketTypeKind.UNIVERSAL
+  }
 
 /**
- * 票种状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 票种状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainTicketTypeStatus.toGraphQL(): TicketTypeStatus = TicketTypeStatus.valueOf(name)
+fun DomainTicketTypeStatus.toGraphQL(): TicketTypeStatus =
+  when (this) {
+    DomainTicketTypeStatus.ACTIVE -> TicketTypeStatus.ACTIVE
+    DomainTicketTypeStatus.DISABLED -> TicketTypeStatus.DISABLED
+  }
 
-fun TicketTypeStatus.toDomain(): DomainTicketTypeStatus = DomainTicketTypeStatus.valueOf(name)
+fun TicketTypeStatus.toDomain(): DomainTicketTypeStatus =
+  when (this) {
+    TicketTypeStatus.ACTIVE -> DomainTicketTypeStatus.ACTIVE
+    TicketTypeStatus.DISABLED -> DomainTicketTypeStatus.DISABLED
+  }
 
 /**
- * 有效期类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 有效期类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainValidityType.toGraphQL(): ValidityType = ValidityType.valueOf(name)
+fun DomainValidityType.toGraphQL(): ValidityType =
+  when (this) {
+    DomainValidityType.FIXED_RANGE -> ValidityType.FIXED_RANGE
+    DomainValidityType.DAYS_AFTER_CLAIM -> ValidityType.DAYS_AFTER_CLAIM
+    DomainValidityType.DAYS_AFTER_PURCHASE -> ValidityType.DAYS_AFTER_PURCHASE
+  }
 
-fun ValidityType.toDomain(): DomainValidityType = DomainValidityType.valueOf(name)
+fun ValidityType.toDomain(): DomainValidityType =
+  when (this) {
+    ValidityType.DAYS_AFTER_CLAIM -> DomainValidityType.DAYS_AFTER_CLAIM
+    ValidityType.DAYS_AFTER_PURCHASE -> DomainValidityType.DAYS_AFTER_PURCHASE
+    ValidityType.FIXED_RANGE -> DomainValidityType.FIXED_RANGE
+  }

@@ -9,4 +9,16 @@ enum class TicketPurchaseStatus {
   PAID,
   FAILED,
   CANCELLED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): TicketPurchaseStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "PAID" -> PAID
+        "FAILED" -> FAILED
+        "CANCELLED" -> CANCELLED
+        else -> throw IllegalArgumentException("Unknown TicketPurchaseStatus value: '" + value + "'")
+      }
+  }
 }

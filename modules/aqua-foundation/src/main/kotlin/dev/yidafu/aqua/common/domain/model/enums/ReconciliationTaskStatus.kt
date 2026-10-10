@@ -8,4 +8,16 @@ enum class ReconciliationTaskStatus {
   RUNNING, // 执行中
   SUCCESS, // 执行成功
   FAILED, // 执行失败
+  ;
+
+  companion object {
+    fun fromValue(value: String): ReconciliationTaskStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "RUNNING" -> RUNNING
+        "SUCCESS" -> SUCCESS
+        "FAILED" -> FAILED
+        else -> throw IllegalArgumentException("Unknown ReconciliationTaskStatus value: '" + value + "'")
+      }
+  }
 }

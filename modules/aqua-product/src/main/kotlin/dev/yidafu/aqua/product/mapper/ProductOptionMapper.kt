@@ -40,11 +40,19 @@ fun ProductOptionModel.toGraphQL(): ProductOptionVo =
   )
 
 /**
- * 领域枚举 → GraphQL 枚举(同名 valueOf 互转)
+ * 领域枚举 → GraphQL 枚举(同名枚举 when 穷举互转)
  */
-fun DomainProductOptionType.toGraphQL(): ProductOptionType = ProductOptionType.valueOf(name)
+fun DomainProductOptionType.toGraphQL(): ProductOptionType =
+  when (this) {
+    DomainProductOptionType.SPECIFICATION -> ProductOptionType.SPECIFICATION
+    DomainProductOptionType.WATER_SOURCE -> ProductOptionType.WATER_SOURCE
+  }
 
 /**
- * GraphQL 枚举 → 领域枚举(同名 valueOf 互转)
+ * GraphQL 枚举 → 领域枚举(同名枚举 when 穷举互转)
  */
-fun ProductOptionType.toDomain(): DomainProductOptionType = DomainProductOptionType.valueOf(name)
+fun ProductOptionType.toDomain(): DomainProductOptionType =
+  when (this) {
+    ProductOptionType.SPECIFICATION -> DomainProductOptionType.SPECIFICATION
+    ProductOptionType.WATER_SOURCE -> DomainProductOptionType.WATER_SOURCE
+  }

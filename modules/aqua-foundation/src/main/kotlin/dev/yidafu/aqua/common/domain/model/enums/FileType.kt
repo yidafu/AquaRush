@@ -77,4 +77,23 @@ enum class FileType {
    * 其他文件
    */
   OTHER,
+  ;
+
+  companion object {
+    fun fromValue(value: String): FileType =
+      when (value) {
+        "IMAGE" -> IMAGE
+        "VIDEO" -> VIDEO
+        "AUDIO" -> AUDIO
+        "DOCUMENT" -> DOCUMENT
+        "SPREADSHEET" -> SPREADSHEET
+        "PRESENTATION" -> PRESENTATION
+        "FRONTEND" -> FRONTEND
+        "ARCHIVE" -> ARCHIVE
+        "EXECUTABLE" -> EXECUTABLE
+        "BACKUP" -> BACKUP
+        "OTHER" -> OTHER
+        else -> throw IllegalArgumentException("Unknown FileType value: '" + value + "'")
+      }
+  }
 }

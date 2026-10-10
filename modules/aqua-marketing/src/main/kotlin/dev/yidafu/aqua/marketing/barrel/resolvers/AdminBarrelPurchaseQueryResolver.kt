@@ -51,7 +51,7 @@ class AdminBarrelPurchaseQueryResolver(
     }
     val result =
       barrelPurchaseQueryService.list(
-        status = input?.status?.let { BarrelPaymentStatusModel.valueOf(it.name) },
+        status = input?.status?.let { it.toDomain() },
         dateFrom = input?.dateFrom,
         dateTo = input?.dateTo,
         page = input?.page ?: 0,
@@ -72,3 +72,11 @@ class AdminBarrelPurchaseQueryResolver(
     )
   }
 }
+
+private fun dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus.toDomain(): BarrelPaymentStatusModel =
+  when (this) {
+    dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus.CANCELLED -> BarrelPaymentStatusModel.CANCELLED
+    dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus.PAID -> BarrelPaymentStatusModel.PAID
+    dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus.PENDING -> BarrelPaymentStatusModel.PENDING
+    dev.yidafu.aqua.common.graphql.generated.BarrelPaymentStatus.REFUNDED -> BarrelPaymentStatusModel.REFUNDED
+  }

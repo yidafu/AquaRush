@@ -27,4 +27,16 @@ enum class DailyCollectionStatus {
   SUBMITTED, // 已提交（待管理员确认）
   CONFIRMED, // 已确认（管理员已确认）
   DISPUTED, // 有争议（金额不匹配）
+  ;
+
+  companion object {
+    fun fromValue(value: String): DailyCollectionStatus =
+      when (value) {
+        "DRAFT" -> DRAFT
+        "SUBMITTED" -> SUBMITTED
+        "CONFIRMED" -> CONFIRMED
+        "DISPUTED" -> DISPUTED
+        else -> throw IllegalArgumentException("Unknown DailyCollectionStatus value: '" + value + "'")
+      }
+  }
 }

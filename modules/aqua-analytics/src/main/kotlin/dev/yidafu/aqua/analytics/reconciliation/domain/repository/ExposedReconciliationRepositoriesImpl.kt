@@ -265,8 +265,8 @@ class ReconciliationTaskRepositoryImpl(
     ReconciliationTaskModel().apply {
       id = row[ReconciliationTasksTable.id]
       taskId = row[ReconciliationTasksTable.taskId]
-      status = ReconciliationTaskStatus.valueOf(row[ReconciliationTasksTable.status])
-      taskType = ReconciliationTaskType.valueOf(row[ReconciliationTasksTable.taskType])
+      status = ReconciliationTaskStatus.fromValue(row[ReconciliationTasksTable.status])
+      taskType = ReconciliationTaskType.fromValue(row[ReconciliationTasksTable.taskType])
       taskDate = row[ReconciliationTasksTable.taskDate]
       startTime = row[ReconciliationTasksTable.startTime]
       endTime = row[ReconciliationTasksTable.endTime]
@@ -591,11 +591,11 @@ class ReconciliationDiscrepancyRepositoryImpl(
     ReconciliationDiscrepancyModel().apply {
       id = row[ReconciliationDiscrepanciesTable.id]
       taskId = row[ReconciliationDiscrepanciesTable.taskId]
-      discrepancyType = DiscrepancyType.valueOf(row[ReconciliationDiscrepanciesTable.discrepancyType])
-      sourceSystem = SourceSystem.valueOf(row[ReconciliationDiscrepanciesTable.sourceSystem])
+      discrepancyType = DiscrepancyType.fromValue(row[ReconciliationDiscrepanciesTable.discrepancyType])
+      sourceSystem = SourceSystem.fromValue(row[ReconciliationDiscrepanciesTable.sourceSystem])
       recordId = row[ReconciliationDiscrepanciesTable.recordId]
       recordDetails = row[ReconciliationDiscrepanciesTable.recordDetails]?.let { parseJsonMap(objectMapper, it) }
-      status = DiscrepancyStatus.valueOf(row[ReconciliationDiscrepanciesTable.status])
+      status = DiscrepancyStatus.fromValue(row[ReconciliationDiscrepanciesTable.status])
       resolutionNotes = row[ReconciliationDiscrepanciesTable.resolutionNotes]
       resolvedBy = row[ReconciliationDiscrepanciesTable.resolvedBy]
       resolvedAt = row[ReconciliationDiscrepanciesTable.resolvedAt]

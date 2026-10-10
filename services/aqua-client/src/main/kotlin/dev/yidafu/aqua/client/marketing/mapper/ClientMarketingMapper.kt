@@ -58,31 +58,86 @@ import dev.yidafu.aqua.common.graphql.generated.ValidityType as GraphQLValidityT
 
 // 用户端营销域 GraphQL VO 映射(F-MKT-002/003/007、R-MKT-01/02/07/08):
 // 所有映射均带外部数据(已领数量/可用性/票种名/配送费等),统一采用纯函数直接构造生成 VO;
-// 枚举按同名条目 valueOf 互转;手写转换(不依赖编译期生成 mapper),
+// 枚举按同名条目 when 穷举互转;手写转换(不依赖编译期生成 mapper),
 // 避免通用映射框架默认 map 实现抛出 KotlinNothingValueException。
 
 // 枚举映射(域枚举 → 生成枚举,条目同名)
-fun DomainCouponType.toGraphQL(): GraphQLCouponType = GraphQLCouponType.valueOf(name)
+fun DomainCouponType.toGraphQL(): GraphQLCouponType =
+  when (this) {
+    DomainCouponType.CASH -> GraphQLCouponType.CASH
+    DomainCouponType.DISCOUNT -> GraphQLCouponType.DISCOUNT
+    DomainCouponType.NO_THRESHOLD_CASH -> GraphQLCouponType.NO_THRESHOLD_CASH
+  }
 
-fun DomainCouponScope.toGraphQL(): GraphQLCouponScope = GraphQLCouponScope.valueOf(name)
+fun DomainCouponScope.toGraphQL(): GraphQLCouponScope =
+  when (this) {
+    DomainCouponScope.ALL -> GraphQLCouponScope.ALL
+    DomainCouponScope.PRODUCT -> GraphQLCouponScope.PRODUCT
+  }
 
-fun DomainValidityType.toGraphQL(): GraphQLValidityType = GraphQLValidityType.valueOf(name)
+fun DomainValidityType.toGraphQL(): GraphQLValidityType =
+  when (this) {
+    DomainValidityType.FIXED_RANGE -> GraphQLValidityType.FIXED_RANGE
+    DomainValidityType.DAYS_AFTER_CLAIM -> GraphQLValidityType.DAYS_AFTER_CLAIM
+    DomainValidityType.DAYS_AFTER_PURCHASE -> GraphQLValidityType.DAYS_AFTER_PURCHASE
+  }
 
-fun DomainTicketTypeKind.toGraphQL(): GraphQLTicketTypeKind = GraphQLTicketTypeKind.valueOf(name)
+fun DomainTicketTypeKind.toGraphQL(): GraphQLTicketTypeKind =
+  when (this) {
+    DomainTicketTypeKind.SPECIFIC_PRODUCT -> GraphQLTicketTypeKind.SPECIFIC_PRODUCT
+    DomainTicketTypeKind.UNIVERSAL -> GraphQLTicketTypeKind.UNIVERSAL
+  }
 
-fun DomainUserCouponStatus.toGraphQL(): GraphQLUserCouponStatus = GraphQLUserCouponStatus.valueOf(name)
+fun DomainUserCouponStatus.toGraphQL(): GraphQLUserCouponStatus =
+  when (this) {
+    DomainUserCouponStatus.RECEIVED -> GraphQLUserCouponStatus.RECEIVED
+    DomainUserCouponStatus.USED -> GraphQLUserCouponStatus.USED
+    DomainUserCouponStatus.RETURNED -> GraphQLUserCouponStatus.RETURNED
+    DomainUserCouponStatus.EXPIRED -> GraphQLUserCouponStatus.EXPIRED
+  }
 
-fun DomainUserTicketStatus.toGraphQL(): GraphQLUserTicketStatus = GraphQLUserTicketStatus.valueOf(name)
+fun DomainUserTicketStatus.toGraphQL(): GraphQLUserTicketStatus =
+  when (this) {
+    DomainUserTicketStatus.UNUSED -> GraphQLUserTicketStatus.UNUSED
+    DomainUserTicketStatus.USED -> GraphQLUserTicketStatus.USED
+    DomainUserTicketStatus.RETURNED -> GraphQLUserTicketStatus.RETURNED
+    DomainUserTicketStatus.EXPIRED -> GraphQLUserTicketStatus.EXPIRED
+  }
 
-fun DomainTicketPurchaseStatus.toGraphQL(): GraphQLTicketPurchaseStatus = GraphQLTicketPurchaseStatus.valueOf(name)
+fun DomainTicketPurchaseStatus.toGraphQL(): GraphQLTicketPurchaseStatus =
+  when (this) {
+    DomainTicketPurchaseStatus.PENDING -> GraphQLTicketPurchaseStatus.PENDING
+    DomainTicketPurchaseStatus.PAID -> GraphQLTicketPurchaseStatus.PAID
+    DomainTicketPurchaseStatus.FAILED -> GraphQLTicketPurchaseStatus.FAILED
+    DomainTicketPurchaseStatus.CANCELLED -> GraphQLTicketPurchaseStatus.CANCELLED
+  }
 
-fun DomainPriceSource.toGraphQL(): GraphQLPriceSource = GraphQLPriceSource.valueOf(name)
+fun DomainPriceSource.toGraphQL(): GraphQLPriceSource =
+  when (this) {
+    DomainPriceSource.CATALOG_PRICE -> GraphQLPriceSource.CATALOG_PRICE
+    DomainPriceSource.GROUP_PRICE -> GraphQLPriceSource.GROUP_PRICE
+    DomainPriceSource.FLASH_SALE_PRICE -> GraphQLPriceSource.FLASH_SALE_PRICE
+    DomainPriceSource.NEWCOMER_PRICE -> GraphQLPriceSource.NEWCOMER_PRICE
+    DomainPriceSource.MANUAL -> GraphQLPriceSource.MANUAL
+  }
 
 // ============ 查询过滤参数反转换(生成枚举 → 域枚举) ============
 
-fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus = DomainUserCouponStatus.valueOf(name)
+fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus =
+  when (this) {
+    GraphQLUserCouponStatus.EXPIRED -> DomainUserCouponStatus.EXPIRED
+    GraphQLUserCouponStatus.RECEIVED -> DomainUserCouponStatus.RECEIVED
+    GraphQLUserCouponStatus.RETURNED -> DomainUserCouponStatus.RETURNED
+    GraphQLUserCouponStatus.USED -> DomainUserCouponStatus.USED
+  }
 
-fun GraphQLUserTicketStatus.toDomain(): DomainUserTicketStatus = DomainUserTicketStatus.valueOf(name)
+fun GraphQLUserTicketStatus.toDomain(): DomainUserTicketStatus =
+  when (this) {
+    GraphQLUserTicketStatus.EXPIRED -> DomainUserTicketStatus.EXPIRED
+    GraphQLUserTicketStatus.RETURNED -> DomainUserTicketStatus.RETURNED
+    GraphQLUserTicketStatus.UNUSED -> DomainUserTicketStatus.UNUSED
+    GraphQLUserTicketStatus.USED -> DomainUserTicketStatus.USED
+  }
 
 // ============ 优惠券(F-MKT-003) ============
 

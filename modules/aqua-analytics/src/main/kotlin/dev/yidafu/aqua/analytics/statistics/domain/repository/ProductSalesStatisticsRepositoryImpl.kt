@@ -111,7 +111,7 @@ class ProductSalesStatisticsRepositoryImpl(
         .select(ProductsTable.status, productCount)
         .groupBy(ProductsTable.status)
         .toList()
-        .associate { row -> ProductModelStatus.valueOf(row[ProductsTable.status]) to row[productCount] }
+        .associate { row -> ProductModelStatus.fromValue(row[ProductsTable.status]) to row[productCount] }
     }
   }
 

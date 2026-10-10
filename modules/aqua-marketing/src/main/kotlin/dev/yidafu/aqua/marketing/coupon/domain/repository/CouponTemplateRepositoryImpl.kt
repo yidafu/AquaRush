@@ -58,25 +58,25 @@ class CouponTemplateRepositoryImpl(
       name = row[CouponTemplatesTable.name],
       couponType =
         dev.yidafu.aqua.common.domain.model.enums.CouponType
-          .valueOf(row[CouponTemplatesTable.couponType]),
+          .fromValue(row[CouponTemplatesTable.couponType]),
       thresholdCents = row[CouponTemplatesTable.thresholdCents],
       discountAmountCents = row[CouponTemplatesTable.discountAmountCents],
       discountRatePermille = row[CouponTemplatesTable.discountRatePermille],
       scope =
         dev.yidafu.aqua.common.domain.model.enums.CouponScope
-          .valueOf(row[CouponTemplatesTable.scope]),
+          .fromValue(row[CouponTemplatesTable.scope]),
       productId = row[CouponTemplatesTable.productId],
       validityType =
         dev.yidafu.aqua.common.domain.model.enums.ValidityType
-          .valueOf(row[CouponTemplatesTable.validityType]),
+          .fromValue(row[CouponTemplatesTable.validityType]),
       validFrom = row[CouponTemplatesTable.validFrom],
       validTo = row[CouponTemplatesTable.validTo],
       validDays = row[CouponTemplatesTable.validDays],
       issuanceType =
         dev.yidafu.aqua.common.domain.model.enums.CouponIssuanceType
-          .valueOf(row[CouponTemplatesTable.issuanceType]),
+          .fromValue(row[CouponTemplatesTable.issuanceType]),
       perUserLimit = row[CouponTemplatesTable.perUserLimit],
-      status = CouponTemplateStatus.valueOf(row[CouponTemplatesTable.status]),
+      status = CouponTemplateStatus.fromValue(row[CouponTemplatesTable.status]),
       createdAt = row[CouponTemplatesTable.createdAt],
       updatedAt = row[CouponTemplatesTable.updatedAt],
       deletedAt = row[CouponTemplatesTable.deletedAt],

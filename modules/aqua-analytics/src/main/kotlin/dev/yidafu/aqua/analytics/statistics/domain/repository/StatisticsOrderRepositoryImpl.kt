@@ -209,7 +209,7 @@ class StatisticsOrderRepositoryImpl(
         .andWhere { OrdersTable.status inList statuses.map { it.name } }
         .groupBy(OrdersTable.status)
         .toList()
-        .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
+        .associate { row -> OrderModelStatus.fromValue(row[OrdersTable.status]) to row[statusCount] }
     }
   }
 
@@ -226,7 +226,7 @@ class StatisticsOrderRepositoryImpl(
         .andWhere(whereClause)
         .groupBy(OrdersTable.status)
         .toList()
-        .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
+        .associate { row -> OrderModelStatus.fromValue(row[OrdersTable.status]) to row[statusCount] }
     }
   }
 

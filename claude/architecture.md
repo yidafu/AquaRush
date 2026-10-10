@@ -34,7 +34,7 @@ dev/yidafu/aqua/<domain>/
 │   └── exception/    # domain exceptions
 ├── dto/              # module-private DTOs
 ├── event/            # domain events and handlers
-├── mapper/           # 手写扩展函数转换（toGraphQL/toDomain/toRequest，valueOf 枚举互转）
+├── mapper/           # 手写扩展函数转换（toGraphQL/toDomain/toRequest，枚举互转用 when 穷举）
 ├── resolvers/        # GraphQL resolvers that are thin module adapters
 └── service/
     └── impl/         # implementations (interfaces live in aqua-foundation api/service)
@@ -48,6 +48,7 @@ Services use `<admin|client>/{config, <domain>/{resolvers, controller, dto}}`.
 2. **Cross-module DTOs live in `aqua-foundation` `api/dto`** (one class per file). Module-private DTOs stay in the module `dto/`; service-local DTOs in `<domain>/dto/`. Do not create `api/query` or `common/dto`.
 3. **Resolver placement**: pure module adapters may live in the module (`analytics/reconciliation/resolvers`); resolvers that depend on service-layer DTOs/security live in the service `<domain>/resolvers/` (always plural).
 4. **Resolver input types are never inlined** (no `data class XxxInput` in a resolver `companion object`) — service-local GraphQL input DTOs go in `<admin|client>/<domain>/dto/` (e.g. `admin/user/dto/AdminRequestDtos.kt`, mapped from the generated GraphQL input via a `fromInput(...)` factory); cross-module DTOs in `aqua-foundation` `api/dto`.
+5. **Enum conversions never call `valueOf`** at runtime: 领域 ↔ GraphQL 枚举互转走 mapper 扩展 `toGraphQL()`/`toDomain()`（`when` 穷举，任一侧改名/增删取值即编译失败）；DB 列值/查询参数/事件 payload 字符串解析走枚举伴生 `fromValue`（显式 `when` + else 抛 `IllegalArgumentException`，fail-fast）。GraphQL 生成枚举不可改，以 `common/graphql/GraphQLEnumParsing.kt` 伴生扩展提供 `fromValue`。由 `EnumConversionConventionTest`（源码扫描）强制执行。
 
 Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages (use `util`); module-root `exception/` (use `domain/exception/`); `.imports` files outside `META-INF/spring/`.
 

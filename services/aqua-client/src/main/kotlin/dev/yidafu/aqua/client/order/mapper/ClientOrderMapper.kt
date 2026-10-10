@@ -25,20 +25,22 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.graphql.generated.AddressVo
+import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
-import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderVo
-import dev.yidafu.aqua.common.graphql.generated.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.PriceSource
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductVo
 import dev.yidafu.aqua.common.graphql.generated.ReviewVo
+import dev.yidafu.aqua.order.mapper.toGraphQL
 import dev.yidafu.aqua.order.mapper.toOrderItemVo
+import dev.yidafu.aqua.product.mapper.toGraphQL
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus as DomainDeliveryPhotoReviewStatus
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DomainDeliveryTimeSlot
 
 /**
  * 用户端订单域 GraphQL 映射(纯函数直构,手写转换不依赖编译期生成 mapper,
  * 避免通用映射框架默认 map 实现抛出 KotlinNothingValueException;参见 ClientMarketingMapper 说明)。
- * 枚举按同名条目 valueOf 互转;金额一律为分(R-MON-01)。
+ * 枚举按同名条目 when 穷举互转;金额一律为分(R-MON-01)。
  */
 
 fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): OrderVo =
@@ -48,18 +50,18 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): OrderVo =
     amountCents = amountCents,
     deliveryFeeCents = deliveryFeeCents,
     payAmountCents = payAmountCents,
-    status = OrderStatus.valueOf(status.name),
+    status = status.toGraphQL(),
     paymentMethod = paymentMethod?.name,
     paymentTransactionId = paymentTransactionId,
     paymentTime = paymentTime,
     isSelfCollect = isSelfCollect,
-    paymentType = paymentType?.let { PaymentType.valueOf(it.name) },
+    paymentType = paymentType?.let { it.toGraphQL() },
     deliveryStartedAt = deliveryStartedAt,
     deliveryConfirmedAt = deliveryConfirmedAt,
     completedAt = completedAt,
     remark = remark,
     // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转)
-    deliveryTimeSlot = deliveryTimeSlot?.let { DeliveryTimeSlot.valueOf(it.name) },
+    deliveryTimeSlot = deliveryTimeSlot?.let { it.toGraphQL() },
     createdAt = createdAt,
     updatedAt = updatedAt,
     firstOrderDiscountCents = firstOrderDiscountCents,
@@ -76,10 +78,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): OrderVo =
     depositCents = depositCents,
     // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转;用户端不展示,随单透传)
     deliveryPhotoReviewStatus =
-      deliveryPhotoReviewStatus?.let {
-        dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus
-          .valueOf(it.name)
-      },
+      deliveryPhotoReviewStatus?.let { it.toGraphQL() },
     deliveryPhotoReviewedAt = deliveryPhotoReviewedAt,
     deliveryPhotoReviewedBy = deliveryPhotoReviewedBy,
     deliveryPhotoReviewRemark = deliveryPhotoReviewRemark,
@@ -107,7 +106,7 @@ fun ProductModel.toGraphQL(): ProductVo =
     mineralContent = mineralContent,
     stock = stock,
     salesVolume = salesVolume,
-    status = ProductStatus.valueOf(status.name),
+    status = status.toGraphQL(),
     sortOrder = sortOrder,
     tags = tags,
     detailContent = detailContent,
@@ -157,3 +156,18 @@ fun ReviewModel.toGraphQL(): ReviewVo =
     isAnonymous = isAnonymous,
     createdAt = createdAt,
   )
+
+private fun DomainDeliveryTimeSlot.toGraphQL(): DeliveryTimeSlot =
+  when (this) {
+    DomainDeliveryTimeSlot.IMMEDIATE -> DeliveryTimeSlot.IMMEDIATE
+    DomainDeliveryTimeSlot.MORNING -> DeliveryTimeSlot.MORNING
+    DomainDeliveryTimeSlot.AFTERNOON -> DeliveryTimeSlot.AFTERNOON
+    DomainDeliveryTimeSlot.EVENING -> DeliveryTimeSlot.EVENING
+  }
+
+private fun DomainDeliveryPhotoReviewStatus.toGraphQL(): DeliveryPhotoReviewStatus =
+  when (this) {
+    DomainDeliveryPhotoReviewStatus.PENDING -> DeliveryPhotoReviewStatus.PENDING
+    DomainDeliveryPhotoReviewStatus.APPROVED -> DeliveryPhotoReviewStatus.APPROVED
+    DomainDeliveryPhotoReviewStatus.REJECTED -> DeliveryPhotoReviewStatus.REJECTED
+  }

@@ -64,41 +64,89 @@ fun CouponTemplateModel.toGraphQL(
   )
 
 /**
- * 优惠券类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 优惠券类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainCouponType.toGraphQL(): CouponType = CouponType.valueOf(name)
+fun DomainCouponType.toGraphQL(): CouponType =
+  when (this) {
+    DomainCouponType.CASH -> CouponType.CASH
+    DomainCouponType.DISCOUNT -> CouponType.DISCOUNT
+    DomainCouponType.NO_THRESHOLD_CASH -> CouponType.NO_THRESHOLD_CASH
+  }
 
-fun CouponType.toDomain(): DomainCouponType = DomainCouponType.valueOf(name)
+fun CouponType.toDomain(): DomainCouponType =
+  when (this) {
+    CouponType.CASH -> DomainCouponType.CASH
+    CouponType.DISCOUNT -> DomainCouponType.DISCOUNT
+    CouponType.NO_THRESHOLD_CASH -> DomainCouponType.NO_THRESHOLD_CASH
+  }
 
 /**
- * 优惠券适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 优惠券适用范围:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainCouponScope.toGraphQL(): CouponScope = CouponScope.valueOf(name)
+fun DomainCouponScope.toGraphQL(): CouponScope =
+  when (this) {
+    DomainCouponScope.ALL -> CouponScope.ALL
+    DomainCouponScope.PRODUCT -> CouponScope.PRODUCT
+  }
 
-fun CouponScope.toDomain(): DomainCouponScope = DomainCouponScope.valueOf(name)
+fun CouponScope.toDomain(): DomainCouponScope =
+  when (this) {
+    CouponScope.ALL -> DomainCouponScope.ALL
+    CouponScope.PRODUCT -> DomainCouponScope.PRODUCT
+  }
 
 /**
- * 有效期类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 有效期类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainValidityType.toGraphQL(): ValidityType = ValidityType.valueOf(name)
+fun DomainValidityType.toGraphQL(): ValidityType =
+  when (this) {
+    DomainValidityType.FIXED_RANGE -> ValidityType.FIXED_RANGE
+    DomainValidityType.DAYS_AFTER_CLAIM -> ValidityType.DAYS_AFTER_CLAIM
+    DomainValidityType.DAYS_AFTER_PURCHASE -> ValidityType.DAYS_AFTER_PURCHASE
+  }
 
-fun ValidityType.toDomain(): DomainValidityType = DomainValidityType.valueOf(name)
+fun ValidityType.toDomain(): DomainValidityType =
+  when (this) {
+    ValidityType.DAYS_AFTER_CLAIM -> DomainValidityType.DAYS_AFTER_CLAIM
+    ValidityType.DAYS_AFTER_PURCHASE -> DomainValidityType.DAYS_AFTER_PURCHASE
+    ValidityType.FIXED_RANGE -> DomainValidityType.FIXED_RANGE
+  }
 
 /**
- * 发放方式:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 发放方式:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainCouponIssuanceType.toGraphQL(): CouponIssuanceType = CouponIssuanceType.valueOf(name)
+fun DomainCouponIssuanceType.toGraphQL(): CouponIssuanceType =
+  when (this) {
+    DomainCouponIssuanceType.AUTO_CLAIM -> CouponIssuanceType.AUTO_CLAIM
+    DomainCouponIssuanceType.TARGETED -> CouponIssuanceType.TARGETED
+  }
 
-fun CouponIssuanceType.toDomain(): DomainCouponIssuanceType = DomainCouponIssuanceType.valueOf(name)
+fun CouponIssuanceType.toDomain(): DomainCouponIssuanceType =
+  when (this) {
+    CouponIssuanceType.AUTO_CLAIM -> DomainCouponIssuanceType.AUTO_CLAIM
+    CouponIssuanceType.TARGETED -> DomainCouponIssuanceType.TARGETED
+  }
 
 /**
- * 模板状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 模板状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainCouponTemplateStatus.toGraphQL(): CouponTemplateStatus = CouponTemplateStatus.valueOf(name)
+fun DomainCouponTemplateStatus.toGraphQL(): CouponTemplateStatus =
+  when (this) {
+    DomainCouponTemplateStatus.ACTIVE -> CouponTemplateStatus.ACTIVE
+    DomainCouponTemplateStatus.DISABLED -> CouponTemplateStatus.DISABLED
+  }
 
-fun CouponTemplateStatus.toDomain(): DomainCouponTemplateStatus = DomainCouponTemplateStatus.valueOf(name)
+fun CouponTemplateStatus.toDomain(): DomainCouponTemplateStatus =
+  when (this) {
+    CouponTemplateStatus.ACTIVE -> DomainCouponTemplateStatus.ACTIVE
+    CouponTemplateStatus.DISABLED -> DomainCouponTemplateStatus.DISABLED
+  }
 
 /**
- * 定向发放目标类型:GraphQL 枚举 → 领域枚举同名 valueOf 互转
+ * 定向发放目标类型:GraphQL 枚举 → 领域枚举同名枚举 when 穷举互转
  */
-fun IssueTargetType.toDomain(): DomainIssueTargetType = DomainIssueTargetType.valueOf(name)
+fun IssueTargetType.toDomain(): DomainIssueTargetType =
+  when (this) {
+    IssueTargetType.GROUP -> DomainIssueTargetType.GROUP
+    IssueTargetType.USER -> DomainIssueTargetType.USER
+  }

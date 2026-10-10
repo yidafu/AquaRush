@@ -30,4 +30,14 @@ enum class ProductOptionType {
 
   /** 水源地 */
   WATER_SOURCE,
+  ;
+
+  companion object {
+    fun fromValue(value: String): ProductOptionType =
+      when (value) {
+        "SPECIFICATION" -> SPECIFICATION
+        "WATER_SOURCE" -> WATER_SOURCE
+        else -> throw IllegalArgumentException("Unknown ProductOptionType value: '" + value + "'")
+      }
+  }
 }

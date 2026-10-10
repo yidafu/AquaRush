@@ -35,11 +35,10 @@ import dev.yidafu.aqua.common.graphql.generated.DailyCollectionVoPage
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationListInput
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationVoPage
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
-import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.PageInfoVo
-import dev.yidafu.aqua.common.graphql.generated.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailVo
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailVoPage
+import dev.yidafu.aqua.order.mapper.toGraphQL
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.graphql.data.method.annotation.Argument
@@ -204,8 +203,8 @@ class AdminDailyCollectionQueryResolver(
       orderNo = order.orderNo,
       deliveryWorkerId = order.deliveryWorkerId,
       amountCents = order.amountCents,
-      paymentType = order.paymentType?.let { PaymentType.valueOf(it.name) },
-      status = OrderStatus.valueOf(order.status.name),
+      paymentType = order.paymentType?.let { it.toGraphQL() },
+      status = order.status.toGraphQL(),
       deliveredAt = order.deliveryConfirmedAt ?: order.completedAt,
     )
 

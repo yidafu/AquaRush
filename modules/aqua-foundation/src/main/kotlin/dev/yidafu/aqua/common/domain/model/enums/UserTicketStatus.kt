@@ -10,4 +10,16 @@ enum class UserTicketStatus {
   USED,
   RETURNED,
   EXPIRED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): UserTicketStatus =
+      when (value) {
+        "UNUSED" -> UNUSED
+        "USED" -> USED
+        "RETURNED" -> RETURNED
+        "EXPIRED" -> EXPIRED
+        else -> throw IllegalArgumentException("Unknown UserTicketStatus value: '" + value + "'")
+      }
+  }
 }

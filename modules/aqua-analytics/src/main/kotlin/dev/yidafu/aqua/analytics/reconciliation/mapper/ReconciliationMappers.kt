@@ -43,8 +43,8 @@ fun ReconciliationTaskModel.toGraphQL(): ReconciliationTaskVo =
     id = id ?: 0L,
     taskId = taskId,
     // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
-    taskType = ReconciliationTaskType.valueOf(taskType.name),
-    status = ReconciliationTaskStatus.valueOf(status.name),
+    taskType = taskType.toGraphQL(),
+    status = status.toGraphQL(),
     // 处理 taskDate: LocalDateTime? -> LocalDateTime
     taskDate = taskDate ?: LocalDateTime.now(),
     startTime = startTime,
@@ -66,12 +66,12 @@ fun ReconciliationDiscrepancyModel.toGraphQL(): ReconciliationDiscrepancyVo =
     id = id ?: 0L,
     taskId = taskId,
     // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
-    discrepancyType = DiscrepancyType.valueOf(discrepancyType.name),
-    sourceSystem = SourceSystem.valueOf(sourceSystem.name),
+    discrepancyType = discrepancyType.toGraphQL(),
+    sourceSystem = sourceSystem.toGraphQL(),
     recordId = recordId,
     // 处理 recordDetails: Map? -> ObjectNode?
     recordDetails = recordDetails?.let { JsonHelper().createObjectNode(it) },
-    status = DiscrepancyStatus.valueOf(status.name),
+    status = status.toGraphQL(),
     resolutionNotes = resolutionNotes,
     resolvedBy = resolvedBy,
     resolvedAt = resolvedAt,
@@ -95,3 +95,37 @@ fun ReconciliationReportModel.toGraphQL(): ReconciliationReportVo =
     fileSize = fileSize,
     generatedAt = generatedAt,
   )
+
+private fun dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.toGraphQL(): ReconciliationTaskType =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.PAYMENT -> ReconciliationTaskType.PAYMENT
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.REFUND -> ReconciliationTaskType.REFUND
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.SETTLEMENT -> ReconciliationTaskType.SETTLEMENT
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.toGraphQL(): ReconciliationTaskStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.PENDING -> ReconciliationTaskStatus.PENDING
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.RUNNING -> ReconciliationTaskStatus.RUNNING
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SUCCESS -> ReconciliationTaskStatus.SUCCESS
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.FAILED -> ReconciliationTaskStatus.FAILED
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.toGraphQL(): DiscrepancyType =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.MISSING -> DiscrepancyType.MISSING
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.MISMATCH -> DiscrepancyType.MISMATCH
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.EXTRA -> DiscrepancyType.EXTRA
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.SourceSystem.toGraphQL(): SourceSystem =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.SourceSystem.INTERNAL -> SourceSystem.INTERNAL
+    dev.yidafu.aqua.common.domain.model.enums.SourceSystem.WECHAT -> SourceSystem.WECHAT
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.toGraphQL(): DiscrepancyStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.UNRESOLVED -> DiscrepancyStatus.UNRESOLVED
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.RESOLVED -> DiscrepancyStatus.RESOLVED
+  }

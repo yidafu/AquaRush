@@ -33,4 +33,17 @@ enum class MarketingBreakdownKind {
   FIRST_ORDER_ACTIVITY,
   GIFT_ACTIVITY,
   TICKET_TYPE,
+  ;
+
+  companion object {
+    fun fromValue(value: String): MarketingBreakdownKind =
+      when (value) {
+        "COUPON_TEMPLATE" -> COUPON_TEMPLATE
+        "PROMOTION_ACTIVITY" -> PROMOTION_ACTIVITY
+        "FIRST_ORDER_ACTIVITY" -> FIRST_ORDER_ACTIVITY
+        "GIFT_ACTIVITY" -> GIFT_ACTIVITY
+        "TICKET_TYPE" -> TICKET_TYPE
+        else -> throw IllegalArgumentException("Unknown MarketingBreakdownKind value: '" + value + "'")
+      }
+  }
 }

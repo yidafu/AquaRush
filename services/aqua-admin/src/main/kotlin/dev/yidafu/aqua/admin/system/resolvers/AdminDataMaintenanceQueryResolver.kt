@@ -113,4 +113,9 @@ class AdminDataMaintenanceQueryResolver(
 /**
  * 生成的 GraphQL LogTableType → 域 LogTableType
  */
-fun LogTableType.toDomain(): DomainLogTableType = DomainLogTableType.valueOf(name)
+fun LogTableType.toDomain(): DomainLogTableType =
+  when (this) {
+    LogTableType.API_LOG -> DomainLogTableType.API_LOG
+    LogTableType.BUSINESS_LOG -> DomainLogTableType.BUSINESS_LOG
+    LogTableType.USER_ACTION_LOG -> DomainLogTableType.USER_ACTION_LOG
+  }

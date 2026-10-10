@@ -25,11 +25,11 @@ import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
 import dev.yidafu.aqua.common.graphql.generated.DateRangeVo
 import dev.yidafu.aqua.common.graphql.generated.MonthlyStatisticVo
 import dev.yidafu.aqua.common.graphql.generated.OrderStatisticsVo
-import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderStatusStatisticVo
 import dev.yidafu.aqua.common.graphql.generated.OrderValueBucketStatisticVo
 import dev.yidafu.aqua.common.graphql.generated.PeakHourStatisticVo
 import dev.yidafu.aqua.common.graphql.generated.WeeklyStatisticVo
+import dev.yidafu.aqua.order.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -84,7 +84,7 @@ class AdminOrderStatisticsQueryResolver(
           .getOrderStatusDistribution(startDate, endDate)
           .map {
             OrderStatusStatisticVo(
-              status = OrderStatus.valueOf(it.status.name),
+              status = it.status.toGraphQL(),
               count = it.count.toInt(),
             )
           },

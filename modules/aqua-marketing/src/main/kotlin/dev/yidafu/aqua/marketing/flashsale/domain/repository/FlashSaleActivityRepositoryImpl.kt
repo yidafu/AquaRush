@@ -64,7 +64,7 @@ class FlashSaleActivityRepositoryImpl(
       salePriceCents = row[FlashSaleActivitiesTable.salePriceCents],
       validFrom = row[FlashSaleActivitiesTable.validFrom],
       validTo = row[FlashSaleActivitiesTable.validTo],
-      status = PromotionActivityStatus.valueOf(row[FlashSaleActivitiesTable.status]),
+      status = PromotionActivityStatus.fromValue(row[FlashSaleActivitiesTable.status]),
       createdAt = row[FlashSaleActivitiesTable.createdAt],
       updatedAt = row[FlashSaleActivitiesTable.updatedAt],
       deletedAt = row[FlashSaleActivitiesTable.deletedAt],

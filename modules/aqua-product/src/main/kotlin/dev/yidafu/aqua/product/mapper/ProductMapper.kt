@@ -83,6 +83,16 @@ fun ProductSearchInput.toRequest(): ProductSearchRequest =
 /**
  * ProductModelStatus ↔ ProductStatus 枚举同名互转
  */
-fun ProductModelStatus.toGraphQL(): ProductStatus = ProductStatus.valueOf(name)
+fun ProductModelStatus.toGraphQL(): ProductStatus =
+  when (this) {
+    ProductModelStatus.OFFLINE -> ProductStatus.OFFLINE
+    ProductModelStatus.ONLINE -> ProductStatus.ONLINE
+    ProductModelStatus.OUT_OF_STOCK -> ProductStatus.OUT_OF_STOCK
+  }
 
-fun ProductStatus.toDomain(): ProductModelStatus = ProductModelStatus.valueOf(name)
+fun ProductStatus.toDomain(): ProductModelStatus =
+  when (this) {
+    ProductStatus.OFFLINE -> ProductModelStatus.OFFLINE
+    ProductStatus.ONLINE -> ProductModelStatus.ONLINE
+    ProductStatus.OUT_OF_STOCK -> ProductModelStatus.OUT_OF_STOCK
+  }

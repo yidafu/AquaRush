@@ -29,4 +29,16 @@ enum class DeliveryTimeSlot {
   MORNING, // 上午配送(9:00-12:00)
   AFTERNOON, // 下午配送(14:00-18:00)
   EVENING, // 晚上配送(18:00-21:00)
+  ;
+
+  companion object {
+    fun fromValue(value: String): DeliveryTimeSlot =
+      when (value) {
+        "IMMEDIATE" -> IMMEDIATE
+        "MORNING" -> MORNING
+        "AFTERNOON" -> AFTERNOON
+        "EVENING" -> EVENING
+        else -> throw IllegalArgumentException("Unknown DeliveryTimeSlot value: '" + value + "'")
+      }
+  }
 }

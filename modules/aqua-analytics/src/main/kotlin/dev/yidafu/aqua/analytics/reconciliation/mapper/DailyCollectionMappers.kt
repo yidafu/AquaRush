@@ -31,7 +31,7 @@ import dev.yidafu.aqua.common.util.JsonHelper
 
 /**
  * 配送员今日收款预计算结果 → GraphQL MyTodayCollectionVo(原 MyTodayCollectionResultMapper)
- * status 为领域枚举 → 生成枚举同名 valueOf 互转
+ * status 为领域枚举 → 生成枚举同名枚举 when 穷举互转
  */
 fun MyTodayCollectionResult.toGraphQL(): MyTodayCollectionVo =
   MyTodayCollectionVo(
@@ -41,7 +41,7 @@ fun MyTodayCollectionResult.toGraphQL(): MyTodayCollectionVo =
     waterTicketCount = waterTicketCount,
     qrCodeAmountCents = qrCodeAmountCents,
     differenceAmountCents = differenceAmountCents,
-    status = status?.let { DailyCollectionStatus.valueOf(it.name) },
+    status = status?.let { it.toGraphQL() },
     calculatedCashAmountCents = calculatedCashAmountCents,
     calculatedOrderAmountCents = calculatedOrderAmountCents,
     calculatedQrCodeAmountCents = calculatedQrCodeAmountCents,
@@ -70,7 +70,7 @@ fun DailyCollectionRecordModel.toGraphQL(): DailyCollectionRecordVo =
     calculatedWaterTicketCount = calculatedWaterTicketCount,
     calculatedOrderAmountCents = calculatedOrderAmountCents,
     // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
-    status = DailyCollectionStatus.valueOf(status.name),
+    status = status.toGraphQL(),
     confirmedAt = confirmedAt,
     confirmedBy = confirmedBy,
     notes = notes,
@@ -98,7 +98,7 @@ fun DailyReconciliationModel.toGraphQL(): DailyReconciliationVo =
     totalCollectionAmountCents = totalCollectionAmountCents,
     discrepancyAmountCents = discrepancyAmountCents,
     // 处理枚举跨包名:领域枚举 → GraphQL 生成枚举(同名常量)
-    status = DailyReconciliationStatus.valueOf(status.name),
+    status = status.toGraphQL(),
     // 处理 reportData: Map? -> ObjectNode?
     reportData = reportData?.let { JsonHelper().createObjectNode(it) },
     reviewedAt = reviewedAt,
@@ -107,3 +107,19 @@ fun DailyReconciliationModel.toGraphQL(): DailyReconciliationVo =
     createdAt = createdAt,
     updatedAt = updatedAt,
   )
+
+private fun dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.toGraphQL(): DailyCollectionStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.DRAFT -> DailyCollectionStatus.DRAFT
+    dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.SUBMITTED -> DailyCollectionStatus.SUBMITTED
+    dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.CONFIRMED -> DailyCollectionStatus.CONFIRMED
+    dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.DISPUTED -> DailyCollectionStatus.DISPUTED
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.toGraphQL(): DailyReconciliationStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.PENDING -> DailyReconciliationStatus.PENDING
+    dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.MATCHED -> DailyReconciliationStatus.MATCHED
+    dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.DISCREPANCY -> DailyReconciliationStatus.DISCREPANCY
+    dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.REVIEWED -> DailyReconciliationStatus.REVIEWED
+  }

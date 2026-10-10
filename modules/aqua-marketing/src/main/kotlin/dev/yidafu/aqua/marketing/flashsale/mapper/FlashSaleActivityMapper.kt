@@ -49,6 +49,10 @@ fun FlashSaleActivityModel.toGraphQL(
   )
 
 /**
- * 活动状态:领域枚举 → GraphQL 枚举同名 valueOf 互转
+ * 活动状态:领域枚举 → GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus =
+  when (this) {
+    DomainPromotionActivityStatus.ACTIVE -> PromotionActivityStatus.ACTIVE
+    DomainPromotionActivityStatus.DISABLED -> PromotionActivityStatus.DISABLED
+  }

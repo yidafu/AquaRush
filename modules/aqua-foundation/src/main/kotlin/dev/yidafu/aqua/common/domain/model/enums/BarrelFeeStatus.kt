@@ -7,4 +7,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class BarrelFeeStatus {
   ENABLED,
   DISABLED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): BarrelFeeStatus =
+      when (value) {
+        "ENABLED" -> ENABLED
+        "DISABLED" -> DISABLED
+        else -> throw IllegalArgumentException("Unknown BarrelFeeStatus value: '" + value + "'")
+      }
+  }
 }

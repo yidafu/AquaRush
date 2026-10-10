@@ -27,4 +27,15 @@ enum class NotificationChannelStatus {
   PENDING, // 待发送/无微信通道
   SENT, // 订阅消息发送成功
   FAILED, // 订阅消息发送失败
+  ;
+
+  companion object {
+    fun fromValue(value: String): NotificationChannelStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "SENT" -> SENT
+        "FAILED" -> FAILED
+        else -> throw IllegalArgumentException("Unknown NotificationChannelStatus value: '" + value + "'")
+      }
+  }
 }

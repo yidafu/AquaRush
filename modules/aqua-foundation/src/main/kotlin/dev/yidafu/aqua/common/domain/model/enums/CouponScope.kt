@@ -9,4 +9,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class CouponScope {
   ALL,
   PRODUCT,
+  ;
+
+  companion object {
+    fun fromValue(value: String): CouponScope =
+      when (value) {
+        "ALL" -> ALL
+        "PRODUCT" -> PRODUCT
+        else -> throw IllegalArgumentException("Unknown CouponScope value: '" + value + "'")
+      }
+  }
 }

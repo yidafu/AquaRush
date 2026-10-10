@@ -58,7 +58,7 @@ class BarrelPurchaseRepositoryImpl(
       userId = row[BarrelPurchasesTable.userId],
       orderNo = row[BarrelPurchasesTable.orderNo],
       totalAmountCents = row[BarrelPurchasesTable.totalAmountCents],
-      paymentStatus = BarrelPaymentStatus.valueOf(row[BarrelPurchasesTable.paymentStatus]),
+      paymentStatus = BarrelPaymentStatus.fromValue(row[BarrelPurchasesTable.paymentStatus]),
       transactionId = row[BarrelPurchasesTable.transactionId],
       paidAt = row[BarrelPurchasesTable.paidAt],
       refundedAt = row[BarrelPurchasesTable.refundedAt],

@@ -27,4 +27,15 @@ enum class DeliveryPhotoReviewStatus {
   PENDING, // 待核验(已上传照片未审核)
   APPROVED, // 已通过
   REJECTED, // 已驳回
+  ;
+
+  companion object {
+    fun fromValue(value: String): DeliveryPhotoReviewStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "APPROVED" -> APPROVED
+        "REJECTED" -> REJECTED
+        else -> throw IllegalArgumentException("Unknown DeliveryPhotoReviewStatus value: '" + value + "'")
+      }
+  }
 }

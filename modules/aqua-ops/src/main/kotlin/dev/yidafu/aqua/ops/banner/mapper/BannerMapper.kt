@@ -44,8 +44,16 @@ fun BannerModel.toGraphQL(): BannerVo =
   )
 
 /**
- * 轮播图跳转类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 轮播图跳转类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainBannerLinkType.toGraphQL(): BannerLinkType = BannerLinkType.valueOf(name)
+fun DomainBannerLinkType.toGraphQL(): BannerLinkType =
+  when (this) {
+    DomainBannerLinkType.PRODUCT -> BannerLinkType.PRODUCT
+    DomainBannerLinkType.CUSTOM_PAGE -> BannerLinkType.CUSTOM_PAGE
+  }
 
-fun BannerLinkType.toDomain(): DomainBannerLinkType = DomainBannerLinkType.valueOf(name)
+fun BannerLinkType.toDomain(): DomainBannerLinkType =
+  when (this) {
+    BannerLinkType.CUSTOM_PAGE -> DomainBannerLinkType.CUSTOM_PAGE
+    BannerLinkType.PRODUCT -> DomainBannerLinkType.PRODUCT
+  }

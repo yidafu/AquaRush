@@ -26,14 +26,13 @@ import dev.yidafu.aqua.common.domain.model.UserCouponModel
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
 import dev.yidafu.aqua.common.graphql.generated.UserCouponVo
 import dev.yidafu.aqua.common.graphql.generated.UserTicketVo
+import dev.yidafu.aqua.marketing.coupon.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus as DomainUserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus as DomainUserTicketStatus
-import dev.yidafu.aqua.common.graphql.generated.CouponScope as GraphQLCouponScope
-import dev.yidafu.aqua.common.graphql.generated.CouponType as GraphQLCouponType
 import dev.yidafu.aqua.common.graphql.generated.UserCouponStatus as GraphQLUserCouponStatus
 import dev.yidafu.aqua.common.graphql.generated.UserTicketStatus as GraphQLUserTicketStatus
 
@@ -41,7 +40,7 @@ import dev.yidafu.aqua.common.graphql.generated.UserTicketStatus as GraphQLUserT
  * 用户持有券/票查询 Resolver(管理后台,PERMISSION_USER_READ):
  * 供用户详情页「优惠券」「水票」Tab 展示(PRD 10-marketing.md §F-MKT-003/007),
  * 复用 CouponQueryApiService/TicketQueryApiService 用户侧查询,按 userId 显式过滤。
- * 枚举同名条目 valueOf 互转;usable 字段后台列表恒 false(与用户端列表一致)。
+ * 枚举同名条目 when 穷举互转;usable 字段后台列表恒 false(与用户端列表一致)。
  */
 @Controller
 class AdminUserCouponTicketQueryResolver(
@@ -76,21 +75,33 @@ class AdminUserCouponTicketQueryResolver(
       )
     }
 
-  private fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus = DomainUserCouponStatus.valueOf(name)
+  private fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus =
+    when (this) {
+      GraphQLUserCouponStatus.EXPIRED -> DomainUserCouponStatus.EXPIRED
+      GraphQLUserCouponStatus.RECEIVED -> DomainUserCouponStatus.RECEIVED
+      GraphQLUserCouponStatus.RETURNED -> DomainUserCouponStatus.RETURNED
+      GraphQLUserCouponStatus.USED -> DomainUserCouponStatus.USED
+    }
 
-  private fun GraphQLUserTicketStatus.toDomain(): DomainUserTicketStatus = DomainUserTicketStatus.valueOf(name)
+  private fun GraphQLUserTicketStatus.toDomain(): DomainUserTicketStatus =
+    when (this) {
+      GraphQLUserTicketStatus.EXPIRED -> DomainUserTicketStatus.EXPIRED
+      GraphQLUserTicketStatus.RETURNED -> DomainUserTicketStatus.RETURNED
+      GraphQLUserTicketStatus.UNUSED -> DomainUserTicketStatus.UNUSED
+      GraphQLUserTicketStatus.USED -> DomainUserTicketStatus.USED
+    }
 
   private fun UserCouponModel.toGraphQL(): UserCouponVo =
     UserCouponVo(
       id = id ?: 0L,
       name = name,
-      couponType = GraphQLCouponType.valueOf(couponType.name),
+      couponType = couponType.toGraphQL(),
       thresholdCents = thresholdCents,
       discountAmountCents = discountAmountCents,
       discountRatePermille = discountRatePermille,
-      scope = GraphQLCouponScope.valueOf(scope.name),
+      scope = scope.toGraphQL(),
       productId = productId,
-      status = GraphQLUserCouponStatus.valueOf(status.name),
+      status = status.toGraphQL(),
       expireTime = expireTime,
       usable = false,
     )
@@ -104,8 +115,24 @@ class AdminUserCouponTicketQueryResolver(
       ticketNo = ticketNo,
       ticketTypeName = ticketTypeName,
       specification = specification,
-      status = GraphQLUserTicketStatus.valueOf(status.name),
+      status = status.toGraphQL(),
       expireTime = expireTime,
       isGift = isGift,
     )
 }
+
+private fun DomainUserCouponStatus.toGraphQL(): GraphQLUserCouponStatus =
+  when (this) {
+    DomainUserCouponStatus.RECEIVED -> GraphQLUserCouponStatus.RECEIVED
+    DomainUserCouponStatus.USED -> GraphQLUserCouponStatus.USED
+    DomainUserCouponStatus.RETURNED -> GraphQLUserCouponStatus.RETURNED
+    DomainUserCouponStatus.EXPIRED -> GraphQLUserCouponStatus.EXPIRED
+  }
+
+private fun DomainUserTicketStatus.toGraphQL(): GraphQLUserTicketStatus =
+  when (this) {
+    DomainUserTicketStatus.UNUSED -> GraphQLUserTicketStatus.UNUSED
+    DomainUserTicketStatus.USED -> GraphQLUserTicketStatus.USED
+    DomainUserTicketStatus.RETURNED -> GraphQLUserTicketStatus.RETURNED
+    DomainUserTicketStatus.EXPIRED -> GraphQLUserTicketStatus.EXPIRED
+  }

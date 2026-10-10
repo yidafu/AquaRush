@@ -91,5 +91,12 @@ enum class DeliverWorkerModelStatus(
         "OFFLINE", "Offline" -> OFFLINE
         else -> OFFLINE // 默认值
       }
+
+    fun fromValue(value: String): DeliverWorkerModelStatus =
+      when (value) {
+        "ONLINE" -> ONLINE
+        "OFFLINE" -> OFFLINE
+        else -> throw IllegalArgumentException("Unknown DeliverWorkerModelStatus value: '" + value + "'")
+      }
   }
 }

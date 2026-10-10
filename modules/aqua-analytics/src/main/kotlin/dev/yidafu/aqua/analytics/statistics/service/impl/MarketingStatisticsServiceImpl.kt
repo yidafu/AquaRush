@@ -141,7 +141,7 @@ class MarketingStatisticsServiceImpl(
     acc: MutableMap<BreakdownKey, MarketingUsageBreakdownRowDTO>,
     row: DailyMarketingUsageFactModel,
   ) {
-    val kind = runCatching { MarketingBreakdownKind.valueOf(row.kind) }.getOrNull() ?: return
+    val kind = runCatching { MarketingBreakdownKind.fromValue(row.kind) }.getOrNull() ?: return
     val key = BreakdownKey(kind, row.refId)
     val existing = acc[key]
     acc[key] =

@@ -32,6 +32,7 @@ import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.order.mapper.toDomain
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -81,7 +82,7 @@ class ClientOrderQueryResolver(
     val result =
       orderQueryApiService.findByUserIdPaginated(
         userId = principal.id,
-        statuses = statuses?.map { OrderModelStatus.valueOf(it.name) },
+        statuses = statuses?.map { it.toDomain() },
         page = safePage,
         size = safeSize,
       )

@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class GiftActivityType {
   FULL_GIFT,
   BUY_GIFT,
+  ;
+
+  companion object {
+    fun fromValue(value: String): GiftActivityType =
+      when (value) {
+        "FULL_GIFT" -> FULL_GIFT
+        "BUY_GIFT" -> BUY_GIFT
+        else -> throw IllegalArgumentException("Unknown GiftActivityType value: '" + value + "'")
+      }
+  }
 }

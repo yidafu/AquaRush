@@ -22,6 +22,7 @@ package dev.yidafu.aqua.user.domain.repository
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.table.AddressesTable
 import dev.yidafu.aqua.common.domain.table.UsersTable
+import dev.yidafu.aqua.common.graphql.fromValue
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.util.MoneyUtils
@@ -66,10 +67,10 @@ class UserRepositoryImpl(
       phone = row[UsersTable.phone],
       avatarUrl = row[UsersTable.avatarUrl],
       email = row[UsersTable.email],
-      status = UserStatus.valueOf(row[UsersTable.status]),
+      status = UserStatus.fromValue(row[UsersTable.status]),
       role =
         dev.yidafu.aqua.common.graphql.generated.UserRole
-          .valueOf(row[UsersTable.role]),
+          .fromValue(row[UsersTable.role]),
       balanceCents = row[UsersTable.balanceCents],
       totalSpentCents = row[UsersTable.totalSpentCents],
       customerGroupId = row[UsersTable.customerGroupId],

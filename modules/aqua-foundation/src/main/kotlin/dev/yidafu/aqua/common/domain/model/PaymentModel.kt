@@ -51,9 +51,35 @@ enum class PaymentStatus {
   EXPIRED, // 支付过期
   REFUNDING, // 退款中
   REFUNDED, // 已退款
+  ;
+
+  companion object {
+    fun fromValue(value: String): PaymentStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "PROCESSING" -> PROCESSING
+        "SUCCESS" -> SUCCESS
+        "FAILED" -> FAILED
+        "CANCELLED" -> CANCELLED
+        "EXPIRED" -> EXPIRED
+        "REFUNDING" -> REFUNDING
+        "REFUNDED" -> REFUNDED
+        else -> throw IllegalArgumentException("Unknown PaymentStatus value: '" + value + "'")
+      }
+  }
 }
 
 enum class PaymentMethod {
   WECHAT_PAY, // 微信支付
   CASH, // 线下现金支付
+  ;
+
+  companion object {
+    fun fromValue(value: String): PaymentMethod =
+      when (value) {
+        "WECHAT_PAY" -> WECHAT_PAY
+        "CASH" -> CASH
+        else -> throw IllegalArgumentException("Unknown PaymentMethod value: '" + value + "'")
+      }
+  }
 }

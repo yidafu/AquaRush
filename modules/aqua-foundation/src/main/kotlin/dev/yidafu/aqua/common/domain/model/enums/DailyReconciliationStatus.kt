@@ -27,4 +27,16 @@ enum class DailyReconciliationStatus {
   MATCHED, // 匹配（差异在容差范围内）
   DISCREPANCY, // 有差异（超出容差范围）
   REVIEWED, // 已人工复核
+  ;
+
+  companion object {
+    fun fromValue(value: String): DailyReconciliationStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "MATCHED" -> MATCHED
+        "DISCREPANCY" -> DISCREPANCY
+        "REVIEWED" -> REVIEWED
+        else -> throw IllegalArgumentException("Unknown DailyReconciliationStatus value: '" + value + "'")
+      }
+  }
 }

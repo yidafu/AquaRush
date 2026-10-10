@@ -50,7 +50,7 @@ class DepositRecordRepositoryImpl(
       orderId = row[DepositRecordsTable.orderId],
       userId = row[DepositRecordsTable.userId],
       depositAmountCents = row[DepositRecordsTable.depositAmountCents],
-      status = DepositStatus.valueOf(row[DepositRecordsTable.status]),
+      status = DepositStatus.fromValue(row[DepositRecordsTable.status]),
       collectedAt = row[DepositRecordsTable.collectedAt],
       refundedAt = row[DepositRecordsTable.refundedAt],
       refundedBy = row[DepositRecordsTable.refundedBy],

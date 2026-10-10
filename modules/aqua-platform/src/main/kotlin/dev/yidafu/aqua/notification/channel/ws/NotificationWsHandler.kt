@@ -66,7 +66,7 @@ class NotificationWsHandler(
       val body = objectMapper.readValue(message.payload, object : TypeReference<Map<String, String>>() {})
       val token = body["token"] ?: return
       val receiverTypeValue = body["receiverType"] ?: return
-      val receiverType = NotificationReceiverType.valueOf(receiverTypeValue)
+      val receiverType = NotificationReceiverType.fromValue(receiverTypeValue)
       val receiverId =
         resolveReceiverId(receiverType, token) ?: run {
           logger.warn("WebSocket 鉴权失败,关闭会话: {}", receiverTypeValue)

@@ -82,15 +82,9 @@ class AdminReconciliationQueryResolver(
     val dateToParsed = dateTo?.let { parseDate(it, "dateTo") }
     // GraphQL 生成枚举 → 域枚举(同名常量)
     val taskTypeDomain =
-      taskType?.let {
-        dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
-          .valueOf(it.name)
-      }
+      taskType?.let { it.toDomain() }
     val statusDomain =
-      status?.let {
-        dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
-          .valueOf(it.name)
-      }
+      status?.let { it.toDomain() }
     val result =
       reconciliationService.getReconciliationTasksPaged(
         taskType = taskTypeDomain,
@@ -153,10 +147,7 @@ class AdminReconciliationQueryResolver(
     val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100))
     // GraphQL 生成枚举 → 域枚举(同名常量)
     val statusDomain =
-      status?.let {
-        dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
-          .valueOf(it.name)
-      }
+      status?.let { it.toDomain() }
     val result =
       reconciliationService.getDiscrepanciesPaged(
         taskId = taskId,
@@ -203,3 +194,24 @@ class AdminReconciliationQueryResolver(
       throw BadRequestException("参数 $argName 日期格式不正确，应为 yyyy-MM-dd")
     }
 }
+
+private fun ReconciliationTaskType.toDomain(): dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType =
+  when (this) {
+    ReconciliationTaskType.PAYMENT -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.PAYMENT
+    ReconciliationTaskType.REFUND -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.REFUND
+    ReconciliationTaskType.SETTLEMENT -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.SETTLEMENT
+  }
+
+private fun ReconciliationTaskStatus.toDomain(): dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus =
+  when (this) {
+    ReconciliationTaskStatus.FAILED -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.FAILED
+    ReconciliationTaskStatus.PENDING -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.PENDING
+    ReconciliationTaskStatus.RUNNING -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.RUNNING
+    ReconciliationTaskStatus.SUCCESS -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SUCCESS
+  }
+
+private fun DiscrepancyStatus.toDomain(): dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus =
+  when (this) {
+    DiscrepancyStatus.RESOLVED -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.RESOLVED
+    DiscrepancyStatus.UNRESOLVED -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.UNRESOLVED
+  }

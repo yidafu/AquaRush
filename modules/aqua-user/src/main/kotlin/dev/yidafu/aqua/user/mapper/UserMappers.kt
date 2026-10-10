@@ -43,7 +43,12 @@ import java.time.LocalDateTime
 /**
  * AdminRole(GraphQL) → AdminRoleModel 枚举同名互转
  */
-fun AdminRole.toDomain(): AdminRoleModel = AdminRoleModel.valueOf(name)
+fun AdminRole.toDomain(): AdminRoleModel =
+  when (this) {
+    AdminRole.ADMIN -> AdminRoleModel.ADMIN
+    AdminRole.DELIVERY_WORKER -> AdminRoleModel.DELIVERY_WORKER
+    AdminRole.SUPER_ADMIN -> AdminRoleModel.SUPER_ADMIN
+  }
 
 /**
  * UserModel → GraphQL UserVo 类型
@@ -76,7 +81,7 @@ fun UserModel.toGraphQL(): UserVo =
 fun AdminModel.toGraphQL(): AdminVo =
   AdminVo(
     // 账号状态(枚举需显式转换;F-USR-020)
-    accountStatus = AdminAccountStatus.valueOf(accountStatus.name),
+    accountStatus = accountStatus.toGraphQL(),
     avatarUrl = avatarUrl,
     averageRating = averageRating?.let { BigDecimal.valueOf(it) },
     completedOrders = completedOrders,
@@ -88,7 +93,7 @@ fun AdminModel.toGraphQL(): AdminVo =
     isAvailable = isAvailable,
     lastLoginAt = lastLoginAt,
     // 在线状态(枚举需显式转换)
-    onlineStatus = DeliveryWorkerStatus.valueOf(onlineStatus.name),
+    onlineStatus = onlineStatus.toGraphQL(),
     phone = phone,
     rating = rating?.let { BigDecimal.valueOf(it) },
     realName = realName,
@@ -212,3 +217,15 @@ fun RegionModel.toGraphQL(): RegionVo =
     createdAt = createdAt,
     updatedAt = updatedAt,
   )
+
+private fun dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.toGraphQL(): AdminAccountStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.ACTIVE -> AdminAccountStatus.ACTIVE
+    dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED -> AdminAccountStatus.DISABLED
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus.ONLINE -> DeliveryWorkerStatus.ONLINE
+    dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus.OFFLINE -> DeliveryWorkerStatus.OFFLINE
+  }

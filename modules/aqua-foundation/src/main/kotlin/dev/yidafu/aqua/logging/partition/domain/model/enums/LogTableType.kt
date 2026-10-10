@@ -39,4 +39,15 @@ enum class LogTableType(
 
   /** 业务日志(business_logs) */
   BUSINESS_LOG("business_logs", SystemSettingKeys.LOG_RETENTION_BUSINESS_DAYS),
+  ;
+
+  companion object {
+    fun fromValue(value: String): LogTableType =
+      when (value) {
+        "API_LOG" -> API_LOG
+        "USER_ACTION_LOG" -> USER_ACTION_LOG
+        "BUSINESS_LOG" -> BUSINESS_LOG
+        else -> throw IllegalArgumentException("Unknown LogTableType value: '" + value + "'")
+      }
+  }
 }

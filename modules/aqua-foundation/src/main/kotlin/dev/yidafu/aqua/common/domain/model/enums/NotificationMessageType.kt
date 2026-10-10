@@ -27,4 +27,16 @@ enum class NotificationMessageType {
   SYSTEM, // 系统消息
   ANNOUNCEMENT, // 公告(聚合开放问题,枚举预留)
   FEEDBACK, // 意见反馈回执(聚合开放问题,枚举预留)
+  ;
+
+  companion object {
+    fun fromValue(value: String): NotificationMessageType =
+      when (value) {
+        "ORDER" -> ORDER
+        "SYSTEM" -> SYSTEM
+        "ANNOUNCEMENT" -> ANNOUNCEMENT
+        "FEEDBACK" -> FEEDBACK
+        else -> throw IllegalArgumentException("Unknown NotificationMessageType value: '" + value + "'")
+      }
+  }
 }

@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class PromotionActivityStatus {
   ACTIVE,
   DISABLED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): PromotionActivityStatus =
+      when (value) {
+        "ACTIVE" -> ACTIVE
+        "DISABLED" -> DISABLED
+        else -> throw IllegalArgumentException("Unknown PromotionActivityStatus value: '" + value + "'")
+      }
+  }
 }

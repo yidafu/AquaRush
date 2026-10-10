@@ -66,20 +66,42 @@ fun PromotionActivityTierModel.toGraphQL(): PromotionActivityTierVo =
   )
 
 /**
- * 活动类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionActivityType.toGraphQL(): PromotionActivityType = PromotionActivityType.valueOf(name)
+fun DomainPromotionActivityType.toGraphQL(): PromotionActivityType =
+  when (this) {
+    DomainPromotionActivityType.FULL_REDUCE -> PromotionActivityType.FULL_REDUCE
+    DomainPromotionActivityType.FULL_DISCOUNT -> PromotionActivityType.FULL_DISCOUNT
+  }
 
-fun PromotionActivityType.toDomain(): DomainPromotionActivityType = DomainPromotionActivityType.valueOf(name)
+fun PromotionActivityType.toDomain(): DomainPromotionActivityType =
+  when (this) {
+    PromotionActivityType.FULL_DISCOUNT -> DomainPromotionActivityType.FULL_DISCOUNT
+    PromotionActivityType.FULL_REDUCE -> DomainPromotionActivityType.FULL_REDUCE
+  }
 
 /**
- * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
+fun DomainPromotionScope.toGraphQL(): PromotionScope =
+  when (this) {
+    DomainPromotionScope.ALL -> PromotionScope.ALL
+    DomainPromotionScope.PRODUCT -> PromotionScope.PRODUCT
+    DomainPromotionScope.GROUP -> PromotionScope.GROUP
+  }
 
-fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
+fun PromotionScope.toDomain(): DomainPromotionScope =
+  when (this) {
+    PromotionScope.ALL -> DomainPromotionScope.ALL
+    PromotionScope.GROUP -> DomainPromotionScope.GROUP
+    PromotionScope.PRODUCT -> DomainPromotionScope.PRODUCT
+  }
 
 /**
- * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus =
+  when (this) {
+    DomainPromotionActivityStatus.ACTIVE -> PromotionActivityStatus.ACTIVE
+    DomainPromotionActivityStatus.DISABLED -> PromotionActivityStatus.DISABLED
+  }

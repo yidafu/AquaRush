@@ -54,7 +54,7 @@ class NotificationWsPushConsumer(
         return
       }
       val receiverId = event.receiverId ?: return
-      val receiverType = NotificationReceiverType.valueOf(event.receiverType)
+      val receiverType = NotificationReceiverType.fromValue(event.receiverType)
       val delivered = hub.push(receiverType, receiverId, payloadJson)
       if (delivered > 0) {
         logger.debug("WebSocket 定向推送完成: {}:{}", receiverType, receiverId)

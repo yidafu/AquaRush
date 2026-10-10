@@ -9,4 +9,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class AdminAccountStatus {
   ACTIVE, // 正常
   DISABLED, // 停用
+  ;
+
+  companion object {
+    fun fromValue(value: String): AdminAccountStatus =
+      when (value) {
+        "ACTIVE" -> ACTIVE
+        "DISABLED" -> DISABLED
+        else -> throw IllegalArgumentException("Unknown AdminAccountStatus value: '" + value + "'")
+      }
+  }
 }

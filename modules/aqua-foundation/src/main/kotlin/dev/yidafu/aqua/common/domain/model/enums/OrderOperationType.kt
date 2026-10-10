@@ -40,6 +40,30 @@ enum class OrderOperationType {
   DELIVERY_PHOTO_APPROVED, // 配送照片核验通过(G23)
   DELIVERY_PHOTO_REJECTED, // 配送照片核验驳回(G23)
   ADDRESS_UPDATED, // 配送任务中修正收货地址(F-ORD-024:收货人/定位/楼层等)
+  ;
+
+  companion object {
+    fun fromValue(value: String): OrderOperationType =
+      when (value) {
+        "ORDER_CREATED" -> ORDER_CREATED
+        "ORDER_PAID" -> ORDER_PAID
+        "ORDER_CANCELLED" -> ORDER_CANCELLED
+        "ORDER_URGING" -> ORDER_URGING
+        "DELIVERY_ASSIGNED" -> DELIVERY_ASSIGNED
+        "DELIVERY_STARTED" -> DELIVERY_STARTED
+        "DELIVERY_COMPLETED" -> DELIVERY_COMPLETED
+        "ORDER_CONFIRMED" -> ORDER_CONFIRMED
+        "AUTO_CONFIRMED" -> AUTO_CONFIRMED
+        "ORDER_COMPLETED" -> ORDER_COMPLETED
+        "REFUND_INITIATED" -> REFUND_INITIATED
+        "REFUND_COMPLETED" -> REFUND_COMPLETED
+        "PAYMENT_TIMEOUT" -> PAYMENT_TIMEOUT
+        "DELIVERY_PHOTO_APPROVED" -> DELIVERY_PHOTO_APPROVED
+        "DELIVERY_PHOTO_REJECTED" -> DELIVERY_PHOTO_REJECTED
+        "ADDRESS_UPDATED" -> ADDRESS_UPDATED
+        else -> throw IllegalArgumentException("Unknown OrderOperationType value: '" + value + "'")
+      }
+  }
 }
 
 /**
@@ -50,4 +74,16 @@ enum class OperatorType {
   ADMIN, // 管理员
   DELIVERY_WORKER, // 配送员
   SYSTEM, // 系统自动
+  ;
+
+  companion object {
+    fun fromValue(value: String): OperatorType =
+      when (value) {
+        "USER" -> USER
+        "ADMIN" -> ADMIN
+        "DELIVERY_WORKER" -> DELIVERY_WORKER
+        "SYSTEM" -> SYSTEM
+        else -> throw IllegalArgumentException("Unknown OperatorType value: '" + value + "'")
+      }
+  }
 }

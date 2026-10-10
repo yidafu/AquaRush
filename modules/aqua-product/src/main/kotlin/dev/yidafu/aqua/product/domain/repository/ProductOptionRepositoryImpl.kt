@@ -51,7 +51,7 @@ class ProductOptionRepositoryImpl(
   private fun toModel(row: ResultRow): ProductOptionModel =
     ProductOptionModel(
       id = row[ProductOptionsTable.id],
-      optionType = ProductOptionType.valueOf(row[ProductOptionsTable.optionType]),
+      optionType = ProductOptionType.fromValue(row[ProductOptionsTable.optionType]),
       value = row[ProductOptionsTable.optionValue],
       sortOrder = row[ProductOptionsTable.sortOrder],
       enabled = row[ProductOptionsTable.enabled],

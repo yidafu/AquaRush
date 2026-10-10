@@ -60,15 +60,15 @@ class PromotionActivityRepositoryImpl(
       name = row[PromotionActivitiesTable.name],
       activityType =
         dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType
-          .valueOf(row[PromotionActivitiesTable.activityType]),
+          .fromValue(row[PromotionActivitiesTable.activityType]),
       scope =
         dev.yidafu.aqua.common.domain.model.enums.PromotionScope
-          .valueOf(row[PromotionActivitiesTable.scope]),
+          .fromValue(row[PromotionActivitiesTable.scope]),
       productId = row[PromotionActivitiesTable.productId],
       customerGroupId = row[PromotionActivitiesTable.customerGroupId],
       validFrom = row[PromotionActivitiesTable.validFrom],
       validTo = row[PromotionActivitiesTable.validTo],
-      status = PromotionActivityStatus.valueOf(row[PromotionActivitiesTable.status]),
+      status = PromotionActivityStatus.fromValue(row[PromotionActivitiesTable.status]),
       createdAt = row[PromotionActivitiesTable.createdAt],
       updatedAt = row[PromotionActivitiesTable.updatedAt],
       deletedAt = row[PromotionActivitiesTable.deletedAt],

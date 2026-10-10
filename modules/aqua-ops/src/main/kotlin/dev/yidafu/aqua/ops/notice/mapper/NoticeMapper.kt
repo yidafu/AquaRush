@@ -45,15 +45,35 @@ fun NoticeModel.toGraphQL(): NoticeVo =
   )
 
 /**
- * 公告类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 公告类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainNoticeType.toGraphQL(): NoticeType = NoticeType.valueOf(name)
+fun DomainNoticeType.toGraphQL(): NoticeType =
+  when (this) {
+    DomainNoticeType.PLATFORM_NOTICE -> NoticeType.PLATFORM_NOTICE
+    DomainNoticeType.WATER_OUTAGE -> NoticeType.WATER_OUTAGE
+    DomainNoticeType.ACTIVITY_PREVIEW -> NoticeType.ACTIVITY_PREVIEW
+  }
 
-fun NoticeType.toDomain(): DomainNoticeType = DomainNoticeType.valueOf(name)
+fun NoticeType.toDomain(): DomainNoticeType =
+  when (this) {
+    NoticeType.ACTIVITY_PREVIEW -> DomainNoticeType.ACTIVITY_PREVIEW
+    NoticeType.PLATFORM_NOTICE -> DomainNoticeType.PLATFORM_NOTICE
+    NoticeType.WATER_OUTAGE -> DomainNoticeType.WATER_OUTAGE
+  }
 
 /**
- * 公告状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 公告状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainNoticeStatus.toGraphQL(): NoticeStatus = NoticeStatus.valueOf(name)
+fun DomainNoticeStatus.toGraphQL(): NoticeStatus =
+  when (this) {
+    DomainNoticeStatus.DRAFT -> NoticeStatus.DRAFT
+    DomainNoticeStatus.PUBLISHED -> NoticeStatus.PUBLISHED
+    DomainNoticeStatus.STOPPED -> NoticeStatus.STOPPED
+  }
 
-fun NoticeStatus.toDomain(): DomainNoticeStatus = DomainNoticeStatus.valueOf(name)
+fun NoticeStatus.toDomain(): DomainNoticeStatus =
+  when (this) {
+    NoticeStatus.DRAFT -> DomainNoticeStatus.DRAFT
+    NoticeStatus.PUBLISHED -> DomainNoticeStatus.PUBLISHED
+    NoticeStatus.STOPPED -> DomainNoticeStatus.STOPPED
+  }

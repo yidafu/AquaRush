@@ -47,7 +47,7 @@ fun BarrelPurchaseModel.toGraphQL(
     id = id ?: 0L,
     orderNo = orderNo,
     totalAmountCents = totalAmountCents,
-    paymentStatus = BarrelPaymentStatus.valueOf(paymentStatus.name),
+    paymentStatus = paymentStatus.toGraphQL(),
     paidAt = paidAt,
     refundedAt = refundedAt,
     items =
@@ -63,3 +63,11 @@ fun BarrelPurchaseModel.toGraphQL(
     requiresSimulation = requiresSimulation,
     paymentParams = paymentParams,
   )
+
+private fun dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.toGraphQL(): BarrelPaymentStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PENDING -> BarrelPaymentStatus.PENDING
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PAID -> BarrelPaymentStatus.PAID
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.CANCELLED -> BarrelPaymentStatus.CANCELLED
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.REFUNDED -> BarrelPaymentStatus.REFUNDED
+  }

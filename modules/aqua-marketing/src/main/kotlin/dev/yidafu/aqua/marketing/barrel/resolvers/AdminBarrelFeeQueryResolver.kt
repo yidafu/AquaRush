@@ -51,7 +51,7 @@ class AdminBarrelFeeQueryResolver(
     }
     val result =
       barrelFeeQueryService.list(
-        status = input?.status?.let { BarrelFeeStatusModel.valueOf(it.name) },
+        status = input?.status?.let { it.toDomain() },
         keyword = input?.keyword,
         page = input?.page ?: 0,
         size = input?.size ?: 20,
@@ -65,3 +65,9 @@ class AdminBarrelFeeQueryResolver(
     )
   }
 }
+
+private fun dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus.toDomain(): BarrelFeeStatusModel =
+  when (this) {
+    dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus.DISABLED -> BarrelFeeStatusModel.DISABLED
+    dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus.ENABLED -> BarrelFeeStatusModel.ENABLED
+  }

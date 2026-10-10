@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class TicketTypeStatus {
   ACTIVE,
   DISABLED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): TicketTypeStatus =
+      when (value) {
+        "ACTIVE" -> ACTIVE
+        "DISABLED" -> DISABLED
+        else -> throw IllegalArgumentException("Unknown TicketTypeStatus value: '" + value + "'")
+      }
+  }
 }

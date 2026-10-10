@@ -25,4 +25,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class NotificationReceiverType {
   USER, // 用户端(用户小程序)
   WORKER, // 送水工端(RN,worker_id 为送水工 admin 账号 id)
+  ;
+
+  companion object {
+    fun fromValue(value: String): NotificationReceiverType =
+      when (value) {
+        "USER" -> USER
+        "WORKER" -> WORKER
+        else -> throw IllegalArgumentException("Unknown NotificationReceiverType value: '" + value + "'")
+      }
+  }
 }

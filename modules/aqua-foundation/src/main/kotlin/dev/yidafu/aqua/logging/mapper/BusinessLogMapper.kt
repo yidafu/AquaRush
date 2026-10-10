@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.logging.mapper
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
+import dev.yidafu.aqua.common.graphql.fromValue
 import dev.yidafu.aqua.common.graphql.generated.BizLogLevel
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogVo
 
@@ -31,7 +32,7 @@ fun BusinessLogModel.toGraphQL(): BusinessLogVo =
     correlationId = correlationId,
     createdAt = createdAt,
     id = id ?: 0L,
-    level = BizLogLevel.valueOf(level),
+    level = BizLogLevel.fromValue(level),
     loggerName = loggerName,
     message = message,
     operation = operation,

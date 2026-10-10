@@ -58,8 +58,8 @@ class ApiLogRepositoryImpl(
     ApiLogModel(
       id = row[ApiLogsTable.id],
       correlationId = row[ApiLogsTable.correlationId],
-      requestType = RequestType.valueOf(row[ApiLogsTable.requestType]),
-      operationType = row[ApiLogsTable.operationType]?.let { OperationType.valueOf(it) },
+      requestType = RequestType.fromValue(row[ApiLogsTable.requestType]),
+      operationType = row[ApiLogsTable.operationType]?.let { OperationType.fromValue(it) },
       operationName = row[ApiLogsTable.operationName],
       method = row[ApiLogsTable.method],
       uri = row[ApiLogsTable.uri],

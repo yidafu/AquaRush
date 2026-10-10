@@ -65,7 +65,7 @@ class UserTicketRepositoryImpl(
       ticketTypeId = row[UserTicketsTable.ticketTypeId],
       purchaseId = row[UserTicketsTable.purchaseId],
       ticketNo = row[UserTicketsTable.ticketNo],
-      status = UserTicketStatus.valueOf(row[UserTicketsTable.status]),
+      status = UserTicketStatus.fromValue(row[UserTicketsTable.status]),
       expireTime = row[UserTicketsTable.expireTime],
       isGift = row[UserTicketsTable.isGift],
       usedOrderId = row[UserTicketsTable.usedOrderId],

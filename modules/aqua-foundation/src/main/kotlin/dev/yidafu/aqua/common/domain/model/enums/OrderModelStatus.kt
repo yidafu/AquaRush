@@ -9,4 +9,20 @@ enum class OrderModelStatus {
   COMPLETED, // 已完成(用户确认收货或系统自动确认后,计入营收)
   CANCELLED, // 已取消
   REFUNDED, // 已退款
+  ;
+
+  companion object {
+    fun fromValue(value: String): OrderModelStatus =
+      when (value) {
+        "PENDING_PAYMENT" -> PENDING_PAYMENT
+        "PENDING_DISPATCH" -> PENDING_DISPATCH
+        "PENDING_DELIVERY" -> PENDING_DELIVERY
+        "DELIVERING" -> DELIVERING
+        "AWAITING_CONFIRMATION" -> AWAITING_CONFIRMATION
+        "COMPLETED" -> COMPLETED
+        "CANCELLED" -> CANCELLED
+        "REFUNDED" -> REFUNDED
+        else -> throw IllegalArgumentException("Unknown OrderModelStatus value: '" + value + "'")
+      }
+  }
 }

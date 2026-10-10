@@ -84,7 +84,7 @@ class AdminMarketingStatisticsQueryResolver(
       breakdown =
         result.breakdown.map { row ->
           MarketingUsageBreakdownRowVo(
-            kind = MarketingBreakdownKind.valueOf(row.kind.name),
+            kind = row.kind.toGraphQL(),
             refId = row.refId,
             name = row.name,
             orderCount = row.orderCount.toInt(),
@@ -98,3 +98,12 @@ class AdminMarketingStatisticsQueryResolver(
     )
   }
 }
+
+private fun dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.toGraphQL(): MarketingBreakdownKind =
+  when (this) {
+    dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.COUPON_TEMPLATE -> MarketingBreakdownKind.COUPON_TEMPLATE
+    dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.PROMOTION_ACTIVITY -> MarketingBreakdownKind.PROMOTION_ACTIVITY
+    dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.FIRST_ORDER_ACTIVITY -> MarketingBreakdownKind.FIRST_ORDER_ACTIVITY
+    dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.GIFT_ACTIVITY -> MarketingBreakdownKind.GIFT_ACTIVITY
+    dev.yidafu.aqua.analytics.statistics.dto.MarketingBreakdownKind.TICKET_TYPE -> MarketingBreakdownKind.TICKET_TYPE
+  }

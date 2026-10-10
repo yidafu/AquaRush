@@ -68,7 +68,7 @@ class DailyReconciliationRepositoryImpl(
       totalOrderAmountCents = row[DailyReconciliationsTable.totalOrderAmountCents],
       totalCollectionAmountCents = row[DailyReconciliationsTable.totalCollectionAmountCents],
       discrepancyAmountCents = row[DailyReconciliationsTable.discrepancyAmountCents],
-      status = DailyReconciliationStatus.valueOf(row[DailyReconciliationsTable.status]),
+      status = DailyReconciliationStatus.fromValue(row[DailyReconciliationsTable.status]),
       reportData = row[DailyReconciliationsTable.reportData]?.let { parseJsonMap(it) },
       reviewedAt = row[DailyReconciliationsTable.reviewedAt],
       reviewedBy = row[DailyReconciliationsTable.reviewedBy],

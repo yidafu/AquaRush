@@ -14,4 +14,17 @@ enum class PriceSource {
   FLASH_SALE_PRICE,
   NEWCOMER_PRICE,
   MANUAL,
+  ;
+
+  companion object {
+    fun fromValue(value: String): PriceSource =
+      when (value) {
+        "CATALOG_PRICE" -> CATALOG_PRICE
+        "GROUP_PRICE" -> GROUP_PRICE
+        "FLASH_SALE_PRICE" -> FLASH_SALE_PRICE
+        "NEWCOMER_PRICE" -> NEWCOMER_PRICE
+        "MANUAL" -> MANUAL
+        else -> throw IllegalArgumentException("Unknown PriceSource value: '" + value + "'")
+      }
+  }
 }

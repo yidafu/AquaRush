@@ -59,7 +59,7 @@ class TicketPurchaseRepositoryImpl(
       giftCount = row[TicketPurchasesTable.giftCount],
       totalCount = row[TicketPurchasesTable.totalCount],
       packagePriceCents = row[TicketPurchasesTable.packagePriceCents],
-      paymentStatus = TicketPurchaseStatus.valueOf(row[TicketPurchasesTable.paymentStatus]),
+      paymentStatus = TicketPurchaseStatus.fromValue(row[TicketPurchasesTable.paymentStatus]),
       transactionId = row[TicketPurchasesTable.transactionId],
       paidAt = row[TicketPurchasesTable.paidAt],
       createdAt = row[TicketPurchasesTable.createdAt],

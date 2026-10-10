@@ -75,7 +75,7 @@ class ProductRepositoryImpl(
       mineralContent = row[ProductsTable.mineralContent],
       stock = row[ProductsTable.stockQuantity],
       salesVolume = row[ProductsTable.salesVolume],
-      status = ProductModelStatus.valueOf(row[ProductsTable.status]),
+      status = ProductModelStatus.fromValue(row[ProductsTable.status]),
       sortOrder = row[ProductsTable.sortOrder],
       tags = jsonArray.convertToEntityAttribute(row[ProductsTable.tags]),
       detailContent = row[ProductsTable.description],

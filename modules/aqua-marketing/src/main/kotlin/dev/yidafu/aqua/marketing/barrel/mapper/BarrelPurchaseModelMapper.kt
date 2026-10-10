@@ -29,7 +29,7 @@ import dev.yidafu.aqua.common.graphql.generated.BarrelPurchaseVo
 
 /**
  * 购桶单实体 → GraphQL BarrelPurchaseAdminVo(管理端)/BarrelPurchaseVO(用户端);
- * 明细来自 barrel_purchase_items,由调用方注入(状态枚举同名 valueOf 互转)。
+ * 明细来自 barrel_purchase_items,由调用方注入(状态枚举同名枚举 when 穷举互转)。
  */
 object BarrelPurchaseModelMapper {
   fun map(
@@ -41,7 +41,7 @@ object BarrelPurchaseModelMapper {
       userId = model.userId,
       orderNo = model.orderNo,
       totalAmountCents = model.totalAmountCents,
-      paymentStatus = BarrelPaymentStatus.valueOf(model.paymentStatus.name),
+      paymentStatus = model.paymentStatus.toGraphQL(),
       paidAt = model.paidAt,
       refundedAt = model.refundedAt,
       refundedBy = model.refundedBy,
@@ -62,7 +62,7 @@ object BarrelPurchaseModelMapper {
       id = model.id ?: 0L,
       orderNo = model.orderNo,
       totalAmountCents = model.totalAmountCents,
-      paymentStatus = BarrelPaymentStatus.valueOf(model.paymentStatus.name),
+      paymentStatus = model.paymentStatus.toGraphQL(),
       paidAt = model.paidAt,
       refundedAt = model.refundedAt,
       items = items.map { mapItemVo(it) },
@@ -87,3 +87,11 @@ object BarrelPurchaseModelMapper {
       amountCents = model.amountCents,
     )
 }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.toGraphQL(): BarrelPaymentStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PENDING -> BarrelPaymentStatus.PENDING
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PAID -> BarrelPaymentStatus.PAID
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.CANCELLED -> BarrelPaymentStatus.CANCELLED
+    dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.REFUNDED -> BarrelPaymentStatus.REFUNDED
+  }

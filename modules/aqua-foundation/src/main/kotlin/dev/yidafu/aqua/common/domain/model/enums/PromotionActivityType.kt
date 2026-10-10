@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class PromotionActivityType {
   FULL_REDUCE,
   FULL_DISCOUNT,
+  ;
+
+  companion object {
+    fun fromValue(value: String): PromotionActivityType =
+      when (value) {
+        "FULL_REDUCE" -> FULL_REDUCE
+        "FULL_DISCOUNT" -> FULL_DISCOUNT
+        else -> throw IllegalArgumentException("Unknown PromotionActivityType value: '" + value + "'")
+      }
+  }
 }

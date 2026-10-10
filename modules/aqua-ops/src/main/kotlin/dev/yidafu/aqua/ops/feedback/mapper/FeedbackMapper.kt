@@ -64,15 +64,41 @@ fun FeedbackModel.toRecordVo(): FeedbackRecordVo =
   )
 
 /**
- * 反馈类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 反馈类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainFeedbackType.toGraphQL(): FeedbackType = FeedbackType.valueOf(name)
+fun DomainFeedbackType.toGraphQL(): FeedbackType =
+  when (this) {
+    DomainFeedbackType.PRODUCT_QUALITY -> FeedbackType.PRODUCT_QUALITY
+    DomainFeedbackType.DELIVERY_SERVICE -> FeedbackType.DELIVERY_SERVICE
+    DomainFeedbackType.APP_USAGE -> FeedbackType.APP_USAGE
+    DomainFeedbackType.SUGGESTION -> FeedbackType.SUGGESTION
+    DomainFeedbackType.COMPLAINT -> FeedbackType.COMPLAINT
+    DomainFeedbackType.OTHER -> FeedbackType.OTHER
+  }
 
-fun FeedbackType.toDomain(): DomainFeedbackType = DomainFeedbackType.valueOf(name)
+fun FeedbackType.toDomain(): DomainFeedbackType =
+  when (this) {
+    FeedbackType.APP_USAGE -> DomainFeedbackType.APP_USAGE
+    FeedbackType.COMPLAINT -> DomainFeedbackType.COMPLAINT
+    FeedbackType.DELIVERY_SERVICE -> DomainFeedbackType.DELIVERY_SERVICE
+    FeedbackType.OTHER -> DomainFeedbackType.OTHER
+    FeedbackType.PRODUCT_QUALITY -> DomainFeedbackType.PRODUCT_QUALITY
+    FeedbackType.SUGGESTION -> DomainFeedbackType.SUGGESTION
+  }
 
 /**
- * 反馈状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 反馈状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainFeedbackStatus.toGraphQL(): FeedbackStatus = FeedbackStatus.valueOf(name)
+fun DomainFeedbackStatus.toGraphQL(): FeedbackStatus =
+  when (this) {
+    DomainFeedbackStatus.PENDING -> FeedbackStatus.PENDING
+    DomainFeedbackStatus.PROCESSING -> FeedbackStatus.PROCESSING
+    DomainFeedbackStatus.RESOLVED -> FeedbackStatus.RESOLVED
+  }
 
-fun FeedbackStatus.toDomain(): DomainFeedbackStatus = DomainFeedbackStatus.valueOf(name)
+fun FeedbackStatus.toDomain(): DomainFeedbackStatus =
+  when (this) {
+    FeedbackStatus.PENDING -> DomainFeedbackStatus.PENDING
+    FeedbackStatus.PROCESSING -> DomainFeedbackStatus.PROCESSING
+    FeedbackStatus.RESOLVED -> DomainFeedbackStatus.RESOLVED
+  }

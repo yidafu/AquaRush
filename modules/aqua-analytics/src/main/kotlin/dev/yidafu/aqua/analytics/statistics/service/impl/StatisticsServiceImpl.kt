@@ -306,7 +306,7 @@ class StatisticsServiceImpl(
       dailyOrderFactRepository
         .findByStatDateBetween(factStart, factEnd)
         .forEach { fact ->
-          val status = OrderModelStatus.valueOf(fact.status)
+          val status = OrderModelStatus.fromValue(fact.status)
           counts[status] = (counts[status] ?: 0L) + fact.orderCount
         }
     }

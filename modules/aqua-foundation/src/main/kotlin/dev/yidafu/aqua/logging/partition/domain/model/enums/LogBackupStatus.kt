@@ -31,4 +31,15 @@ enum class LogBackupStatus {
 
   /** 备份失败(数据仍在热表,未丢失) */
   FAILED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): LogBackupStatus =
+      when (value) {
+        "RUNNING" -> RUNNING
+        "SUCCEEDED" -> SUCCEEDED
+        "FAILED" -> FAILED
+        else -> throw IllegalArgumentException("Unknown LogBackupStatus value: '" + value + "'")
+      }
+  }
 }

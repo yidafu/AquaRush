@@ -63,10 +63,10 @@ class NotificationRepositoryImpl(
   private fun toModel(row: ResultRow): NotificationModel =
     NotificationModel(
       id = row[NotificationsTable.id],
-      receiverType = NotificationReceiverType.valueOf(row[NotificationsTable.receiverType]),
+      receiverType = NotificationReceiverType.fromValue(row[NotificationsTable.receiverType]),
       userId = row[NotificationsTable.userId],
       workerId = row[NotificationsTable.workerId],
-      messageType = NotificationMessageType.valueOf(row[NotificationsTable.messageType]),
+      messageType = NotificationMessageType.fromValue(row[NotificationsTable.messageType]),
       scene = row[NotificationsTable.scene],
       title = row[NotificationsTable.title],
       summary = row[NotificationsTable.summary],
@@ -75,7 +75,7 @@ class NotificationRepositoryImpl(
       templateScene = row[NotificationsTable.templateScene],
       templatePage = row[NotificationsTable.templatePage],
       templateFields = row[NotificationsTable.templateFields],
-      channelStatus = NotificationChannelStatus.valueOf(row[NotificationsTable.channelStatus]),
+      channelStatus = NotificationChannelStatus.fromValue(row[NotificationsTable.channelStatus]),
       wxMessageId = row[NotificationsTable.wxMessageId],
       errorMessage = row[NotificationsTable.errorMessage],
       sentAt = row[NotificationsTable.sentAt],

@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class TicketTypeKind {
   SPECIFIC_PRODUCT,
   UNIVERSAL,
+  ;
+
+  companion object {
+    fun fromValue(value: String): TicketTypeKind =
+      when (value) {
+        "SPECIFIC_PRODUCT" -> SPECIFIC_PRODUCT
+        "UNIVERSAL" -> UNIVERSAL
+        else -> throw IllegalArgumentException("Unknown TicketTypeKind value: '" + value + "'")
+      }
+  }
 }

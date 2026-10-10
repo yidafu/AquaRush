@@ -66,7 +66,7 @@ class FileMetadataRepositoryImpl(
       id = row[FileMetadataTable.id]
       fileName = row[FileMetadataTable.fileName]
       storagePath = row[FileMetadataTable.storagePath]
-      fileType = FileType.valueOf(row[FileMetadataTable.fileType])
+      fileType = FileType.fromValue(row[FileMetadataTable.fileType])
       fileSize = row[FileMetadataTable.fileSize]
       mimeType = row[FileMetadataTable.mimeType]
       checksum = row[FileMetadataTable.checksum]
@@ -307,7 +307,7 @@ class FileMetadataRepositoryImpl(
     }.map { row ->
       // Array<Array<Any>> 契约与 JPA 版一致:[fileType(枚举或字符串), count(Long)]
       @Suppress("UNCHECKED_CAST")
-      arrayOf<Any>(FileType.valueOf(row[FileMetadataTable.fileType]), row[FileMetadataTable.id.count()])
+      arrayOf<Any>(FileType.fromValue(row[FileMetadataTable.fileType]), row[FileMetadataTable.id.count()])
     }.toTypedArray()
 
   override fun getTotalFileSizeByOwner(ownerId: Long?): Long =

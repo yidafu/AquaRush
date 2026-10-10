@@ -47,10 +47,10 @@ class OrderOperationRepositoryImpl(
     OrderOperationModel(
       id = row[OrderOperationsTable.id],
       orderId = row[OrderOperationsTable.orderId],
-      operationType = OrderOperationType.valueOf(row[OrderOperationsTable.operationType]),
+      operationType = OrderOperationType.fromValue(row[OrderOperationsTable.operationType]),
       operatorId = row[OrderOperationsTable.operatorId],
       operatorType =
-        row[OrderOperationsTable.operatorType]?.let { OperatorType.valueOf(it) }
+        row[OrderOperationsTable.operatorType]?.let { OperatorType.fromValue(it) }
           ?: OperatorType.SYSTEM,
       description = row[OrderOperationsTable.description],
       extraData = row[OrderOperationsTable.extraData],

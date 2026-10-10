@@ -77,7 +77,7 @@ import java.util.Optional
  *
  * 口径约定(与原实现逐方法对照):
  * - 读侧入口(selectAll/select)一律自动过滤 is_deleted(等价原 JPA @SoftDelete 附加谓词);
- * - 枚举列存 .name、读 valueOf;金额 Long 分;
+ * - 枚举列存 .name、读 fromValue(显式 when 穷举);金额 Long 分;
  * - 分页 count 与 content 同一事务;业务排序 + id 破平(原 JPA 无序处已在 KDoc 注明);
  * - 「已送达」口径锚点 = COALESCE(delivery_confirmed_at, completed_at),状态含
  *   AWAITING_CONFIRMATION + COMPLETED(R-ORD-11 送水工业绩,历史 completed_at 回退);
@@ -95,11 +95,11 @@ class OrderRepositoryImpl(
       orderNo = row[OrdersTable.orderNo],
       userId = row[OrdersTable.userId],
       clientRequestId = row[OrdersTable.clientRequestId],
-      deliveryTimeSlot = row[OrdersTable.deliveryTimeSlot]?.let { DeliveryTimeSlot.valueOf(it) },
+      deliveryTimeSlot = row[OrdersTable.deliveryTimeSlot]?.let { DeliveryTimeSlot.fromValue(it) },
       amountCents = row[OrdersTable.totalAmountCents],
       deliveryFeeCents = row[OrdersTable.deliveryFeeCents],
       unitPriceCents = row[OrdersTable.unitPriceCents],
-      priceSource = row[OrdersTable.priceSource]?.let { PriceSource.valueOf(it) },
+      priceSource = row[OrdersTable.priceSource]?.let { PriceSource.fromValue(it) },
       promotionActivityId = row[OrdersTable.promotionActivityId],
       promotionActivityName = row[OrdersTable.promotionActivityName],
       promotionDiscountCents = row[OrdersTable.promotionDiscountCents],
@@ -112,20 +112,20 @@ class OrderRepositoryImpl(
       firstOrderActivityName = row[OrdersTable.firstOrderActivityName],
       firstOrderDiscountCents = row[OrdersTable.firstOrderDiscountCents],
       addressId = row[OrdersTable.addressId],
-      status = OrderModelStatus.valueOf(row[OrdersTable.status]),
-      paymentMethod = row[OrdersTable.paymentMethod]?.let { PaymentMethod.valueOf(it) },
+      status = OrderModelStatus.fromValue(row[OrdersTable.status]),
+      paymentMethod = row[OrdersTable.paymentMethod]?.let { PaymentMethod.fromValue(it) },
       paymentTransactionId = row[OrdersTable.paymentTransactionId],
       paymentTime = row[OrdersTable.paidAt],
       deliveryWorkerId = row[OrdersTable.deliveryWorkerId],
       deliveryPhotos = row[OrdersTable.deliveryPhotos],
       deliveryPhotoReviewStatus =
-        row[OrdersTable.deliveryPhotoReviewStatus]?.let { DeliveryPhotoReviewStatus.valueOf(it) },
+        row[OrdersTable.deliveryPhotoReviewStatus]?.let { DeliveryPhotoReviewStatus.fromValue(it) },
       deliveryPhotoReviewedAt = row[OrdersTable.deliveryPhotoReviewedAt],
       deliveryPhotoReviewedBy = row[OrdersTable.deliveryPhotoReviewedBy],
       deliveryPhotoReviewRemark = row[OrdersTable.deliveryPhotoReviewRemark],
       depositCents = row[OrdersTable.depositAmountCents],
       isSelfCollect = row[OrdersTable.isSelfCollect],
-      paymentType = row[OrdersTable.paymentType]?.let { PaymentType.valueOf(it) },
+      paymentType = row[OrdersTable.paymentType]?.let { PaymentType.fromValue(it) },
       deliveryStartedAt = row[OrdersTable.deliveryStartedAt],
       deliveryConfirmedAt = row[OrdersTable.deliveryConfirmedAt],
       completedAt = row[OrdersTable.completedAt],
@@ -702,7 +702,7 @@ class OrderRepositoryImpl(
         .andWhere { OrdersTable.userId eq userId }
         .groupBy(OrdersTable.status)
         .toList()
-        .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
+        .associate { row -> OrderModelStatus.fromValue(row[OrdersTable.status]) to row[statusCount] }
     }
   }
 

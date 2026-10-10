@@ -10,4 +10,15 @@ enum class PromotionScope {
   ALL,
   PRODUCT,
   GROUP,
+  ;
+
+  companion object {
+    fun fromValue(value: String): PromotionScope =
+      when (value) {
+        "ALL" -> ALL
+        "PRODUCT" -> PRODUCT
+        "GROUP" -> GROUP
+        else -> throw IllegalArgumentException("Unknown PromotionScope value: '" + value + "'")
+      }
+  }
 }

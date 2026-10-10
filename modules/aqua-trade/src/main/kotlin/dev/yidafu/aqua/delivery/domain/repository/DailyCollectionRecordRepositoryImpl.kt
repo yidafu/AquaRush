@@ -65,7 +65,7 @@ class DailyCollectionRecordRepositoryImpl(
       orderCount = row[DailyCollectionRecordsTable.orderCount] ?: 0,
       orderAmountCents = row[DailyCollectionRecordsTable.orderAmountCents] ?: 0L,
       differenceAmountCents = row[DailyCollectionRecordsTable.differenceAmountCents] ?: 0L,
-      status = DailyCollectionStatus.valueOf(row[DailyCollectionRecordsTable.status]),
+      status = DailyCollectionStatus.fromValue(row[DailyCollectionRecordsTable.status]),
       confirmedAt = row[DailyCollectionRecordsTable.confirmedAt],
       confirmedBy = row[DailyCollectionRecordsTable.confirmedBy],
       notes = row[DailyCollectionRecordsTable.notes],

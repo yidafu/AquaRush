@@ -27,9 +27,13 @@ import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerVo
 import java.math.BigDecimal
 
 /**
- * 领域在线状态 → GraphQL DeliveryWorkerStatus(同名 valueOf 互转)
+ * 领域在线状态 → GraphQL DeliveryWorkerStatus(同名枚举 when 穷举互转)
  */
-fun DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus = DeliveryWorkerStatus.valueOf(name)
+fun DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus =
+  when (this) {
+    DeliverWorkerModelStatus.ONLINE -> DeliveryWorkerStatus.ONLINE
+    DeliverWorkerModelStatus.OFFLINE -> DeliveryWorkerStatus.OFFLINE
+  }
 
 /**
  * AdminModel(送水员账号行)→ GraphQL DeliveryWorkerVo(原 DeliveryWorkerMapper)。
@@ -48,7 +52,7 @@ fun AdminModel.toDeliveryWorker(): DeliveryWorkerVo =
     earningCents = earningCents,
     onlineStatus = onlineStatus.toGraphQL(),
     // 账号状态(枚举需显式转换;F-USR-021)
-    accountStatus = AdminAccountStatus.valueOf(accountStatus.name),
+    accountStatus = accountStatus.toGraphQL(),
     // 任务数由调用方联查填充,直映恒为 0
     currentTaskCount = 0,
     avatarUrl = avatarUrl,
@@ -62,3 +66,9 @@ fun AdminModel.toDeliveryWorker(): DeliveryWorkerVo =
     totalOrders = totalOrders,
     updatedAt = updatedAt,
   )
+
+private fun dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.toGraphQL(): AdminAccountStatus =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.ACTIVE -> AdminAccountStatus.ACTIVE
+    dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED -> AdminAccountStatus.DISABLED
+  }

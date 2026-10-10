@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class CouponTemplateStatus {
   ACTIVE,
   DISABLED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): CouponTemplateStatus =
+      when (value) {
+        "ACTIVE" -> ACTIVE
+        "DISABLED" -> DISABLED
+        else -> throw IllegalArgumentException("Unknown CouponTemplateStatus value: '" + value + "'")
+      }
+  }
 }

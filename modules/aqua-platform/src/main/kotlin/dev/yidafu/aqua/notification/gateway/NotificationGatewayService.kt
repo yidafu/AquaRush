@@ -73,7 +73,7 @@ class NotificationGatewayService(
       return
     }
 
-    val receiverType = NotificationReceiverType.valueOf(data.receiverType)
+    val receiverType = NotificationReceiverType.fromValue(data.receiverType)
     val receiverId: Long
     when (receiverType) {
       NotificationReceiverType.USER -> {
@@ -106,7 +106,7 @@ class NotificationGatewayService(
           receiverType = receiverType,
           userId = data.userId,
           workerId = data.workerId,
-          messageType = NotificationMessageType.valueOf(data.messageType),
+          messageType = NotificationMessageType.fromValue(data.messageType),
           scene = data.scene,
           title = data.title,
           summary = data.summary,

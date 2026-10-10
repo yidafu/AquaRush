@@ -47,13 +47,33 @@ fun SystemSettingsModel.toGraphQL(): SystemConfigVo =
   )
 
 /**
- * 参数类型:领域枚举 → GraphQL 枚举同名 valueOf 互转
+ * 参数类型:领域枚举 → GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainSystemSettingType.toGraphQL(): SystemSettingType = SystemSettingType.valueOf(name)
+fun DomainSystemSettingType.toGraphQL(): SystemSettingType =
+  when (this) {
+    DomainSystemSettingType.NUMBER -> SystemSettingType.NUMBER
+    DomainSystemSettingType.BOOLEAN -> SystemSettingType.BOOLEAN
+    DomainSystemSettingType.STRING -> SystemSettingType.STRING
+    DomainSystemSettingType.ENUM -> SystemSettingType.ENUM
+  }
 
 /**
- * 参数分组:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 参数分组:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainSystemSettingGroup.toGraphQL(): SystemConfigGroup = SystemConfigGroup.valueOf(name)
+fun DomainSystemSettingGroup.toGraphQL(): SystemConfigGroup =
+  when (this) {
+    DomainSystemSettingGroup.ORDER_AND_FULFILLMENT -> SystemConfigGroup.ORDER_AND_FULFILLMENT
+    DomainSystemSettingGroup.INVENTORY -> SystemConfigGroup.INVENTORY
+    DomainSystemSettingGroup.SECURITY -> SystemConfigGroup.SECURITY
+    DomainSystemSettingGroup.NOTIFICATION -> SystemConfigGroup.NOTIFICATION
+    DomainSystemSettingGroup.DATA_MAINTENANCE -> SystemConfigGroup.DATA_MAINTENANCE
+  }
 
-fun SystemConfigGroup.toDomain(): DomainSystemSettingGroup = DomainSystemSettingGroup.valueOf(name)
+fun SystemConfigGroup.toDomain(): DomainSystemSettingGroup =
+  when (this) {
+    SystemConfigGroup.DATA_MAINTENANCE -> DomainSystemSettingGroup.DATA_MAINTENANCE
+    SystemConfigGroup.INVENTORY -> DomainSystemSettingGroup.INVENTORY
+    SystemConfigGroup.NOTIFICATION -> DomainSystemSettingGroup.NOTIFICATION
+    SystemConfigGroup.ORDER_AND_FULFILLMENT -> DomainSystemSettingGroup.ORDER_AND_FULFILLMENT
+    SystemConfigGroup.SECURITY -> DomainSystemSettingGroup.SECURITY
+  }

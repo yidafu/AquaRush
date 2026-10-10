@@ -26,4 +26,15 @@ enum class DepositStatus {
   COLLECTED, // 已收取(收款到账即收取)
   REFUNDED, // 已退还(订单取消自动退还或管理员退还)
   CANCELLED, // 已取消(未实际收取,记录作废)
+  ;
+
+  companion object {
+    fun fromValue(value: String): DepositStatus =
+      when (value) {
+        "COLLECTED" -> COLLECTED
+        "REFUNDED" -> REFUNDED
+        "CANCELLED" -> CANCELLED
+        else -> throw IllegalArgumentException("Unknown DepositStatus value: '" + value + "'")
+      }
+  }
 }

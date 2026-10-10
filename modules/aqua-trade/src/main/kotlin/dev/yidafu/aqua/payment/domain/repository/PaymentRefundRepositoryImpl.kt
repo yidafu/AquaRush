@@ -21,6 +21,7 @@ package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
+import dev.yidafu.aqua.common.graphql.fromValue
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
@@ -72,8 +73,8 @@ class PaymentRefundRepositoryImpl(
       outRefundNo = row[PaymentRefundsTable.refundNo],
       refundAmount = row[PaymentRefundsTable.refundAmountCents],
       refundReason = row[PaymentRefundsTable.reason],
-      status = RefundStatus.valueOf(row[PaymentRefundsTable.status]),
-      refundType = RefundType.valueOf(row[PaymentRefundsTable.refundType]),
+      status = RefundStatus.fromValue(row[PaymentRefundsTable.status]),
+      refundType = RefundType.fromValue(row[PaymentRefundsTable.refundType]),
       refundAccount = row[PaymentRefundsTable.refundAccount],
       refundedAt = row[PaymentRefundsTable.processedAt],
       processedBy = row[PaymentRefundsTable.processedBy],

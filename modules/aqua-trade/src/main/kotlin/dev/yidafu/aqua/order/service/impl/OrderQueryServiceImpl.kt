@@ -75,7 +75,7 @@ class OrderQueryServiceImpl(
 
   override fun findOrdersByStatus(status: String): List<OrderModel> =
     try {
-      val orderStatus = OrderModelStatus.valueOf(status.uppercase())
+      val orderStatus = OrderModelStatus.fromValue(status.uppercase())
       getOrdersByStatus(orderStatus)
     } catch (e: Exception) {
       emptyList()
@@ -86,7 +86,7 @@ class OrderQueryServiceImpl(
     status: String,
   ): List<OrderModel> =
     try {
-      val orderStatus = OrderModelStatus.valueOf(status.uppercase())
+      val orderStatus = OrderModelStatus.fromValue(status.uppercase())
       getUserOrdersByStatus(userId, orderStatus)
     } catch (e: Exception) {
       emptyList()
@@ -132,7 +132,7 @@ class OrderQueryServiceImpl(
     val orderStatus =
       status?.let {
         try {
-          OrderModelStatus.valueOf(it.uppercase())
+          OrderModelStatus.fromValue(it.uppercase())
         } catch (e: Exception) {
           null
         }

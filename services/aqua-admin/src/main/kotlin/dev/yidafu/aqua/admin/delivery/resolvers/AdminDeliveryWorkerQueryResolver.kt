@@ -65,7 +65,7 @@ class AdminDeliveryWorkerQueryResolver(
     val result =
       adminService.findDeliveryWorkers(
         keyword = keyword,
-        role = role?.let { runCatching { AdminRoleModel.valueOf(it) }.getOrNull() },
+        role = role?.let { runCatching { AdminRoleModel.fromValue(it) }.getOrNull() },
         pageable = pageable,
       )
     return DeliveryWorkerVoPage(

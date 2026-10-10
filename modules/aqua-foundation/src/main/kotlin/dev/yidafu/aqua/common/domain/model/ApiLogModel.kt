@@ -51,6 +51,16 @@ data class ApiLogModel(
 enum class RequestType {
   HTTP,
   GRAPHQL,
+  ;
+
+  companion object {
+    fun fromValue(value: String): RequestType =
+      when (value) {
+        "HTTP" -> HTTP
+        "GRAPHQL" -> GRAPHQL
+        else -> throw IllegalArgumentException("Unknown RequestType value: '" + value + "'")
+      }
+  }
 }
 
 /**
@@ -60,4 +70,15 @@ enum class OperationType {
   QUERY,
   MUTATION,
   SUBSCRIPTION,
+  ;
+
+  companion object {
+    fun fromValue(value: String): OperationType =
+      when (value) {
+        "QUERY" -> QUERY
+        "MUTATION" -> MUTATION
+        "SUBSCRIPTION" -> SUBSCRIPTION
+        else -> throw IllegalArgumentException("Unknown OperationType value: '" + value + "'")
+      }
+  }
 }

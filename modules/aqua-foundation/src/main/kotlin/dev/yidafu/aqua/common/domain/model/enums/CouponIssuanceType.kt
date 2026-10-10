@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class CouponIssuanceType {
   AUTO_CLAIM,
   TARGETED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): CouponIssuanceType =
+      when (value) {
+        "AUTO_CLAIM" -> AUTO_CLAIM
+        "TARGETED" -> TARGETED
+        else -> throw IllegalArgumentException("Unknown CouponIssuanceType value: '" + value + "'")
+      }
+  }
 }

@@ -56,23 +56,48 @@ import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
 
 // ============================================================================
-// 枚举同名 valueOf 互转(领域 ↔ GraphQL)
+// 枚举同名枚举 when 穷举互转(领域 ↔ GraphQL)
 // ============================================================================
 
 /**
- * 领域订单状态 → GraphQL OrderStatus(同名 valueOf 互转)
+ * 领域订单状态 → GraphQL OrderStatus(同名枚举 when 穷举互转)
  */
-fun OrderModelStatus.toGraphQL(): OrderStatusG = OrderStatusG.valueOf(name)
+fun OrderModelStatus.toGraphQL(): OrderStatusG =
+  when (this) {
+    OrderModelStatus.PENDING_PAYMENT -> OrderStatusG.PENDING_PAYMENT
+    OrderModelStatus.PENDING_DISPATCH -> OrderStatusG.PENDING_DISPATCH
+    OrderModelStatus.PENDING_DELIVERY -> OrderStatusG.PENDING_DELIVERY
+    OrderModelStatus.DELIVERING -> OrderStatusG.DELIVERING
+    OrderModelStatus.AWAITING_CONFIRMATION -> OrderStatusG.AWAITING_CONFIRMATION
+    OrderModelStatus.COMPLETED -> OrderStatusG.COMPLETED
+    OrderModelStatus.CANCELLED -> OrderStatusG.CANCELLED
+    OrderModelStatus.REFUNDED -> OrderStatusG.REFUNDED
+  }
 
 /**
  * GraphQL OrderStatus → 领域订单状态(列表筛选入参,原 OrderStatusMapper)
  */
-fun OrderStatusG.toDomain(): OrderModelStatus = OrderModelStatus.valueOf(name)
+fun OrderStatusG.toDomain(): OrderModelStatus =
+  when (this) {
+    OrderStatusG.AWAITING_CONFIRMATION -> OrderModelStatus.AWAITING_CONFIRMATION
+    OrderStatusG.CANCELLED -> OrderModelStatus.CANCELLED
+    OrderStatusG.COMPLETED -> OrderModelStatus.COMPLETED
+    OrderStatusG.DELIVERING -> OrderModelStatus.DELIVERING
+    OrderStatusG.PENDING_DELIVERY -> OrderModelStatus.PENDING_DELIVERY
+    OrderStatusG.PENDING_DISPATCH -> OrderModelStatus.PENDING_DISPATCH
+    OrderStatusG.PENDING_PAYMENT -> OrderModelStatus.PENDING_PAYMENT
+    OrderStatusG.REFUNDED -> OrderModelStatus.REFUNDED
+  }
 
 /**
  * 领域收款方式 → GraphQL PaymentType(R-MKT 收款方式快照)
  */
-fun PaymentType.toGraphQL(): PaymentTypeG = PaymentTypeG.valueOf(name)
+fun PaymentType.toGraphQL(): PaymentTypeG =
+  when (this) {
+    PaymentType.WATER_TICKET -> PaymentTypeG.WATER_TICKET
+    PaymentType.CASH -> PaymentTypeG.CASH
+    PaymentType.QR_CODE -> PaymentTypeG.QR_CODE
+  }
 
 // ============================================================================
 // OrderModel → GraphQL OrderVo
@@ -108,7 +133,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): OrderVo =
     // 配送备注(完成配送时配送员填写,随 completeDelivery 落库 —— R-ORD-07)
     deliveryRemark = deliveryRemark,
     // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转;null=未指定)
-    deliveryTimeSlot = deliveryTimeSlot?.let { DeliveryTimeSlotG.valueOf(it.name) },
+    deliveryTimeSlot = deliveryTimeSlot?.let { it.toGraphQL() },
     // deliveryPhotos 为 JSON 字符串,GraphQL 为 List<String>;解析失败兜底空列表
     deliveryPhotos =
       deliveryPhotos?.let { photos ->
@@ -117,7 +142,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): OrderVo =
         }.getOrElse { emptyList() }
       },
     // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转)
-    deliveryPhotoReviewStatus = deliveryPhotoReviewStatus?.let { DeliveryPhotoReviewStatusG.valueOf(it.name) },
+    deliveryPhotoReviewStatus = deliveryPhotoReviewStatus?.let { it.toGraphQL() },
     deliveryPhotoReviewedAt = deliveryPhotoReviewedAt,
     deliveryPhotoReviewedBy = deliveryPhotoReviewedBy,
     deliveryPhotoReviewRemark = deliveryPhotoReviewRemark,
@@ -185,7 +210,7 @@ fun CreateOrderInput.toRequest(): CreateOrderRequest =
     // 服务端下单幂等键(R-ORD-06)
     clientRequestId = clientRequestId,
     // 配送时段(AC-ORD-001-05,GraphQL 枚举 → 领域枚举同名互转)
-    deliveryTimeSlot = deliveryTime?.let { DomainDeliveryTimeSlot.valueOf(it.name) },
+    deliveryTimeSlot = deliveryTime?.let { it.toDomain() },
     // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
     preferredCouponId = preferredCouponId,
     // 水票核销张数(一票抵一桶 R-MKT-08)
@@ -299,16 +324,16 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
 /**
  * OrderOperationModel → GraphQL OrderOperationVo
  *
- * 枚举跨包同名 valueOf 互转;extraData 落库为 JSON 文本,序列化前还原为 ObjectNode
+ * 枚举跨包同名枚举 when 穷举互转;extraData 落库为 JSON 文本,序列化前还原为 ObjectNode
  * (JsonObjectScalar 亦接受 String,但 Vo 字段类型为 ObjectNode,故在 mapper 内转换)。
  */
 fun OrderOperationModel.toGraphQL(): OrderOperationVo =
   OrderOperationVo(
     id = id ?: 0L,
     orderId = orderId,
-    operationType = OrderOperationTypeG.valueOf(operationType.name),
+    operationType = operationType.toGraphQL(),
     operatorId = operatorId,
-    operatorType = OperatorTypeG.valueOf(operatorType.name),
+    operatorType = operatorType.toGraphQL(),
     description = description,
     extraData =
       extraData?.let { json ->
@@ -319,3 +344,54 @@ fun OrderOperationModel.toGraphQL(): OrderOperationVo =
       },
     createdAt = createdAt,
   )
+
+private fun DomainDeliveryTimeSlot.toGraphQL(): DeliveryTimeSlotG =
+  when (this) {
+    DomainDeliveryTimeSlot.IMMEDIATE -> DeliveryTimeSlotG.IMMEDIATE
+    DomainDeliveryTimeSlot.MORNING -> DeliveryTimeSlotG.MORNING
+    DomainDeliveryTimeSlot.AFTERNOON -> DeliveryTimeSlotG.AFTERNOON
+    DomainDeliveryTimeSlot.EVENING -> DeliveryTimeSlotG.EVENING
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus.toGraphQL(): DeliveryPhotoReviewStatusG =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus.PENDING -> DeliveryPhotoReviewStatusG.PENDING
+    dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus.APPROVED -> DeliveryPhotoReviewStatusG.APPROVED
+    dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus.REJECTED -> DeliveryPhotoReviewStatusG.REJECTED
+  }
+
+private fun DeliveryTimeSlotG.toDomain(): DomainDeliveryTimeSlot =
+  when (this) {
+    DeliveryTimeSlotG.AFTERNOON -> DomainDeliveryTimeSlot.AFTERNOON
+    DeliveryTimeSlotG.EVENING -> DomainDeliveryTimeSlot.EVENING
+    DeliveryTimeSlotG.IMMEDIATE -> DomainDeliveryTimeSlot.IMMEDIATE
+    DeliveryTimeSlotG.MORNING -> DomainDeliveryTimeSlot.MORNING
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.toGraphQL(): OrderOperationTypeG =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_CREATED -> OrderOperationTypeG.ORDER_CREATED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_PAID -> OrderOperationTypeG.ORDER_PAID
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_CANCELLED -> OrderOperationTypeG.ORDER_CANCELLED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_URGING -> OrderOperationTypeG.ORDER_URGING
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.DELIVERY_ASSIGNED -> OrderOperationTypeG.DELIVERY_ASSIGNED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.DELIVERY_STARTED -> OrderOperationTypeG.DELIVERY_STARTED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.DELIVERY_COMPLETED -> OrderOperationTypeG.DELIVERY_COMPLETED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_CONFIRMED -> OrderOperationTypeG.ORDER_CONFIRMED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.AUTO_CONFIRMED -> OrderOperationTypeG.AUTO_CONFIRMED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ORDER_COMPLETED -> OrderOperationTypeG.ORDER_COMPLETED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.REFUND_INITIATED -> OrderOperationTypeG.REFUND_INITIATED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.REFUND_COMPLETED -> OrderOperationTypeG.REFUND_COMPLETED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.PAYMENT_TIMEOUT -> OrderOperationTypeG.PAYMENT_TIMEOUT
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.DELIVERY_PHOTO_APPROVED -> OrderOperationTypeG.DELIVERY_PHOTO_APPROVED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.DELIVERY_PHOTO_REJECTED -> OrderOperationTypeG.DELIVERY_PHOTO_REJECTED
+    dev.yidafu.aqua.common.domain.model.enums.OrderOperationType.ADDRESS_UPDATED -> OrderOperationTypeG.ADDRESS_UPDATED
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.OperatorType.toGraphQL(): OperatorTypeG =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.OperatorType.USER -> OperatorTypeG.USER
+    dev.yidafu.aqua.common.domain.model.enums.OperatorType.ADMIN -> OperatorTypeG.ADMIN
+    dev.yidafu.aqua.common.domain.model.enums.OperatorType.DELIVERY_WORKER -> OperatorTypeG.DELIVERY_WORKER
+    dev.yidafu.aqua.common.domain.model.enums.OperatorType.SYSTEM -> OperatorTypeG.SYSTEM
+  }

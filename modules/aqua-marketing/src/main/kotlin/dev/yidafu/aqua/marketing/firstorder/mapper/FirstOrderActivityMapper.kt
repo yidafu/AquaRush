@@ -56,20 +56,42 @@ fun FirstOrderActivityModel.toGraphQL(
   )
 
 /**
- * 活动类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainFirstOrderActivityType.toGraphQL(): FirstOrderActivityType = FirstOrderActivityType.valueOf(name)
+fun DomainFirstOrderActivityType.toGraphQL(): FirstOrderActivityType =
+  when (this) {
+    DomainFirstOrderActivityType.FIRST_ORDER_REDUCE -> FirstOrderActivityType.FIRST_ORDER_REDUCE
+    DomainFirstOrderActivityType.NEWCOMER_PRICE -> FirstOrderActivityType.NEWCOMER_PRICE
+  }
 
-fun FirstOrderActivityType.toDomain(): DomainFirstOrderActivityType = DomainFirstOrderActivityType.valueOf(name)
+fun FirstOrderActivityType.toDomain(): DomainFirstOrderActivityType =
+  when (this) {
+    FirstOrderActivityType.FIRST_ORDER_REDUCE -> DomainFirstOrderActivityType.FIRST_ORDER_REDUCE
+    FirstOrderActivityType.NEWCOMER_PRICE -> DomainFirstOrderActivityType.NEWCOMER_PRICE
+  }
 
 /**
- * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
+fun DomainPromotionScope.toGraphQL(): PromotionScope =
+  when (this) {
+    DomainPromotionScope.ALL -> PromotionScope.ALL
+    DomainPromotionScope.PRODUCT -> PromotionScope.PRODUCT
+    DomainPromotionScope.GROUP -> PromotionScope.GROUP
+  }
 
-fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
+fun PromotionScope.toDomain(): DomainPromotionScope =
+  when (this) {
+    PromotionScope.ALL -> DomainPromotionScope.ALL
+    PromotionScope.GROUP -> DomainPromotionScope.GROUP
+    PromotionScope.PRODUCT -> DomainPromotionScope.PRODUCT
+  }
 
 /**
- * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus =
+  when (this) {
+    DomainPromotionActivityStatus.ACTIVE -> PromotionActivityStatus.ACTIVE
+    DomainPromotionActivityStatus.DISABLED -> PromotionActivityStatus.DISABLED
+  }

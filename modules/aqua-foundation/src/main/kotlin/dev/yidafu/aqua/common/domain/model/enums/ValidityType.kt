@@ -10,4 +10,15 @@ enum class ValidityType {
   FIXED_RANGE,
   DAYS_AFTER_CLAIM,
   DAYS_AFTER_PURCHASE,
+  ;
+
+  companion object {
+    fun fromValue(value: String): ValidityType =
+      when (value) {
+        "FIXED_RANGE" -> FIXED_RANGE
+        "DAYS_AFTER_CLAIM" -> DAYS_AFTER_CLAIM
+        "DAYS_AFTER_PURCHASE" -> DAYS_AFTER_PURCHASE
+        else -> throw IllegalArgumentException("Unknown ValidityType value: '" + value + "'")
+      }
+  }
 }

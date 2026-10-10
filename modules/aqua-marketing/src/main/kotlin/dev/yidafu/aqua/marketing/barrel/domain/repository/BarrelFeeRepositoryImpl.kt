@@ -56,7 +56,7 @@ class BarrelFeeRepositoryImpl(
       id = row[BarrelFeesTable.id],
       specification = row[BarrelFeesTable.specification],
       priceCents = row[BarrelFeesTable.priceCents],
-      status = BarrelFeeStatus.valueOf(row[BarrelFeesTable.status]),
+      status = BarrelFeeStatus.fromValue(row[BarrelFeesTable.status]),
       sortOrder = row[BarrelFeesTable.sortOrder],
       createdAt = row[BarrelFeesTable.createdAt],
       updatedAt = row[BarrelFeesTable.updatedAt],

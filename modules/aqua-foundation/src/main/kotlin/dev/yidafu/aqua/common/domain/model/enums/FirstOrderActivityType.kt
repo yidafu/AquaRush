@@ -8,4 +8,14 @@ package dev.yidafu.aqua.common.domain.model.enums
 enum class FirstOrderActivityType {
   FIRST_ORDER_REDUCE,
   NEWCOMER_PRICE,
+  ;
+
+  companion object {
+    fun fromValue(value: String): FirstOrderActivityType =
+      when (value) {
+        "FIRST_ORDER_REDUCE" -> FIRST_ORDER_REDUCE
+        "NEWCOMER_PRICE" -> NEWCOMER_PRICE
+        else -> throw IllegalArgumentException("Unknown FirstOrderActivityType value: '" + value + "'")
+      }
+  }
 }

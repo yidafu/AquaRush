@@ -42,7 +42,7 @@ object LogPartitionVoMapper {
     now: LocalDateTime = LocalDateTime.now(),
   ): LogPartitionVo =
     LogPartitionVo(
-      logTable = LogTableType.valueOf(partition.logTable.name),
+      logTable = partition.logTable.toGraphQL(),
       partitionName = partition.partitionName,
       partitionMonth = partition.partitionMonth,
       rowCount = partition.rowCount,
@@ -66,11 +66,25 @@ fun LogBackupRecordModel.toGraphQL(): LogBackupRecordVo =
     fileSizeBytes = fileSizeBytes,
     finishedAt = finishedAt,
     id = id ?: 0L,
-    logTable = LogTableType.valueOf(logTable.name),
+    logTable = logTable.toGraphQL(),
     operatorName = operatorName,
     partitionMonth = partitionMonth,
     partitionName = partitionName,
     rowCount = rowCount,
     startedAt = startedAt,
-    status = LogBackupStatus.valueOf(status.name),
+    status = status.toGraphQL(),
   )
+
+private fun dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType.toGraphQL(): LogTableType =
+  when (this) {
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType.API_LOG -> LogTableType.API_LOG
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType.USER_ACTION_LOG -> LogTableType.USER_ACTION_LOG
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType.BUSINESS_LOG -> LogTableType.BUSINESS_LOG
+  }
+
+private fun dev.yidafu.aqua.logging.partition.domain.model.enums.LogBackupStatus.toGraphQL(): LogBackupStatus =
+  when (this) {
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogBackupStatus.RUNNING -> LogBackupStatus.RUNNING
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogBackupStatus.SUCCEEDED -> LogBackupStatus.SUCCEEDED
+    dev.yidafu.aqua.logging.partition.domain.model.enums.LogBackupStatus.FAILED -> LogBackupStatus.FAILED
+  }

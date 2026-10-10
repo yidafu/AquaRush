@@ -9,4 +9,16 @@ enum class BarrelPaymentStatus {
   PAID,
   CANCELLED,
   REFUNDED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): BarrelPaymentStatus =
+      when (value) {
+        "PENDING" -> PENDING
+        "PAID" -> PAID
+        "CANCELLED" -> CANCELLED
+        "REFUNDED" -> REFUNDED
+        else -> throw IllegalArgumentException("Unknown BarrelPaymentStatus value: '" + value + "'")
+      }
+  }
 }

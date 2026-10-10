@@ -57,20 +57,42 @@ fun GiftActivityModel.toGraphQL(
   )
 
 /**
- * 赠品类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 赠品类型:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainGiftActivityType.toGraphQL(): GiftActivityType = GiftActivityType.valueOf(name)
+fun DomainGiftActivityType.toGraphQL(): GiftActivityType =
+  when (this) {
+    DomainGiftActivityType.FULL_GIFT -> GiftActivityType.FULL_GIFT
+    DomainGiftActivityType.BUY_GIFT -> GiftActivityType.BUY_GIFT
+  }
 
-fun GiftActivityType.toDomain(): DomainGiftActivityType = DomainGiftActivityType.valueOf(name)
+fun GiftActivityType.toDomain(): DomainGiftActivityType =
+  when (this) {
+    GiftActivityType.BUY_GIFT -> DomainGiftActivityType.BUY_GIFT
+    GiftActivityType.FULL_GIFT -> DomainGiftActivityType.FULL_GIFT
+  }
 
 /**
- * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
+fun DomainPromotionScope.toGraphQL(): PromotionScope =
+  when (this) {
+    DomainPromotionScope.ALL -> PromotionScope.ALL
+    DomainPromotionScope.PRODUCT -> PromotionScope.PRODUCT
+    DomainPromotionScope.GROUP -> PromotionScope.GROUP
+  }
 
-fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
+fun PromotionScope.toDomain(): DomainPromotionScope =
+  when (this) {
+    PromotionScope.ALL -> DomainPromotionScope.ALL
+    PromotionScope.GROUP -> DomainPromotionScope.GROUP
+    PromotionScope.PRODUCT -> DomainPromotionScope.PRODUCT
+  }
 
 /**
- * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名枚举 when 穷举互转
  */
-fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus =
+  when (this) {
+    DomainPromotionActivityStatus.ACTIVE -> PromotionActivityStatus.ACTIVE
+    DomainPromotionActivityStatus.DISABLED -> PromotionActivityStatus.DISABLED
+  }

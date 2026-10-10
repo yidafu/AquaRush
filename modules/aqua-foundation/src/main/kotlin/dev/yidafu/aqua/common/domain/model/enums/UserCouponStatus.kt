@@ -10,4 +10,16 @@ enum class UserCouponStatus {
   USED,
   RETURNED,
   EXPIRED,
+  ;
+
+  companion object {
+    fun fromValue(value: String): UserCouponStatus =
+      when (value) {
+        "RECEIVED" -> RECEIVED
+        "USED" -> USED
+        "RETURNED" -> RETURNED
+        "EXPIRED" -> EXPIRED
+        else -> throw IllegalArgumentException("Unknown UserCouponStatus value: '" + value + "'")
+      }
+  }
 }

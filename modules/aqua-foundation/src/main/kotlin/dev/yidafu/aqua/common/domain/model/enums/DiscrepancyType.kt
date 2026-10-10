@@ -7,4 +7,15 @@ enum class DiscrepancyType {
   MISSING, // 缺失记录
   MISMATCH, // 不匹配记录
   EXTRA, // 多余记录
+  ;
+
+  companion object {
+    fun fromValue(value: String): DiscrepancyType =
+      when (value) {
+        "MISSING" -> MISSING
+        "MISMATCH" -> MISMATCH
+        "EXTRA" -> EXTRA
+        else -> throw IllegalArgumentException("Unknown DiscrepancyType value: '" + value + "'")
+      }
+  }
 }
