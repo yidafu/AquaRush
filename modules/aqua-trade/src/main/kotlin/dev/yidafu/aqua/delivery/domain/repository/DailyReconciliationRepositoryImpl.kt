@@ -112,16 +112,6 @@ class DailyReconciliationRepositoryImpl(
     return PageImpl(content, pageable, total)
   }
 
-  override fun findAll(): List<DailyReconciliationModel> =
-    transaction(database) {
-      DailyReconciliationsTable
-        .selectAll()
-        .where { activeWhere() }
-        // 原 JPA 无序,固定 id 升序取稳定插入序
-        .orderBy(DailyReconciliationsTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAll(pageable: Pageable): Page<DailyReconciliationModel> = paged(Op.TRUE, pageable)
 
   override fun findById(id: Long): Optional<DailyReconciliationModel> =

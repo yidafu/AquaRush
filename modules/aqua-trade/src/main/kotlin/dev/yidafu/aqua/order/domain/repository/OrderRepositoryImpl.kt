@@ -347,16 +347,6 @@ class OrderRepositoryImpl(
       }?.let(::toModel),
     )
 
-  override fun findAll(): List<OrderModel> =
-    transaction(database) {
-      OrdersTable
-        .selectAll()
-        .where { OrdersTable.activeOnly() }
-        // 原 JPA findAll 无序,按 id 升序破平
-        .orderBy(OrdersTable.id to SortOrder.ASC)
-        .toList()
-    }.map(::toModel)
-
   override fun findAllById(ids: Iterable<Long>): List<OrderModel> =
     transaction(database) {
       OrdersTable

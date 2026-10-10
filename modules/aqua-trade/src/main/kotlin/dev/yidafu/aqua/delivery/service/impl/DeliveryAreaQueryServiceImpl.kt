@@ -50,7 +50,5 @@ class DeliveryAreaQueryServiceImpl(
     }
   }
 
-  override fun getAllDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findAll()
-
   override fun getEnabledDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findByEnabledTrue()
 }

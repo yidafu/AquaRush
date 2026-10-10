@@ -31,9 +31,6 @@ import java.util.Optional
  * `is_deleted = false`,删除为 `UPDATE is_deleted = true`。
  */
 interface DailyCollectionRecordRepository {
-  /** 全量列表(过滤软删;原 JPA 无序,固定 id 升序取稳定插入序)。 */
-  fun findAll(): List<DailyCollectionRecordModel>
-
   /** 分页(过滤软删;原 JPA 无序,id 升序破平防跨页重复)。 */
   fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel>
 

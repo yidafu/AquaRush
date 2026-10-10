@@ -84,7 +84,7 @@ class DailyCollectionRecordRepositoryImplTest :
       reloaded.cashAmountCents shouldBe 999L
       reloaded.status shouldBe DailyCollectionStatus.SUBMITTED
       // 不重复插入
-      repo.findAll() shouldHaveSize 1
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 1
     }
 
     test("软删记录不可见:findById/findAll/findByCollectionDate 均过滤") {
@@ -93,7 +93,7 @@ class DailyCollectionRecordRepositoryImplTest :
 
       repo.findById(keep).isPresent shouldBe true
       repo.findById(removed).isPresent shouldBe false
-      repo.findAll() shouldHaveSize 1
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 1
       repo.findByCollectionDate(LocalDate.of(2026, 3, 1)) shouldHaveSize 1
     }
 
@@ -101,10 +101,10 @@ class DailyCollectionRecordRepositoryImplTest :
       val a = seedCollection(workerId = 101L, date = LocalDate.of(2026, 3, 1))
       val b = seedCollection(workerId = 102L, date = LocalDate.of(2026, 3, 2))
 
-      repo.findAll().map { it.id } shouldContainExactly listOf(a, b)
+      repo.findAll(PageRequest.of(0, 100)).content.map { it.id } shouldContainExactly listOf(a, b)
 
       repo.deleteAll()
-      repo.findAll() shouldHaveSize 0
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 0
       // 物理行保留,仅软删标记
       val physical =
         transaction(TradePgTestSupport.database) {
@@ -195,7 +195,7 @@ class DailyCollectionRecordRepositoryImplTest :
         )
       repo.save(entity)
       repo.findById(id).isPresent shouldBe false
-      repo.findAll() shouldHaveSize 0
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 0
     }
   })
 

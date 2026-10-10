@@ -51,14 +51,10 @@ class DeliveryAreaQueryServiceImplTest :
       service.validateDeliveryAddress("浙江省", "杭州市", "西湖区")
     }
     test("list queries pass through") {
-      val all = listOf(area(1L), area(2L, enabled = false))
       val enabled = listOf(area(1L))
-      every { areaRepository.findAll() } returns all
       every { areaRepository.findByEnabledTrue() } returns enabled
 
-      service.getAllDeliveryAreas() shouldBe all
       service.getEnabledDeliveryAreas() shouldBe enabled
-      verify(exactly = 1) { areaRepository.findAll() }
       verify(exactly = 1) { areaRepository.findByEnabledTrue() }
     }
   })

@@ -100,7 +100,7 @@ class DailyReconciliationRepositoryImplTest :
       reloaded.status shouldBe DailyReconciliationStatus.REVIEWED
       reloaded.reportData.shouldNotBeNull()["flag"] shouldBe true
       // 更新分支不重复插入
-      repo.findAll() shouldHaveSize 1
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 1
     }
 
     test("软删对账不可可见:findById/findAll/findByReconciliationDate 均过滤") {
@@ -111,17 +111,17 @@ class DailyReconciliationRepositoryImplTest :
       repo.findById(removed).isPresent shouldBe false
       repo.findByReconciliationDate(LocalDate.of(2026, 3, 2)).shouldBeNull()
       repo.findByReconciliationDate(LocalDate.of(2026, 3, 1)).shouldNotBeNull()
-      repo.findAll() shouldHaveSize 1
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 1
     }
 
     test("findAll 按 id 升序;deleteAll 置 is_deleted 而非物理删除") {
       val a = seedReconciliation(date = LocalDate.of(2026, 3, 1))
       val b = seedReconciliation(date = LocalDate.of(2026, 3, 2))
 
-      repo.findAll().map { it.id } shouldContainExactly listOf(a, b)
+      repo.findAll(PageRequest.of(0, 100)).content.map { it.id } shouldContainExactly listOf(a, b)
 
       repo.deleteAll()
-      repo.findAll() shouldHaveSize 0
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 0
       val physical =
         transaction(TradePgTestSupport.database) {
           DailyReconciliationsTable.selectAll().count()
@@ -172,7 +172,7 @@ class DailyReconciliationRepositoryImplTest :
         )
       repo.save(entity)
       repo.findById(id).isPresent shouldBe false
-      repo.findAll() shouldHaveSize 0
+      repo.findAll(PageRequest.of(0, 100)) shouldHaveSize 0
     }
   })
 

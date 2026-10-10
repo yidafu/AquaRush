@@ -85,8 +85,6 @@ class DailyCollectionQueryApiServiceImpl(
   override fun findById(id: Long): DailyCollectionRecordModel? = dailyCollectionRecordRepository.findById(id).orElse(null)
 
   override fun findAll(pageable: Pageable): Page<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findAll(pageable)
-
-  override fun findAll(): List<DailyCollectionRecordModel> = dailyCollectionRecordRepository.findAll()
 }
 
 @Service
@@ -111,8 +109,6 @@ class DailyReconciliationQueryApiServiceImpl(
     dailyReconciliationRepository.findByReconciliationDate(reconciliationDate)
 
   override fun findById(id: Long): DailyReconciliationModel? = dailyReconciliationRepository.findById(id).orElse(null)
-
-  override fun findAll(): List<DailyReconciliationModel> = dailyReconciliationRepository.findAll()
 
   override fun findAll(pageable: Pageable): Page<DailyReconciliationModel> = dailyReconciliationRepository.findAll(pageable)
 }

@@ -92,20 +92,16 @@ class DeliveryAreaRepositoryImplTest :
       repo.findById(removed).isPresent shouldBe false
       repo.findByProvinceAndCityAndDistrict("广东省", "深圳市", "福田区").shouldBeNull()
       repo.findByProvinceAndCityAndDistrict("广东省", "深圳市", "南山区").shouldNotBeNull()
-      repo.findAll() shouldHaveSize 1
       repo.findByEnabledTrue() shouldHaveSize 1
     }
 
-    test("findByEnabledTrue 只返回启用区域,findAll 按 id 升序") {
+    test("findByEnabledTrue 只返回启用区域") {
       val enabled = seedArea(name = "启用", province = "A省", city = "A市", district = "A区")
       seedArea(name = "停用", province = "B省", city = "B市", district = "B区", enabled = false)
 
       repo
         .findByEnabledTrue()
         .map { it.id } shouldContainExactly listOf(enabled)
-      repo
-        .findAll()
-        .map { it.name } shouldContainExactly listOf("启用", "停用")
     }
 
     test("findByProvinceAndCityAndDistrict 精确匹配且返回启用/停用均可见") {
