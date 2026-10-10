@@ -168,7 +168,10 @@ class ReviewRepositoryImplTest :
     }
   })
 
-private fun ReviewRepositoryImpl.findAllCount(): Long = transaction(TradePgTestSupport.database) { ReviewsTable.selectAll().count() }
+private fun ReviewRepositoryImpl.findAllCount(): Long =
+  transaction(TradePgTestSupport.database) {
+    ReviewsTable.selectAllIncludingDeleted().count()
+  }
 
 /** 直接插行的种子构造(含软删开关)。 */
 private fun seedReview(

@@ -19,15 +19,21 @@
 
 package dev.yidafu.aqua.notification.domain.repository
 
+import dev.yidafu.aqua.api.dto.notification.NotificationListRequest
 import dev.yidafu.aqua.common.domain.model.NotificationModel
+import dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType
+import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.Optional
 
 /**
  * 站内消息仓库(PRD 13-notification.md,统一落库表 notifications)
  */
 @Repository
-interface NotificationRepository : NotificationRepositoryCustom {
+interface NotificationRepository {
   fun existsByIdempotencyKey(idempotencyKey: String): Boolean
 
   fun findById(id: Long): Optional<NotificationModel>
@@ -37,4 +43,44 @@ interface NotificationRepository : NotificationRepositoryCustom {
 
   /** 语义对齐 JPA saveAndFlush:Exposed 写路径即时提交,flush 为空操作。 */
   fun saveAndFlush(entity: NotificationModel): NotificationModel = save(entity)
+
+  /**
+   * 分页查询本人消息(仅本人;messageType/read 为空 = 全部),按创建时间倒序
+   */
+  fun findMyNotifications(
+    receiverType: NotificationReceiverType,
+    receiverId: Long,
+    messageType: NotificationMessageType?,
+    read: Boolean?,
+    pageable: Pageable,
+  ): Page<NotificationModel>
+
+  /**
+   * 本人未读数(入口角标)
+   */
+  fun countUnread(
+    receiverType: NotificationReceiverType,
+    receiverId: Long,
+  ): Long
+
+  /**
+   * 本人全部置已读,返回置读条数(幂等)
+   */
+  fun markAllRead(
+    receiverType: NotificationReceiverType,
+    receiverId: Long,
+  ): Int
+
+  /**
+   * 后台消息列表(组合筛选,近 30 天由页面层给定时间范围)
+   */
+  fun findByFilters(
+    request: NotificationListRequest,
+    pageable: Pageable,
+  ): Page<NotificationModel>
+
+  /**
+   * 清理创建时间早于 before 的消息(R-NTF-04 保留策略)
+   */
+  fun deleteExpired(before: LocalDateTime): Int
 }

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.product.service.impl
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.exception.InsufficientStockException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -152,23 +153,23 @@ class ProductServiceImplTest :
 
       service.increaseStock(1L, 5) shouldBe false
     }
-    test("decreaseStock reduces quantity and marks out of stock at zero") {
-      val p = product(stock = 3)
-      every { productRepository.findById(1L) } returns Optional.of(p)
-      every { productRepository.save(any()) } answers { firstArg() }
+    test("decreaseStock 原子扣减成功返回 true(条件 UPDATE 命中)") {
+      every { productRepository.decreaseStockIfAvailable(1L, 3) } returns 1
 
       service.decreaseStock(1L, 3) shouldBe true
-      p.stock shouldBe 0
-      p.status shouldBe ProductModelStatus.OUT_OF_STOCK
+      verify(exactly = 0) { productRepository.save(any()) }
     }
-    test("decreaseStock refuses when quantity exceeds stock") {
+    test("decreaseStock 库存不足(条件 UPDATE 0 行)抛库存不足异常且不改库存") {
       val p = product(stock = 2)
+      every { productRepository.decreaseStockIfAvailable(1L, 5) } returns 0
       every { productRepository.findById(1L) } returns Optional.of(p)
 
-      service.decreaseStock(1L, 5) shouldBe false
+      shouldThrow<InsufficientStockException> { service.decreaseStock(1L, 5) }
       p.stock shouldBe 2
+      verify(exactly = 0) { productRepository.save(any()) }
     }
-    test("decreaseStock returns false when product missing") {
+    test("decreaseStock 商品不存在返回 false") {
+      every { productRepository.decreaseStockIfAvailable(1L, 5) } returns 0
       every { productRepository.findById(1L) } returns Optional.empty()
 
       service.decreaseStock(1L, 5) shouldBe false

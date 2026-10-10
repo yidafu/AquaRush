@@ -20,9 +20,11 @@
 package dev.yidafu.aqua.notification.service
 
 import dev.yidafu.aqua.common.domain.model.NotificationModel
+import dev.yidafu.aqua.common.domain.model.UserNotificationSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.NotificationChannelStatus
 import dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
+import dev.yidafu.aqua.notice.domain.repository.UserNotificationSettingsRepository
 import dev.yidafu.aqua.notification.channel.wechat.WeChatSubscribeMessageService
 import dev.yidafu.aqua.notification.domain.repository.NotificationRepository
 import dev.yidafu.aqua.notification.domain.repository.UserSubscriptionAuthRepository
@@ -43,6 +45,7 @@ class NotificationMutationApiServiceImplTest :
   FunSpec({
     var notificationRepository: NotificationRepository = mockk()
     var userSubscriptionAuthRepository: UserSubscriptionAuthRepository = mockk()
+    var userNotificationSettingsRepository: UserNotificationSettingsRepository = mockk()
     var weChatSubscribeMessageService: WeChatSubscribeMessageService = mockk()
     var service: NotificationMutationApiServiceImpl = mockk()
 
@@ -71,11 +74,14 @@ class NotificationMutationApiServiceImplTest :
     beforeTest {
       notificationRepository = mockk(relaxed = true)
       userSubscriptionAuthRepository = mockk(relaxed = true)
+      userNotificationSettingsRepository = mockk(relaxed = true)
       weChatSubscribeMessageService = mockk(relaxed = true)
+      every { userNotificationSettingsRepository.save(any()) } answers { firstArg() }
       service =
         NotificationMutationApiServiceImpl(
           notificationRepository = notificationRepository,
           userSubscriptionAuthRepository = userSubscriptionAuthRepository,
+          userNotificationSettingsRepository = userNotificationSettingsRepository,
           weChatSubscribeMessageService = weChatSubscribeMessageService,
         )
     }
@@ -123,5 +129,31 @@ class NotificationMutationApiServiceImplTest :
       every { notificationRepository.findById(1L) } returns Optional.empty()
 
       service.resendNotification(1L).shouldBeNull()
+    }
+
+    test("createDefaultUserSettings 无记录时落默认行(订单/支付/配送开、营销关)") {
+      every { userNotificationSettingsRepository.existsByUserId(7L) } returns false
+
+      service.createDefaultUserSettings(7L)
+
+      verify {
+        userNotificationSettingsRepository.save(
+          match {
+            it.userId == 7L &&
+              it.orderUpdates &&
+              it.paymentNotifications &&
+              it.deliveryNotifications &&
+              !it.promotionalNotifications
+          },
+        )
+      }
+    }
+
+    test("createDefaultUserSettings 已有记录幂等跳过") {
+      every { userNotificationSettingsRepository.existsByUserId(7L) } returns true
+
+      service.createDefaultUserSettings(7L)
+
+      verify(exactly = 0) { userNotificationSettingsRepository.save(any<UserNotificationSettingsModel>()) }
     }
   })

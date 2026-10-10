@@ -23,9 +23,8 @@ import org.jetbrains.exposed.v1.javatime.datetime
 
 // user 域本地表(JPA→Exposed 迁移 P3 收尾)。
 // addresses/regions 列定义逐字对齐 changelog DDL(V100InitComprehensiveSchema)。
-// 注意:notification_settings 表在 Liquibase DDL 中**不存在**(历史由 Hibernate
-// ddl-auto 建),列定义按 NotificationSettingsModel 实体对齐 —— 存量风险,P5 收口时
-// 需补 DDL 或裁剪该功能。
+// 通知开关统一 user_notification_settings(PlatformTables;缺陷 #7 双表合一,
+// 原 notification_settings 已随 V340 迁数据后删除)。
 
 /** 收货地址表(`addresses`)。 */
 object AddressesTable : SoftDeletableTable("addresses") {
@@ -56,19 +55,6 @@ object RegionsTable : SoftDeletableTable("regions") {
   val code = varchar("code", 12)
   val parentCode = varchar("parent_code", 12).nullable()
   val level = integer("level")
-  val createdAt = datetime("created_at")
-  val updatedAt = datetime("updated_at")
-  override val primaryKey = PrimaryKey(id)
-}
-
-/** 用户通知开关表(`notification_settings`,DDL 缺失,列按实体对齐;见文件头说明)。 */
-object NotificationSettingsTable : SoftDeletableTable("notification_settings") {
-  val id = long("id")
-  val userId = long("user_id")
-  val orderUpdates = bool("order_updates").clientDefault { true }
-  val paymentNotifications = bool("payment_notifications").clientDefault { true }
-  val deliveryNotifications = bool("delivery_notifications").clientDefault { true }
-  val promotionalNotifications = bool("promotional_notifications").clientDefault { false }
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)

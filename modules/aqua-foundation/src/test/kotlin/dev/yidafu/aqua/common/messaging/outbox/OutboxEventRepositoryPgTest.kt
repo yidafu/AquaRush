@@ -22,30 +22,65 @@ package dev.yidafu.aqua.common.messaging.outbox
 import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
+import org.jetbrains.exposed.v1.core.VarCharColumnType
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * [OutboxEventRepository] 的真实 PostgreSQL 集成测试(Testcontainers)。
- * DDL 逐字对齐 changelog `V320RecreateOutboxEvents`。
+ * DDL 逐字对齐 changelog `V342PartitionOutboxEvents`(按半年 RANGE 分区)。
  *
  * 覆盖认领互斥(SKIP LOCKED 单次认领)、延迟(到期前不认领)、广播行订阅隔离、
- * 失败退避/DEAD、可见性超时复位、DONE 清理与健康统计。
+ * 失败退避/DEAD、可见性超时复位、分区滚动维护(DETACH 归档/幂等/维护锁)与健康统计。
  */
 class OutboxEventRepositoryPgTest :
   FunSpec({
     val database = PostgresTestContainer.connect("aquafoundationoutbox")
     val repository = OutboxEventRepository(database)
+    val tsFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     fun sql(statement: String) {
       transaction(database) { exec(statement) }
     }
 
+    fun count(statement: String): Int =
+      transaction(database) {
+        exec(statement) { rs ->
+          rs.next()
+          rs.getInt(1)
+        }
+      } ?: -1
+
+    /** 创建半年分区(与 OutboxPartitionRules 命名/边界一致)。 */
+    fun createHalfPartition(halfStart: LocalDateTime) {
+      val from = halfStart.format(tsFmt)
+      val to = halfStart.plusMonths(6).format(tsFmt)
+      sql(
+        "CREATE TABLE ${OutboxPartitionRules.partitionName(halfStart)} " +
+          "PARTITION OF outbox_events FOR VALUES FROM ('$from') TO ('$to')",
+      )
+    }
+
     fun reset() {
-      sql("DROP TABLE IF EXISTS outbox_events")
+      // 清掉主表/挂载分区/归档表(outbox_events% 的全部表变体)
+      sql(
+        """
+        DO $$ DECLARE t record; BEGIN
+          FOR t IN SELECT relname FROM pg_class
+                    WHERE relname LIKE 'outbox_events%' AND relkind IN ('r', 'p')
+          LOOP
+            EXECUTE format('DROP TABLE IF EXISTS %I CASCADE', t.relname);
+          END LOOP;
+        END $$;
+        """.trimIndent(),
+      )
       sql(
         """
         CREATE TABLE outbox_events (
@@ -62,10 +97,14 @@ class OutboxEventRepositoryPgTest :
           locked_at timestamp,
           created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (id)
-        )
+          PRIMARY KEY (id, created_at)
+        ) PARTITION BY RANGE (created_at)
         """.trimIndent(),
       )
+      // 前一/当前/下一半区:insertRow 的 created_at = now() 落当前半区
+      val currentHalfStart = OutboxPartitionRules.halfStartOf(LocalDateTime.now())
+      listOf(currentHalfStart.minusMonths(6), currentHalfStart, currentHalfStart.plusMonths(6))
+        .forEach { createHalfPartition(it) }
       sql("CREATE INDEX idx_outbox_status_next_run ON outbox_events (status, next_run_at)")
       sql("CREATE INDEX idx_outbox_destination ON outbox_events (destination)")
       sql("CREATE INDEX idx_outbox_subscriber_status ON outbox_events (subscriber, status)")
@@ -193,25 +232,74 @@ class OutboxEventRepositoryPgTest :
       reclaimed.single().id shouldBe 10L
     }
 
-    test("deleteDoneBefore 仅删除保留期之外的 DONE 行") {
+    test("maintainPartitions:结束满保留期的半区 DETACH 归档,数据保留且重复执行幂等") {
+      // 构造「结束已满 30 天」的旧半区(当前半区再往前 12 个月,上界距今至少 6 个月)
+      val oldHalfStart = OutboxPartitionRules.halfStartOf(LocalDateTime.now()).minusMonths(12)
+      createHalfPartition(oldHalfStart)
       insertRow(11L)
-      insertRow(12L)
-      repository.claim(setOf("order-events"), instance = "admin", limit = 10)
-      repository.markDone(11L)
-      repository.markDone(12L)
-      sql("UPDATE outbox_events SET updated_at = now() - interval '10 days' WHERE id = 11")
+      // created_at 是分区键,UPDATE 触发行移入旧半区
+      sql("UPDATE outbox_events SET created_at = '${oldHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 11")
 
-      repository.deleteDoneBefore(cutoff = LocalDateTime.now().minusDays(7), limit = 100) shouldBe 1
+      val first = repository.maintainPartitions(LocalDateTime.now(), retentionDays = 30)
+      first.lockAcquired shouldBe true
+      first.detachedArchives shouldContain OutboxPartitionRules.archiveName(oldHalfStart)
 
-      val remaining = repository.stats()
-      // 11 被清理;12 仍在(未过保留期)—— stats 不计 DONE,直接查行数
-      transaction(database) {
-        exec("SELECT count(*) FROM outbox_events") { rs ->
-          rs.next()
-          rs.getInt(1)
+      // 主表不再含该行;归档表保留数据
+      count("SELECT count(*) FROM outbox_events WHERE id = 11") shouldBe 0
+      count("SELECT count(*) FROM ${OutboxPartitionRules.archiveName(oldHalfStart)} WHERE id = 11") shouldBe 1
+
+      // 幂等:重复执行不再卸载/重建已处理过的分区
+      val second = repository.maintainPartitions(LocalDateTime.now(), retentionDays = 30)
+      second.lockAcquired shouldBe true
+      second.detachedArchives.shouldBeEmpty()
+      second.createdPartitions.shouldBeEmpty()
+    }
+
+    test("maintainPartitions:缺失的下一半区自动补建") {
+      val nextHalfStart = OutboxPartitionRules.halfStartOf(LocalDateTime.now()).plusMonths(6)
+      sql("DROP TABLE ${OutboxPartitionRules.partitionName(nextHalfStart)}")
+
+      val result = repository.maintainPartitions(LocalDateTime.now(), retentionDays = 30)
+      result.lockAcquired shouldBe true
+      result.createdPartitions shouldContain OutboxPartitionRules.partitionName(nextHalfStart)
+
+      // 补建的分区可接收落在该半区的行
+      insertRow(15L)
+      sql(
+        "UPDATE outbox_events SET created_at = '${nextHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 15",
+      )
+      count("SELECT count(*) FROM outbox_events WHERE id = 15") shouldBe 1
+    }
+
+    test("maintainPartitions:维护锁被另一连接持有时整体跳过(lockAcquired=false)") {
+      val acquired = CountDownLatch(1)
+      val release = CountDownLatch(1)
+      val holder =
+        Thread {
+          transaction(database) {
+            exec(
+              "SELECT pg_try_advisory_xact_lock(hashtext(?))",
+              listOf(VarCharColumnType() to OutboxPartitionRules.MAINTENANCE_LOCK_KEY),
+            ) { rs ->
+              rs.next()
+              rs.getBoolean(1)
+            }
+            acquired.countDown()
+            release.await(5, TimeUnit.SECONDS)
+          }
         }
-      } shouldBe 1
-      remaining.dead shouldBe 0L
+      holder.start()
+      try {
+        acquired.await(5, TimeUnit.SECONDS) shouldBe true
+
+        val result = repository.maintainPartitions(LocalDateTime.now(), retentionDays = 30)
+        result.lockAcquired shouldBe false
+        result.createdPartitions.shouldBeEmpty()
+        result.detachedArchives.shouldBeEmpty()
+      } finally {
+        release.countDown()
+        holder.join(TimeUnit.SECONDS.toMillis(5))
+      }
     }
 
     test("stats 聚合 pendingDue/processing/dead 与最老待处理年龄") {

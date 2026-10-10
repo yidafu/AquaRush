@@ -19,12 +19,11 @@
 
 package dev.yidafu.aqua.user.service.impl
 
-import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
+import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.logging.util.BizLogger
-import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -42,7 +41,7 @@ import java.util.Optional
 class UserServiceImplTest :
   FunSpec({
     var userRepository: UserRepository = mockk()
-    var notificationSettingsRepository: NotificationSettingsRepository = mockk()
+    var notificationMutationApiService: NotificationMutationApiService = mockk()
     var bizLogger: BizLogger = mockk()
     var service: UserServiceImpl = mockk()
 
@@ -67,12 +66,11 @@ class UserServiceImplTest :
 
     beforeTest {
       userRepository = mockk(relaxed = true)
-      notificationSettingsRepository = mockk(relaxed = true)
+      notificationMutationApiService = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       // relaxed mock 对泛型返回(save 返回 S)会生成 Object 导致 ClassCastException,需显式 stub
       every { userRepository.save(any()) } answers { firstArg() }
-      every { notificationSettingsRepository.save(any()) } answers { firstArg() }
-      service = UserServiceImpl(userRepository, notificationSettingsRepository, bizLogger)
+      service = UserServiceImpl(userRepository, notificationMutationApiService, bizLogger)
     }
     test("findById should return user when present") {
       every { userRepository.findById(1L) } returns Optional.of(sampleUser())
@@ -88,7 +86,7 @@ class UserServiceImplTest :
       every { userRepository.findByWechatOpenId("openid_1") } returns sampleUser()
       service.findByWechatOpenId("openid_1")?.id shouldBe 1L
     }
-    test("createUser should save user and notification settings") {
+    test("createUser should save user and default notification settings") {
       every { userRepository.save(any()) } answers { firstArg<UserModel>().also { it.id = 10L } }
       every { bizLogger.resolveOperator() } returns (1L to "admin")
 
@@ -96,7 +94,7 @@ class UserServiceImplTest :
 
       created.wechatOpenId shouldBe "openid_new"
       created.id shouldBe 10L
-      verify { notificationSettingsRepository.save(any<NotificationSettingsModel>()) }
+      verify { notificationMutationApiService.createDefaultUserSettings(10L) }
       verify { bizLogger.logUserOperation(10L, "USER_CREATED", "SUCCESS", 1L, "admin", any()) }
     }
     test("updateUserInfo should update fields and save") {
@@ -138,7 +136,7 @@ class UserServiceImplTest :
       created.wechatOpenId.startsWith("manual_") shouldBe true
       created.nickname shouldBe "admin-created"
       created.status shouldBe UserStatus.ACTIVE
-      verify { notificationSettingsRepository.save(any<NotificationSettingsModel>()) }
+      verify { notificationMutationApiService.createDefaultUserSettings(20L) }
     }
     test("updateUserByAdmin should update status") {
       val user = sampleUser()

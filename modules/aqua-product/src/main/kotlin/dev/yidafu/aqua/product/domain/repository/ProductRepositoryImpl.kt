@@ -32,9 +32,11 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.minus
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -199,7 +201,33 @@ class ProductRepositoryImpl(
         .toList()
     }.map(::toModel)
 
-  // ===== ProductRepositoryCustom =====
+  override fun decreaseStockIfAvailable(
+    productId: Long,
+    quantity: Int,
+  ): Int =
+    transaction(database) {
+      val affected =
+        ProductsTable.update({
+          ProductsTable.activeOnly {
+            (ProductsTable.id eq productId) and (ProductsTable.stockQuantity greaterEq quantity)
+          }
+        }) {
+          it[stockQuantity] = ProductsTable.stockQuantity - quantity
+          it[updatedAt] = LocalDateTime.now()
+        }
+      if (affected > 0) {
+        // 扣减至 0 → 缺货状态(条件更新,仅触碰库存已归零的行,与旧读-改-写语义一致)
+        ProductsTable.update({
+          ProductsTable.activeOnly {
+            (ProductsTable.id eq productId) and (ProductsTable.stockQuantity eq 0)
+          }
+        }) {
+          it[status] = ProductModelStatus.OUT_OF_STOCK.name
+          it[updatedAt] = LocalDateTime.now()
+        }
+      }
+      affected
+    }
 
   override fun searchProducts(
     query: ProductSearchRequest,

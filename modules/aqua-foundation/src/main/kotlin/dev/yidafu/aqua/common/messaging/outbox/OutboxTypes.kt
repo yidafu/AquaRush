@@ -55,3 +55,13 @@ data class OutboxStats(
   val dead: Long,
   val oldestPendingAgeMs: Long,
 )
+
+/**
+ * 分区滚动维护结果。
+ * [lockAcquired]=false 表示维护锁被另一服务实例持有,本次跳过(两列表均为空)。
+ */
+data class OutboxPartitionMaintenance(
+  val createdPartitions: List<String>,
+  val detachedArchives: List<String>,
+  val lockAcquired: Boolean,
+)

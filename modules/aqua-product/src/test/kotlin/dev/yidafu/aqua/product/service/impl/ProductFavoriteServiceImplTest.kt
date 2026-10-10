@@ -31,7 +31,6 @@ import dev.yidafu.aqua.common.graphql.generated.BatchFavoriteOperationInput
 import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesInput
 import dev.yidafu.aqua.common.graphql.generated.ExportFormat
 import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
-import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepositoryCustom
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -188,7 +187,7 @@ class ProductFavoriteServiceImplTest :
       analytics.averageFavoritesPerUser shouldBe 0.0f
     }
     test("getProductFavoriteStats maps counts with product names") {
-      val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
+      val count = mockk<ProductFavoriteRepository.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 5L
       every { productFavoriteRepository.findTopFavoritedProducts(10) } returns listOf(count)
@@ -299,7 +298,7 @@ class ProductFavoriteServiceImplTest :
       service.getUserFavoriteEntities(1L, pageable) shouldBe page
     }
     test("getProductsByFavorites returns paged items with page info") {
-      val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
+      val count = mockk<ProductFavoriteRepository.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 3L
       every {
@@ -317,7 +316,7 @@ class ProductFavoriteServiceImplTest :
       vo.pageInfo.hasNext shouldBe false
     }
     test("getProductsByFavorites filters by min favorites and handles empty page") {
-      val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
+      val count = mockk<ProductFavoriteRepository.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 1L
       every { count.favoriteCount } returns 1L
       every {
@@ -340,7 +339,7 @@ class ProductFavoriteServiceImplTest :
       filtered.pageInfo.pageNum shouldBe 0
     }
     test("getProductsByFavorites skips products that no longer exist") {
-      val count = mockk<ProductFavoriteRepositoryCustom.ProductFavoriteCount>(relaxed = true)
+      val count = mockk<ProductFavoriteRepository.ProductFavoriteCount>(relaxed = true)
       every { count.productId } returns 99L
       every { count.favoriteCount } returns 2L
       every {

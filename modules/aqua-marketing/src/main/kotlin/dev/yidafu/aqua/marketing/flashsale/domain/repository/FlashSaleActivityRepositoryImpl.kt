@@ -143,8 +143,6 @@ class FlashSaleActivityRepositoryImpl(
       entity
     }
 
-  // ===== FlashSaleActivityRepositoryCustom =====
-
   override fun findActiveByProductId(
     productId: Long,
     status: PromotionActivityStatus,

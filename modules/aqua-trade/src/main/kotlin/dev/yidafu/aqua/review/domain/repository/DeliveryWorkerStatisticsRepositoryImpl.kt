@@ -128,8 +128,6 @@ class DeliveryWorkerStatisticsRepositoryImpl(
       entity
     }
 
-  // ===== DeliveryWorkerStatisticsRepositoryCustom =====
-
   /**
    * 动态排序的公共实现:主排序(averageRating 或 totalReviews 降序)+ lastUpdated 降序 + id 降序破平,
    * count 与 content 同事务。

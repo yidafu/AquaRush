@@ -21,9 +21,11 @@ package dev.yidafu.aqua.notification.service
 
 import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.common.domain.model.NotificationModel
+import dev.yidafu.aqua.common.domain.model.UserNotificationSettingsModel
 import dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel
 import dev.yidafu.aqua.common.domain.model.enums.NotificationChannelStatus
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
+import dev.yidafu.aqua.notice.domain.repository.UserNotificationSettingsRepository
 import dev.yidafu.aqua.notification.channel.wechat.WeChatSubscribeMessageService
 import dev.yidafu.aqua.notification.domain.repository.NotificationRepository
 import dev.yidafu.aqua.notification.domain.repository.UserSubscriptionAuthRepository
@@ -38,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional
 class NotificationMutationApiServiceImpl(
   private val notificationRepository: NotificationRepository,
   private val userSubscriptionAuthRepository: UserSubscriptionAuthRepository,
+  private val userNotificationSettingsRepository: UserNotificationSettingsRepository,
   private val weChatSubscribeMessageService: WeChatSubscribeMessageService,
 ) : NotificationMutationApiService {
   @Transactional
@@ -118,5 +121,23 @@ class NotificationMutationApiServiceImpl(
     notificationRepository.save(notification)
     weChatSubscribeMessageService.trySend(notification, scene, notification.templatePage, null)
     return notificationRepository.findById(notificationId).orElse(null)
+  }
+
+  /**
+   * 用户创建落默认开关(AC-NTF-005-04):订单/支付/配送开、营销关;幂等不覆盖已有记录。
+   * 缺陷 #7 双表合并后的唯一写入口(取代原 aqua-user notification_settings 默认行)。
+   */
+  @Transactional
+  override fun createDefaultUserSettings(userId: Long) {
+    if (userNotificationSettingsRepository.existsByUserId(userId)) return
+    userNotificationSettingsRepository.save(
+      UserNotificationSettingsModel(
+        userId = userId,
+        orderUpdates = true,
+        paymentNotifications = true,
+        deliveryNotifications = true,
+        promotionalNotifications = false,
+      ),
+    )
   }
 }

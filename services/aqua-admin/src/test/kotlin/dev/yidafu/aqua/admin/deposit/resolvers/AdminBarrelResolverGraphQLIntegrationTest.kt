@@ -56,7 +56,7 @@ import java.time.LocalDateTime
 
 /**
  * 水桶费管理 Resolver GraphQL 集成测试(PRD 14-misc.md §G06)
- * 权限:查询 PERMISSION_PAYMENT_READ,变更 PERMISSION_PAYMENT_WRITE/REFUND。
+ * 权限:查询 PERMISSION_PAYMENT_READ,价目变更 PERMISSION_OPS_CONFIG_WRITE,退款 PERMISSION_PAYMENT_REFUND。
  */
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -153,7 +153,7 @@ class AdminBarrelResolverGraphQLIntegrationTest(
     }
 
     test("createBarrelFee creates enabled fee") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_WRITE", "PERMISSION_PAYMENT_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_PAYMENT_READ"))
       val spec = "19L/桶${System.currentTimeMillis()}"
       val json =
         postGraphql(
@@ -170,7 +170,7 @@ class AdminBarrelResolverGraphQLIntegrationTest(
     }
 
     test("createBarrelFee rejects duplicate specification") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_WRITE", "PERMISSION_PAYMENT_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_PAYMENT_READ"))
       val spec = "18.9L/桶${System.currentTimeMillis()}"
       seedBarrelFee(spec)
       val json =
@@ -181,7 +181,7 @@ class AdminBarrelResolverGraphQLIntegrationTest(
     }
 
     test("disableBarrelFee marks DISABLED") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_WRITE", "PERMISSION_PAYMENT_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_PAYMENT_READ"))
       val id = seedBarrelFee("11.3L/桶${System.currentTimeMillis()}")
       val json =
         postGraphql(

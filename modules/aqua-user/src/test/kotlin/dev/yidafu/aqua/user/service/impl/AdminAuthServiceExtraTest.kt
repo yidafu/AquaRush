@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.service.LoginLockService
 import dev.yidafu.aqua.user.service.WeChatAuthException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -46,12 +47,14 @@ class AdminAuthServiceExtraTest :
     val jwtTokenService: JwtTokenService = mockk(relaxed = true)
     val authenticationManager: AuthenticationManager = mockk(relaxed = true)
     val authenticationConfiguration: AuthenticationConfiguration = mockk(relaxed = true)
+    val loginLockService: LoginLockService = mockk(relaxed = true)
     val bizLogger: BizLogger = mockk(relaxed = true)
     val service =
       AdminAuthServiceImpl(
         adminRepository,
         jwtTokenService,
         authenticationConfiguration,
+        loginLockService,
         bizLogger,
       )
 
@@ -85,6 +88,8 @@ class AdminAuthServiceExtraTest :
           .BadCredentialsException("bad credentials")
       val exception = shouldThrow<WeChatAuthException> { service.authenticate("admin", "pass") }
       exception.message!!.contains("Authentication failed") shouldBe true
+      // 登录失败锁定:密码错误计入失败次数
+      verify { loginLockService.recordFailure("admin") }
     }
     test("authenticate should throw when admin not found after authentication") {
       mockAuthManager()

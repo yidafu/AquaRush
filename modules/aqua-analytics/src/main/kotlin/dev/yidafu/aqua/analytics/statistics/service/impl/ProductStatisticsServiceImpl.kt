@@ -22,7 +22,7 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.StatisticsTime
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
-import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepository
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
@@ -46,7 +46,7 @@ import java.time.LocalTime
 class ProductStatisticsServiceImpl(
   private val productQueryApiService: ProductQueryApiService,
   private val productFavoriteService: ProductFavoriteService,
-  private val productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom,
+  private val productSalesStatisticsRepository: ProductSalesStatisticsRepository,
   private val systemConfigQueryApiService: SystemConfigQueryApiService,
   private val dailyProductFactRepository: DailyProductFactRepository,
   private val snapshotCoverageService: StatisticsSnapshotCoverageService,

@@ -6744,7 +6744,6 @@ data class UserTicketVo(
 
 data class UserVo(
     val avatarUrl: kotlin.String?,
-    val balanceCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val customerGroupId: kotlin.Long?,
     val customerGroupName: kotlin.String?,

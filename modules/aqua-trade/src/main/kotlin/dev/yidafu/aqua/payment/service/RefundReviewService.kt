@@ -81,7 +81,8 @@ class RefundReviewService(
         throw IllegalStateException("支付记录缺少交易号,无法执行退款")
       }
       val totalAmountCents = order.payAmountCents
-      // 订单退款(商品+配送费,ORDER_REFUND 计入退款统计)
+      // 订单退款(商品+配送费,ORDER_REFUND 计入退款统计);
+      // refundRequestId 回写本条申请为 COMPLETED(取消时已生成 PENDING,避免双记录双计)
       val orderRefundAmount = order.amountCents + order.deliveryFeeCents
       paymentService.refund(
         transactionId = transactionId,
@@ -89,6 +90,7 @@ class RefundReviewService(
         totalAmountCents = totalAmountCents,
         reason = "订单取消退款 - 订单号: ${order.orderNo}",
         refundType = RefundType.ORDER_REFUND,
+        refundRequestId = refundRequestId,
       )
       // 历史订单押金退还(2026-08 水桶费改造后新订单恒无押金;此处仅兼容旧订单 orders.deposit_amount_cents>0,
       // DEPOSIT_REFUND 不计入退款统计,见 14-misc.md §G06)
@@ -103,14 +105,15 @@ class RefundReviewService(
         depositMutationApiService.markRefundedByOrder(order.id!!, adminId, "订单取消自动退还")
       }
 
-      // 退款申请完成留痕
+      // 退款申请完成留痕:重载记录以保留 refund() 回写的 refundId/outRefundNo,避免旧快照覆盖
       val now = LocalDateTime.now()
-      request.status = RefundStatus.COMPLETED
-      request.refundedAt = now
-      request.processedBy = adminId
-      request.adminNote = adminNote
-      request.refundReason = request.refundReason ?: "订单取消退款 - 订单号: ${order.orderNo}"
-      val saved = paymentRefundRepository.save(request)
+      val completed = paymentRefundRepository.findById(refundRequestId).orElse(request)
+      completed.status = RefundStatus.COMPLETED
+      completed.refundedAt = completed.refundedAt ?: now
+      completed.processedBy = adminId
+      completed.adminNote = adminNote
+      completed.refundReason = completed.refundReason ?: "订单取消退款 - 订单号: ${order.orderNo}"
+      val saved = paymentRefundRepository.save(completed)
 
       // 订单流转「已退款」(R-PAY-02:审核通过且退款成功;已退款状态幂等)
       if (order.status == OrderModelStatus.CANCELLED) {
@@ -147,12 +150,16 @@ class RefundReviewService(
       saved
     } catch (e: Exception) {
       logger.error("退款执行失败: requestId={}, orderId={}", refundRequestId, request.orderId, e)
-      // 失败留痕:状态 FAILED + failureReason,人工介入可重试(再审核通过)
-      request.status = RefundStatus.FAILED
-      request.failureReason = e.message
-      request.processedBy = adminId
-      request.adminNote = adminNote
-      paymentRefundRepository.save(request)
+      // 重载以保留 refund() 可能已回写的 refundId;资金已出(COMPLETED)不降级 FAILED,
+      // 避免再次审核重复退款——后续步骤(押金退还/订单流转)失败由人工核对
+      val latest = paymentRefundRepository.findById(refundRequestId).orElse(request)
+      if (latest.status != RefundStatus.COMPLETED) {
+        latest.status = RefundStatus.FAILED
+        latest.failureReason = e.message
+      }
+      latest.processedBy = adminId
+      latest.adminNote = adminNote
+      paymentRefundRepository.save(latest)
 
       bizLogger.logOperation(
         operation = "PAYMENT_REFUNDED",
@@ -164,7 +171,7 @@ class RefundReviewService(
         additionalData = mapOf("orderId" to request.orderId, "error" to (e.message ?: "unknown error")),
       )
       // 返回 FAILED 记录(不抛异常:审核动作已完成,前端展示失败状态,可重试)
-      request
+      latest
     }
   }
 

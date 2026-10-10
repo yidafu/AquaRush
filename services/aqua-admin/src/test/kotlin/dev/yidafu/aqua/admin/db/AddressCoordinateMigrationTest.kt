@@ -23,7 +23,6 @@ import dev.yidafu.aqua.admin.AquaAdminApplication
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension
-import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.context.SpringBootTest
@@ -32,8 +31,9 @@ import org.springframework.test.context.ActiveProfiles
 
 /**
  * 坐标体系统一(v1.6.0)迁移测试:
- * 存量 addresses / delivery_addresses 的 GCJ-02 坐标 → WGS-84,
+ * 存量 addresses 的 GCJ-02 坐标 → WGS-84,
  * SQL 算法须与 frontend/common/src/utils/coordinate.ts gcj02ToWgs84 一致。
+ * (delivery_addresses 死表已随缺陷 #7 删除,V341;迁移 SQL 中针对该表的语句过滤跳过。)
  *
  * 参考向量(由前端算法计算):
  * - 上海 (121.531541859215, 31.17530398364597) → (121.527225, 31.177440)
@@ -57,6 +57,7 @@ class AddressCoordinateMigrationTest(
 ) : FunSpec({
 
     // 从 classpath 加载迁移 SQL(与 Liquibase changeSet 同一文件),按 ';' 拆分逐条执行
+    // delivery_addresses 死表已随缺陷 #7 删除(V341),针对该表的 UPDATE 过滤跳过
     val migrationStatements =
       javaClass
         .getResource("/db/changelog/changes/sql/1.6.0-address-coords-gcj-to-wgs84.sql")!!
@@ -67,6 +68,7 @@ class AddressCoordinateMigrationTest(
         .split(";")
         .map { it.trim() }
         .filter { it.isNotEmpty() }
+        .filterNot { it.contains("delivery_addresses", ignoreCase = true) }
 
     val tolerance = 0.0002 // ~20m,单步逆变换残差 ~1m,足够排除 ~500m 级 GCJ 偏移
 
@@ -128,40 +130,6 @@ class AddressCoordinateMigrationTest(
         val (lng, lat) = readAddress(9000000000000000003L)
         lng shouldBe (13.405 plusOrMinus tolerance)
         lat shouldBe (52.52 plusOrMinus tolerance)
-      }
-
-      test("delivery_addresses 快照坐标同样转换") {
-        jdbc.update(
-          """
-          INSERT INTO delivery_addresses
-            (id, user_id, receiver_name, receiver_phone, province, city, district, detail_address,
-             longitude, latitude, is_deleted, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-          """.trimIndent(),
-          9000000000000000001L,
-          1000000000000000011L,
-          "迁移测试",
-          "13800138000",
-          "浙江",
-          "杭州",
-          "西湖区",
-          "测试地址",
-          121.531541859215,
-          31.17530398364597,
-          false,
-        )
-        migrationStatements.forEach { jdbc.execute(it) }
-
-        val row =
-          jdbc.queryForMap(
-            "SELECT longitude, latitude FROM delivery_addresses WHERE id = ?",
-            9000000000000000001L,
-          )
-        val lng = (row["longitude"] as Number).toDouble()
-        val lat = (row["latitude"] as Number).toDouble()
-        lng shouldBe (121.527225 plusOrMinus tolerance)
-        lat shouldBe (31.177440 plusOrMinus tolerance)
-        (121.531541859215 - lng) shouldBeGreaterThan 0.001 // 坐标应发生 GCJ 级偏移转换
       }
     }
   })

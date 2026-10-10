@@ -106,6 +106,21 @@ class PaymentRefundRepositoryImpl(
       }?.let(::toModel),
     )
 
+  override fun findByOrderIdAndRefundType(
+    orderId: Long,
+    refundType: RefundType,
+  ): Optional<PaymentRefundModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        PaymentRefundsTable
+          .selectAll()
+          .andWhere { PaymentRefundsTable.orderId eq orderId }
+          .andWhere { PaymentRefundsTable.refundType eq refundType.name }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
   override fun save(entity: PaymentRefundModel): PaymentRefundModel =
     transaction(database) {
       val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
@@ -156,8 +171,6 @@ class PaymentRefundRepositoryImpl(
       }
       entity
     }
-
-  // ===== PaymentRefundRepositoryCustom =====
 
   override fun sumRefundedAmountByProcessedAtBetween(
     startDate: LocalDateTime,

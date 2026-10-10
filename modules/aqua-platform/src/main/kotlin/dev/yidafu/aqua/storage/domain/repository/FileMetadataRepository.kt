@@ -31,7 +31,7 @@ import java.util.*
  * 文件元数据仓库接口
  */
 @Repository
-interface FileMetadataRepository : FileMetadataRepositoryCustom {
+interface FileMetadataRepository {
   fun findById(id: Long): Optional<FileMetadata>
 
   /** 实体无 @SoftDelete 注解 → 硬删(行 DELETE),与 JPA 版行为一致。 */
@@ -105,4 +105,62 @@ interface FileMetadataRepository : FileMetadataRepositoryCustom {
    * 查找指定时间之后创建的文件
    */
   fun findByCreatedAtAfter(createdAt: LocalDateTime): List<FileMetadata>
+
+  /**
+   * Find files by creation date range
+   * @param startTime the start time
+   * @param endTime the end time
+   * @return list of files created within the date range
+   */
+  fun findByCreatedAtBetween(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): List<FileMetadata>
+
+  /**
+   * Count files by file type grouped by type
+   * @return array of arrays containing file type and count
+   */
+  fun countByFileType(): Array<Array<Any>>
+
+  /**
+   * Get total file size for a specific owner
+   * @param ownerId the owner ID (can be null for system files)
+   * @return total file size in bytes
+   */
+  fun getTotalFileSizeByOwner(ownerId: Long?): Long
+
+  /**
+   * Find duplicate files based on checksum
+   * @return list of files that have duplicates
+   */
+  fun findDuplicateFiles(): List<FileMetadata>
+
+  /**
+   * Find files by multiple conditions (file type, owner, public status)
+   * @param fileType the file type (optional)
+   * @param ownerId the owner ID (optional)
+   * @param isPublic the public status (optional)
+   * @return list of files matching the conditions
+   */
+  fun findByMultipleConditions(
+    fileType: FileType?,
+    ownerId: Long?,
+    isPublic: Boolean?,
+  ): List<FileMetadata>
+
+  /**
+   * Find files by multiple conditions (file type, owner, public status) with pagination
+   * @param fileType the file type (optional)
+   * @param ownerId the owner ID (optional)
+   * @param isPublic the public status (optional)
+   * @param pageable pagination information
+   * @return page of files matching the conditions
+   */
+  fun findByMultipleConditions(
+    fileType: FileType?,
+    ownerId: Long?,
+    isPublic: Boolean?,
+    pageable: Pageable,
+  ): Page<FileMetadata>
 }

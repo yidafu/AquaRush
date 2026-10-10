@@ -29,9 +29,9 @@ import java.util.Optional
 /**
  * 水桶购买单仓储(G06:一次性购桶,独立支付,每用户总限购一次;支付入账原子流转 PENDING→PAID,幂等)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
- * 查询过滤 is_deleted,delete 软删;原子条件 UPDATE 见 [BarrelPurchaseRepositoryCustom]。
+ * 查询过滤 is_deleted,delete 软删;支付入账/取消为原子条件 UPDATE。
  */
-interface BarrelPurchaseRepository : BarrelPurchaseRepositoryCustom {
+interface BarrelPurchaseRepository {
   fun findByOrderNo(orderNo: String): BarrelPurchaseModel?
 
   fun findFirstByUserIdOrderByCreatedAtDesc(userId: Long): BarrelPurchaseModel?
@@ -53,4 +53,21 @@ interface BarrelPurchaseRepository : BarrelPurchaseRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: BarrelPurchaseModel): BarrelPurchaseModel
+
+  /**
+   * 支付入账原子流转(PENDING→PAID,幂等):返回受影响行数(1=成功,0=已被处理/不存在)。
+   */
+  fun markPaidAtomically(
+    id: Long,
+    transactionId: String,
+    now: LocalDateTime,
+  ): Int
+
+  /**
+   * 取消该用户未支付(PENDING)旧购桶单(重复发起时幂等化):返回受影响行数。
+   */
+  fun cancelPendingByUser(
+    userId: Long,
+    now: LocalDateTime,
+  ): Int
 }

@@ -53,6 +53,9 @@ data class OutboxProperties(
   var maxBackoffMs: Long = 60000,
   /** PROCESSING 可见性超时(毫秒):进程被杀后行可被恢复认领的时间。 */
   var visibilityTimeoutMs: Long = 300000,
-  /** DONE 行保留天数(超期由清理任务删除)。 */
-  var doneRetentionDays: Long = 7,
+  /**
+   * 分区卸载保留天数:半年分区「结束满该天数」即 DETACH 归档
+   * (docs/compose/spec/outbox-messaging.md 修订;取代已移除的 done-retention-days)。
+   */
+  var partitionRetentionDays: Long = 30,
 )

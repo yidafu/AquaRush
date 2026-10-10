@@ -232,8 +232,6 @@ class UserCouponRepositoryImpl(
       entity
     }
 
-  // ===== UserCouponRepositoryCustom =====
-
   override fun redeemAtomically(
     id: Long,
     userId: Long,

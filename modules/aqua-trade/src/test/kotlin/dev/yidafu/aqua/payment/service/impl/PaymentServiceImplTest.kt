@@ -29,6 +29,7 @@ import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
@@ -36,6 +37,7 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
@@ -302,6 +304,39 @@ class PaymentServiceImplTest :
           },
         )
       }
+    }
+    test("refund with refundRequestId updates existing request instead of inserting") {
+      val payment = PaymentModel(id = 9L, orderId = 1L, userId = 100L, transactionId = "MOCK-ORD-TEST-001", amount = 1200)
+      every { paymentRepository.findByTransactionId("MOCK-ORD-TEST-001") } returns Optional.of(payment)
+      every { paymentRepository.save(any()) } answers { firstArg() }
+      every { orderQueryService.getOrderById(1L) } returns order()
+      val existing =
+        PaymentRefundModel(
+          id = 55L,
+          paymentId = 9L,
+          orderId = 1L,
+          userId = 100L,
+          refundAmount = 1400L,
+          status = RefundStatus.PENDING,
+          refundType = RefundType.ORDER_REFUND,
+        )
+      every { paymentRefundRepository.findById(55L) } returns Optional.of(existing)
+
+      service.refund("MOCK-ORD-TEST-001", 1400, 1400, "订单取消退款", RefundType.ORDER_REFUND, 55L)
+
+      // 回写既有申请为 COMPLETED(审核制),不新插记录,避免同一笔退款双记录双计
+      verify(exactly = 1) {
+        paymentRefundRepository.save(
+          match {
+            it.id == 55L &&
+              it.status == RefundStatus.COMPLETED &&
+              it.refundAmount == 1400L &&
+              (it.refundId as String).startsWith("MOCK-REFUND-")
+          },
+        )
+      }
+      verify(exactly = 0) { paymentRefundRepository.save(match { it.id == null }) }
+      verify(exactly = 1) { paymentRepository.save(match { it.status.name == "REFUNDED" }) }
     }
     test("queryPaymentStatusDerivesFromOrder") {
       every { orderQueryService.getOrderById(1L) } returns order(status = OrderModelStatus.PENDING_DELIVERY)

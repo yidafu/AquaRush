@@ -41,6 +41,10 @@ class AuthService {
   private token: string | null = null
   private userInfo: UserInfo | null = null
   private silentLoginPromise: Promise<boolean> | null = null
+  // refresh_token 持久化(登录响应写入;clearStoredAuth 保留以便过期后换取新 token)
+  private refreshTokenValue: string | null = null
+  // 刷新单飞:并发 checkAndRefreshToken 共享同一次校验/刷新,防刷新风暴(PRD R-AUTH-03 扩充)
+  private refreshPromise: Promise<boolean> | null = null
 
   constructor() {
     this.loadStoredAuth()
@@ -50,6 +54,7 @@ class AuthService {
     try {
       // 直接从本地存储读取 token(共享 NetworkManager 的 AuthHandler 亦从本存储读取,保持一致)
       this.token = Taro.getStorageSync('auth_token') || null
+      this.refreshTokenValue = Taro.getStorageSync('refresh_token') || null
 
       const storedUserInfo = Taro.getStorageSync('user_info')
       if (storedUserInfo) {
@@ -57,6 +62,25 @@ class AuthService {
       }
     } catch (error) {
       console.error('Failed to load stored auth:', error)
+    }
+  }
+
+  private storeRefreshToken(refreshToken: string) {
+    if (!refreshToken) { return }
+    try {
+      this.refreshTokenValue = refreshToken
+      Taro.setStorageSync('refresh_token', refreshToken)
+    } catch (error) {
+      console.error('Failed to store refresh token:', error)
+    }
+  }
+
+  private clearRefreshToken() {
+    try {
+      this.refreshTokenValue = null
+      Taro.removeStorageSync('refresh_token')
+    } catch (error) {
+      console.error('Failed to clear refresh token:', error)
     }
   }
 
@@ -120,6 +144,8 @@ class AuthService {
 
       // 第三步：存储认证信息
       this.storeAuth(loginData.token, loginData.userInfo)
+      // 持久化 refresh_token(R-AUTH-03 目标形态:过期后换取新 token)
+      this.storeRefreshToken(loginData.refreshToken)
 
       return loginData
     } catch (error) {
@@ -229,6 +255,8 @@ class AuthService {
       // 即使后端登出失败，也要清除本地存储
     } finally {
       this.clearStoredAuth()
+      // 登出清空 refresh_token(getCurrentUser 校验失败的抢救路径保留它)
+      this.clearRefreshToken()
     }
   }
 
@@ -306,19 +334,73 @@ class AuthService {
   }
 
   // 检查并刷新token
+  // 单飞:并发调用共享同一次「校验→刷新」,防刷新风暴(PRD R-AUTH-03 扩充,AC-USR-001-07 同源);
+  // 目标形态:token 过期时用 refresh_token 换取新 token,而非仅校验失败即清态。
   async checkAndRefreshToken(): Promise<boolean> {
-    try {
-      if (!this.token) {
+    if (this.refreshPromise) {
+      return this.refreshPromise
+    }
+    this.refreshPromise = (async () => {
+      try {
+        if (!this.token && !this.refreshTokenValue) {
+          return false
+        }
+        if (this.token) {
+          // 简化实现:以 me 查询校验;失败时 getCurrentUser 已清 access/user_info(refresh_token 保留)
+          const currentUser = await this.getCurrentUser()
+          if (currentUser) {
+            return true
+          }
+        }
+        // access token 失效(或缺失)且有 refresh_token → 换取新 token
+        return await this.refreshAccessToken()
+      } catch (error) {
+        console.error('Token validation failed:', error)
+        this.clearStoredAuth()
         return false
+      } finally {
+        this.refreshPromise = null
       }
+    })()
+    return this.refreshPromise
+  }
 
-      // 这里可以实现token刷新逻辑
-      // 简化实现：尝试获取当前用户信息来验证token是否有效
+  /**
+   * 用 refresh_token 换取新 token(REST POST /api/auth/refresh),成功后重拉用户信息;
+   * 刷新被拒(refresh_token 过期/无效)则彻底清态返回 false。
+   */
+  private async refreshAccessToken(): Promise<boolean> {
+    const refreshToken = this.refreshTokenValue
+    if (!refreshToken) {
+      return false
+    }
+    try {
+      const response = await Taro.request({
+        url: `${apiBaseUrl}/api/auth/refresh`,
+        method: 'POST',
+        data: { refreshToken },
+        header: { 'Content-Type': 'application/json' }
+      })
+      if (response.statusCode !== 200) {
+        throw new Error(`HTTP ${response.statusCode}`)
+      }
+      const apiResponse = response.data
+      if (!apiResponse?.success || !apiResponse.data?.accessToken) {
+        throw new Error(apiResponse?.message || 'Token refresh failed')
+      }
+      this.token = apiResponse.data.accessToken
+      Taro.setStorageSync('auth_token', apiResponse.data.accessToken)
+      if (apiResponse.data.refreshToken) {
+        this.storeRefreshToken(apiResponse.data.refreshToken)
+      }
+      // 刷新响应不含 userInfo;校验失败路径可能已清空本地用户信息,重拉补齐
       const currentUser = await this.getCurrentUser()
       return currentUser !== null
     } catch (error) {
-      console.error('Token validation failed:', error)
+      console.error('Token refresh failed:', error)
+      // refresh_token 已失效:彻底清态,回退静默登录
       this.clearStoredAuth()
+      this.clearRefreshToken()
       return false
     }
   }
@@ -326,13 +408,13 @@ class AuthService {
   // 强制清除所有认证数据
   forceClearAuth(): void {
     this.clearStoredAuth()
+    this.clearRefreshToken()
 
     // 清除进行中的静默登录 Promise
     this.silentLoginPromise = null
 
     // 额外清除其他可能的认证数据
     try {
-      Taro.removeStorageSync('refresh_token')
       Taro.removeStorageSync('login_time')
       console.log('✅ 所有认证数据已强制清除')
     } catch (error) {

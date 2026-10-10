@@ -121,7 +121,7 @@ class RefundReviewServiceTest :
       saved.refundedAt.shouldNotBeNull()
       // 订单退款(商品+配送费)ORDER_REFUND
       verify {
-        paymentService.refund("WX-TXN-1", 1400, 1900, any(), RefundType.ORDER_REFUND)
+        paymentService.refund("WX-TXN-1", 1400, 1900, any(), RefundType.ORDER_REFUND, 5L)
       }
       // 押金退还 DEPOSIT_REFUND + 押金记录联动
       verify {
@@ -140,7 +140,7 @@ class RefundReviewServiceTest :
 
       service.approveRefund(5L, adminId = 7L, adminNote = null, username = "admin1")
 
-      verify(exactly = 1) { paymentService.refund("WX-TXN-1", 1400, 1400, any(), RefundType.ORDER_REFUND) }
+      verify(exactly = 1) { paymentService.refund("WX-TXN-1", 1400, 1400, any(), RefundType.ORDER_REFUND, 5L) }
       verify(exactly = 0) { depositMutationApiService.markRefundedByOrder(any(), any(), any()) }
     }
 
@@ -148,7 +148,7 @@ class RefundReviewServiceTest :
       every { paymentRefundRepository.findById(5L) } returns Optional.of(request())
       every { paymentRepository.findById(9L) } returns Optional.of(payment())
       every { orderQueryService.getOrderById(1L) } returns order()
-      every { paymentService.refund(any(), any(), any(), any(), any()) } throws IllegalStateException("微信退款失败")
+      every { paymentService.refund(any(), any(), any(), any(), any(), any()) } throws IllegalStateException("微信退款失败")
 
       val saved = service.approveRefund(5L, adminId = 7L, adminNote = null, username = "admin1")
 
@@ -171,7 +171,7 @@ class RefundReviewServiceTest :
 
       saved.status shouldBe RefundStatus.REJECTED
       saved.processedBy shouldBe 7L
-      verify(exactly = 0) { paymentService.refund(any(), any(), any(), any(), any()) }
+      verify(exactly = 0) { paymentService.refund(any(), any(), any(), any(), any(), any()) }
       verify(exactly = 0) { orderMutationService.updateOrderStatus(any(), any()) }
     }
 

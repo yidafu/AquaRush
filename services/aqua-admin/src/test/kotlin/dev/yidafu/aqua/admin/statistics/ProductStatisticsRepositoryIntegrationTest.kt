@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.admin.statistics
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepository
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -67,8 +67,8 @@ class ProductStatisticsRepositoryIntegrationTest(
   private val orderItemRepository: OrderItemRepository,
   private val userRepository: UserRepository,
   private val addressRepository: AddressRepository,
-  private val productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom,
-  private val statisticsUserRepository: StatisticsUserRepositoryCustom,
+  private val productSalesStatisticsRepository: ProductSalesStatisticsRepository,
+  private val statisticsUserRepository: StatisticsUserRepository,
 ) : FunSpec({
     // orders.user_id/address_id 存在外键,先种一条用户与地址供订单引用
     var userId = 1L

@@ -30,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -200,6 +201,19 @@ class DeliveryTaskMutationServiceImplTest :
       every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
 
       shouldThrow<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null) }
+    }
+    test("complete delivery marks photo review pending (G23, 裁决缺陷 #10)") {
+      val deliveringOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns deliveringOrder
+
+      val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null)
+
+      // 送达即写入核验待审状态,进入后台核验队列(G23/F-ORD-021)
+      completed.deliveryPhotoReviewStatus shouldBe DeliveryPhotoReviewStatus.PENDING
+      completed.deliveryPhotos.shouldNotBeNull()
     }
     test("assign rejects disabled worker") {
       every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)

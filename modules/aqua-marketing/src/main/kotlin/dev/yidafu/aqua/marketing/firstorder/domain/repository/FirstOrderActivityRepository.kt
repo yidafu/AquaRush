@@ -20,16 +20,19 @@
 package dev.yidafu.aqua.marketing.firstorder.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
+import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
+import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.Optional
 
 /**
  * 首单立减/新人专享价活动仓库(F-MKT-009)。
  * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
- * 查询过滤 is_deleted,delete 软删;当前生效活动/重叠校验见 [FirstOrderActivityRepositoryCustom]。
+ * 查询过滤 is_deleted,delete 软删;含当前生效活动/重叠校验查询。
  */
-interface FirstOrderActivityRepository : FirstOrderActivityRepositoryCustom {
+interface FirstOrderActivityRepository {
   fun findAllById(ids: List<Long>): List<FirstOrderActivityModel>
 
   fun findById(id: Long): Optional<FirstOrderActivityModel>
@@ -42,4 +45,34 @@ interface FirstOrderActivityRepository : FirstOrderActivityRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: FirstOrderActivityModel): FirstOrderActivityModel
+
+  /**
+   * 当前生效活动(ACTIVE 且时间窗内;到期自动失效,供营销引擎取候选)
+   */
+  fun findActiveActivities(
+    status: PromotionActivityStatus,
+    now: LocalDateTime,
+  ): List<FirstOrderActivityModel>
+
+  /**
+   * 某商品当前生效的新人专享价(单价链④;仅当存在配置才触发新用户判定,避免列表页每商品查订单)
+   */
+  fun findActiveNewcomerPriceByProductId(
+    productId: Long,
+    activityType: FirstOrderActivityType,
+    status: PromotionActivityStatus,
+    now: LocalDateTime,
+  ): FirstOrderActivityModel?
+
+  /**
+   * 同商品新人专享价重叠校验(仅限启用活动)
+   */
+  fun existsOverlap(
+    productId: Long,
+    activityType: FirstOrderActivityType,
+    status: PromotionActivityStatus,
+    newValidFrom: LocalDateTime,
+    newValidTo: LocalDateTime,
+    excludeId: Long?,
+  ): Boolean
 }

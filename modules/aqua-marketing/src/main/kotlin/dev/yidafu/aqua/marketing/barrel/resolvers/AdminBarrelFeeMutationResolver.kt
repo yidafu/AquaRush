@@ -50,7 +50,7 @@ class AdminBarrelFeeMutationResolver(
   private val logger = LoggerFactory.getLogger(AdminBarrelFeeMutationResolver::class.java)
 
   @MutationMapping
-  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_WRITE')")
+  @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_WRITE')")
   fun createBarrelFee(
     @Argument @Valid input: CreateBarrelFeeInput,
     @AuthenticationPrincipal userDetails: UserDetails?,
@@ -69,7 +69,7 @@ class AdminBarrelFeeMutationResolver(
   }
 
   @MutationMapping
-  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_WRITE')")
+  @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_WRITE')")
   fun updateBarrelFee(
     @Argument id: Long,
     @Argument @Valid input: UpdateBarrelFeeInput,
@@ -90,7 +90,7 @@ class AdminBarrelFeeMutationResolver(
   }
 
   @MutationMapping
-  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_WRITE')")
+  @PreAuthorize("hasAuthority('PERMISSION_OPS_CONFIG_WRITE')")
   fun disableBarrelFee(
     @Argument id: Long,
     @AuthenticationPrincipal userDetails: UserDetails?,

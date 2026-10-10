@@ -51,7 +51,7 @@ import java.time.LocalDateTime
 @Repository
 class ProductSalesStatisticsRepositoryImpl(
   private val database: Database,
-) : ProductSalesStatisticsRepositoryCustom {
+) : ProductSalesStatisticsRepository {
   override fun getProductDailySales(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,

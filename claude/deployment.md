@@ -76,6 +76,7 @@ Key environment variables for production:
   - `WECHAT_PAY_NOTIFY_URL`: 回调地址(公网 HTTPS,如 `https://api.example.com/api/pay/notify`)
 - `JWT_SECRET`: JWT signing secret
 - `SNOWFLAKE_MACHINE_ID`: Unique ID for distributed ID generation
+- `GRAPHIQL_ENABLED` / `GRAPHQL_INTROSPECTION_ENABLED`: GraphQL 调试面开关(两服务),默认 `false`(生产保持默认);本地开发调试置 `true` 开启 `/graphiql` 与 schema introspection
 
 ### Timezone (统计聚合时区)
 

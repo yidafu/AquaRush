@@ -71,7 +71,6 @@ class UserRepositoryImpl(
       role =
         dev.yidafu.aqua.common.graphql.generated.UserRole
           .fromValue(row[UsersTable.role]),
-      balanceCents = row[UsersTable.balanceCents],
       totalSpentCents = row[UsersTable.totalSpentCents],
       customerGroupId = row[UsersTable.customerGroupId],
       createdAt = row[UsersTable.createdAt],
@@ -170,7 +169,6 @@ class UserRepositoryImpl(
           it[UsersTable.email] = entity.email
           it[UsersTable.status] = entity.status.name
           it[UsersTable.role] = entity.role.name
-          it[UsersTable.balanceCents] = entity.balanceCents
           it[UsersTable.totalSpentCents] = entity.totalSpentCents
           it[UsersTable.customerGroupId] = entity.customerGroupId
           it[UsersTable.createdAt] = entity.createdAt
@@ -313,8 +311,6 @@ class UserRepositoryImpl(
         .count()
     }
 
-  // ===== UserRepositoryCustom =====
-
   override fun getUserTotalSpent(userId: Long): Double =
     transaction(database) {
       UsersTable
@@ -322,14 +318,6 @@ class UserRepositoryImpl(
         .andWhere { UsersTable.id eq userId }
         .firstOrNull()
     }?.get(UsersTable.totalSpentCents)?.let { MoneyUtils.fromCents(it).toDouble() } ?: 0.0
-
-  override fun getUserBalance(userId: Long): Double =
-    transaction(database) {
-      UsersTable
-        .select(UsersTable.balanceCents)
-        .andWhere { UsersTable.id eq userId }
-        .firstOrNull()
-    }?.get(UsersTable.balanceCents)?.let { MoneyUtils.fromCents(it).toDouble() } ?: 0.0
 
   override fun getUserAddressCount(userId: Long): Int =
     transaction(database) {

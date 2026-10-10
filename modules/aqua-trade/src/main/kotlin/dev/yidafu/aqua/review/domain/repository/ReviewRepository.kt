@@ -22,12 +22,13 @@ package dev.yidafu.aqua.review.domain.repository
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 
 /**
  * 订单评价仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法;
  * 查询过滤 is_deleted(对齐 @SoftDelete)。
  */
-interface ReviewRepository : ReviewRepositoryCustom {
+interface ReviewRepository {
   fun findByOrderId(orderId: Long): ReviewModel?
 
   fun existsByOrderId(orderId: Long): Boolean
@@ -40,4 +41,25 @@ interface ReviewRepository : ReviewRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: ReviewModel): ReviewModel
+
+  /**
+   * Find reviews with multiple filters
+   * @param deliveryWorkerId the delivery worker ID (optional)
+   * @param minRating the minimum rating (optional)
+   * @param maxRating the maximum rating (optional)
+   * @param dateFrom the start date (optional, inclusive)
+   * @param dateTo the end date (optional, inclusive)
+   * @param userId the user ID (optional)
+   * @param pageable pagination information
+   * @return page of reviews matching the filters, ordered by createdAt desc (id desc 破平)
+   */
+  fun findReviewsWithFilters(
+    deliveryWorkerId: Long? = null,
+    minRating: Int? = null,
+    maxRating: Int? = null,
+    dateFrom: LocalDateTime? = null,
+    dateTo: LocalDateTime? = null,
+    userId: Long? = null,
+    pageable: Pageable,
+  ): Page<ReviewModel>
 }

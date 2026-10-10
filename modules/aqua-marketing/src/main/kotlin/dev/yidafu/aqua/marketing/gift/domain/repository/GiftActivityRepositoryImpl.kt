@@ -172,8 +172,6 @@ class GiftActivityRepositoryImpl(
       entity
     }
 
-  // ===== GiftActivityRepositoryCustom =====
-
   override fun findActiveActivities(
     status: PromotionActivityStatus,
     now: LocalDateTime,

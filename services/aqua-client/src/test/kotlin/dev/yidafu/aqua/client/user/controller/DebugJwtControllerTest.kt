@@ -50,7 +50,6 @@ class DebugJwtControllerTest :
         email = "a@b.com",
         status = UserStatus.ACTIVE,
         role = UserRole.USER,
-        balanceCents = 1000L,
         totalSpentCents = 5000L,
         createdAt = LocalDateTime.of(2025, 1, 1, 0, 0),
         lastLoginAt = LocalDateTime.of(2025, 1, 2, 0, 0),
@@ -98,7 +97,6 @@ class DebugJwtControllerTest :
       // Then
       result.body!!.success shouldBe true
       result.body!!.data!!.nickname shouldBe "用户甲"
-      result.body!!.data!!.balance shouldBe 1000L
     }
     test("getUserById should return error for missing user") {
       // Given

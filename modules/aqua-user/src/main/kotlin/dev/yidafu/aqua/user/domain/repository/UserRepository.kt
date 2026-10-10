@@ -27,7 +27,7 @@ import java.time.LocalDateTime
 import java.util.Optional
 
 /** 用户仓储(JPA→Exposed 迁移 P3 收尾,JpaRepository 派生查询显式化;跨模块读走 api/service)。 */
-interface UserRepository : UserRepositoryCustom {
+interface UserRepository {
   fun findByWechatOpenId(wechatOpenId: String): UserModel?
 
   fun findByPhone(phone: String): UserModel?
@@ -88,13 +88,9 @@ interface UserRepository : UserRepositoryCustom {
 
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: UserModel): UserModel
-}
 
-/** 用户域跨模块查询(F-MKT/统计口径;JPA→Exposed 迁移 P3 收尾)。 */
-interface UserRepositoryCustom {
+  // ===== 用户域跨模块查询(F-MKT/统计口径)=====
   fun getUserTotalSpent(userId: Long): Double
-
-  fun getUserBalance(userId: Long): Double
 
   fun getUserAddressCount(userId: Long): Int
 

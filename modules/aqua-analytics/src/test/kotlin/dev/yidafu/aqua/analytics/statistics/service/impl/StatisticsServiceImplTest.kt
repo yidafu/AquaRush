@@ -23,7 +23,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepo
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
-import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepository
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
@@ -49,7 +49,7 @@ class StatisticsServiceImplTest :
   FunSpec({
     var orderQueryApiService: OrderQueryApiService = mockk()
     var paymentQueryService: PaymentQueryService = mockk()
-    var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
+    var statisticsOrderRepository: StatisticsOrderRepository = mockk()
     var dailyOrderFactRepository: DailyOrderFactRepository = mockk()
     var dailyRefundFactRepository: DailyRefundFactRepository = mockk()
     var dailyRevenueFactRepository: DailyRevenueFactRepository = mockk()

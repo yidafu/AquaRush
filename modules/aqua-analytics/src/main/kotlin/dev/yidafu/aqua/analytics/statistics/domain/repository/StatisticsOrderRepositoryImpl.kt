@@ -56,7 +56,7 @@ import java.time.LocalDateTime
 @Repository
 class StatisticsOrderRepositoryImpl(
   private val database: Database,
-) : StatisticsOrderRepositoryCustom {
+) : StatisticsOrderRepository {
   override fun getDailyOrderStatistics(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,

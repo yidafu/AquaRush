@@ -87,9 +87,9 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | 管理员     | `AdminRoleModel.ADMIN`           | 后台账号(用户名/密码) | 管理后台 + 送水工端(兼送水) | 业务域管理:商品/订单/用户/送水工/对账,统计与日志;兼送水(F-USR-023) |
 | 超级管理员 | `AdminRoleModel.SUPER_ADMIN`     | 后台账号(用户名/密码) | 管理后台       | 全部权限,含管理员账号管理与系统配置              |
 
-### 权限码目录(40 码)
+### 权限码目录(42 码)
 
-后台权限模型为**代码级静态矩阵 + 方法级强制生效**:单一来源 `AdminPermission`(规划 36 码,营销域新增 2 码、通知域新增 2 码后共 40 码)与 `RolePermissionMapping`(角色→权限矩阵),不建数据库 RBAC 表。权限码按域(模块)+操作拆分,查询(READ)/管理(WRITE)分离,关键操作(派单、核验、确认、审核、执行、导出、退款、删除、重置密码、反馈处理)独立成码。
+后台权限模型为**代码级静态矩阵 + 方法级强制生效**:单一来源 `AdminPermission`(营销域新增 2 码、通知域新增 2 码、支付对账新增 2 码后共 42 码)与 `RolePermissionMapping`(角色→权限矩阵),不建数据库 RBAC 表。权限码按域(模块)+操作拆分,查询(READ)/管理(WRITE)分离,关键操作(派单、核验、确认、审核、执行、导出、退款、删除、重置密码、反馈处理)独立成码。
 
 | 权限码                         | 说明                         | 权限码                 | 说明                        |
 | ------------------------------ | ---------------------------- | ---------------------- | --------------------------- |
@@ -113,6 +113,9 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | FEEDBACK_READ                  | 意见反馈查询                 | FEEDBACK_REVIEW        | 意见反馈处理(回复·标记)     |
 | MKT_READ                       | 营销查询                     | MKT_WRITE              | 营销配置修改                |
 | NOTIFICATION_READ              | 通知与消息查询(消息列表)     | NOTIFICATION_WRITE     | 推送与消息配置(模板/参数)   |
+| PAYMENT_RECONCILIATION_READ    | 支付对账查询(任务/报表/差异) | PAYMENT_RECONCILIATION_EXECUTE | 支付对账执行(下载/重跑/差异处置) |
+
+> 注(2026-10):PAYMENT_RECONCILIATION_* 两码为规划码(随 F-ORD-031/G93 微信支付对账落地接线);与 RECONCILIATION_*(送水工收款日报对账)相互独立。
 
 ### 角色权限矩阵(后台三角色 × 权限码)
 
@@ -138,11 +141,13 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | LOG_READ                         | ✅          | ✅      | —      | STATISTICS_EXPORT              | ✅          | ✅      | —      |
 | MKT_READ                         | ✅          | ✅      | —      | MKT_WRITE                      | ✅          | ✅      | —      |
 | NOTIFICATION_READ                | ✅          | ✅      | —      | NOTIFICATION_WRITE             | ✅          | —      | —      |
+| PAYMENT_RECONCILIATION_READ(支付对账查询) | ✅          | ✅      | —      | PAYMENT_RECONCILIATION_EXECUTE(支付对账执行) | ✅          | ✅      | —      |
 
 > 权限模型说明:
-> - 超级管理员全 40 码;管理员 35 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/NOTIFICATION_WRITE,共 5 码);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
+> - 超级管理员全 42 码;管理员 37 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/NOTIFICATION_WRITE,共 5 码);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
 > - **普通用户(USER)独立于本矩阵**:走 `isAuthenticated()` + 本人数据隔离(R-AUTH-02),不授予后台权限码;client 侧以 `ROLE_USER` 标记身份。
 > - 超级管理员额外携带 `ROLE_ADMIN`(兼容 `hasRole('ADMIN')` 表达式);`users.role=WORKER` 对应 `ROLE_DELIVERY_WORKER`。
+> - **PAYMENT_RECONCILIATION_* 两码为规划码**(2026-10 新增,随 F-ORD-031/G93 微信支付对账落地接线,`AdminPermission`/`RolePermissionMapping` 尚未包含);与 `RECONCILIATION_*`(送水工收款日报对账)相互独立。
 > - `SYSTEM_CONFIG_*` 已随系统设置域 F-SYS-001/002/003 接线(2026-08:系统参数中心/订单与履约参数/库存预警阈值),F-SYS-004/005/006 接口待核验(见 11-system-settings.md,G64);`OPS_CONFIG_*`/`FEEDBACK_*` 为 v0.12 新增码,**已随运营配置域 F-OPS-001/F-OPS-003 接线(2026-08)**:banners/feedbacks 查询与变更分别以 `PERMISSION_OPS_CONFIG_READ/WRITE`、`PERMISSION_FEEDBACK_READ/REVIEW` 方法级强制(见 12-operations-config.md);`PAYMENT_*` 已随支付链路接线(2026-08,G01 已解决)。
 > - `MKT_READ`/`MKT_WRITE` 为营销域新增码,**已随营销域 F-MKT-001/002/003/004/007 接线(2026-08)**:客户分组/分组价/优惠券/满减折扣/桶水票的查询与配置分别以 `PERMISSION_MKT_READ/WRITE` 方法级强制(见 10-marketing.md)。
 > - `NOTIFICATION_READ`/`NOTIFICATION_WRITE` 为通知与消息域(v0.20)新增规划码,见 13-notification.md:消息列表查询(F-NTF-006)已以 `PERMISSION_NOTIFICATION_READ` 接线(管理员/超管,2026 通知域落地);推送与消息配置(F-NTF-005)现状复用 `SYSTEM_CONFIG_WRITE`(system-config/notifications 页已接线 2026-08);`NOTIFICATION_WRITE` 已接线(2026-08)——失败消息手动重发 `resendNotification` 以 `PERMISSION_NOTIFICATION_WRITE` 方法级强制(仅超管,见 13-notification.md §F-NTF-006)。

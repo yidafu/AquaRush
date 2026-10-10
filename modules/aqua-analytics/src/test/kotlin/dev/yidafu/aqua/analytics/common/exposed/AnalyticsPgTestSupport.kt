@@ -187,7 +187,6 @@ object Seed {
         it[email] = "u$uid@t.cn"
         it[UsersTable.status] = "ACTIVE"
         it[UsersTable.role] = "USER"
-        it[balanceCents] = 0L
         it[totalSpentCents] = 0L
         it[UsersTable.createdAt] = createdAt
         it[updatedAt] = createdAt

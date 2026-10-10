@@ -57,7 +57,6 @@ fun AdminRole.toDomain(): AdminRoleModel =
 fun UserModel.toGraphQL(): UserVo =
   UserVo(
     avatarUrl = avatarUrl,
-    balanceCents = balanceCents,
     createdAt = createdAt,
     customerGroupId = customerGroupId,
     // 所属客户分组(F-MKT-001):分组名由 resolver 联查填充(默认 null=未分组)

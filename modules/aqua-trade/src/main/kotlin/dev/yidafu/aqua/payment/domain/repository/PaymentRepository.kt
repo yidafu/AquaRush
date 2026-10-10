@@ -31,7 +31,7 @@ import java.util.Optional
  * 仅保留实际被调用的方法;原 PaymentSpecifications 组装的过滤语义并入
  * [PaymentRepositoryImpl] 的 Exposed 条件构建,所有查询过滤 is_deleted。
  */
-interface PaymentRepository : PaymentRepositoryCustom {
+interface PaymentRepository {
   fun findByOrderId(orderId: Long): Optional<PaymentModel>
 
   fun findByTransactionId(transactionId: String): Optional<PaymentModel>
@@ -64,4 +64,16 @@ interface PaymentRepository : PaymentRepositoryCustom {
    * 否则按 id 更新业务列(更新时 version 数据库侧 +1,对齐 JPA @Version 每次更新递增)。
    */
   fun save(entity: PaymentModel): PaymentModel
+
+  /**
+   * 原子认领过期支付(单条条件 UPDATE,R-ORD-04 支付超时优化):
+   * 仅未软删、PENDING 且已到期(expired_at 非空且 <= now)的行置 EXPIRED,
+   * 同时 version 数据库侧 +1、updated_at = now;
+   * 返回受影响行数(1=认领成功,0=已被处理/未到期/已软删/不存在)——单语句原子,幂等且互斥。
+   * KDoc 与实现一致:WHERE 带 activeOnly(软删行不可认领,对齐营销域 CAS 认领先例)。
+   */
+  fun claimExpired(
+    id: Long,
+    now: LocalDateTime,
+  ): Int
 }

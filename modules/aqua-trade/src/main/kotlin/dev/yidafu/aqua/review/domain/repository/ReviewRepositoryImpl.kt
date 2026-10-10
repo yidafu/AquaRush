@@ -142,8 +142,6 @@ class ReviewRepositoryImpl(
       entity
     }
 
-  // ===== ReviewRepositoryCustom =====
-
   override fun findReviewsWithFilters(
     deliveryWorkerId: Long?,
     minRating: Int?,

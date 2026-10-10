@@ -273,6 +273,47 @@ class DailyCollectionServiceTest :
       updated.rejectedBy.shouldBeNull()
       updated.rejectReason.shouldBeNull()
     }
+    test("submitDailyCollection rejects CONFIRMED record (裁决缺陷 #4:已确认不可被覆盖)") {
+      val confirmed = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.CONFIRMED)
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns confirmed
+
+      val exception =
+        shouldThrow<BadRequestException> {
+          service.submitDailyCollection(
+            1L,
+            cashAmountCents = 1000L,
+            waterTicketCount = 1,
+            qrCodeAmountCents = 500L,
+            collectionDate = date,
+          )
+        }
+
+      exception.message!!.contains("已确认") shouldBe true
+      confirmed.status shouldBe DailyCollectionStatus.CONFIRMED
+      verify(exactly = 0) { dailyCollectionMutation.save(any()) }
+    }
+    test("submitDailyCollection 仍可更新 SUBMITTED/DISPUTED 记录(仅 CONFIRMED 被拦截)") {
+      listOf(DailyCollectionStatus.SUBMITTED, DailyCollectionStatus.DISPUTED).forEach { status ->
+        stubPaymentStats()
+        every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+        every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
+        val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = status)
+        every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns existing
+        every { dailyCollectionMutation.save(any()) } answers { firstArg() }
+
+        val updated =
+          service.submitDailyCollection(
+            1L,
+            cashAmountCents = 1000L,
+            waterTicketCount = 1,
+            qrCodeAmountCents = 500L,
+            collectionDate = date,
+          )
+
+        updated.status shouldBe DailyCollectionStatus.SUBMITTED
+        updated.differenceAmountCents shouldBe 0L
+      }
+    }
     test("confirmCollection marks record confirmed") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
       every { dailyCollectionQuery.findById(9L) } returns existing

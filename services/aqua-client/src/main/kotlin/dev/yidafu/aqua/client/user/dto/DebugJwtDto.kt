@@ -54,7 +54,6 @@ data class UserDebugInfo(
   val email: String,
   val role: String,
   val status: String,
-  val balance: Long,
   val totalSpent: Long,
   val createdAt: LocalDateTime,
   val lastLoginAt: LocalDateTime,

@@ -1005,4 +1005,21 @@ class OrderRepositoryImpl(
         it[updatedAt] = completedAt
       }
     }
+
+  override fun updateStatusAtomically(
+    id: Long,
+    from: OrderModelStatus,
+    to: OrderModelStatus,
+    now: LocalDateTime,
+  ): Int =
+    transaction(database) {
+      OrdersTable.update({
+        OrdersTable.activeOnly {
+          (OrdersTable.id eq id) and (OrdersTable.status eq from.name)
+        }
+      }) {
+        it[status] = to.name
+        it[updatedAt] = now
+      }
+    }
 }

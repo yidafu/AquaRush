@@ -352,7 +352,8 @@ class PaymentServiceImpl(
    * 退款成功后落 `payment_refunds` 退款记录(status=COMPLETED + refund_type,
    * PRD「退款须与退款记录一致」),供营收统计「退款/净营收」维度按退款成功时间(processed_at)聚合;
    * DEPOSIT_REFUND(水桶费/桶押金退还)不计入退款统计(G06,见 14-misc.md);
-   * 交易号未命中支付记录时退款仍执行,仅跳过落库(warn 日志,人工核对)。
+   * 交易号未命中支付记录时退款仍执行,仅跳过 payments 更新/落库(warn 日志,人工核对);
+   * refundRequestId 非空(R-PAY-02 审核制)时回写该条申请为 COMPLETED,不再新插记录。
    */
   @Transactional
   override fun refund(
@@ -361,12 +362,13 @@ class PaymentServiceImpl(
     totalAmountCents: Long,
     reason: String,
     refundType: RefundType,
+    refundRequestId: Long?,
   ): Map<String, Any> {
     try {
       // 先取支付记录:退款记录落库与 payments.status 更新共用同一记录
       val payment = paymentRepository.findByTransactionId(transactionId).orElse(null)
       if (payment == null) {
-        logger.warn("退款未命中支付记录,跳过退款记录落库: transactionId={}", transactionId)
+        logger.warn("退款未命中支付记录,跳过 payments 更新/退款记录落库: transactionId={}", transactionId)
       }
       val orderNo =
         payment?.let { orderQueryService.getOrderById(it.orderId).orderNo }
@@ -390,21 +392,37 @@ class PaymentServiceImpl(
       payment?.let {
         it.status = PaymentStatus.REFUNDED
         paymentRepository.save(it)
-        // 退款记录落库(R-PAY-02:退款记录与支付记录一致;退款统计按 processed_at 归属窗口;refund_type 区分订单/押金退款)
-        paymentRefundRepository.save(
-          PaymentRefundModel(
-            paymentId = it.id!!,
-            orderId = it.orderId,
-            userId = it.userId,
-            refundId = result["refundId"] as? String,
-            outRefundNo = outRefundNo,
-            refundAmount = refundAmountCents,
-            refundReason = reason,
-            status = RefundStatus.COMPLETED,
-            refundType = refundType,
-            refundedAt = LocalDateTime.now(),
-          ),
-        )
+      }
+      // 退款记录落库(R-PAY-02:退款记录与支付记录一致;退款统计按 processed_at 归属窗口;refund_type 区分订单/押金退款)
+      val existingRequest = refundRequestId?.let { id -> paymentRefundRepository.findById(id).orElse(null) }
+      if (existingRequest != null) {
+        // 审核制:取消订单已生成 PENDING 申请,此处回写同一条记录为 COMPLETED,避免双记录双计
+        existingRequest.refundId = result["refundId"] as? String
+        existingRequest.outRefundNo = outRefundNo
+        existingRequest.refundAmount = refundAmountCents
+        existingRequest.refundReason = reason
+        existingRequest.status = RefundStatus.COMPLETED
+        existingRequest.refundType = refundType
+        existingRequest.refundedAt = LocalDateTime.now()
+        existingRequest.failureReason = null
+        paymentRefundRepository.save(existingRequest)
+      } else {
+        payment?.let {
+          paymentRefundRepository.save(
+            PaymentRefundModel(
+              paymentId = it.id!!,
+              orderId = it.orderId,
+              userId = it.userId,
+              refundId = result["refundId"] as? String,
+              outRefundNo = outRefundNo,
+              refundAmount = refundAmountCents,
+              refundReason = reason,
+              status = RefundStatus.COMPLETED,
+              refundType = refundType,
+              refundedAt = LocalDateTime.now(),
+            ),
+          )
+        }
       }
       // 业务日志(F-LOG-003 PAYMENT 域):退款申请成功
       bizLogger.logOperation(
@@ -576,7 +594,7 @@ class PaymentServiceImpl(
   /**
    * 处理支付超时(R-ORD-04 支付超时优化):
    * 由 admin 的延迟消息消费(PaymentExpiryCheckConsumer)或兜底扫描(PaymentExpiryScheduler)触发;
-   * ① 数据库乐观锁 CAS 认领(PENDING 且已到期 → EXPIRED,version+1),0 行=已被处理/未到期,
+   * ① 数据库条件 UPDATE 认领(WHERE status=PENDING 且已到期 → EXPIRED),0 行=已被处理/未到期,
    *    直接返回——幂等且互斥(MQ 重复投递、MQ 与扫描并发、admin 多实例并发均只处理一次);
    * ② 订单仍待支付才流转取消(恢复库存/退回权益/发布 PAYMENT_TIMEOUT),异常上抛使事务回滚、
    *    认领撤销,触发 MQ 重投或扫描重试,不产生「支付已 EXPIRED 但订单未取消」卡死态;
