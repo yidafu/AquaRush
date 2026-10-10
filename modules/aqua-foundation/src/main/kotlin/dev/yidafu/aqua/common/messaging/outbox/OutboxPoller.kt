@@ -110,7 +110,14 @@ class OutboxPoller(
           instance = instance,
           limit = properties.batchSize,
         )
-      records.forEach { record -> dispatch(record) }
+      records.forEach { record ->
+        try {
+          dispatch(record)
+        } catch (e: Exception) {
+          // 单行状态落库失败不中断整批(其余行正常分发;失败行由可见性超时复位后重试)
+          logger.error("outbox 行状态更新失败: id={}", record.id, e)
+        }
+      }
     } catch (e: Exception) {
       logger.error("outbox 轮询周期失败(下周期重试)", e)
     }

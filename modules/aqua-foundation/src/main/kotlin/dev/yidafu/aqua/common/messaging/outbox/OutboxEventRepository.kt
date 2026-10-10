@@ -31,6 +31,7 @@ import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -200,29 +201,27 @@ class OutboxEventRepository(
       }
     }
 
-  /** 清理:删除 [cutoff] 之前的 DONE 行(子查询限批,不做无界删除)。 */
+  /** 清理:删除 [cutoff] 之前的 DONE 行(先按 updated_at 升序取有界 id 集,再按 id 删;单批最多 [limit] 行)。返回删除行数。 */
   fun deleteDoneBefore(
     cutoff: LocalDateTime,
     limit: Int,
-  ) {
+  ): Int =
     transaction(database) {
-      exec(
-        """
-        DELETE FROM outbox_events
-        WHERE id IN (
-          SELECT id FROM outbox_events
-          WHERE status = 'DONE' AND updated_at < ?
-          ORDER BY updated_at
-          LIMIT ?
-        )
-        """.trimIndent(),
-        listOf(
-          JavaLocalDateTimeColumnType() to cutoff,
-          IntegerColumnType() to limit,
-        ),
-      )
+      val ids =
+        OutboxEventsTable
+          .select(OutboxEventsTable.id)
+          .where {
+            (OutboxEventsTable.status eq OutboxStatus.DONE) and
+              (OutboxEventsTable.updatedAt less cutoff)
+          }.orderBy(OutboxEventsTable.updatedAt to SortOrder.ASC)
+          .limit(limit)
+          .map { it[OutboxEventsTable.id] }
+      if (ids.isEmpty()) {
+        0
+      } else {
+        OutboxEventsTable.deleteWhere { OutboxEventsTable.id inList ids }
+      }
     }
-  }
 
   /** 健康统计(聚合计数)。 */
   fun stats(): OutboxStats {
@@ -244,10 +243,11 @@ class OutboxEventRepository(
           .select(table.id)
           .where { table.status eq OutboxStatus.DEAD }
           .count()
+      // 年龄仅统计已到期的 PENDING 行(未来才到期的延迟事件不计入积压年龄)
       val oldestPendingCreatedAt =
         table
           .select(table.createdAt)
-          .where { table.status eq OutboxStatus.PENDING }
+          .where { (table.status eq OutboxStatus.PENDING) and (table.nextRunAt lessEq now) }
           .orderBy(table.createdAt to SortOrder.ASC)
           .limit(1)
           .firstOrNull()

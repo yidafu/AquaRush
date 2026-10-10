@@ -30,10 +30,11 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 /**
  * WebSocket 推送事件发布器(PRD 13-notification.md F-NTF-003)
  *
- * 消息网关落库后,把推送载荷写入 outbox broadcast-events 行,按 [OutboxProperties.subscribers]
- * 为每个服务各写一行(subscriber 归属隔离);两服务各自消费自己名下的行并推送到本服务在线会话,
- * 实现跨服务实时触达(用户会话连 aqua-client,送水工会话连 aqua-admin,
- * 无需关心网关落在哪个服务)。与网关落库同事务,原子提交。
+ * 消息网关在事务提交后(afterCommit)把推送载荷写入 outbox broadcast-events 行,
+ * 按 [OutboxProperties.subscribers] 为每个服务各写一行(subscriber 归属隔离);
+ * 两服务各自消费自己名下的行并推送到本服务在线会话,实现跨服务实时触达
+ * (用户会话连 aqua-client,送水工会话连 aqua-admin,无需关心网关落在哪个服务)。
+ * 发布失败由网关 handler 的 outbox 重试收敛(通知侧幂等键去重,语义 best-effort)。
  */
 @Component
 class NotificationPushEventPublisher(

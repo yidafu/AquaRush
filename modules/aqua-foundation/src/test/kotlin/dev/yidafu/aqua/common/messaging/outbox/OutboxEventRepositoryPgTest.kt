@@ -201,7 +201,7 @@ class OutboxEventRepositoryPgTest :
       repository.markDone(12L)
       sql("UPDATE outbox_events SET updated_at = now() - interval '10 days' WHERE id = 11")
 
-      repository.deleteDoneBefore(cutoff = LocalDateTime.now().minusDays(7), limit = 100)
+      repository.deleteDoneBefore(cutoff = LocalDateTime.now().minusDays(7), limit = 100) shouldBe 1
 
       val remaining = repository.stats()
       // 11 被清理;12 仍在(未过保留期)—— stats 不计 DONE,直接查行数

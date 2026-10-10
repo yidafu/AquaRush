@@ -41,8 +41,14 @@ class OutboxRetentionScheduler(
   fun cleanupExpiredDoneRows() {
     try {
       val cutoff = LocalDateTime.now().minusDays(properties.doneRetentionDays)
-      outboxEventRepository.deleteDoneBefore(cutoff = cutoff, limit = CLEANUP_BATCH_SIZE)
-      logger.debug("outbox DONE 行清理完成: cutoff={}, batch={}", cutoff, CLEANUP_BATCH_SIZE)
+      var total = 0
+      // 循环分批直到删空(或达单次运行上限),避免日事件量超过单批容量导致积压
+      while (total < MAX_ROWS_PER_RUN) {
+        val deleted = outboxEventRepository.deleteDoneBefore(cutoff = cutoff, limit = CLEANUP_BATCH_SIZE)
+        total += deleted
+        if (deleted < CLEANUP_BATCH_SIZE) break
+      }
+      logger.debug("outbox DONE 行清理完成: cutoff={}, deleted={}", cutoff, total)
     } catch (e: Exception) {
       logger.error("outbox DONE 行清理失败", e)
     }
@@ -50,5 +56,8 @@ class OutboxRetentionScheduler(
 
   companion object {
     private const val CLEANUP_BATCH_SIZE = 500
+
+    /** 单次运行删除上限(500×200=10万行),剩余留到次日,防止清理任务长期占用连接。 */
+    private const val MAX_ROWS_PER_RUN = 100_000
   }
 }
