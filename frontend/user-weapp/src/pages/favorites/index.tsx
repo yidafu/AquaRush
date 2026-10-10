@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Image, navigator } from '@tarojs/components'
-import { AtGrid, AtLoadMore } from 'taro-ui'
+import React, { useState, useCallback } from 'react'
+import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
-import { Money } from '@aquarush/common'
+import { displayCents } from '@aquarush/common'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import "taro-ui/dist/style/components/grid.scss"
-import "taro-ui/dist/style/components/load-more.scss"
 import './index.scss'
 
 interface FavoriteProduct {
@@ -34,6 +31,11 @@ interface PageInfo {
   totalPages: number
 }
 
+/**
+ * 我的收藏(favorites.html:WeUI 收藏列表)
+ * .weui-cells__title 统计 + .weui-media-box 商品行(缩略图 + 名称 + 价格 + 已售/缺货);
+ * 分页加载(useReachBottom)+ 下拉刷新;useDidShow 检查登录态并刷新。
+ */
 const FavoritesPage: React.FC = () => {
   usePageViewTracking()
 
@@ -143,56 +145,63 @@ const FavoritesPage: React.FC = () => {
       className='favorites-page'
       safeArea={true}
     >
+      {/* 页头统计(favorites.html .weui-cells__title) */}
+      <View className='weui-cells__title'>共 {totalElements} 件收藏</View>
 
-      {/* Header with count */}
-      <View className='favorites-header'>
-        <Text className='count-text'>共 {totalElements} 件收藏</Text>
-      </View>
-
-      {/* Products list */}
-      <View className='product-list'>
-        {products.map((product, index) => (
-          <View
-            key={product.id}
-            className='product-item'
-            onClick={() => handleProductClick(product.id)}
-          >
-            <Image
-              src={product.coverImageUrl}
-              className='product-thumb'
-              mode='aspectFill'
-              lazyLoad
-            />
-            <View className='product-details'>
-              <Text className='product-name'>{product.name}</Text>
-              <View className='product-meta'>
-                <Text className='product-price'><Money cents={product.priceCents} /></Text>
-                {product.salesVolume > 0 && (
-                  <Text className='product-sales'>已售{product.salesVolume}</Text>
+      {/* 收藏列表(.weui-cells 内 .weui-media-box 行,整卡可点击进详情) */}
+      <View className='weui-cells'>
+        {products.map((product) => {
+          const [intPart, decPart = '00'] = displayCents(product.priceCents).split('.')
+          return (
+            <View
+              key={product.id}
+              className='weui-media-box favorite-item'
+              trackTarget='favorites-item'
+              trackElementType='card'
+              trackElementText={product.name}
+              onClick={() => handleProductClick(product.id)}
+            >
+              <View className='weui-media-box__hd'>
+                <Image
+                  src={product.coverImageUrl}
+                  className='weui-media-box__thumb favorite-thumb'
+                  mode='aspectFill'
+                  lazyLoad
+                />
+              </View>
+              <View className='weui-media-box__bd'>
+                <Text className='weui-media-box__title'>{product.name}</Text>
+                {product.subtitle && (
+                  <Text className='weui-media-box__desc'>{product.subtitle}</Text>
+                )}
+                <View className='favorite-price-row'>
+                  <View className='weui-price weui-price--md'>
+                    <Text className='weui-price__symbol'>¥</Text>
+                    <Text className='weui-price__int'>{intPart}</Text>
+                    <Text className='weui-price__dec'>.{decPart}</Text>
+                  </View>
+                  {product.salesVolume > 0 && (
+                    <Text className='favorite-sales'>已售 {product.salesVolume}</Text>
+                  )}
+                </View>
+                {product.stock <= 0 && (
+                  <View className='favorite-tag-row'>
+                    <Text className='weui-tag weui-tag--orange'>暂时缺货</Text>
+                  </View>
                 )}
               </View>
-              {product.stock <= 0 && (
-                <Text className='out-of-stock-label'>暂时缺货</Text>
-              )}
             </View>
-          </View>
-        ))}
+          )
+        })}
       </View>
 
-      {/* Load more indicator */}
-      {loadingMore && (
-        <AtLoadMore
-          status='loading'
-          loadingText='加载更多...'
-        />
-      )}
-
-      {/* No more data indicator */}
-      {!hasMore && products.length > 0 && (
-        <AtLoadMore
-          status='noMore'
-          noMoreText='没有更多了'
-        />
+      {/* 加载更多 / 没有更多(.weui-loadmore 双短线) */}
+      {(loadingMore || (!hasMore && products.length > 0)) && (
+        <View className='weui-loadmore'>
+          <View className='weui-loadmore__line' />
+          <Text>{loadingMore ? '加载更多…' : '没有更多了'}</Text>
+          <View className='weui-loadmore__line' />
+        </View>
       )}
     </BasePageLayout>
   )

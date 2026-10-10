@@ -1,17 +1,15 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
-import { AtLoadMore, AtTabs } from 'taro-ui'
 import NotificationService, { NotificationType, NotificationVO } from '../../services/NotificationService'
 import { wsPushService } from '../../services/wsPush'
 import { isDuplicateNotification } from '../../utils/notificationDedup'
 import { authService } from '../../utils/auth'
 import BasePageLayout from '../../components/BasePageLayout'
+import EmptyState from '../../components/EmptyState'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { formatDateTime } from '@aquarush/common'
 
-import 'taro-ui/dist/style/components/tabs.scss'
-import 'taro-ui/dist/style/components/load-more.scss'
 import './index.scss'
 
 const PAGE_SIZE = 10
@@ -36,9 +34,10 @@ const readTabToValue = (key: ReadTabKey): boolean | undefined =>
   key === 'ALL' ? undefined : key === 'UNREAD' ? false : true
 
 /**
- * 消息中心(F-NTF-002,PRD 13-notification.md)
+ * 消息中心(F-NTF-002,PRD 13-notification.md,message-center.html)
  * 站内消息列表(仅本人数据,后端强制 userId=登录用户),分页 + 下拉刷新;
- * 双行筛选:第一行类型 Tab(全部/订单/系统),第二行已读状态 Tab(全部/未读/已读),两维度组合过滤;
+ * 双行筛选:第一行类型 .weui-tabs(全部/订单/系统),第二行已读状态 .weui-tabs(全部/未读/已读),两维度组合过滤;
+ * 消息行 .weui-media-box(未读加粗 + .weui-badge_dot 红点);
  * 点击消息标已读并跳转关联订单详情;WebSocket 实时推送到达时增量刷新(R-NTF-02 幂等去重)。
  * 公告/反馈分类聚合为开放问题(PRD 13-notification.md §3.1),枚举与 Tab 预留。
  */
@@ -127,8 +126,8 @@ const MessageCenterPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, activeReadTab])
 
-  const handleTabClick = (index: number): void => {
-    setActiveTab(TABS[index].key as TabKey)
+  const handleTabClick = (key: TabKey): void => {
+    setActiveTab(key)
   }
 
   const handleReadTabClick = (key: ReadTabKey): void => {
@@ -200,64 +199,94 @@ const MessageCenterPage: React.FC = () => {
       {/* 全部已读 */}
       {records.length > 0 && (
         <View className='message-center-toolbar'>
-          <Text className='message-center-mark-all' onClick={handleMarkAllRead}>
+          <Text
+            className='message-center-mark-all'
+            trackTarget='message-mark-all'
+            trackElementType='link'
+            trackElementText='全部已读'
+            onClick={handleMarkAllRead}
+          >
             全部已读
           </Text>
         </View>
       )}
 
-      {/* 第一行:类型 Tab(全部/订单/系统) */}
-      <AtTabs current={TABS.findIndex(t => t.key === activeTab)} tabList={TABS} onClick={handleTabClick} />
-
-      {/* 第二行:已读状态 Tab(全部/未读/已读),与类型 Tab 组合筛选 */}
-      <View className='message-center-read-tabs'>
-        {READ_TABS.map(tab => {
-          const active = activeReadTab === tab.key
-          return (
-            <View
-              key={tab.key}
-              className={`message-center-read-tab ${active ? 'message-center-read-tab-active' : ''}`}
-              onClick={() => handleReadTabClick(tab.key)}
-            >
-              <Text className={`message-center-read-tab-text ${active ? 'message-center-read-tab-text-active' : ''}`}>
-                {tab.title}
-              </Text>
-            </View>
-          )
-        })}
-      </View>
-
-      <View className='message-center-list'>
-        {records.length === 0 && !loading && !error && (
-          <View className='message-center-empty'>
-            <Text>
-              {activeReadTab === 'UNREAD' ? '暂无未读消息' : activeReadTab === 'READ' ? '暂无已读消息' : '暂无消息'}
-            </Text>
-          </View>
-        )}
-        {records.map(item => (
+      {/* 第一行:类型 Tab(message-center.html .weui-tabs:全部/订单/系统) */}
+      <View className='weui-tabs message-center-tabs'>
+        {TABS.map(tab => (
           <View
-            key={item.id}
-            className={`message-center-item ${item.read ? '' : 'message-center-item-unread'}`}
-            onClick={() => handleReadAndNavigate(item)}
+            key={tab.key}
+            className={`weui-tabs__item ${activeTab === tab.key ? 'on' : ''}`}
+            trackTarget='message-type-tab'
+            trackElementType='tab'
+            trackElementText={tab.title}
+            onClick={() => handleTabClick(tab.key)}
           >
-            <View className='message-center-item-body'>
-              <View className='message-center-item-title-row'>
-                {!item.read && <View className='message-center-item-dot' />}
-                <Text className='message-center-item-title'>{item.title}</Text>
-                <Text className='message-center-item-time'>{formatRelativeTime(item.createdAt)}</Text>
-              </View>
-              {item.summary && (
-                <Text className='message-center-item-summary' numberOfLines={2}>
-                  {item.summary}
-                </Text>
-              )}
-            </View>
+            <Text>{tab.title}</Text>
           </View>
         ))}
-        {loadingMore && <AtLoadMore status='loading' loadingText='加载更多...' />}
-        {!hasMore && records.length > 0 && <AtLoadMore status='noMore' noMoreText='没有更多了' />}
       </View>
+
+      {/* 第二行:已读状态 Tab(全部/未读/已读),与类型 Tab 组合筛选 */}
+      <View className='weui-tabs message-center-tabs'>
+        {READ_TABS.map(tab => (
+          <View
+            key={tab.key}
+            className={`weui-tabs__item ${activeReadTab === tab.key ? 'on' : ''}`}
+            trackTarget='message-read-tab'
+            trackElementType='tab'
+            trackElementText={tab.title}
+            onClick={() => handleReadTabClick(tab.key)}
+          >
+            <Text>{tab.title}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* 消息列表(.weui-media-box 行:标题加粗 + 时间 + 摘要 2 行 + 未读红点) */}
+      {records.length === 0 && !loading && !error ? (
+        <EmptyState
+          icon='🔔'
+          title={activeReadTab === 'UNREAD' ? '暂无未读消息' : activeReadTab === 'READ' ? '暂无已读消息' : '暂无消息'}
+          description='订单与系统通知会在这里展示'
+        />
+      ) : (
+        <View className='weui-cells message-center-list'>
+          {records.map(item => (
+            <View
+              key={item.id}
+              className='weui-media-box message-center-item'
+              trackTarget='message-item'
+              trackElementType='cell'
+              trackElementText={item.title}
+              onClick={() => handleReadAndNavigate(item)}
+            >
+              <View className='weui-media-box__bd'>
+                <View className='message-center-item-title-row'>
+                  <Text className={`weui-media-box__title ${item.read ? '' : 'message-center-item-unread-title'}`}>
+                    {item.title}
+                  </Text>
+                  <Text className='message-center-item-time'>{formatRelativeTime(item.createdAt)}</Text>
+                </View>
+                {item.summary && (
+                  <Text className='weui-media-box__desc weui-media-box__desc--2'>
+                    {item.summary}
+                  </Text>
+                )}
+              </View>
+              {!item.read && <View className='weui-badge weui-badge_dot message-center-dot' />}
+            </View>
+          ))}
+          {/* 加载更多 / 没有更多(.weui-loadmore 双短线) */}
+          {(loadingMore || (!hasMore && records.length > 0)) && (
+            <View className='weui-loadmore'>
+              <View className='weui-loadmore__line' />
+              <Text>{loadingMore ? '加载更多…' : '没有更多了'}</Text>
+              <View className='weui-loadmore__line' />
+            </View>
+          )}
+        </View>
+      )}
     </BasePageLayout>
   )
 }

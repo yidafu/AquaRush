@@ -1,114 +1,42 @@
-@import './Section.styles.scss';
+// 优惠券选择:WeUI cells/radio/price 骨架由 weui.scss 提供,仅补名称行/置灰态
+.coupon-selector-section {
+  margin-top: 8px;
 
-.coupon-options {
-  padding: 16px 24px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+  .coupon-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-.coupon-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: border-color 0.2s ease;
-  cursor: pointer;
-}
+  .coupon-name {
+    font-size: var(--weui-fs-cell);
+    font-weight: 600;
+    color: var(--weui-FG-0);
+  }
 
-.coupon-option-selected {
-  border-color: var(--coupon-primary);
-  background: var(--coupon-primary-light);
-}
+  .coupon-best {
+    font-size: 24px;
+    color: var(--action);
+  }
 
-.coupon-option-disabled {
-  opacity: 0.5;
-}
+  .coupon-desc {
+    display: block;
+    margin-top: 8px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+  }
 
-.coupon-option-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
+  .coupon-hint {
+    display: block;
+    margin-top: 8px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-2);
+  }
 
-.coupon-option-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.coupon-option-name {
-  font-size: 26px;
-  font-weight: 500;
-  color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.coupon-option-best {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--bg-card);
-  background: var(--coupon-primary); // 最优券标记:优惠券品牌橙红(§2.1)
-  border-radius: var(--radius-sm);
-  padding: 2px 8px;
-  flex-shrink: 0;
-}
-
-.coupon-option-desc {
-  font-size: 22px;
-  color: var(--text-sub);
-}
-
-.coupon-option-hint {
-  font-size: 20px;
-  color: var(--text-weak);
-}
-
-.coupon-option-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.coupon-option-discount {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--coupon-primary); // 金额用优惠券品牌橙红加粗(§2.1)
-}
-
-.coupon-option-radio {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-.coupon-option-selected .coupon-option-radio {
-  border-color: var(--coupon-primary);
-}
-
-.coupon-option-radio-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--coupon-primary);
-}
-
-// 响应式
-@media (max-width: 375px) {
-  .coupon-options {
-    padding: 12px 20px 20px;
+  .coupon-option-disabled {
+    .coupon-name,
+    .coupon-desc {
+      color: var(--weui-FG-2);
+    }
   }
 }

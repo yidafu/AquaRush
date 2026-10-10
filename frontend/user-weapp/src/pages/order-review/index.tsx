@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Textarea, Button, Switch } from '@tarojs/components'
+import { View, Text, Textarea } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 import OrderService from '../../services/OrderService'
 import { ReviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import StarRating from '../../components/StarRating'
 
 const MAX_COMMENT_LENGTH = 500
 
+/** 星数 → 评价文案(设计稿 02-order/order-review.html「配送评分」右侧提示) */
+const RATING_LABELS: string[] = ['请选择评分', '非常不满意', '不满意', '一般', '满意', '非常满意']
+
 /**
- * 订单评价页(F-ORD-007,PRD 04-order.md §R-EVL-01):
+ * 订单评价页(F-ORD-007,PRD 04-order.md §R-EVL-01;设计稿 02-order/order-review.html WeUI 视觉):
  * - 仅「已完成」订单可评价(入口由订单详情控制,后端亦拦截);
- * - 评分 1-5 星必选;评论 ≤500 字;可匿名;
- * - 一单一评,已评价订单只读展示,不可修改。
+ * - 评分 1-5 星必选(星级品牌蓝);评论 ≤500 字;可匿名(.weui-switch);
+ * - 一单一评,已评价订单只读展示,不可修改(weui-notice 提示 + 只读回显)。
  */
 const OrderReview: React.FC = () => {
   usePageViewTracking()
@@ -91,7 +95,7 @@ const OrderReview: React.FC = () => {
     return (
       <View className='order-review-page'>
         <View className='loading-container'>
-          <Text>加载中...</Text>
+          <Text className='loading-text'>加载中...</Text>
         </View>
       </View>
     )
@@ -101,63 +105,79 @@ const OrderReview: React.FC = () => {
     <View className='order-review-page'>
       {hasReviewed && existingReview ? (
         /* 已评价只读展示(一单一评,R-EVL-01) */
-        <View className='review-card'>
-          <View className='review-card-title'>我的评价</View>
-          <StarRating rating={existingReview.rating} />
-          {existingReview.comment && (
-            <Text className='comment-text'>{existingReview.comment}</Text>
-          )}
-          <Text className='review-meta'>
-            {existingReview.createdAt}
-            {existingReview.isAnonymous ? ' · 匿名评价' : ''}
-          </Text>
-          <Text className='review-hint'>评价提交后不可修改</Text>
-        </View>
+        <>
+          <View className='weui-notice weui-notice--brand review-notice'>
+            <Text>该订单已评价，评价内容不可修改</Text>
+          </View>
+          <View className='weui-cells__title title-row'>
+            <Text>我的评价</Text>
+            {existingReview.isAnonymous && <Text className='weui-tag weui-tag--outline'>匿名</Text>}
+          </View>
+          <View className='weui-cells'>
+            <View className='weui-cell weui-cell_vertical'>
+              <View className='review-head'>
+                <StarRating rating={existingReview.rating} />
+                <Text className='review-time'>{existingReview.createdAt}</Text>
+              </View>
+              {existingReview.comment && (
+                <Text className='review-comment'>{existingReview.comment}</Text>
+              )}
+            </View>
+          </View>
+        </>
       ) : (
-        <View className='review-form'>
-          {/* 星级评分(1-5) */}
-          <View className='form-section'>
-            <Text className='section-title'>服务评分</Text>
-            <StarRating rating={rating} readonly={false} onChange={setRating} />
-            <Text className='section-desc'>为本次配送的送水工评分</Text>
+        <>
+          {/* 星级评分(1-5,品牌蓝选中) */}
+          <View className='weui-cells__title title-row'>
+            <Text>配送评分</Text>
+            <Text className='title-extra'>{RATING_LABELS[rating] ?? RATING_LABELS[0]}</Text>
+          </View>
+          <View className='weui-cells'>
+            <View className='weui-cell weui-cell_vertical'>
+              <StarRating rating={rating} readonly={false} onChange={setRating} />
+              <Text className='section-desc'>为本次配送的送水工评分</Text>
+            </View>
           </View>
 
-          {/* 文字评论(≤500 字) */}
-          <View className='form-section'>
-            <Text className='section-title'>文字评论</Text>
+          {/* 文字评论(≤500 字,.weui-textarea + 计数) */}
+          <View className='weui-cells__title'>评价内容</View>
+          <View className='weui-cells'>
             <Textarea
-              className='comment-input'
+              className='weui-textarea comment-input'
               value={comment}
               maxlength={MAX_COMMENT_LENGTH}
-              placeholder='说说本次配送体验(选填,最多500字)'
+              placeholder='分享这次送水体验，帮助其他用户参考（选填，最多500字）'
+              placeholderClass='ph'
               onInput={(e) => setComment(e.detail.value)}
             />
-            <Text className='char-count'>{comment.length}/{MAX_COMMENT_LENGTH}</Text>
+            <View className='weui-textarea__counter'>{comment.length}/{MAX_COMMENT_LENGTH}</View>
           </View>
 
-          {/* 匿名开关 */}
-          <View className='form-section row'>
-            <View className='anonymous-info'>
-              <Text className='section-title'>匿名评价</Text>
-              <Text className='section-desc'>开启后送水工不显示您的身份</Text>
+          {/* 匿名开关(.weui-cell_switch + .weui-switch) */}
+          <View className='weui-cells'>
+            <View className='weui-cell weui-cell_switch'>
+              <View className='weui-cell__bd'>
+                <View>匿名评价</View>
+                <View className='switch-desc'>开启后对送水工隐藏你的身份信息</View>
+              </View>
+              <View className='weui-cell__ft'>
+                <View
+                  className={`weui-switch${isAnonymous ? ' on' : ''}`}
+                  onClick={() => setIsAnonymous(!isAnonymous)}
+                />
+              </View>
             </View>
-            <Switch
-              checked={isAnonymous}
-              color='#3A9BD9'
-              onChange={(e) => setIsAnonymous(e.detail.value)}
-            />
           </View>
 
-          <Button
-            className='submit-button'
-            type='primary'
-            loading={submitting}
-            disabled={submitting}
-            onClick={handleSubmit}
-          >
-            提交评价
-          </Button>
-        </View>
+          <View className='weui-btn_area'>
+            <View
+              className={`weui-btn weui-btn_primary flex1${submitting ? ' weui-btn_disabled' : ''}`}
+              onClick={submitting ? undefined : handleSubmit}
+            >
+              提交评价
+            </View>
+          </View>
+        </>
       )}
     </View>
   )

@@ -1,21 +1,12 @@
-@import '@/styles/theme.scss';
-
-// 页面容器:区块级样式统一在 components/Section.styles.scss 与各组件 SCSS 中定义,
-// 本文件仅保留页面级(容器/安全区/响应式)样式,避免与组件重复定义造成覆盖。
+// 确认订单页(WeUI 2.x:页面底 --weui-BG-0;各区块 .weui-cells 组由子组件 + weui.scss 提供)
 .order-confirm-page {
   min-height: 100vh;
-  background-color: var(--bg);
-  padding: 24px 0 120px; // 顶部留白 + 底部为固定操作栏预留(含安全区)
+  background-color: var(--weui-BG-0);
+  // 底部为固定 .mp-footbar 预留(栏高 96 + 内边距 + 安全区)
+  padding: 24px 0 200px;
   box-sizing: border-box;
 }
 
 .safe-bottom {
   height: 40px;
-}
-
-// 小屏适配
-@media (max-width: 375px) {
-  .order-confirm-page {
-    padding: 20px 0 120px;
-  }
 }

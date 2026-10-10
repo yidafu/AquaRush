@@ -106,7 +106,7 @@ export const useDeliveryTracking = (): UseDeliveryTrackingResult => {
 
   // 更新地图标记
   const updateMapMarkers = useCallback((order: DeliveryOrder, worker: DeliveryWorker) => {
-    const markers = []
+    const markers: any[] = []
 
     // 配送员位置标记
     if (worker.currentLocation) {
@@ -267,8 +267,9 @@ export const useDeliveryTracking = (): UseDeliveryTrackingResult => {
 
     // 使用微信内置地图查看路线
     Taro.openLocation({
-      latitude: order.deliveryAddress.latitude,
-      longitude: order.deliveryAddress.longitude,
+      // 上方守卫已确保 deliveryAddress.latitude/longitude 存在(仅类型收窄不到,断言不改运行时)
+      latitude: order.deliveryAddress.latitude!,
+      longitude: order.deliveryAddress.longitude!,
       name: '配送地址',
       address: `${order.deliveryAddress.province}${order.deliveryAddress.city}${order.deliveryAddress.district}${order.deliveryAddress.detailAddress}`,
       scale: 16

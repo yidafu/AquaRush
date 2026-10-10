@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
-import { displayCents } from '@aquarush/common'
+import { Money } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import EmptyState from '../../components/EmptyState'
 import {
   CartItem,
   getCart,
@@ -11,16 +12,17 @@ import {
   setCartSelected,
   setCartAllSelected,
   getSelectedCartItems,
-  getSelectedTotalCents,
-  syncCartTabBadge
+  getSelectedTotalCents
 } from '../../utils/cart'
 
-import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
 
 /**
- * 购物车页(F-PRO-004,本地存储):
- * 多商品列表(勾选/数量步进/删除)、合计实时汇总(分→元)、「去结算」携带勾选商品进入确认订单页(F-ORD-004)。
+ * 购物车页(F-PRO-004,本地存储;设计稿 01-product/cart.html WeUI 视觉重排):
+ * .weui-cells 内 .weui-media-box 商品行(勾选 .weui-checkbox + 缩略图 + 名称/规格 +
+ * .weui-price 单价 + .weui-stepper 数量 + 小计 + 删除)、.mp-footbar 底部结算栏
+ * (全选 + 合计 .weui-price--lg + 去结算)。
+ * 数据结构与增删改逻辑走 utils/cart,原样保留;库存冲突提示为规划中功能,本页不做。
  */
 const CartPage: React.FC = () => {
   usePageViewTracking()
@@ -37,7 +39,6 @@ const CartPage: React.FC = () => {
 
   // tabBar 角标:购物车数据变化时同步总件数(上限 99+),空购物车移除角标(F-PRO-004)
   useEffect(() => {
-    syncCartTabBadge()
   }, [cartItems])
 
   const handleQuantityChange = useCallback((id: string, quantity: number) => {
@@ -101,84 +102,97 @@ const CartPage: React.FC = () => {
 
   const allSelected = cartItems.length > 0 && cartItems.every(it => it.selected)
   const totalCents = getSelectedTotalCents()
+  const selectedCount = getSelectedCartItems().length
 
   return (
     <View className='cart-page'>
       {cartItems.length === 0 ? (
         <View className='cart-empty'>
-          <View className='cart-empty-icon'>
-            <Text className='cart-empty-emoji'>🛒</Text>
-          </View>
-          <Text className='cart-empty-text'>购物车空空如也,去逛逛吧~</Text>
-          <View className='cart-empty-btn' onClick={handleGoShopping}>
-            <Text className='cart-empty-btn-text'>去逛逛</Text>
-          </View>
+          <EmptyState
+            icon={<Text className='cart-empty-emoji'>🛒</Text>}
+            title='购物车还是空的'
+            description='去挑几桶好水,加入购物车一起下单'
+            actionText='去逛逛'
+            onAction={handleGoShopping}
+          />
         </View>
       ) : (
         <>
-          <ScrollView scrollY className='cart-list'>
-            {cartItems.map(item => (
-              <View key={item.id} className='cart-item'>
-                {/* 勾选框 */}
-                <View
-                  className={`cart-check ${item.selected ? 'cart-check-on' : ''}`}
-                  onClick={() => handleSelect(item.id, !item.selected)}
-                >
-                  <Text className='cart-check-icon'>{item.selected ? '✓' : ''}</Text>
-                </View>
-                {/* 商品图 */}
-                <Image
-                  src={item.image || '/assets/default-product.png'}
-                  mode='aspectFill'
-                  className='cart-item-image'
-                />
-                {/* 商品信息 */}
-                <View className='cart-item-info'>
-                  <Text className='cart-item-name'>{item.name}</Text>
-                  {item.specification && (
-                    <Text className='cart-item-spec'>规格:{item.specification}</Text>
-                  )}
-                  <View className='cart-item-bottom'>
-                    <Text className='cart-item-price'>{displayCents(item.priceCents)}</Text>
-                    <View className='cart-stepper'>
-                      <View
-                        className={`cart-stepper-btn ${item.quantity <= 1 ? 'cart-stepper-disabled' : ''}`}
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      >
-                        <Text className='cart-stepper-icon'>−</Text>
+          <ScrollView scrollY className='cart-scroll'>
+            <View className='weui-cells__title'>全部商品</View>
+            <View className='weui-cells cart-cells'>
+              {cartItems.map(item => (
+                <View key={item.id} className='weui-media-box cart-item'>
+                  {/* 勾选 */}
+                  <View
+                    className='weui-media-box__hd cart-check-hd'
+                    onClick={() => handleSelect(item.id, !item.selected)}
+                  >
+                    <View className={`weui-checkbox${item.selected ? ' on' : ''}`} />
+                  </View>
+                  {/* 商品图 */}
+                  <View className='weui-media-box__hd'>
+                    <Image
+                      src={item.image || '/assets/default-product.png'}
+                      mode='aspectFill'
+                      className='weui-media-box__thumb cart-item-image'
+                    />
+                  </View>
+                  {/* 商品信息 */}
+                  <View className='weui-media-box__bd'>
+                    <Text className='weui-media-box__title'>{item.name}</Text>
+                    {item.specification && (
+                      <Text className='weui-media-box__desc'>规格:{item.specification}</Text>
+                    )}
+                    <View className='cart-row'>
+                      <Text className='weui-price weui-price--md'>
+                        <Money cents={item.priceCents} />
+                      </Text>
+                      <View className='weui-stepper'>
+                        <View
+                          className={`weui-stepper__btn${item.quantity <= 1 ? ' disabled' : ''}`}
+                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        >
+                          <Text>−</Text>
+                        </View>
+                        <Text className='weui-stepper__num'>{item.quantity}</Text>
+                        <View
+                          className={`weui-stepper__btn${item.quantity >= 999 ? ' disabled' : ''}`}
+                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        >
+                          <Text>+</Text>
+                        </View>
                       </View>
-                      <Text className='cart-stepper-value'>{item.quantity}</Text>
-                      <View
-                        className={`cart-stepper-btn ${item.quantity >= 999 ? 'cart-stepper-disabled' : ''}`}
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      >
-                        <Text className='cart-stepper-icon'>+</Text>
-                      </View>
+                    </View>
+                    <View className='cart-row'>
+                      <Text className='cart-subtotal'>
+                        小计 <Text className='weui-price weui-price--sm'><Money cents={item.priceCents * item.quantity} /></Text>
+                      </Text>
+                      <Text className='cart-delete' onClick={() => handleRemove(item.id)}>删除</Text>
                     </View>
                   </View>
                 </View>
-                {/* 删除 */}
-                <View className='cart-item-delete' onClick={() => handleRemove(item.id)}>
-                  <Text className='cart-item-delete-icon'>×</Text>
-                </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </ScrollView>
 
-          {/* 底部结算栏 */}
-          <View className='cart-footer'>
+          {/* 底部结算栏(WeUI .mp-footbar) */}
+          <View className='mp-footbar hair-t cart-footbar'>
             <View className='cart-select-all' onClick={() => handleSelectAll(!allSelected)}>
-              <View className={`cart-check ${allSelected ? 'cart-check-on' : ''}`}>
-                <Text className='cart-check-icon'>{allSelected ? '✓' : ''}</Text>
-              </View>
-              <Text className='cart-select-all-text'>全选</Text>
+              <View className={`weui-checkbox${allSelected ? ' on' : ''}`} />
+              <Text className='select-all-lbl'>全选</Text>
             </View>
-            <View className='cart-total'>
-              <Text className='cart-total-label'>合计:</Text>
-              <Text className='cart-total-price'>{displayCents(totalCents)}</Text>
+            <View className='mp-footbar__info cart-total'>
+              <View className='mp-footbar__lbl'>合计</View>
+              <Text className='weui-price weui-price--lg'>
+                <Money cents={totalCents} />
+              </Text>
             </View>
-            <View className='cart-checkout-btn' onClick={handleCheckout}>
-              <Text className='cart-checkout-text'>去结算({getSelectedCartItems().length})</Text>
+            <View
+              className={`weui-btn weui-btn_primary${selectedCount === 0 ? ' weui-btn_disabled' : ''}`}
+              onClick={handleCheckout}
+            >
+              去结算({selectedCount})
             </View>
           </View>
         </>

@@ -23,19 +23,19 @@ interface ProductListProps {
 }
 
 /**
- * 商品信息列表(F-ORD-004 多商品下单;单价以服务端计价为准)
- * 标题右侧展示「共N件」;商品行渲染复用共享 OrderItemRow。
+ * 商品清单(F-ORD-004 多商品下单;单价以服务端计价为准)
+ * WeUI .weui-cells 组:标题行「商品清单 / 共 N 件」+ .weui-media-box 商品行(共享 OrderItemRow)。
  */
 const ProductList: React.FC<ProductListProps> = ({ items }) => {
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
-    <View className='section product-section'>
-      <View className='section-header'>
-        <Text className='section-title'>商品信息</Text>
-        <Text className='section-count'>共{totalQuantity}件</Text>
+    <View className='product-section'>
+      <View className='weui-cells__title title-row'>
+        <Text>商品清单</Text>
+        <Text className='title-extra'>共 {totalQuantity} 件</Text>
       </View>
-      <View className='product-list'>
+      <View className='weui-cells'>
         {items.map(item => {
           // 非目录价成交且目录价更高时划线展示(R-MKT-02)
           const showCatalogPrice =

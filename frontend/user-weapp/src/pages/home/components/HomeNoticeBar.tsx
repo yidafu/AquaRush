@@ -9,13 +9,13 @@ interface HomeNoticeBarProps {
 }
 
 /**
- * 顶部公告栏(浅蓝 tint 底,仅生效公告时显示,F-OPS-002)
+ * 通告栏(WeUI .weui-notice 橙 tint,仅生效公告时显示,F-OPS-002)
  */
 const HomeNoticeBar: React.FC<HomeNoticeBarProps> = ({ title, onClick }) => {
   return (
-    <View className='notice-bar' onClick={onClick}>
-      <Text className='notice-bar-label'>公告</Text>
-      <Text className='notice-bar-title' numberOfLines={1}>{title}</Text>
+    <View className='weui-notice home-notice' onClick={onClick}>
+      <Text className='home-notice__label'>公告</Text>
+      <Text className='home-notice__title' numberOfLines={1}>{title}</Text>
     </View>
   )
 }

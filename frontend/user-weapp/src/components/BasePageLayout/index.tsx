@@ -1,10 +1,8 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton } from 'taro-ui'
 import { authService } from '../../utils/auth'
 import SharedEmptyState from '../EmptyState'
 
-import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
 import Taro from '@tarojs/taro'
 
@@ -17,7 +15,6 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ onLoginClick }) => {
   const defaultLoginHandler = () => {
     // Default navigation to my page for login
     const navigateToLogin = async () => {
-      // const Taro = (await import('@tarojs/taro')).default
       Taro.navigateTo({
         url: '/pages/my/index'
       })
@@ -32,14 +29,9 @@ const LoginPrompt: React.FC<LoginPromptProps> = ({ onLoginClick }) => {
       <View className='login-icon'>🔒</View>
       <Text className='login-title'>登录后查看收藏</Text>
       <Text className='login-subtitle'>收藏您喜欢的商品</Text>
-      <AtButton
-        type='primary'
-        size='normal'
-        onClick={handleClick}
-        className='login-button'
-      >
+      <View className='weui-btn weui-btn_primary login-button' onClick={handleClick}>
         去登录
-      </AtButton>
+      </View>
     </View>
   )
 }
@@ -69,14 +61,9 @@ const ErrorState: React.FC<ErrorStateProps> = ({ title = '加载失败', message
       <Text className='error-title'>{title}</Text>
       <Text className='error-message'>{message}</Text>
       {onRetry && (
-        <AtButton
-          type='primary'
-          size='normal'
-          onClick={onRetry}
-          className='error-retry-button'
-        >
+        <View className='weui-btn weui-btn_primary error-retry-button' onClick={onRetry}>
           重试
-        </AtButton>
+        </View>
       )}
     </View>
   )

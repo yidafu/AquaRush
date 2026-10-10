@@ -1,108 +1,164 @@
 @import '@/styles/theme.scss';
 
+// ============================================================
+// 我的券包(coupon-mine.html:.weui-tabs 分段 + 券卡齿孔形态;
+// 券卡面额/类型标签/去使用按钮用 var(--coupon-primary) —— 设计系统 §2.1 券例外)
+// ============================================================
+
 .coupon-list-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
+  background-color: var(--weui-BG-0);
+  box-sizing: border-box;
+}
+
+// Tab 行贴顶白底(coupon-mine.html .weui-tabs hair-b)
+.coupon-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// ---- 券卡列表(白底圆角卡,面额区 + 齿孔 + 虚线分割 + 券信息) ----
+.coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 16px 0;
+}
+
+.coupon-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: var(--weui-BG-2);
+  border-radius: var(--weui-radius);
+  overflow: hidden;
+}
+
+// 非可用(已用/已退回/已过期):整卡置灰只读(coupon-mine.html opacity .62)
+.coupon-card-muted {
+  opacity: 0.62;
+
+  .coupon-face {
+    background: var(--weui-BG-1);
+  }
+
+  .coupon-face-price {
+    color: var(--weui-FG-1);
+  }
+
+  .coupon-face-threshold {
+    color: var(--weui-FG-2);
+  }
+}
+
+// 左侧面额区(104px → 208rpx,橙红 tint 底)
+.coupon-face {
+  flex: 0 0 208px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 44px 0;
+  background: var(--coupon-primary-light);
+  box-sizing: border-box;
+
+  .coupon-face-price {
+    color: var(--coupon-primary); // 券面额:优惠券品牌橙红(§2.1 券例外)
+  }
+}
+
+.coupon-face-threshold {
+  font-size: 24px;
+  color: var(--coupon-primary);
+}
+
+// 齿孔(分割线上下两枚圆形遮罩,透出页面底色)
+.coupon-notch {
+  position: absolute;
+  left: 208px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--weui-BG-0);
+  z-index: 1;
+}
+
+.coupon-notch-top {
+  top: -14px;
+}
+
+.coupon-notch-bottom {
+  bottom: -14px;
+}
+
+// 虚线分割
+.coupon-divider {
+  flex: 0 0 0;
+  width: 0;
+  border-left: 2px dashed var(--weui-FG-3);
+  margin: 28px 0;
+}
+
+// 右侧券信息区
+.coupon-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
   padding: 32px;
   box-sizing: border-box;
 }
 
-.coupon-tabs {
+.coupon-info-main {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
-  background: var(--theme-background);
-  border-radius: 20px;
-  padding: 8px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  flex-direction: column;
+  gap: 8px;
 }
 
-.coupon-tab {
-  flex: 1;
-  height: 64px;
+.coupon-name-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-}
-
-.coupon-tab-active {
-  background: var(--coupon-primary-light);
-}
-
-.coupon-tab-text {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
-}
-
-.coupon-tab-active .coupon-tab-text {
-  color: var(--coupon-primary);
-  font-weight: 600;
-}
-
-.coupon-list {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.coupon-card {
-  background: var(--theme-background);
-  border-radius: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.coupon-card-body {
-  display: flex;
-  align-items: stretch;
-  padding: 32px 0;
-}
-
-.coupon-card-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
-  padding: 0 32px;
-  border-right: 2px dashed var(--theme-border);
+
+  .coupon-name {
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--weui-FG-0);
+  }
 }
 
-.coupon-name {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
+// 可用券类型标签(橙红 tint);非可用走默认灰 tag
+.coupon-type-tag {
+  background: var(--coupon-primary-light);
+  color: var(--coupon-primary); // 类型标签:券品牌橙红(§2.1 券例外)
 }
 
-.coupon-discount {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--coupon-primary);
-  line-height: 1.2;
+.coupon-scope {
+  font-size: 24px;
+  color: var(--weui-FG-1);
 }
 
-.coupon-threshold {
-  font-size: 22px;
-  color: var(--theme-text-secondary);
+.coupon-validity {
+  font-size: 24px;
+  color: var(--weui-FG-2);
 }
 
-.coupon-card-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 0 32px;
+// 「去使用」CTA(券品牌橙红,coupon-mine.html .weui-btn_xs)
+.coupon-use-btn {
+  flex: 0 0 auto;
+  background: var(--coupon-primary);
+  color: #fff;
 }
 
-.coupon-expire {
-  font-size: 20px;
-  color: var(--theme-text-tertiary);
-  line-height: 1.4;
-  text-align: right;
-}
-
-.coupon-status {
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--theme-text-secondary);
+// 非可用状态标签
+.coupon-status-tag {
+  flex: 0 0 auto;
 }

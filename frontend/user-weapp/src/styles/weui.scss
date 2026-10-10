@@ -1,0 +1,691 @@
+/* ==========================================================================
+   AquaRush · user-weapp WeUI 2.x 视觉基础层（Taro weapp 移植版）
+   --------------------------------------------------------------------------
+   来源：spec/design/assets/weui.css（设计稿原型权威样式）→ Taro weapp 移植。
+   移植规则：
+     1) 原型按 375 设计稿绘制，本项目 designWidth=750（源码 1px = 1rpx = 375 视口
+        0.5 物理px），故所有长度数值 ×2（原型 padding:16px → 此处 32px）；
+        比例 / 百分比 / 行高 / z-index / transform 缩放不变。
+     2) 自定义属性挂 page 选择器（weapp 无 :root），变量名与原型完全一致。
+     3) 原型 ui.css 含全局 * { box-sizing: border-box }，weapp 无 preflight，
+        故对受 padding/border 影响尺寸的类集中补 box-sizing（见下方第一条规则）。
+     4) 丢弃原型中小程序用不到的内容：.phone* 外壳、.mp-status、.mp-nav*、
+        .mp-capsule、.mp-tabbar、.phone.mp .map，以及 svg 元素选择器规则
+        （weapp 无 svg，仅保留容器类）。
+     5) weapp 适配：遮罩/弹层类用 position:fixed（原型依赖 .phone 外壳 relative）；
+        .mp-prod__cover 用 padding-bottom:100% 占位 hack 替代不可用的 aspect-ratio；
+        .weui-btn[disabled] 属性选择器 WXSS 不支持，仅保留 .weui-btn_disabled。
+   ⚠️ dontEdit：本文件为设计稿移植产物，请勿手工调整数值；改样式请先改
+      spec/design/assets/weui.css，再按上述规则重新移植。
+   ========================================================================== */
+
+/* —— WeUI 主题变量（挂 page，weapp 无 :root；色值同原型，尺寸 ×2） —— */
+page {
+  /* 主色（品牌蓝，覆盖微信官方绿） */
+  --weui-BRAND: #3A9BD9;
+  --weui-BRAND-LIGHT: #4DB6E5;
+  --weui-BRAND-DARK: #2E7FB8;
+  --weui-BRAND-100: rgba(58, 155, 217, 0.10); /* 品牌 10% tint 底 */
+  --weui-BRAND-200: rgba(58, 155, 217, 0.18);
+  --weui-LINK: #576B95;                       /* 微信链接蓝（官方值，未改） */
+
+  /* 微信官方语义色（官方值，未改） */
+  --weui-RED: #FA5151;
+  --weui-ORANGE: #FA9D3B;
+  --weui-YELLOW: #FFC300;
+  --weui-GREEN: #07C160;
+  --weui-BLUE: #10AEFF;
+  --weui-RED-100: rgba(250, 81, 81, 0.10);
+  --weui-ORANGE-100: rgba(250, 157, 59, 0.12);
+  --weui-GREEN-100: rgba(7, 193, 96, 0.10);
+  --weui-BLUE-100: rgba(16, 174, 255, 0.10);
+
+  /* 微信官方灰阶 */
+  --weui-FG-0: rgba(0, 0, 0, 0.90);  /* 主文字 */
+  --weui-FG-1: rgba(0, 0, 0, 0.55);  /* 次要文字 */
+  --weui-FG-2: rgba(0, 0, 0, 0.30);  /* 弱文字 / 占位 / 箭头 */
+  --weui-FG-3: rgba(0, 0, 0, 0.10);  /* 发丝线 / 边框 */
+  --weui-BG-0: #EDEDED;              /* 页面底（微信官方） */
+  --weui-BG-1: #F7F7F7;              /* 次级底 / 输入框底 */
+  --weui-BG-2: #FFFFFF;              /* 单元格底 */
+  --weui-BG-3: #F7F7F7;
+  --weui-BG-MASK: rgba(0, 0, 0, 0.6);
+  --weui-MASK: rgba(0, 0, 0, 0.6);
+
+  /* 价格（微信电商惯例红） */
+  --weui-price: #FA5151;
+  --weui-price-light: #FF7A7E;
+
+  /* 微信官方排版（字号 / 圆角 ×2；行高为比例不变） */
+  --weui-fs-cell: 34px;    /* 单元格主文字（原型 17px） */
+  --weui-fs-tips: 28px;    /* 说明 / 辅助（原型 14px） */
+  --weui-fs-btn: 34px;     /* 按钮（原型 17px） */
+  --weui-fs-title: 34px;   /* 弹窗标题（原型 17px） */
+  --weui-lh: 1.41176471;
+  --weui-radius: 16px;     /* 按钮 / 输入 / 卡片（原型 8px） */
+  --weui-radius-lg: 24px;  /* 弹窗 / 弹层（原型 12px） */
+}
+
+/* 原型 ui.css 有全局 * { box-sizing: border-box }，weapp 无 preflight，
+   对「宽高 + padding/border」共同决定尺寸的类集中补齐，保证几何一致 */
+.weui-cell,
+.weui-media-box__thumb,
+.weui-btn,
+.weui-input,
+.weui-textarea,
+.weui-input-box,
+.weui-switch,
+.weui-radio,
+.weui-checkbox,
+.weui-searchbar__box,
+.weui-tag,
+.weui-badge,
+.weui-toast,
+.weui-uploader__file,
+.weui-uploader__input,
+.mp-prod__cover {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   0. 发丝线（微信官方 0.5px 方案：1px 边框 + scale(.5)，×2 后为 2px 边框）
+   ========================================================================== */
+.hair-t, .hair-b, .hair-l, .hair-r { position: relative; }
+.hair-t::before, .hair-b::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 0;
+  pointer-events: none;
+}
+.hair-t::before { top: 0; border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5); transform-origin: 0 0; }
+.hair-b::after  { bottom: 0; border-bottom: 2px solid var(--weui-FG-3); transform: scaleY(0.5); transform-origin: 0 100%; }
+
+/* ==========================================================================
+   1. Cells（列表单元格）—— 微信组件体系核心
+   （原型分区 1 的 .phone/.mp-status/.mp-nav/.mp-capsule/.mp-tabbar 不移植：
+     小程序用原生导航栏与 tabBar）
+   ========================================================================== */
+
+.weui-cells {
+  position: relative;
+  background: var(--weui-BG-2);
+  font-size: var(--weui-fs-cell);
+  line-height: var(--weui-lh);
+  overflow: hidden;
+}
+.weui-cells::before, .weui-cells::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 0; pointer-events: none;
+}
+.weui-cells::before { top: 0; border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5); transform-origin: 0 0; }
+.weui-cells::after  { bottom: 0; border-bottom: 2px solid var(--weui-FG-3); transform: scaleY(0.5); transform-origin: 0 100%; }
+.weui-cells.mt2 { margin-top: 16px; }
+.weui-cells.mt3 { margin-top: 24px; }
+
+.weui-cells__title {
+  padding: 32px 32px 16px;
+  font-size: var(--weui-fs-tips); color: var(--weui-FG-1); line-height: 1.4;
+}
+.weui-cells__tips {
+  padding: 16px 32px 0;
+  font-size: var(--weui-fs-tips); color: var(--weui-FG-1); line-height: 1.4;
+}
+
+.weui-cell {
+  position: relative;
+  padding: 32px;
+  display: flex; align-items: center;
+  min-height: 112px;
+}
+.weui-cell::before {
+  content: ""; position: absolute; left: 32px; right: 0; top: 0; height: 0;
+  border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5); transform-origin: 0 0;
+}
+.weui-cell:first-child::before { display: none; }
+.weui-cell__hd { flex: 0 0 auto; margin-right: 32px; }
+.weui-cell__bd { flex: 1 1 auto; min-width: 0; color: var(--weui-FG-0); }
+.weui-cell__ft {
+  flex: 0 0 auto; margin-left: 16px; text-align: right;
+  color: var(--weui-FG-1); font-size: var(--weui-fs-cell);
+  display: flex; align-items: center; gap: 12px;
+}
+.weui-cell__ft_in-access::after {
+  content: ""; width: 16px; height: 16px; margin-left: 4px;
+  border-top: 3.2px solid var(--weui-FG-2); border-right: 3.2px solid var(--weui-FG-2);
+  transform: rotate(45deg); flex: 0 0 auto;
+}
+.weui-cell_link { color: var(--weui-LINK); }
+.weui-cell_link .weui-cell__bd { color: var(--weui-LINK); }
+.weui-cell_switch { padding-top: 24px; padding-bottom: 24px; }
+.weui-cell_vertical { flex-direction: column; align-items: stretch; }
+
+/* 单元格内图标（原型中该类直接贴在 svg 上；weapp 请用于 Image/图标容器，
+   fill/stroke 等 svg 专属属性已丢弃） */
+.weui-cell__icon { width: 48px; height: 48px; }
+.weui-cell__icon--brand { color: var(--weui-BRAND); }
+
+/* ==========================================================================
+   2. Media box（图文列表项：商品行 / 消息行）
+   ========================================================================== */
+
+.weui-media-box {
+  padding: 32px; position: relative;
+  display: flex; align-items: flex-start;
+}
+.weui-media-box::before {
+  content: ""; position: absolute; left: 32px; right: 0; top: 0; height: 0;
+  border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5);
+}
+.weui-media-box:first-child::before { display: none; }
+.weui-media-box__hd { flex: 0 0 auto; margin-right: 24px; }
+.weui-media-box__thumb {
+  width: 144px; height: 144px; border-radius: var(--weui-radius);
+  background:
+    linear-gradient(160deg, rgba(77, 182, 229, 0.20), rgba(58, 155, 217, 0.06)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.55) 0 16px, transparent 16px 32px);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--weui-BRAND-DARK); font-size: 20px; font-weight: 600;
+  box-shadow: inset 0 0 0 2px rgba(58, 155, 217, 0.16);
+}
+.weui-media-box__thumb--sm { width: 96px; height: 96px; }
+.weui-media-box__bd { flex: 1 1 auto; min-width: 0; }
+.weui-media-box__title {
+  font-size: var(--weui-fs-cell); line-height: 1.4; font-weight: 400;
+  color: var(--weui-FG-0);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.weui-media-box__title--2 {
+  white-space: normal;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.weui-media-box__desc {
+  margin-top: 12px; font-size: var(--weui-fs-tips); line-height: 1.4; color: var(--weui-FG-1);
+}
+.weui-media-box__desc--2 {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.weui-media-box__info {
+  margin-top: 20px; font-size: 24px; color: var(--weui-FG-2);
+  display: flex; gap: 20px; flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   3. Panel / Grids / Loadmore
+   ========================================================================== */
+
+.weui-panel { background: var(--weui-BG-2); position: relative; overflow: hidden; }
+.weui-panel::before, .weui-panel::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 0;
+}
+.weui-panel::before { top: 0; border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5); }
+.weui-panel::after { bottom: 0; border-bottom: 2px solid var(--weui-FG-3); transform: scaleY(0.5); }
+.weui-panel__hd {
+  padding: 32px 32px 26px; font-size: var(--weui-fs-tips); color: var(--weui-FG-1);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.weui-panel__bd { background: var(--weui-BG-2); }
+.weui-panel__ft { padding: 28px 32px; text-align: center; font-size: var(--weui-fs-tips); color: var(--weui-LINK); }
+
+.weui-grids { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--weui-BG-2); }
+.weui-grid {
+  position: relative; padding: 40px 12px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.weui-grid__icon {
+  width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+  color: var(--weui-BRAND);
+}
+/* 原型 .weui-grid__icon svg 规则不移植（weapp 无 svg），容器类保留 */
+.weui-grid__label { font-size: var(--weui-fs-tips); color: var(--weui-FG-0); line-height: 1.2; }
+
+.weui-loadmore {
+  padding: 32px 0; text-align: center; font-size: var(--weui-fs-tips); color: var(--weui-FG-1);
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+}
+.weui-loadmore__line { width: 64px; height: 0; border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5); }
+.weui-loadmore_dot .weui-loadmore__dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--weui-FG-2);
+}
+/* 原型的旋转动画定义在 ui.css，此处补齐等价 spin，保证 loading 态可用 */
+.weui-loadmore_loading .spinner {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 4px solid var(--weui-FG-3); border-top-color: var(--weui-FG-1);
+  animation: weui-loading-spin 0.8s linear infinite;
+}
+@keyframes weui-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   4. 按钮（微信官方 Button）
+   ========================================================================== */
+
+.weui-btn {
+  display: flex; align-items: center; justify-content: center;
+  height: 96px; padding: 0 32px;
+  border: 0; border-radius: var(--weui-radius);
+  font-family: inherit; font-size: var(--weui-fs-btn); font-weight: 400;
+  background: var(--weui-BG-1); color: var(--weui-FG-0);
+  text-decoration: none;
+}
+.weui-btn_primary { background: var(--weui-BRAND); color: #fff; }
+.weui-btn_warn { background: var(--weui-RED); color: #fff; }
+.weui-btn_default { background: var(--weui-BG-1); color: var(--weui-FG-0); }
+.weui-btn_plain-primary { background: transparent; color: var(--weui-BRAND); box-shadow: inset 0 0 0 2px var(--weui-BRAND); }
+.weui-btn_plain-default { background: transparent; color: var(--weui-FG-0); box-shadow: inset 0 0 0 2px var(--weui-FG-3); }
+/* 原型另有 .weui-btn[disabled]，属性选择器 WXSS 不支持，禁用态统一走 _disabled 类 */
+.weui-btn_disabled { background: var(--weui-BG-1); color: rgba(0, 0, 0, 0.18); }
+.weui-btn_plain-primary.weui-btn_disabled { color: rgba(0, 0, 0, 0.18); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.09); }
+.weui-btn_mini {
+  display: inline-flex; height: 56px; padding: 0 24px;
+  font-size: 26px; border-radius: 8px; line-height: 1;
+}
+.weui-btn_xs {
+  display: inline-flex; height: 48px; padding: 0 20px;
+  font-size: 24px; border-radius: 8px; line-height: 1;
+}
+.weui-btn_area { padding: 32px; display: flex; gap: 24px; }
+.weui-btn.flex1 { flex: 1 1 0; }
+
+/* 底部固定操作栏（微信小程序常见：白底 + 发丝顶线 + 安全区）
+   原型靠 .phone 外壳 flex 贴底；weapp 页面使用时自行加 position:fixed + 底部安全区 */
+.mp-footbar {
+  flex: 0 0 auto; background: var(--weui-BG-2);
+  padding: 16px 32px; display: flex; align-items: center; gap: 24px;
+}
+.mp-footbar::before { border-top-color: var(--weui-FG-3); }
+.mp-footbar__info { flex: 1 1 auto; min-width: 0; }
+.mp-footbar__lbl { font-size: 24px; color: var(--weui-FG-1); line-height: 1.3; }
+.mp-footbar .weui-btn { min-width: 240px; }
+
+/* ==========================================================================
+   5. 表单控件
+   ========================================================================== */
+
+.weui-input {
+  width: 100%; height: 48px; border: 0; padding: 0; background: transparent;
+  font-family: inherit; font-size: var(--weui-fs-cell); line-height: 48px;
+  color: var(--weui-FG-0);
+}
+/* weapp Input 占位色建议用 placeholder-class="ph"；::placeholder 保留兜底 */
+.weui-input::placeholder, .weui-input .ph { color: var(--weui-FG-2); }
+.weui-textarea {
+  width: 100%; min-height: 192px; border: 0; padding: 32px; resize: none;
+  font-family: inherit; font-size: var(--weui-fs-cell); line-height: 1.5;
+  color: var(--weui-FG-0); background: var(--weui-BG-2);
+}
+.weui-textarea__counter { text-align: right; padding: 0 32px 24px; font-size: var(--weui-fs-tips); color: var(--weui-FG-1); }
+.weui-label { flex: 0 0 auto; margin-right: 32px; color: var(--weui-FG-0); }
+.weui-label--req::after { content: "*"; color: var(--weui-RED); margin-left: 6px; }
+
+/* 选择 / 输入框（灰底，微信小程序搜索与筛选常用） */
+.weui-input-box {
+  height: 72px; padding: 0 24px; border-radius: var(--weui-radius);
+  background: var(--weui-BG-1); display: flex; align-items: center;
+  font-size: var(--weui-fs-tips); color: var(--weui-FG-0);
+}
+.weui-input-box .ph { color: var(--weui-FG-2); }
+
+/* 微信原生开关（原型 51×31 → 102×62，on 用品牌色；旋钮位移为 weapp 补齐的官方交互） */
+.weui-switch {
+  width: 102px; height: 62px; border-radius: 32px; background: var(--weui-BG-1);
+  position: relative; flex: 0 0 auto;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.04);
+}
+.weui-switch::after {
+  content: ""; position: absolute; top: 4px; left: 4px; width: 54px; height: 54px;
+  border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+}
+.weui-switch.on { background: var(--weui-BRAND); }
+.weui-switch.on::after { transform: translateX(40px); }
+
+/* 微信原生单选 / 复选 */
+.weui-radio, .weui-checkbox {
+  width: 44px; height: 44px; flex: 0 0 auto; position: relative;
+  border: 2px solid var(--weui-FG-3); background: var(--weui-BG-2);
+}
+.weui-radio { border-radius: 50%; }
+.weui-checkbox { border-radius: 8px; }
+.weui-radio.on, .weui-checkbox.on { background: var(--weui-BRAND); border-color: var(--weui-BRAND); }
+.weui-radio.on::after {
+  content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; margin: auto;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+}
+.weui-checkbox.on::after {
+  content: ""; position: absolute; left: 14px; top: 8px;
+  width: 12px; height: 20px;
+  border-right: 4px solid #fff; border-bottom: 4px solid #fff;
+  transform: rotate(42deg);
+}
+.weui-checkbox--circle { border-radius: 50%; }
+
+/* 步进器（微信小程序数量步进） */
+.weui-stepper {
+  display: inline-flex; align-items: center; height: 56px;
+  background: var(--weui-BG-1); border-radius: 8px; overflow: hidden;
+}
+.weui-stepper__btn {
+  width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+  font-size: 36px; color: var(--weui-FG-0); line-height: 1;
+}
+.weui-stepper__btn.disabled { color: rgba(0, 0, 0, 0.18); }
+.weui-stepper__num {
+  min-width: 76px; text-align: center; font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-0); font-variant-numeric: tabular-nums;
+  background: var(--weui-BG-2);
+}
+
+/* ==========================================================================
+   6. 搜索栏（微信小程序搜索）
+   ========================================================================== */
+
+.weui-searchbar { display: flex; align-items: center; gap: 16px; padding: 16px 24px; }
+.weui-searchbar__box {
+  flex: 1 1 auto; height: 72px; border-radius: var(--weui-radius);
+  background: rgba(0, 0, 0, 0.05);
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-size: var(--weui-fs-tips); color: var(--weui-FG-2);
+}
+.weui-searchbar__box.start { justify-content: flex-start; padding: 0 24px; }
+/* 原型 .weui-searchbar__box svg 规则不移植（weapp 无 svg） */
+.weui-searchbar__box.on-brand { background: rgba(255, 255, 255, 0.94); color: var(--weui-FG-2); }
+.weui-searchbar__cancel { font-size: var(--weui-fs-tips); color: var(--weui-FG-1); }
+
+/* ==========================================================================
+   7. 分段控件 / Tabs
+   ========================================================================== */
+
+.weui-segmented {
+  display: inline-flex; background: rgba(0, 0, 0, 0.05); border-radius: var(--weui-radius);
+  padding: 4px; font-size: 28px;
+}
+.weui-segmented__item {
+  padding: 12px 36px; border-radius: 12px; color: var(--weui-FG-0);
+}
+.weui-segmented__item.on { background: var(--weui-BG-2); font-weight: 500; }
+
+.weui-tabs {
+  display: flex; background: var(--weui-BG-2);
+  overflow-x: auto; padding: 0 16px;
+}
+.weui-tabs::-webkit-scrollbar { height: 0; }
+.weui-tabs__item {
+  flex: 0 0 auto; padding: 24px 24px 20px; position: relative;
+  font-size: 30px; color: var(--weui-FG-1); white-space: nowrap;
+}
+.weui-tabs__item.on { color: var(--weui-FG-0); font-weight: 500; }
+.weui-tabs__item.on::after {
+  content: ""; position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%);
+  width: 40px; height: 6px; border-radius: 4px; background: var(--weui-BRAND);
+}
+.weui-tabs__item .cnt { font-size: 24px; color: var(--weui-FG-2); margin-left: 6px; }
+
+/* ==========================================================================
+   8. 反馈组件：Dialog / ActionSheet / HalfScreen / Toast / TopTips
+   （原型依赖 .phone 外壳定位，此处统一 position:fixed 贴视口）
+   ========================================================================== */
+
+.weui-mask { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: var(--weui-MASK); z-index: 1000; }
+
+.weui-dialog {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 560px; max-width: 84%;
+  background: var(--weui-BG-2); border-radius: var(--weui-radius-lg);
+  overflow: hidden; z-index: 1001; text-align: center;
+}
+.weui-dialog__hd { padding: 64px 48px 24px; }
+.weui-dialog__title { font-size: var(--weui-fs-title); font-weight: 500; line-height: 1.4; color: var(--weui-FG-0); }
+.weui-dialog__bd {
+  padding: 0 48px 56px; font-size: 30px; line-height: 1.5; color: var(--weui-FG-1);
+  max-height: 640px; overflow-y: auto;
+}
+.weui-dialog__ft { display: flex; position: relative; font-size: var(--weui-fs-title); line-height: 112px; }
+.weui-dialog__ft::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 0;
+  border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5);
+}
+.weui-dialog__btn { flex: 1; color: var(--weui-FG-0); position: relative; }
+.weui-dialog__btn + .weui-dialog__btn::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+  border-left: 2px solid var(--weui-FG-3); transform: scaleX(0.5);
+}
+.weui-dialog__btn_primary { color: var(--weui-BRAND); }
+.weui-dialog__btn_warn { color: var(--weui-RED); }
+.weui-dialog__btn_default { color: var(--weui-FG-0); }
+
+.weui-actionsheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001;
+  padding-bottom: 16px;
+}
+.weui-actionsheet__title {
+  padding: 32px 48px; font-size: var(--weui-fs-tips); color: var(--weui-FG-1);
+  text-align: center; background: var(--weui-BG-2);
+  border-radius: var(--weui-radius-lg) var(--weui-radius-lg) 0 0;
+}
+.weui-actionsheet__menu { background: var(--weui-BG-2); border-radius: var(--weui-radius-lg) var(--weui-radius-lg) 0 0; overflow: hidden; }
+.weui-actionsheet__cell {
+  padding: 34px 48px; text-align: center; font-size: var(--weui-fs-cell);
+  color: var(--weui-FG-0); position: relative;
+}
+.weui-actionsheet__cell::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 0;
+  border-top: 2px solid var(--weui-FG-3); transform: scaleY(0.5);
+}
+.weui-actionsheet__cell:first-child::before { display: none; }
+.weui-actionsheet__cell_warn { color: var(--weui-RED); }
+.weui-actionsheet__action { margin-top: 16px; background: var(--weui-BG-2); border-radius: var(--weui-radius-lg); overflow: hidden; }
+
+/* 半屏弹层（微信官方 half-screen-dialog，用于规格/收货地址/优惠券选择） */
+.weui-half {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001;
+  background: var(--weui-BG-2);
+  border-radius: var(--weui-radius-lg) var(--weui-radius-lg) 0 0;
+  max-height: 78%; display: flex; flex-direction: column; overflow: hidden;
+}
+.weui-half__hd {
+  flex: 0 0 auto; padding: 40px 40px 32px; position: relative; text-align: center;
+}
+.weui-half__title { font-size: var(--weui-fs-title); font-weight: 500; color: var(--weui-FG-0); }
+.weui-half__close {
+  position: absolute; right: 32px; top: 36px; width: 44px; height: 44px;
+}
+.weui-half__close::before, .weui-half__close::after {
+  content: ""; position: absolute; left: 0; top: 20px; width: 44px; height: 3px;
+  background: var(--weui-FG-1); border-radius: 2px;
+}
+.weui-half__close::before { transform: rotate(45deg); }
+.weui-half__close::after { transform: rotate(-45deg); }
+.weui-half__bd { flex: 1 1 auto; overflow-y: auto; padding-bottom: 16px; }
+.weui-half__bd::-webkit-scrollbar { width: 0; }
+
+.weui-toast {
+  position: fixed; left: 50%; top: 45%; transform: translate(-50%, -50%);
+  z-index: 1010; width: 272px; min-height: 272px; padding: 40px 32px;
+  background: rgba(17, 17, 17, 0.7); border-radius: var(--weui-radius-lg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  color: #fff;
+}
+.weui-toast__icon { width: 88px; height: 88px; }
+.weui-toast__text { font-size: 30px; line-height: 1.35; text-align: center; }
+.weui-toast_text { width: auto; min-height: 0; padding: 28px 36px; }
+
+.weui-toptips {
+  position: fixed; left: 0; right: 0; top: 176px; z-index: 1010;
+  padding: 24px 40px; font-size: 30px; line-height: 1.4;
+  background: var(--weui-RED); color: #fff;
+}
+
+/* ==========================================================================
+   9. 数据展示：标签 / 价格 / 徽标 / 进度 / 步骤 / 通告
+   ========================================================================== */
+
+.weui-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 36px; padding: 0 10px; border-radius: 6px;
+  font-size: 22px; line-height: 1; font-weight: 400; white-space: nowrap;
+  background: var(--weui-FG-3); color: var(--weui-FG-1);
+}
+.weui-tag--brand { background: var(--weui-BRAND-100); color: var(--weui-BRAND-DARK); }
+.weui-tag--red   { background: var(--weui-RED-100); color: var(--weui-RED); }
+.weui-tag--orange{ background: var(--weui-ORANGE-100); color: #C25E00; }
+.weui-tag--green { background: var(--weui-GREEN-100); color: #05994C; }
+.weui-tag--outline {
+  background: transparent; color: var(--weui-FG-1);
+  box-shadow: inset 0 0 0 1px var(--weui-FG-3);
+}
+.weui-tag--md { height: 44px; padding: 0 14px; font-size: 24px; }
+.weui-tag--goal { background: rgba(250, 81, 81, 0.10); color: var(--weui-RED); box-shadow: inset 0 0 0 1px rgba(250, 81, 81, 0.35); }
+.weui-tag--goal::before { content: "目标形态"; }
+
+/* 订单状态标签（10% tint 底 + 状态色文字，三端统一口径） */
+.weui-tag--pay     { background: var(--weui-ORANGE-100); color: #C25E00; }
+.weui-tag--assign  { background: var(--weui-BRAND-100);  color: var(--weui-BRAND-DARK); }
+.weui-tag--deliver { background: var(--weui-GREEN-100);  color: #05994C; }
+.weui-tag--done    { background: var(--weui-FG-3);       color: var(--weui-FG-1); }
+.weui-tag--cancel  { background: var(--weui-RED-100);    color: var(--weui-RED); }
+
+/* 价格（微信电商惯例红 + 品牌小数；em 相对字号不变） */
+.weui-price {
+  display: inline-flex; align-items: baseline; gap: 2px;
+  color: var(--weui-price); font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.weui-price__symbol { font-size: 0.62em; font-weight: 400; }
+.weui-price__int { font-size: 1em; }
+.weui-price__dec { font-size: 0.72em; }
+.weui-price--lg { font-size: 44px; }
+.weui-price--md { font-size: 34px; }
+.weui-price--sm { font-size: 30px; }
+.weui-price--gray { color: var(--weui-FG-1); }
+.weui-price--origin {
+  color: var(--weui-FG-2); font-size: 26px; font-weight: 400;
+  text-decoration: line-through; margin-left: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.weui-price--free { color: var(--weui-GREEN); font-size: 30px; }
+
+.weui-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; height: 36px; padding: 0 10px; border-radius: 18px;
+  background: var(--weui-RED); color: #fff; font-size: 24px; line-height: 1;
+}
+.weui-badge_dot { min-width: 16px; width: 16px; height: 16px; padding: 0; border-radius: 50%; }
+
+.weui-progress { height: 8px; border-radius: 4px; background: var(--weui-FG-3); overflow: hidden; }
+.weui-progress__bar { height: 100%; border-radius: 4px; background: var(--weui-BRAND); }
+
+.weui-steps { display: flex; }
+.weui-step { flex: 1 1 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.weui-step::before {
+  content: ""; position: absolute; top: 18px; left: 0; right: 50%; height: 2px;
+  background: var(--weui-FG-3); transform: scaleY(0.5);
+}
+.weui-step:first-child::before { display: none; }
+.weui-step.done::before { background: var(--weui-BRAND); }
+.weui-step__dot {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--weui-BG-2);
+  box-shadow: inset 0 0 0 3px var(--weui-FG-3);
+  position: relative; z-index: 1;
+}
+.weui-step.done .weui-step__dot { background: var(--weui-BRAND); box-shadow: none; }
+.weui-step__label { font-size: 24px; color: var(--weui-FG-1); }
+.weui-step.done .weui-step__label { color: var(--weui-FG-0); }
+
+.weui-notice {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 32px; font-size: var(--weui-fs-tips); line-height: 1.4;
+  background: var(--weui-ORANGE-100); color: #C25E00;
+}
+.weui-notice--brand { background: var(--weui-BRAND-100); color: var(--weui-BRAND-DARK); }
+.weui-notice--red { background: var(--weui-RED-100); color: var(--weui-RED); }
+/* 原型 .weui-notice svg 规则不移植（weapp 无 svg） */
+
+/* 图片上传（微信官方 uploader） */
+.weui-uploader { display: flex; gap: 20px; flex-wrap: wrap; }
+.weui-uploader__file {
+  width: 156px; height: 156px; border-radius: var(--weui-radius);
+  background: var(--weui-BG-1); position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--weui-FG-1);
+}
+.weui-uploader__input {
+  width: 156px; height: 156px; border-radius: var(--weui-radius);
+  background: var(--weui-BG-1); display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.weui-uploader__input::before, .weui-uploader__input::after {
+  content: ""; position: absolute; background: var(--weui-FG-2); border-radius: 2px;
+}
+.weui-uploader__input::before { width: 44px; height: 3px; }
+.weui-uploader__input::after { width: 3px; height: 44px; }
+
+/* ==========================================================================
+   10. 小程序电商组件（商品卡 / 资产卡 / 空态）
+   ========================================================================== */
+
+.mp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+
+/* 内容区左右留白（小程序页面 16rpx 内边距惯例）
+   原型的 .mp-pad .banner 依赖 ui.css，不移植；.mp-pad .weui-cells 保留 */
+.mp-pad { padding: 16px 16px 0; }
+.mp-pad .weui-cells { border-radius: var(--weui-radius); }
+.mp-pad-16 { padding: 0 32px; }
+
+.mp-prod {
+  background: var(--weui-BG-2); border-radius: var(--weui-radius); overflow: hidden;
+}
+/* 1:1 封面：weapp 不支持 aspect-ratio，用 padding-bottom:100% 占位 hack 撑高；
+   子节点（Image/占位文字）请用 position:absolute; left:0; top:0; width:100%;
+   height:100% 铺满该容器 */
+.mp-prod__cover {
+  position: relative; width: 100%; height: 0; padding-bottom: 100%;
+  overflow: hidden;
+  background:
+    linear-gradient(160deg, rgba(77, 182, 229, 0.22), rgba(58, 155, 217, 0.06)),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.55) 0 16px, transparent 16px 32px);
+  color: var(--weui-BRAND-DARK); font-size: 22px; font-weight: 600;
+}
+.mp-prod__body { padding: 16px 20px 20px; }
+.mp-prod__name {
+  font-size: 30px; line-height: 1.35; color: var(--weui-FG-0);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.mp-prod__desc {
+  margin-top: 8px; font-size: 24px; color: var(--weui-FG-1);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mp-prod__foot { margin-top: 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.mp-prod__cart {
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--weui-BRAND); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; line-height: 1;
+}
+
+/* 资产 / 统计卡（小程序「我的」与工作台常用） */
+.mp-statgrid {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  background: var(--weui-BG-2); position: relative;
+}
+.mp-statgrid__item { padding: 28px 8px; text-align: center; position: relative; }
+.mp-statgrid__item + .mp-statgrid__item::before {
+  content: ""; position: absolute; left: 0; top: 28px; bottom: 28px; width: 0;
+  border-left: 2px solid var(--weui-FG-3); transform: scaleX(0.5);
+}
+.mp-statgrid__num {
+  font-size: 38px; font-weight: 500; color: var(--weui-FG-0);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.mp-statgrid__num .unit { font-size: 24px; font-weight: 400; margin-left: 2px; }
+.mp-statgrid__lbl { margin-top: 10px; font-size: 24px; color: var(--weui-FG-1); }
+
+/* 空态（微信小程序：纯灰底 + 品牌蓝 tint 圆 + 文案） */
+.weui-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px; padding: 128px 64px; text-align: center;
+}
+.weui-empty__icon {
+  width: 168px; height: 168px; border-radius: 50%;
+  background: var(--weui-BRAND-100);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--weui-BRAND);
+}
+/* 原型 .weui-empty__icon svg 规则不移植（weapp 无 svg），容器类保留 */
+.weui-empty__text { font-size: var(--weui-fs-tips); color: var(--weui-FG-1); line-height: 1.5; }

@@ -1,6 +1,6 @@
 import React from 'react'
-import { View, Text, Button } from '@tarojs/components'
-import { displayCents } from '@aquarush/common'
+import { View, Text } from '@tarojs/components'
+import { Money } from '@aquarush/common'
 import './BottomActions.scss'
 
 interface BottomActionsProps {
@@ -13,6 +13,10 @@ interface BottomActionsProps {
   onSubmit: () => void
 }
 
+/**
+ * 底部操作栏 —— WeUI .mp-footbar(信息列「已优惠 + 实付 .weui-price--lg」+「提交订单」主按钮,
+ * 设计稿 02-order/order-confirm.html;track* 埋点属性由编译期插件改写,原样保留)
+ */
 const BottomActions: React.FC<BottomActionsProps> = ({
   totalAmount,
   loading,
@@ -21,29 +25,28 @@ const BottomActions: React.FC<BottomActionsProps> = ({
   onSubmit
 }) => {
   return (
-    <View className='bottom-actions'>
-      <View className='total-info'>
-        <View className='total-row'>
-          <Text className='total-label'>合计：</Text>
-          <Text className='total-amount'>{displayCents(totalAmount)}</Text>
-        </View>
+    <View className='mp-footbar hair-t bottom-actions'>
+      <View className='mp-footbar__info total-info'>
         {discountCents > 0 && (
-          <Text className='total-discount'>已优惠 {displayCents(discountCents)}</Text>
+          <View className='mp-footbar__lbl total-discount'>
+            已优惠 <Text className='weui-price weui-price--sm'><Money cents={discountCents} /></Text>
+          </View>
         )}
+        <Text className='weui-price weui-price--lg'>
+          <Money cents={totalAmount} />
+        </Text>
       </View>
-      <Button
-        trackTarget="order-submit"
-        trackAction="FORM_SUBMIT"
-        trackElementType="button"
-        trackElementText="提交订单"
+      <View
+        className={`weui-btn weui-btn_primary${disabled || loading ? ' weui-btn_disabled' : ''}`}
+        trackTarget='order-submit'
+        trackAction='FORM_SUBMIT'
+        trackElementType='button'
+        trackElementText='提交订单'
         trackDisabled={disabled || loading}
-        onClick={onSubmit}
-        className='submit-button'
-        loading={loading}
-        disabled={disabled || loading}
+        onClick={disabled || loading ? undefined : onSubmit}
       >
         {loading ? '提交中...' : '提交订单'}
-      </Button>
+      </View>
     </View>
   )
 }

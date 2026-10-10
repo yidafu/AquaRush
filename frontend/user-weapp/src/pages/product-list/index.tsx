@@ -1,28 +1,24 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { View, Text } from '@tarojs/components'
-import { AtSearchBar, AtLoadMore, AtButton } from 'taro-ui'
+import { View, Text, Input } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh, useShareAppMessage } from '@tarojs/taro'
 import ProductService from '../../services/ProductService'
-import { syncCartTabBadge } from '../../utils/cart'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
+import EmptyState from '../../components/EmptyState'
 
 // 子组件
 import ProductCard from './components/ProductCard'
 import SortBar from './components/SortBar'
 import type { ProductListItem } from './components/constants'
 
-import "taro-ui/dist/style/components/search-bar.scss"
-import "taro-ui/dist/style/components/load-more.scss"
-import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
 
 /**
- * 全部商品列表页
+ * 全部商品列表页(product-list.html:WeUI 搜索页)
  * 首页「更多商品 > 更多」入口(以及后续搜索入口)落地页。
  * - 支持关键词搜索(服务端过滤,activeProducts.keyword)
- * - 排序:综合(最新上架) / 销量 / 价格(asc↔desc 切换)
- * - 分页:上拉加载更多(useReachBottom),下拉刷新
+ * - 排序:综合(最新上架) / 销量 / 价格(asc↔desc 切换,.weui-segmented)
+ * - 分页:上拉加载更多(useReachBottom,.weui-loadmore),下拉刷新
  * - 促销价展示走 R-MKT-02 单价链(priceSource/effectivePriceCents,见 utils/productPrice)
  * 渲染由 components/ 完成。
  */
@@ -60,7 +56,6 @@ const ProductListPage: React.FC = () => {
 
   useEffect(() => {
     // tabBar 角标同步(不触发数据请求)
-    syncCartTabBadge()
   }, [])
 
   const resolveSort = useCallback((): { sortBy: string; sortDirection: string } => {
@@ -166,6 +161,11 @@ const ProductListPage: React.FC = () => {
     loadProducts(0, false, { keyword })
   }, [keyword, loadProducts])
 
+  const handleClearFilter = useCallback(() => {
+    setKeyword('')
+    loadProducts(0, false, { keyword: '' })
+  }, [loadProducts])
+
   const handleSortClick = useCallback((key: string) => {
     userActionTracker.track('CLICK', 'product-list-sort', {
       elementType: 'tab',
@@ -195,23 +195,29 @@ const ProductListPage: React.FC = () => {
 
   return (
     <View className='product-list-page'>
-      {/* 搜索栏(关键词过滤,服务端 activeProducts.keyword) */}
+      {/* 搜索栏(关键词过滤,服务端 activeProducts.keyword;product-list.html .weui-searchbar) */}
       <View className='search-bar-wrap'>
-        <AtSearchBar
-          value={keyword}
-          onChange={(v) => setKeyword(v)}
-          onConfirm={handleSearch}
-          onActionClick={handleSearch}
-          onClear={() => {
-            setKeyword('')
-            loadProducts(0, false, { keyword: '' })
-          }}
-          placeholder='搜索商品名称'
-          showActionButton
-        />
+        <View className='weui-searchbar'>
+          <View
+            className='weui-searchbar__box start'
+            trackTarget='product-list-search'
+            trackElementType='input'
+            trackElementText='搜索商品'
+          >
+            <View className='search-icon' />
+            <Input
+              className='search-input'
+              value={keyword}
+              onInput={(e) => setKeyword(e.detail.value)}
+              onConfirm={handleSearch}
+              placeholder='搜索商品名称'
+              confirmType='search'
+            />
+          </View>
+        </View>
       </View>
 
-      {/* 排序 Tab */}
+      {/* 排序分段控件(综合/销量/价格)+ 总数 */}
       <SortBar
         activeSort={activeSort}
         priceAsc={priceAsc}
@@ -219,25 +225,30 @@ const ProductListPage: React.FC = () => {
         onSortClick={handleSortClick}
       />
 
-      {/* 商品网格(2 列) */}
+      {/* 商品网格(2 列,.mp-grid2) */}
       {loading ? (
-        <View className='state-box'>
-          <Text className='state-text'>加载中...</Text>
+        <View className='weui-loadmore weui-loadmore_loading'>
+          <View className='spinner' />
+          <Text>加载中...</Text>
         </View>
       ) : error ? (
-        <View className='state-box'>
-          <Text className='state-title'>加载失败</Text>
-          <Text className='state-text'>{error}</Text>
-          <AtButton size='small' type='primary' onClick={() => loadProducts(0, false)} className='retry-btn'>重试</AtButton>
-        </View>
+        <EmptyState
+          icon='⚠️'
+          title='加载失败'
+          description={error}
+          actionText='重试'
+          onAction={() => loadProducts(0, false)}
+        />
       ) : products.length === 0 ? (
-        <View className='state-box'>
-          <Text className='state-icon'>📦</Text>
-          <Text className='state-title'>暂无商品</Text>
-          <Text className='state-text'>{keyword ? '换个关键词试试吧' : '商品正在上架中，敬请期待'}</Text>
-        </View>
+        <EmptyState
+          icon='🔍'
+          title='没有找到相关商品'
+          description={keyword ? '换个关键词或调整筛选条件试试' : '商品正在上架中，敬请期待'}
+          actionText={keyword ? '清空筛选' : undefined}
+          onAction={keyword ? handleClearFilter : undefined}
+        />
       ) : (
-        <View className='product-grid'>
+        <View className='mp-grid2'>
           {products.map((p) => (
             <ProductCard
               key={p.id}
@@ -248,11 +259,12 @@ const ProductListPage: React.FC = () => {
         </View>
       )}
 
-      {/* 加载更多指示 */}
+      {/* 加载更多指示(.weui-loadmore 双短线) */}
       {!loading && !error && products.length > 0 && (
-        <View className='load-more-wrap'>
-          {loadingMore && <AtLoadMore status='loading' loadingText='加载更多...' />}
-          {!hasMore && <AtLoadMore status='noMore' noMoreText='没有更多了' />}
+        <View className='weui-loadmore'>
+          <View className='weui-loadmore__line' />
+          <Text>{loadingMore ? '加载更多…' : '没有更多了'}</Text>
+          <View className='weui-loadmore__line' />
         </View>
       )}
 

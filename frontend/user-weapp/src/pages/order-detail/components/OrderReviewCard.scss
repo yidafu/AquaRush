@@ -1,33 +1,30 @@
-@import "../../../styles/theme.scss";
+// 我的评价卡:WeUI cells 骨架由 weui.scss 提供,星级走共享 StarRating(品牌蓝)
+.review-card {
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-/* 订单评价展示(F-ORD-007) */
-.review-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+  .review-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
 
-.review-stars {
-  display: flex;
-  gap: 4px;
-}
+  .review-time {
+    flex: 0 0 auto;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-2);
+    font-variant-numeric: tabular-nums;
+  }
 
-.review-star {
-  font-size: 32px;
-  color: var(--text-weak);
-}
-
-.review-star.active {
-  color: #ffb800;
-}
-
-.review-comment {
-  font-size: 26px;
-  color: var(--text-main);
-  line-height: 1.6;
-}
-
-.review-time {
-  font-size: 22px;
-  color: var(--text-sub);
+  .review-comment {
+    display: block;
+    margin-top: 24px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-0);
+    line-height: 1.6;
+  }
 }

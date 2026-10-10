@@ -1,28 +1,26 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import CustomIcon from '@/components/CustomIcon'
 
 import './AddressBar.scss'
 
 interface AddressBarProps {
   addressText: string
   onAddressClick: () => void
-  onSearchClick: () => void
 }
 
 /**
- * ① 顶部地址栏(44px 白底固定顶部,右侧搜索入口)
+ * 渐变 hero 内定位行(home.html .hero-loc):
+ * 图钉图标 + 收货地址 + 「切换」;点击进地址列表选择。
  */
-const AddressBar: React.FC<AddressBarProps> = ({ addressText, onAddressClick, onSearchClick }) => {
+const AddressBar: React.FC<AddressBarProps> = ({ addressText, onAddressClick }) => {
   return (
-    <View className='address-bar'>
-      <View className='address-bar-left' onClick={onAddressClick}>
-        <Text className='address-location-icon'>📍</Text>
-        <Text className='address-text' numberOfLines={1}>{addressText}</Text>
-        <Text className='address-arrow'>▾</Text>
+    <View className='address-bar' onClick={onAddressClick}>
+      <View className='address-pin'>
+        <CustomIcon value='/assets/icons/service/map-pin' size={16} />
       </View>
-      <View className='address-bar-right' onClick={onSearchClick}>
-        <Text className='search-icon'>🔍</Text>
-      </View>
+      <Text className='address-text' numberOfLines={1}>{addressText}</Text>
+      <Text className='address-more'>切换 ▾</Text>
     </View>
   )
 }

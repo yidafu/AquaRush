@@ -1,10 +1,7 @@
 import React from 'react'
-import { View, Text } from '@tarojs/components'
-import { AtInput, AtDivider } from 'taro-ui'
+import { View, Text, Input } from '@tarojs/components'
 import AvatarUpload from '../components/AvatarUpload'
 
-import "taro-ui/dist/style/components/input.scss"
-import "taro-ui/dist/style/components/divider.scss"
 import './BasicInfoForm.scss'
 
 interface BasicInfoFormProps {
@@ -19,7 +16,9 @@ interface BasicInfoFormProps {
 }
 
 /**
- * 基本信息表单区块(头像上传 + 昵称 + 手机号,由页面外层 AtForm 包裹)
+ * 基本信息表单区块(profile-edit.html:weui-cells 分组 ——
+ * 头像行(圆形缩略图)/ 昵称行(.weui-label + .weui-input)/ 手机号行;
+ * 校验与提交逻辑由页面编排,此处仅渲染)
  */
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   avatarUrl,
@@ -32,67 +31,75 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   onInputChange
 }) => {
   return (
-    <>
-      {/* 头像上传 */}
-      <View className='form-section avatar-section'>
-        <Text className='section-title'>头像</Text>
-        <View className='avatar-upload-wrapper'>
+    <View className='weui-cells mt2 profile-cells'>
+      {/* 头像行 */}
+      <View className='weui-cell'>
+        <View className='weui-cell__bd'>
+          <Text>头像</Text>
+        </View>
+        <View className='weui-cell__ft profile-avatar-ft'>
           <AvatarUpload
             currentAvatar={avatarUrl}
             onAvatarChange={onAvatarChange}
             onError={onAvatarError}
             disabled={loading}
-            size='large'
           />
         </View>
-        {errors.avatarUrl && (
-          <Text className='error-text'>{errors.avatarUrl}</Text>
-        )}
       </View>
+      {errors.avatarUrl && (
+        <View className='field-error'>
+          <Text>{errors.avatarUrl}</Text>
+        </View>
+      )}
 
-      <AtDivider />
-
-      {/* 基本信息 */}
-      <View className='form-section'>
-        <Text className='section-title'>基本信息</Text>
-
-        <AtInput
-          name='nickname'
-          title='昵称'
-          type='text'
-          placeholder='请输入昵称（2-20个字符）'
-          value={nickname}
-          onChange={(value) => onInputChange('nickname', value as string)}
-          error={!!errors.nickname}
-          disabled={loading}
-          maxLength={20}
-          clear
-        />
-        {errors.nickname && (
-          <View className='error-message'>
-            <Text className='error-text'>{errors.nickname}</Text>
-          </View>
-        )}
-
-        <AtInput
-          name='phone'
-          title='手机号'
-          type='phone'
-          placeholder='请输入手机号'
-          value={phone}
-          onChange={(value) => onInputChange('phone', value as string)}
-          error={!!errors.phone}
-          disabled={loading}
-          maxLength={11}
-          clear
-        />
-        {errors.phone && (
-          <View className='error-message'>
-            <Text className='error-text'>{errors.phone}</Text>
-          </View>
-        )}
+      {/* 昵称行 */}
+      <View className='weui-cell'>
+        <View className='weui-cell__hd'>
+          <View className='weui-label'>昵称</View>
+        </View>
+        <View className='weui-cell__bd'>
+          <Input
+            className='weui-input'
+            placeholderClass='ph'
+            type='text'
+            maxlength={20}
+            placeholder='请输入昵称（2-20个字符）'
+            value={nickname}
+            onInput={(e) => onInputChange('nickname', e.detail.value)}
+            disabled={loading}
+          />
+        </View>
       </View>
-    </>
+      {errors.nickname && (
+        <View className='field-error'>
+          <Text>{errors.nickname}</Text>
+        </View>
+      )}
+
+      {/* 手机号行 */}
+      <View className='weui-cell'>
+        <View className='weui-cell__hd'>
+          <View className='weui-label'>手机号</View>
+        </View>
+        <View className='weui-cell__bd'>
+          <Input
+            className='weui-input'
+            placeholderClass='ph'
+            type='number'
+            maxlength={11}
+            placeholder='请输入手机号'
+            value={phone}
+            onInput={(e) => onInputChange('phone', e.detail.value)}
+            disabled={loading}
+          />
+        </View>
+      </View>
+      {errors.phone && (
+        <View className='field-error'>
+          <Text>{errors.phone}</Text>
+        </View>
+      )}
+    </View>
   )
 }
 

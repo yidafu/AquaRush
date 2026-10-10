@@ -1,114 +1,143 @@
 @import "../../styles/theme.scss";
 
 // ============================================================
-// 首页(user-weapp §1 首屏详设)
-// 布局:地址栏 → 品牌 Banner → 活动轮播 → 时效卡 → 最常买 → 更多商品
-// 全颜色走设计 token;强调橙(#FF5436)仅出现在「立即订水」CTA
-// 注意:designWidth 750 下 px→rpx 1:1,此处 px 按小程序刻度书写
-// (28px = 28rpx = 物理 14px,与订单/购物车等页面一致)
-// 商品卡/公告栏/地址栏/轮播/时效卡样式已随组件迁至 components/
+// 首页(spec/design/user-weapp/01-product/home.html)
+// 布局:渐变 hero(定位行+搜索框)→ 轮播(.banner)→ 通告(.weui-notice)
+//      → 四宫格(.weui-grids)→ 推荐产品(.mp-grid2)→ Loadmore
+// 页面底 var(--weui-BG-0)(#EDEDED,WeUI 官方);颜色一律 token
+// 数值按 ×2 刻度书写(designWidth 750,源码 1px = 1rpx)
 // ============================================================
 
 .home-page {
   min-height: 100vh;
-  background-color: var(--bg);
-  padding: 0 var(--spacing-lg) var(--spacing-xl);
+  background-color: var(--weui-BG-0);
+  padding-bottom: var(--spacing-xl);
 }
 
-// ---- ② 品牌水站 Banner(清水蓝渐变,信任条) ----
-.brand-banner {
-  display: flex;
-  align-items: center;
-  margin-top: var(--spacing-md);
-  padding: 40px var(--spacing-lg);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+// ---- ① 渐变 hero(原型 .hero:品牌渐变 + 装饰圆 + 定位行 + 白底搜索框) ----
+.home-hero {
+  position: relative;
   overflow: hidden;
+  padding: 24px 32px 32px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
 
-  .brand-banner-text {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  // 原型 .hero::before/::after 装饰圆(右上两个白色半透明圆)
+  &::before {
+    content: '';
+    position: absolute;
+    right: -80px;
+    top: -60px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
   }
 
-  .brand-banner-title {
-    font-size: 36px;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1.4;
+  &::after {
+    content: '';
+    position: absolute;
+    right: 80px;
+    top: 120px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
   }
 
-  .brand-banner-subtitle {
-    font-size: 28px;
-    color: rgba(255, 255, 255, 0.85);
-  }
-}
+  // 白底搜索框(原型 .weui-searchbar__box.on-brand,weui 类自带底色/圆角/行高)
+  .home-search {
+    position: relative;
+    z-index: 1;
+    margin-top: 20px;
 
-// ---- 区块通用(section-header/section-title 复用 styles/common.scss) ----
-.section-block {
-  margin-top: var(--spacing-xl);
-}
-
-// ---- ⑤ 最常买 · 快捷购买区(横滑卡片) ----
-.hot-scroll {
-  width: 100%;
-  white-space: nowrap;
-
-  .hot-list {
-    display: inline-flex;
-    gap: var(--spacing-md);
-    padding-bottom: 8px;
-  }
-}
-
-// ---- ⑥ 更多商品(≤3,无无限滚动) ----
-.more-list {
-  .more-card:last-child {
-    margin-bottom: 0;
+    .home-search__ph {
+      color: var(--weui-FG-2);
+    }
   }
 }
 
-// 「更多」入口(→ 全部商品列表页):48px 触达 + 按下主色反馈
-.section-extra {
-  min-height: 48px;
+// 搜索放大镜(weapp 无 svg,用 CSS 画:圆环 + 斜柄)
+.search-glyph {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--weui-FG-2);
+  border-radius: 50%;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -9px;
+    bottom: -7px;
+    width: 12px;
+    height: 3px;
+    background: var(--weui-FG-2);
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+}
+
+// 轮播区外留白(容器样式见 CarouselSection.scss,对齐原型 .banner)
+.home-page .mp-pad {
+  padding: 16px 16px 0;
+}
+
+// ---- ④ 快捷入口四宫格(原型 .weui-cells 包裹 + 上下 8px 内边距) ----
+.home-grids-cells {
+  margin-top: 16px;
+  padding: 8px 0;
+  background: var(--weui-BG-2);
+}
+
+// 四宫格图标 tint 底(weapp 无 svg,CustomIcon 图标置入 60px 容器居中)
+.home-grids-cells .weui-grid__icon {
+  border-radius: 50%;
+  background: var(--weui-BRAND-100);
+}
+
+// ---- ⑤ 推荐产品两列网格(.mp-grid2/.mp-prod 由 weui.scss 提供) ----
+.prod-price-col {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.prod-price-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.prod-tag-row {
+  margin-top: 8px;
   display: flex;
   align-items: center;
-  padding-left: var(--spacing-sm);
-
-  &:active {
-    color: var(--brand-primary);
-  }
+  gap: 8px;
 }
 
-// ---- 加载/错误/空态 ----
-.loading-box,
-.error-box,
-.empty-box {
+// 封面:1:1 hack 容器(.mp-prod__cover)内子元素绝对定位铺满
+.prod-cover-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// 无图占位:品牌 tint 底(.mp-prod__cover 自带)+ 商品名首字
+.prod-cover-placeholder {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
-  min-height: 240px;
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
 
-  .loading-text,
-  .empty-text {
-    font-size: 28px;
-    color: var(--text-weak);
-  }
-
-  .error-text {
-    font-size: 28px;
-    color: var(--error);
-  }
-
-  .retry-btn {
-    width: 240px;
-    background: var(--brand-primary) !important;
-    border-radius: var(--radius-btn) !important;
-    border: none !important;
+  text {
+    font-size: 64px;
+    font-weight: 600;
+    color: var(--weui-BRAND-DARK);
   }
 }

@@ -16,7 +16,8 @@ interface CostSummaryProps {
 }
 
 /**
- * 费用明细(F-ORD-023 服务端计价展示)
+ * 金额明细(F-ORD-023 服务端计价展示)—— WeUI .weui-cells 组
+ * (设计稿 02-order/order-confirm.html「金额明细」)。
  * 行数据全部由 buildCostRows(preview) 派生:商品金额 / 水票抵扣(-¥x,桶数入标签)/
  * 满减或首单立减 / 优惠券 / 赠品(¥0.00) / 配送费 / 实付;计价失败/未就绪态内联展示。
  */
@@ -30,28 +31,38 @@ const CostSummary: React.FC<CostSummaryProps> = ({
 
   return (
     <View className='cost-section'>
+      <View className='weui-cells__title'>金额明细</View>
+
       {/* 计价刷新中(细条提示,不占独立区块) */}
       {preview && loading && !error && (
-        <View className='cost-hint'>
-          <Text className='cost-hint-text'>价格更新中…</Text>
+        <View className='weui-cells__tips cost-hint'>
+          <Text>价格更新中…</Text>
         </View>
       )}
 
       {/* 计价失败:内联重试行 */}
       {error && (
-        <View className='cost-item cost-error-row' onClick={onRetry}>
-          <Text className='cost-label'>计价失败</Text>
-          <Text className='cost-value cost-error-text'>{error}，点击重试</Text>
+        <View className='weui-cells'>
+          <View className='weui-cell' onClick={onRetry}>
+            <View className='weui-cell__bd'>计价失败</View>
+            <View className='weui-cell__ft cost-error-text'>{error}，点击重试</View>
+          </View>
         </View>
       )}
 
       {rows.length > 0 ? (
-        <CostRowList rows={rows} />
+        <View className='weui-cells'>
+          <View className='weui-cell weui-cell_vertical'>
+            <CostRowList rows={rows} />
+          </View>
+        </View>
       ) : (
         !error && (
-          <View className='cost-item'>
-            <Text className='cost-label'>费用明细</Text>
-            <Text className='cost-value'>价格计算中...</Text>
+          <View className='weui-cells'>
+            <View className='weui-cell'>
+              <View className='weui-cell__bd'>费用明细</View>
+              <View className='weui-cell__ft'>价格计算中...</View>
+            </View>
           </View>
         )
       )}

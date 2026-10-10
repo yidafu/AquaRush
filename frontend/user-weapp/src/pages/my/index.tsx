@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton, AtToast } from 'taro-ui'
+import { AtToast } from 'taro-ui'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
+import AssetsEntry from './components/AssetsEntry'
 import OrderSection from './components/OrderSection'
 import ServiceSection from './components/ServiceSection'
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
+import { userActionTracker } from '../../utils/tracking'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import NotificationService from '../../services/NotificationService'
 import OrderService from '../../services/OrderService'
 import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
+import { PENDING_ORDER_TAB_STORAGE_KEY } from '../order-list/components/constants'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
-import 'taro-ui/dist/style/components/button.scss'
 
 interface OrderStats {
   pendingPayment: number
@@ -283,9 +285,17 @@ const MyPage: React.FC = () => {
     }
   }
 
+  // 订单宫格入口 → order-list。order-list 是 tabBar 页,switchTab 不能携带
+  // 查询参数,目标 tab 经 storage key 接力(order-list 读后即清)。
   const handleOrderNavigation = (type: string): void => {
-    Taro.navigateTo({
-      url: `/pages/order-list/index?tab=${type}`
+    userActionTracker.track('CLICK', 'my-order-grid', {
+      elementType: 'grid',
+      elementText: type,
+      properties: { orderTab: type }
+    })
+    Taro.setStorageSync(PENDING_ORDER_TAB_STORAGE_KEY, type)
+    Taro.switchTab({
+      url: '/pages/order-list/index'
     })
   }
 
@@ -335,29 +345,42 @@ const MyPage: React.FC = () => {
 
   return (
     <View className='my-page'>
-      {/* 用户信息区域 */}
+      {/* 渐变头部(头像/昵称/手机号,点击弹头像昵称表单或触发登录) */}
       <UserSection
         userInfo={userInfo}
         onProfileEdit={handleProfileEdit}
       />
 
-      {/* 订单区域 */}
+      {/* 「我的资产」聚合入口(单 cell → assets 聚合页) */}
+      <AssetsEntry />
+
+      {/* 「我的订单」(.weui-panel + .weui-grids 五列) */}
       <OrderSection
         orderStats={orderStats}
         onOrderNavigation={handleOrderNavigation}
       />
 
-      {/* 服务区域 */}
+      {/* 「常用服务」(8 行 weui-cells) */}
       <ServiceSection unreadCount={unreadCount} />
 
-      {/* 其他设置 */}
+      {/* 退出登录(语义红,二次确认) */}
       {authService.isAuthenticated() && (
-        <View className='logout-section'>
-          <AtButton className='logout-button' onClick={handleLogout}>
-            退出登录
-          </AtButton>
+        <View className='weui-cells logout-cells'>
+          <View
+            className='weui-cell'
+            trackTarget='my-logout'
+            trackElementType='cell'
+            trackElementText='退出登录'
+            onClick={handleLogout}
+          >
+            <View className='weui-cell__bd'>
+              <Text className='logout-text'>退出登录</Text>
+            </View>
+            <View className='weui-cell__ft weui-cell__ft_in-access' />
+          </View>
         </View>
       )}
+
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
 

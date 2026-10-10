@@ -1,10 +1,7 @@
 import React from 'react'
 import { View, Text, Picker } from '@tarojs/components'
-import { AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
 import { Region } from '../../../types/region'
 
-import "taro-ui/dist/style/components/list.scss"
-import "taro-ui/dist/style/components/activity-indicator.scss"
 import './RegionPickerField.scss'
 
 interface RegionPickerFieldProps {
@@ -28,7 +25,8 @@ interface RegionPickerFieldProps {
 }
 
 /**
- * 省市区三级联动选择器(地区级联加载,加载中禁用并展示 ActivityIndicator)
+ * 省市区三级联动选择器(address-edit.html:weui-cell + .weui-cell__ft_in-access 地区文案;
+ * 地区级联加载,加载中禁用并展示加载提示)
  */
 const RegionPickerField: React.FC<RegionPickerFieldProps> = ({
   provinces,
@@ -41,9 +39,11 @@ const RegionPickerField: React.FC<RegionPickerFieldProps> = ({
   handlePickerChange,
   error
 }) => {
+  const regionLoading = loading.provinces || loading.cities || loading.districts
+
   return (
     <>
-      {/* 地区选择 */}
+      {/* 地区选择(Picker 包裹 weui-cell,级联加载逻辑不变) */}
       {provinces.length > 0 ? (
         <Picker
           mode='multiSelector'
@@ -59,33 +59,32 @@ const RegionPickerField: React.FC<RegionPickerFieldProps> = ({
           ]}
           onColumnChange={handleColumnChange}
           onChange={handlePickerChange}
+          disabled={regionLoading}
         >
-          <AtList>
-            <AtListItem
-              title='所在地区'
-              extraText={getFullRegionText() || '请选择省市区'}
-              arrow='right'
-            />
-          </AtList>
+          <View className='weui-cell address-field-cell'>
+            <View className='weui-cell__hd'>
+              <View className='weui-label weui-label--req'>所在地区</View>
+            </View>
+            <View className='weui-cell__bd' />
+            <View className={`weui-cell__ft weui-cell__ft_in-access ${getFullRegionText() ? '' : 'region-placeholder'}`}>
+              <Text>{regionLoading ? '正在加载地区数据...' : (getFullRegionText() || '请选择省市区')}</Text>
+            </View>
+          </View>
         </Picker>
       ) : (
-        <AtList>
-          <AtListItem
-            title='所在地区'
-            extraText='正在加载地区数据...'
-            arrow='right'
-            disabled={true}
-          />
-        </AtList>
+        <View className='weui-cell address-field-cell'>
+          <View className='weui-cell__hd'>
+            <View className='weui-label weui-label--req'>所在地区</View>
+          </View>
+          <View className='weui-cell__bd' />
+          <View className='weui-cell__ft weui-cell__ft_in-access region-placeholder'>
+            <Text>正在加载地区数据...</Text>
+          </View>
+        </View>
       )}
       {error && (
-        <Text className='input-hint error-text'>{error}</Text>
-      )}
-
-      {/* Loading indicator for regions */}
-      {(loading.provinces || loading.cities || loading.districts) && (
-        <View className='region-loading'>
-          <AtActivityIndicator content='加载地区数据...' />
+        <View className='field-error'>
+          <Text>{error}</Text>
         </View>
       )}
     </>

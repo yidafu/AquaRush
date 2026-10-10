@@ -1,75 +1,67 @@
+// 收货地址卡(CRUD):WeUI 度量 —— 白卡圆角 16、发丝线、主文字 34/说明 28、间距 32
 .address-card {
-  background-color: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  background-color: var(--weui-BG-2);
+  border-radius: var(--weui-radius);
+  padding: 32px;
   margin-bottom: 24px;
-  padding: 36px;
-  transition: all 0.3s ease;
-  border: 1px solid var(--border);
+  box-shadow: inset 0 0 0 2px var(--weui-FG-3);
 
-  &:hover {
-    box-shadow: var(--shadow-modal);
-    transform: translateY(-4px);
+  .address-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
   }
 
-  .name {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-main);
-    min-width: 120px;
+  .address-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
   }
 
-  .default-badge {
-    background: var(--brand-primary-light); // 默认标签:tint 底 + 主色字(§2.2)
-    color: var(--brand-primary);
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 22px;
+  .address-name {
+    font-size: var(--weui-fs-cell);
     font-weight: 600;
+    color: var(--weui-FG-0);
   }
 
-  .card-actions {
+  .address-phone {
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .address-detail {
+    display: block;
+    margin-top: 16px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--weui-FG-3);
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    line-height: 1.5;
+  }
+
+  .address-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 40px;
+    padding-top: 24px;
+
+    .address-action {
+      font-size: var(--weui-fs-tips);
+      color: var(--weui-FG-0);
+
+      &--danger {
+        color: var(--weui-RED);
+      }
+    }
+  }
+
+  .address-select {
     display: flex;
     justify-content: center;
-    margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid var(--border);
-
-    .select-button {
-      background: var(--brand-primary); // 选择按钮:品牌蓝
-      border: none;
-      border-radius: var(--radius-btn);
-      padding: 16px 64px;
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--bg-card);
-      transition: all 0.3s ease;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-modal);
-      }
-
-      &::after {
-        border: none;
-      }
-    }
-  }
-}
-
-// 选择模式下的特殊样式
-.address-card {
-  &.select-mode {
-    background: var(--brand-primary-light);
-    border-color: rgba(var(--brand-primary-rgb), 0.25);
-    box-shadow: var(--shadow-card);
-
-    .card-header .message-icon {
-      background: rgba(var(--brand-primary-rgb), 0.15);
-    }
-
-    .card-actions {
-      border-top-color: rgba(var(--brand-primary-rgb), 0.2);
-    }
   }
 }

@@ -18,9 +18,9 @@ import './index.scss'
 const MAX_PACKAGE_COUNT = 10
 
 /**
- * 水票商城(F-MKT-007)
+ * 水票商城(F-MKT-007,ticket-mall.html:票种卡品牌蓝 + .weui-tag 策略标签)
  * 在售票种套餐列表(购票即预收款项,一经购买不支持退款 R-MKT-08);
- * 支持选择购票张数 1~10(上限 min(10, 剩余限购)),一次购买按张数生成对应水票记录(每张唯一递增票号);
+ * 支持选择购票张数 1~10(.weui-stepper,上限 min(10, 剩余限购)),一次购买按张数生成对应水票记录(每张唯一递增票号);
  * 当前支付为桩实现(requiresSimulation),真实微信支付待 SDK 接入。
  */
 const TicketShopPage: React.FC = () => {
@@ -175,72 +175,98 @@ const TicketShopPage: React.FC = () => {
       emptySubtitle='敬请期待更多水票套餐'
       className='ticket-shop-page'
     >
-      {/* 头部:我的水票入口 */}
+      {/* 头部:标题 + 我的水票入口 */}
       <View className='ticket-shop-header'>
         <Text className='ticket-shop-title'>水票商城</Text>
-        <Text className='ticket-shop-link' onClick={goMyTickets}>我的水票 ›</Text>
+        <Text
+          className='ticket-shop-link'
+          trackTarget='ticket-shop-mine'
+          trackElementType='link'
+          trackElementText='我的水票'
+          onClick={goMyTickets}
+        >
+          我的水票 ›
+        </Text>
       </View>
 
-      {/* 水票套餐列表 */}
+      {/* 通兑/限规格说明(ticket-mall.html .weui-notice--brand) */}
+      <View className='mp-pad-16 notice-wrap'>
+        <View className='weui-notice weui-notice--brand ticket-notice'>
+          <Text className='ticket-notice-text'>通兑票按规格限定,跨容量不通用;票号可在我的水票查看</Text>
+        </View>
+      </View>
+
+      {/* 水票套餐列表(票种卡:名称+策略标签 / 适用规格 / 有效期 / 限购 / 价格+购买) */}
       <View className='ticket-list'>
         {ticketTypes.map(ticketType => {
           const limitReached = isLimitReached(ticketType)
           const count = quantityOf(ticketType)
           const max = maxQuantity(ticketType)
           const totalCents = normalizeCents(ticketType.packagePriceCents) * count
+          const [intPart, decPart = '00'] = displayCents(normalizeCents(ticketType.packagePriceCents)).split('.')
           return (
             <View key={ticketType.id} className='ticket-card'>
-              <View className='ticket-card-body'>
-                <View className='ticket-card-info'>
-                  <Text className='ticket-name'>{ticketType.name}</Text>
-                  <View className='ticket-count-row'>
-                    <Text className='ticket-count'>{ticketType.packageCount}张</Text>
-                    {ticketType.giftCount > 0 && (
-                      <Text className='ticket-gift'>送{ticketType.giftCount}</Text>
-                    )}
-                  </View>
-                  <Text className='ticket-validity'>{getValidityText(ticketType)}</Text>
-                  <Text className='ticket-limit'>
-                    {ticketType.perUserLimit === 0
-                      ? '不限购'
-                      : `已购 ${ticketType.myPurchasedCount}/${ticketType.perUserLimit}`}
-                  </Text>
-                </View>
-                <View className='ticket-card-right'>
-                  <Text className='ticket-price'>{displayCents(normalizeCents(ticketType.packagePriceCents))}</Text>
-                  <View
-                    trackTarget="ticket-buy"
-                    trackElementType="button"
-                    trackElementText={purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '购买'}
-                    trackDisabled={limitReached}
-                    trackProps={{ ticketTypeId: ticketType.id, packageCount: count }}
-                    onClick={() => {
-                      if (!limitReached) handlePurchase(ticketType)
-                    }}
-                    className={`ticket-buy-btn ${limitReached ? 'ticket-buy-btn-disabled' : ''}`}
-                  >
-                    <Text className='ticket-buy-text'>
-                      {purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '购买'}
-                    </Text>
-                  </View>
+              {/* 标题行:票种名 + 策略标签(G97:买N送M .weui-tag--red) */}
+              <View className='ticket-title-row'>
+                <Text className='ticket-name'>{ticketType.name}</Text>
+                <View className='ticket-tags'>
+                  {ticketType.giftCount > 0 && (
+                    <Text className='weui-tag weui-tag--red weui-tag--md'>买 {ticketType.packageCount} 送 {ticketType.giftCount}</Text>
+                  )}
+                  {ticketType.specification && (
+                    <Text className='weui-tag weui-tag--brand'>限 {ticketType.specification}</Text>
+                  )}
                 </View>
               </View>
-              {/* 购票张数选择(1~10,一次购买按张数生成对应水票记录) */}
-              <View className='ticket-quantity-row'>
+
+              {/* 说明行:有效期 / 限购 */}
+              <View className='ticket-meta'>
+                <Text className='ticket-meta-line'>有效期:{getValidityText(ticketType)}</Text>
+                <Text className='ticket-meta-line'>
+                  {ticketType.perUserLimit === 0
+                    ? '限购:不限'
+                    : `限购:每人 ${ticketType.perUserLimit} 份(已购 ${ticketType.myPurchasedCount})`}
+                </Text>
+              </View>
+
+              {/* 价格行:套餐价 + 立即购买 */}
+              <View className='ticket-price-row'>
+                <View className='weui-price weui-price--lg'>
+                  <Text className='weui-price__symbol'>¥</Text>
+                  <Text className='weui-price__int'>{intPart}</Text>
+                  <Text className='weui-price__dec'>.{decPart}</Text>
+                </View>
+                <View
+                  trackTarget="ticket-buy"
+                  trackElementType="button"
+                  trackElementText={purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '立即购买'}
+                  trackDisabled={limitReached || purchasingId === ticketType.id}
+                  trackProps={{ ticketTypeId: ticketType.id, packageCount: count }}
+                  onClick={() => {
+                    if (!limitReached && purchasingId !== ticketType.id) handlePurchase(ticketType)
+                  }}
+                  className={`weui-btn weui-btn_mini weui-btn_primary ${limitReached || purchasingId === ticketType.id ? 'weui-btn_disabled' : ''}`}
+                >
+                  {purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '立即购买'}
+                </View>
+              </View>
+
+              {/* 购票张数选择(1~10,.weui-stepper,一次购买按张数生成对应水票记录) */}
+              <View className='ticket-quantity-row hair-t'>
                 <Text className='ticket-quantity-label'>购票张数</Text>
-                <View className='ticket-stepper'>
+                <View className='weui-stepper'>
                   <View
-                    className={`ticket-stepper-btn ${count <= 1 ? 'ticket-stepper-btn-disabled' : ''}`}
+                    className={`weui-stepper__btn ${count <= 1 ? 'disabled' : ''}`}
                     onClick={() => changeQuantity(ticketType, -1)}
                   >
-                    <Text className='ticket-stepper-icon'>−</Text>
+                    <Text>−</Text>
                   </View>
-                  <Text className='ticket-stepper-value'>{count}</Text>
+                  <Text className='weui-stepper__num'>{count}</Text>
                   <View
-                    className={`ticket-stepper-btn ${count >= max ? 'ticket-stepper-btn-disabled' : ''}`}
+                    className={`weui-stepper__btn ${count >= max ? 'disabled' : ''}`}
                     onClick={() => changeQuantity(ticketType, 1)}
                   >
-                    <Text className='ticket-stepper-icon'>+</Text>
+                    <Text>+</Text>
                   </View>
                 </View>
                 <Text className='ticket-quantity-total'>合计 {displayCents(totalCents)}</Text>
@@ -249,6 +275,12 @@ const TicketShopPage: React.FC = () => {
           )
         })}
       </View>
+
+      {/* 购票须知(ticket-mall.html .weui-cells__tips) */}
+      <View className='weui-cells__title'>购票须知</View>
+      <View className='weui-cells__tips'>· 水票为电子票,购票成功后逐张生成唯一票号入账票夹。</View>
+      <View className='weui-cells__tips'>· 有效期自购票成功之日起算,过期作废不可使用。</View>
+      <View className='weui-cells__tips'>· 单次购票张数上限 10 张,超出按限购校验拦截。</View>
     </BasePageLayout>
   )
 }

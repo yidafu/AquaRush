@@ -1,59 +1,15 @@
-@import './Section.styles.scss';
+// 订单备注:WeUI textarea 骨架由 weui.scss 提供,仅补输入态高度
+.remark-section {
+  margin-top: 8px;
 
-// 单行头部:标签 + 字数计数
-.remark-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 24px 0;
-}
-
-.remark-label {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.remark-count {
-  font-size: 20px;
-  color: var(--text-weak);
-}
-
-.remark-wrapper {
-  padding: 12px 24px 24px;
-}
-
-// 输入框:恰好两行(24px × 1.6 × 2 行 + 上下内边距 + 边框),选填项不占过多空间。
-// 必须用显式 height(而非仅 min-height):小程序原生 textarea 不随 min-height 收缩,
-// 仅 min-height 时按原生默认高度(~4 行)渲染导致备注区过大;显式 height 两端(H5/小程序)均收敛为两行。
-.remark-input {
-  width: 100%;
-  height: 100px;
-  min-height: 100px;
-  padding: 10px 14px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 24px;
-  line-height: 1.6;
-  resize: none;
-  background: var(--bg);
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-
-  &:focus {
-    border-color: var(--brand-primary);
-    box-shadow: 0 0 0 2px var(--brand-primary-light);
-  }
-}
-
-// 响应式
-@media (max-width: 375px) {
-  .remark-header {
-    padding: 12px 20px 0;
+  .remark-cells {
+    display: block;
+    padding-bottom: 0;
   }
 
-  .remark-wrapper {
-    padding: 12px 20px 20px;
+  .remark-input {
+    width: 100%;
+    min-height: 192px;
+    box-sizing: border-box;
   }
 }

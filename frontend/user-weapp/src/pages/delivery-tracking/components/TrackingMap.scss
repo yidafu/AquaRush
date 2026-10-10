@@ -1,5 +1,4 @@
-@import "../../../styles/theme.scss";
-
+// 配送地图区块:地图满宽 + 右上角圆形控制按钮(原型 .map-ctrl 口径,品牌蓝底白字形)
 .map-container {
   position: relative;
   height: 60vh;
@@ -11,7 +10,7 @@
     height: 100%;
   }
 
-  .map-controls {
+  .map-ctrl {
     position: absolute;
     top: 32px;
     right: 32px;
@@ -20,16 +19,23 @@
     gap: 16px;
     z-index: 100;
 
-    .control-button {
+    .ctrl-btn {
       width: 80px;
       height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      background: var(--brand-primary);
-      border: none;
+      background: var(--weui-BRAND);
+      /* 品牌底上的前景白:与 weui.scss(.weui-btn_primary 等)一致的前景白 */
+      color: #fff;
       border-radius: 50%;
+      font-size: 40px;
+      line-height: 1;
+
+      &.refreshing {
+        opacity: 0.7;
+      }
     }
   }
 }

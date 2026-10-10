@@ -10,16 +10,14 @@ interface ProfileHeaderProps {
 }
 
 /**
- * 页面头部:取消 / 标题 / 保存(未修改时保存禁用,保留 track* 埋点)
+ * 页面头部:取消 / 保存(profile-edit.html:保存按钮 weui-btn_mini primary,
+ * 未修改时置灰禁用;保留 track* 埋点)
  */
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ hasChanges, onCancel, onSave }) => {
   return (
     <View className='page-header'>
       <View className='header-left' onClick={onCancel}>
         <Text className='cancel-btn'>取消</Text>
-      </View>
-      <View className='header-center'>
-        <Text className='page-title'>编辑资料</Text>
       </View>
       <View className='header-right'>
         <Text
@@ -29,7 +27,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ hasChanges, onCancel, onS
           trackElementText="保存"
           trackDisabled={!hasChanges}
           onClick={hasChanges ? onSave : undefined}
-          className={`save-btn ${hasChanges ? 'active' : 'disabled'}`}
+          className={`weui-btn weui-btn_mini ${hasChanges ? 'weui-btn_primary' : 'weui-btn_disabled'}`}
         >
           保存
         </Text>

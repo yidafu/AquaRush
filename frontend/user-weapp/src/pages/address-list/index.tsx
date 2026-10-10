@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton, AtToast } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
@@ -12,8 +11,6 @@ import AddressSearchSection from './components/AddressSearchSection'
 import AddressListEmptyState from './components/AddressListEmptyState'
 import DeleteAddressModal from './components/DeleteAddressModal'
 
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/toast.scss"
 import './index.scss'
 
 const AddressList: React.FC = () => {
@@ -161,6 +158,10 @@ const AddressList: React.FC = () => {
           ...addr,
           isDefault: addr.id === addressId
         })))
+        setFilteredAddresses(filteredAddresses.map(addr => ({
+          ...addr,
+          isDefault: addr.id === addressId
+        })))
 
         handleShowToast('设置默认地址成功', 'success')
       } else {
@@ -186,6 +187,7 @@ const AddressList: React.FC = () => {
       if (result.success) {
         // 从本地状态中移除地址
         setAddresses(addresses.filter(addr => addr.id !== deleteAddressId))
+        setFilteredAddresses(filteredAddresses.filter(addr => addr.id !== deleteAddressId))
         setDeleteModalVisible(false)
         setDeleteAddressId(null)
         handleShowToast('删除地址成功', 'success')
@@ -238,67 +240,75 @@ const AddressList: React.FC = () => {
 
   return (
     <View className='address-list-page'>
-      {/* 搜索栏 + 微信地址导入 */}
+      {/* 搜索栏 + 统计/微信地址导入(address-list.html) */}
       <AddressSearchSection
         searchValue={searchValue}
+        count={filteredAddresses.length}
         onSearch={handleSearch}
         onSearchClear={handleSearchClear}
         onWechatImport={handleWechatImport}
       />
 
-      {/* 地址列表 */}
+      {/* 选择模式提示(address-list.html 状态三 .weui-notice--brand) */}
+      {isSelectMode && (
+        <View className='weui-notice weui-notice--brand select-notice'>
+          <Text className='select-notice-text'>选择地址后将回填至确认订单页</Text>
+        </View>
+      )}
+
+      {/* 地址列表(收货地址 weui cells 组) */}
       <View className='address-list'>
         {loading ? (
-          <View className='loading-container'>
+          <View className='weui-loadmore weui-loadmore_loading'>
+            <View className='spinner' />
             <Text>加载中...</Text>
           </View>
         ) : filteredAddresses.length === 0 ? (
           <AddressListEmptyState searching={!!searchValue} />
         ) : (
-          filteredAddresses.map((address) => (
-            <AddressCard
-              key={address.id}
-              address={address}
-              isSelectMode={isSelectMode}
-              onSelect={handleSelectAddress}
-              onEdit={handleEditAddress}
-              onSetDefault={handleSetDefault}
-              onDelete={handleDeleteClick}
-            />
-          ))
+          <>
+            <View className='weui-cells__title'>收货地址</View>
+            {filteredAddresses.map((address) => (
+              <AddressCard
+                key={address.id}
+                address={address}
+                isSelectMode={isSelectMode}
+                onSelect={handleSelectAddress}
+                onEdit={handleEditAddress}
+                onSetDefault={handleSetDefault}
+                onDelete={handleDeleteClick}
+              />
+            ))}
+          </>
         )}
       </View>
 
-      {/* 删除确认弹窗 */}
+      {/* 删除确认弹窗(.weui-mask + .weui-dialog) */}
       <DeleteAddressModal
         visible={deleteModalVisible}
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
       />
 
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={handleHideToast}
-      />
+      {/* Toast 提示(.weui-toast_text 深色轻提示;toastType 保留原状态语义) */}
+      {showToast && (
+        <View className={`address-toast address-toast--${toastType} weui-toast weui-toast_text`} onClick={handleHideToast}>
+          <Text className='weui-toast__text'>{toastText}</Text>
+        </View>
+      )}
 
-      {/* 底部新增收货地址主按钮 */}
-      <View className='add-address-bar'>
-        <AtButton
-          trackTarget="address-add"
-          trackAction="CLICK"
-          trackElementType="button"
-          trackElementText="新增收货地址"
-          type='primary'
-          size='normal'
-          full
-          className='add-address-button'
+      {/* 底部新增收货地址主按钮(address-list.html .mp-footbar) */}
+      <View className='add-address-bar mp-footbar hair-t'>
+        <View
+          className='weui-btn weui-btn_primary flex1'
+          trackTarget='address-add'
+          trackAction='CLICK'
+          trackElementType='button'
+          trackElementText='新增收货地址'
           onClick={handleAddAddress}
         >
-          <Text>新增收货地址</Text>
-        </AtButton>
+          新增收货地址
+        </View>
       </View>
 
       {/* 底部安全区域 */}

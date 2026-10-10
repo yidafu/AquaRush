@@ -1,9 +1,7 @@
 import React from 'react'
-import { Text } from '@tarojs/components'
-import { AtInput } from 'taro-ui'
+import { View, Text, Input } from '@tarojs/components'
 import { AddressFormData } from '../../../types/address'
 
-import "taro-ui/dist/style/components/input.scss"
 import './fields.scss'
 
 interface ContactFieldsProps {
@@ -14,34 +12,55 @@ interface ContactFieldsProps {
 }
 
 /**
- * 收货人 + 手机号输入项(地址编辑页 F-ADR-002)
+ * 收货人 + 手机号输入项(address-edit.html:weui-cell + .weui-label--req + .weui-input)
  */
 const ContactFields: React.FC<ContactFieldsProps> = ({ receiverName, phone, errors, onChange }) => {
   return (
     <>
       {/* 收货人 */}
-      <AtInput
-        name='receiverName'
-        title='收货人'
-        type='text'
-        placeholder='请输入收货人姓名'
-        value={receiverName}
-        onChange={(value) => onChange('receiverName', value)}
-        error={!!errors.receiverName}
-      />
-      {errors.receiverName && <Text className='input-hint error-text'>{errors.receiverName}</Text>}
+      <View className='weui-cell address-field-cell'>
+        <View className='weui-cell__hd'>
+          <View className='weui-label weui-label--req'>收货人</View>
+        </View>
+        <View className='weui-cell__bd'>
+          <Input
+            className='weui-input'
+            placeholderClass='ph'
+            type='text'
+            placeholder='请输入收货人姓名'
+            value={receiverName}
+            onInput={(e) => onChange('receiverName', e.detail.value)}
+          />
+        </View>
+      </View>
+      {errors.receiverName && (
+        <View className='field-error'>
+          <Text>{errors.receiverName}</Text>
+        </View>
+      )}
 
       {/* 手机号 */}
-      <AtInput
-        name='phone'
-        title='手机号'
-        type='phone'
-        placeholder='请输入手机号'
-        value={phone}
-        onChange={(value) => onChange('phone', value)}
-        error={!!errors.phone}
-      />
-      {errors.phone && <Text className='input-hint error-text'>{errors.phone}</Text>}
+      <View className='weui-cell address-field-cell'>
+        <View className='weui-cell__hd'>
+          <View className='weui-label weui-label--req'>手机号</View>
+        </View>
+        <View className='weui-cell__bd'>
+          <Input
+            className='weui-input'
+            placeholderClass='ph'
+            type='number'
+            maxlength={11}
+            placeholder='请输入手机号'
+            value={phone}
+            onInput={(e) => onChange('phone', e.detail.value)}
+          />
+        </View>
+      </View>
+      {errors.phone && (
+        <View className='field-error'>
+          <Text>{errors.phone}</Text>
+        </View>
+      )}
     </>
   )
 }

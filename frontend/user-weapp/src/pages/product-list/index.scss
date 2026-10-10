@@ -1,46 +1,50 @@
 @import "../../styles/theme.scss";
 
 // ============================================================
-// 全部商品列表页
-// 布局:搜索栏(sticky) → 排序 Tab(components/SortBar) → 商品网格(2 列,components/ProductCard) → 加载更多
+// 全部商品列表页(product-list.html:WeUI 搜索页)
+// 布局:搜索栏(sticky 白底) → 排序分段(.weui-segmented) → 商品网格(.mp-grid2) → 加载更多(.weui-loadmore)
 // ============================================================
 
 .product-list-page {
   min-height: 100vh;
-  background-color: var(--bg);
-  padding: 0 var(--spacing-lg) var(--spacing-xl);
+  background-color: var(--weui-BG-0);
   box-sizing: border-box;
 }
 
-// ---- 搜索栏(sticky 顶部,品牌蓝搜索按钮) ----
+// ---- 搜索栏(sticky 顶部,白底,product-list.html) ----
 .search-bar-wrap {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--bg);
-  padding: var(--spacing-md) 0 var(--spacing-sm);
+  background: var(--weui-BG-2);
 
-  .at-search-bar {
-    background: var(--bg) !important;
+  .search-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+    border: 3px solid var(--weui-FG-2);
+    border-radius: 50%;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      bottom: -6px;
+      width: 12px;
+      height: 3px;
+      background: var(--weui-FG-2);
+      border-radius: 2px;
+      transform: rotate(45deg);
+    }
   }
-}
 
-// ---- 商品网格(2 列) ----
-.product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-
-// ---- 重试按钮(错误态) ----
-.retry-btn {
-  width: 240px;
-  background: var(--brand-primary) !important;
-  border-radius: var(--radius-btn) !important;
-  border: none !important;
-}
-
-// ---- 加载更多容器 ----
-.load-more-wrap {
-  padding: var(--spacing-sm) 0;
+  .search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 48px;
+    line-height: 48px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-0);
+  }
 }

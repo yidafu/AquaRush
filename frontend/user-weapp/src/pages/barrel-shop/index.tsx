@@ -12,6 +12,7 @@ import './index.scss'
 /**
  * 买水桶(G06:一次性塑料水桶费,独立支付,每用户总限购一次)
  * 价目按规格独立配置(与商品解耦);已购买过(PAID)后不可再购,由「我的水桶」查看。
+ * 视觉:WeUI cells 价目行 + .weui-stepper 选数量 + 底部 .mp-footbar 合计购买栏。
  */
 const BarrelShopPage: React.FC = () => {
   usePageViewTracking()
@@ -143,6 +144,8 @@ const BarrelShopPage: React.FC = () => {
     Taro.navigateTo({ url: '/pages/barrel-mine/index' })
   }, [])
 
+  const [totalInt, totalDec = '00'] = displayCents(totalCents).split('.')
+
   return (
     <BasePageLayout
       requireAuth={true}
@@ -154,38 +157,58 @@ const BarrelShopPage: React.FC = () => {
       emptySubtitle='运营暂未配置水桶费价目'
       className='barrel-shop-page'
     >
-      {/* 头部:我的水桶入口 */}
+      {/* 头部:标题 + 我的水桶入口 */}
       <View className='barrel-shop-header'>
         <Text className='barrel-shop-title'>买水桶</Text>
-        <Text className='barrel-shop-link' onClick={goMyBarrel}>我的水桶 ›</Text>
-      </View>
-
-      <View className='barrel-tip'>
-        <Text className='barrel-tip-text'>
-          水桶费为一次性塑料水桶费用,独立支付(与商品订单不捆绑),每用户总限购一次,一般不可退。
+        <Text
+          className='barrel-shop-link'
+          trackTarget='barrel-shop-mine'
+          trackElementType='link'
+          trackElementText='我的水桶'
+          onClick={goMyBarrel}
+        >
+          我的水桶 ›
         </Text>
       </View>
 
-      {/* 价目列表(带数量选择) */}
+      {/* 说明(brand notice,圆角) */}
+      <View className='mp-pad-16 notice-wrap'>
+        <View className='weui-notice weui-notice--brand barrel-notice'>
+          <Text className='barrel-notice-text'>
+            水桶费为一次性塑料水桶费用,独立支付(与商品订单不捆绑),每用户总限购一次,一般不可退。
+          </Text>
+        </View>
+      </View>
+
+      {/* 价目列表(weui cells 行:名称 + 金额 + .weui-stepper 选数量) */}
       <View className='barrel-list'>
         {fees.map((fee) => {
           const qty = quantities[fee.id] ?? 1
+          const [intPart, decPart = '00'] = displayCents(normalizeCents(fee.priceCents)).split('.')
           return (
-            <View key={fee.id} className='barrel-card'>
-              <View className='barrel-card-info'>
-                <Text className='barrel-name'>{fee.specification} 水桶</Text>
-                <Text className='barrel-price'>{displayCents(normalizeCents(fee.priceCents))}</Text>
-              </View>
-              <View className='barrel-qty'>
-                <View
-                  className={`barrel-qty-btn ${qty <= 1 ? 'barrel-qty-btn-disabled' : ''}`}
-                  onClick={() => changeQuantity(fee.id, -1)}
-                >
-                  <Text className='barrel-qty-btn-text'>-</Text>
+            <View key={fee.id} className='weui-cells barrel-cells'>
+              <View className='weui-cell'>
+                <View className='weui-cell__bd'>
+                  <Text className='barrel-name'>{fee.specification} 水桶</Text>
                 </View>
-                <Text className='barrel-qty-num'>{qty}</Text>
-                <View className='barrel-qty-btn' onClick={() => changeQuantity(fee.id, 1)}>
-                  <Text className='barrel-qty-btn-text'>+</Text>
+                <View className='weui-cell__ft barrel-cell-ft'>
+                  <View className='weui-price weui-price--md'>
+                    <Text className='weui-price__symbol'>¥</Text>
+                    <Text className='weui-price__int'>{intPart}</Text>
+                    <Text className='weui-price__dec'>.{decPart}</Text>
+                  </View>
+                  <View className='weui-stepper'>
+                    <View
+                      className={`weui-stepper__btn ${qty <= 1 ? 'disabled' : ''}`}
+                      onClick={() => changeQuantity(fee.id, -1)}
+                    >
+                      <Text>−</Text>
+                    </View>
+                    <Text className='weui-stepper__num'>{qty}</Text>
+                    <View className='weui-stepper__btn' onClick={() => changeQuantity(fee.id, 1)}>
+                      <Text>+</Text>
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
@@ -193,11 +216,15 @@ const BarrelShopPage: React.FC = () => {
         })}
       </View>
 
-      {/* 底部合计与购买 */}
-      <View className='barrel-footer'>
-        <View className='barrel-footer-total'>
-          <Text className='barrel-footer-label'>合计：</Text>
-          <Text className='barrel-footer-amount'>{displayCents(totalCents)}</Text>
+      {/* 底部合计与购买(.mp-footbar 固定栏) */}
+      <View className='barrel-footer mp-footbar hair-t'>
+        <View className='mp-footbar__info barrel-footer-total'>
+          <Text className='mp-footbar__lbl'>合计</Text>
+          <View className='weui-price weui-price--lg'>
+            <Text className='weui-price__symbol'>¥</Text>
+            <Text className='weui-price__int'>{totalInt}</Text>
+            <Text className='weui-price__dec'>.{totalDec}</Text>
+          </View>
         </View>
         <View
           trackTarget='barrel-buy'
@@ -207,11 +234,12 @@ const BarrelShopPage: React.FC = () => {
           onClick={() => {
             if (!purchasing) handlePurchase()
           }}
-          className={`barrel-buy-btn ${purchasing ? 'barrel-buy-btn-disabled' : ''}`}
+          className={`weui-btn weui-btn_primary ${purchasing ? 'weui-btn_disabled' : ''}`}
         >
-          <Text className='barrel-buy-text'>{purchasing ? '购买中...' : '购买水桶'}</Text>
+          {purchasing ? '购买中...' : '购买水桶'}
         </View>
       </View>
+      <View className='safe-bottom' />
     </BasePageLayout>
   )
 }

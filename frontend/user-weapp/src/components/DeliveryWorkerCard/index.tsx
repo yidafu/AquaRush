@@ -1,17 +1,14 @@
 import React from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import { AtCard, AtButton, AtIcon } from 'taro-ui'
 import StatusTag from '../StatusTag'
-
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 /**
- * 配送员信息卡(配送中订单) —— 收敛 order-detail 与 delivery-tracking 两处同名实现:
- * 头像/姓名/电话/位置(+距离)+ 联系按钮 + 可选导航按钮 + 可选配送状态行(配送中标签 + 预计送达)。
- * 状态标签走共享 StatusTag(tone 色值见 common STATUS_TONE_COLORS)。
+ * 配送员信息卡(配送中订单)—— WeUI 2.x 视觉(.weui-cells 单元格:
+ * 头像 + 姓名 + 配送中标签(.weui-tag--deliver)+ 电话/位置行 + 右侧操作按钮,
+ * 设计稿 02-order/order-detail.html 配送员信息卡口径)。
+ * 收敛 order-detail 与 delivery-tracking 两处同名实现;状态标签走共享 StatusTag
+ * (tone 色值见 common STATUS_TONE_COLORS)。
  */
 interface DeliveryWorkerCardProps {
   name?: string
@@ -21,7 +18,7 @@ interface DeliveryWorkerCardProps {
   location?: string
   /** 距离文案(如「500m」) */
   distance?: string
-  /** 展示配送中状态行 */
+  /** 展示配送中状态行(姓名旁标签 + 预计送达行) */
   showStatus?: boolean
   /** 预计送达文案 */
   estimatedDeliveryTime?: string
@@ -41,61 +38,55 @@ const DeliveryWorkerCard: React.FC<DeliveryWorkerCardProps> = ({
   onTrack
 }) => {
   return (
-    <AtCard
-      title='配送员信息'
-      className='delivery-worker-card shadow-default'
-    >
-      <View className='worker-header'>
-        <View className='worker-avatar'>
-          <Image
-            src={avatar || '/assets/default-avatar.png'}
-            mode='aspectFill'
-            className='avatar-image'
-          />
-        </View>
-        <View className='worker-info'>
-          <Text className='worker-name'>{name || '配送员'}</Text>
-          <Text className='worker-phone'>{phone || ''}</Text>
-          {location && (
-            <Text className='worker-location'>
-              <AtIcon value='map-pin' size='12' color='var(--text-sub)' />
-              {location}
-              {distance ? ` · ${distance}` : ''}
+    <View className='worker-card'>
+      <View className='weui-cells'>
+        <View className='weui-cell'>
+          <View className='weui-cell__hd'>
+            <Image
+              src={avatar || '/assets/default-avatar.png'}
+              mode='aspectFill'
+              className='worker-avatar'
+            />
+          </View>
+          <View className='weui-cell__bd'>
+            <View className='worker-name-row'>
+              <Text className='worker-name'>{name || '配送员'}</Text>
+              {showStatus && <StatusTag tone='success' text='配送中' size='small' />}
+            </View>
+            <Text className='worker-meta'>
+              {phone ? `电话 ${phone}` : ''}
+              {location ? ` · ${location}` : ''}
+              {distance ? ` · 距你约 ${distance}` : ''}
             </Text>
-          )}
+          </View>
+          <View className='weui-cell__ft'>
+            {onTrack && (
+              <View
+                className='weui-btn weui-btn_plain-default weui-btn_xs'
+                onClick={onTrack}
+              >
+                查看跟踪
+              </View>
+            )}
+            {onContact && (
+              <View
+                className='weui-btn weui-btn_plain-primary weui-btn_xs'
+                onClick={onContact}
+              >
+                联系
+              </View>
+            )}
+          </View>
         </View>
-        <View className='worker-actions'>
-          <AtButton
-            type='primary'
-            size='small'
-            circle
-            onClick={onContact}
-          >
-            <AtIcon value='phone' size='14' color='white' />
-          </AtButton>
-          {onTrack && (
-            <AtButton
-              type='secondary'
-              size='small'
-              circle
-              onClick={onTrack}
-            >
-              <AtIcon value='navigation' size='14' color='var(--text-sub)' />
-            </AtButton>
-          )}
-        </View>
-      </View>
 
-      {/* 配送状态标签 */}
-      {showStatus && (
-        <View className='delivery-status'>
-          <StatusTag tone='success' text='配送中' size='small' />
-          {estimatedDeliveryTime && (
-            <Text className='status-text'>预计 {estimatedDeliveryTime} 送达</Text>
-          )}
-        </View>
-      )}
-    </AtCard>
+        {showStatus && estimatedDeliveryTime && (
+          <View className='weui-cell'>
+            <View className='weui-cell__bd'>预计送达</View>
+            <View className='weui-cell__ft worker-eta'>{estimatedDeliveryTime}</View>
+          </View>
+        )}
+      </View>
+    </View>
   )
 }
 

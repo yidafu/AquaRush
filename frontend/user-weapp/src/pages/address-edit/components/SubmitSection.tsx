@@ -1,9 +1,6 @@
 import React from 'react'
-import { View } from '@tarojs/components'
-import { AtSwitch, AtButton } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
 
-import "taro-ui/dist/style/components/switch.scss"
-import "taro-ui/dist/style/components/button.scss"
 import './SubmitSection.scss'
 
 interface SubmitSectionProps {
@@ -14,35 +11,38 @@ interface SubmitSectionProps {
 }
 
 /**
- * 底部提交区:设为默认地址开关 + 保存按钮(保留 track* 埋点)
+ * 底部提交区(address-edit.html:.weui-cell_switch 默认地址开关 +
+ * .weui-btn_area 保存按钮;保留 track* 埋点)
  */
 const SubmitSection: React.FC<SubmitSectionProps> = ({ isDefault, loading, onDefaultChange, onSubmit }) => {
   return (
     <>
-      {/* 设为默认地址 */}
-      <AtSwitch
-        title='设为默认地址'
-        checked={isDefault}
-        onChange={(value) => onDefaultChange(value)}
-      />
+      {/* 设为默认地址(.weui-switch on 态品牌色) */}
+      <View className='weui-cells mt3'>
+        <View
+          className='weui-cell weui-cell_switch'
+          onClick={() => onDefaultChange(!isDefault)}
+        >
+          <View className='weui-cell__bd'>设为默认地址</View>
+          <View className='weui-cell__ft'>
+            <View className={`weui-switch ${isDefault ? 'on' : ''}`} />
+          </View>
+        </View>
+      </View>
 
-      {/* 提交按钮 */}
-      <View className='submit-section'>
-        <AtButton
+      {/* 保存按钮(.weui-btn_area) */}
+      <View className='weui-btn_area submit-section'>
+        <View
           trackTarget="address-save"
           trackAction="FORM_SUBMIT"
           trackElementType="button"
           trackElementText="保存地址"
           trackDisabled={loading}
           onClick={onSubmit}
-          type='primary'
-          size='normal'
-          loading={loading}
-          disabled={loading}
-          className='submit-button'
+          className={`weui-btn weui-btn_primary flex1 ${loading ? 'weui-btn_disabled' : ''}`}
         >
-          {loading ? '保存中...' : '保存地址'}
-        </AtButton>
+          <Text>{loading ? '保存中...' : '保存地址'}</Text>
+        </View>
       </View>
     </>
   )

@@ -14,7 +14,7 @@ interface TicketRedeemSectionProps {
 }
 
 /**
- * 水票抵扣选择(F-MKT-007,F-ORD-023)
+ * 水票抵扣选择(F-MKT-007,F-ORD-023)—— WeUI .weui-cells 单元格 + .weui-stepper
  * 步进器 0 ~ min(quantity, availableTicketCount);变化后由父级重新请求 orderPreview 计价。
  */
 const TicketRedeemSection: React.FC<TicketRedeemSectionProps> = ({
@@ -34,28 +34,30 @@ const TicketRedeemSection: React.FC<TicketRedeemSectionProps> = ({
   }
 
   return (
-    <View className='section ticket-redeem-section'>
-      <View className='section-label-row'>
-        <Text className='section-label'>水票抵扣</Text>
-      </View>
-      <View className='ticket-redeem-content'>
-        <View className='ticket-redeem-info'>
-          <Text className='ticket-redeem-text'>可用 {availableTicketCount} 张，最多核销 {max} 张</Text>
-          <Text className='ticket-redeem-hint'>每张水票抵扣 1 桶</Text>
-        </View>
-        <View className='ticket-stepper'>
-          <View
-            className={`stepper-btn ${value <= 0 ? 'stepper-btn-disabled' : ''}`}
-            onClick={decrement}
-          >
-            <Text className='stepper-btn-icon'>−</Text>
+    <View className='ticket-redeem-section'>
+      <View className='weui-cells__title'>水票抵扣</View>
+      <View className='weui-cells'>
+        <View className='weui-cell'>
+          <View className='weui-cell__bd'>
+            <Text className='ticket-redeem-text'>可用 {availableTicketCount} 张，最多核销 {max} 张</Text>
+            <Text className='ticket-redeem-hint'>每张水票抵扣 1 桶</Text>
           </View>
-          <Text className='stepper-value'>{value}</Text>
-          <View
-            className={`stepper-btn ${value >= max ? 'stepper-btn-disabled' : ''}`}
-            onClick={increment}
-          >
-            <Text className='stepper-btn-icon'>+</Text>
+          <View className='weui-cell__ft'>
+            <View className='weui-stepper'>
+              <View
+                className={`weui-stepper__btn${value <= 0 ? ' disabled' : ''}`}
+                onClick={decrement}
+              >
+                <Text>−</Text>
+              </View>
+              <Text className='weui-stepper__num'>{value}</Text>
+              <View
+                className={`weui-stepper__btn${value >= max ? ' disabled' : ''}`}
+                onClick={increment}
+              >
+                <Text>+</Text>
+              </View>
+            </View>
           </View>
         </View>
       </View>

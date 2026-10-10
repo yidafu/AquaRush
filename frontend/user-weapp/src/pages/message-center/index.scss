@@ -1,118 +1,59 @@
+@import "../../styles/theme.scss";
+
+// ============================================================
+// 消息中心(message-center.html:双行 .weui-tabs 筛选 +
+// .weui-media-box 消息行,未读加粗 + .weui-badge_dot 红点)
+// ============================================================
+
 .message-center-page {
   min-height: 100vh;
-  background: var(--bg);
+  background-color: var(--weui-BG-0);
 }
 
+// 全部已读工具行(右对齐链接)
 .message-center-toolbar {
   display: flex;
   justify-content: flex-end;
-  padding: 16px 24px 4px;
-  background: var(--bg);
+  padding: 16px 32px 0;
 }
 
 .message-center-mark-all {
   font-size: 26px;
-  color: var(--brand-primary);
+  color: var(--weui-LINK);
 }
 
-// 已读状态 Tab 行(第二行,胶囊式,与类型 Tab 组合筛选)
-.message-center-read-tabs {
-  display: flex;
-  gap: 16px;
-  padding: 8px 24px 12px;
-  background: var(--bg);
+// 第二行已读状态 Tab(顶部发丝线分隔,message-center.html 两行 tabs)
+.message-center-tabs + .message-center-tabs {
+  border-top: 2px solid var(--weui-FG-3);
+  transform: translateY(0);
 }
 
-.message-center-read-tab {
-  flex: 1;
-  padding: 10px 0;
-  text-align: center;
-  border-radius: 999px;
-  background: var(--bg-card);
-}
-
-.message-center-read-tab-active {
-  background: var(--brand-primary);
-}
-
-.message-center-read-tab-text {
-  font-size: 26px;
-  color: var(--text-sub);
-}
-
-.message-center-read-tab-text-active {
-  color: #fff;
-  font-weight: 600;
-}
-
-.message-center-list {
-  padding: 8px 0 24px;
-}
-
-.message-center-empty {
-  padding: 120px 0;
-  text-align: center;
-  color: var(--text-weak);
-  font-size: 28px;
-}
-
+// 消息行时间(右侧弱灰)
 .message-center-item {
-  display: flex;
   align-items: flex-start;
-  margin: 16px 24px;
-  padding: 24px;
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-}
 
-.message-center-item-unread {
-  background: var(--brand-primary-light);
-}
+  .message-center-item-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
 
-.message-center-item-body {
-  flex: 1;
-  min-width: 0;
-}
+    // 未读标题加粗(message-center.html .weui-media-box__title bold)
+    .message-center-item-unread-title {
+      font-weight: 600;
+    }
 
-.message-center-item-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+    .message-center-item-time {
+      flex: 0 0 auto;
+      font-size: 22px;
+      color: var(--weui-FG-2);
+    }
+  }
 
-.message-center-item-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--brand-primary); // 未读圆点:主色(§9)
-  flex-shrink: 0;
-}
-
-.message-center-item-title {
-  flex: 1;
-  min-width: 0;
-  font-size: 30px;
-  font-weight: 600;
-  color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.message-center-item-time {
-  flex-shrink: 0;
-  font-size: 22px;
-  color: var(--text-weak);
-}
-
-.message-center-item-summary {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  margin-top: 10px;
-  font-size: 26px;
-  color: var(--text-sub);
-  line-height: 1.5;
+  .message-center-dot {
+    flex: 0 0 auto;
+    margin-top: 8px;
+    margin-left: 16px;
+  }
 }

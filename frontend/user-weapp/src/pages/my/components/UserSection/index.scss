@@ -1,28 +1,35 @@
 @import "../../../../styles/theme.scss";
 
-/* 用户信息区域(§8.1:清水蓝渐变头部卡 + 白字) */
+/* 用户信息区(my.html:渐变头部,品牌渐变 + 白字 + 右上装饰圆) */
 .user-section {
   background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
   background: -webkit-linear-gradient(315deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
-  padding: 40px 24px 32px;
+  padding: 32px 32px 32px;
   color: #fff;
   position: relative;
   overflow: hidden;
 
+  /* 原型 .hero::before/::after 装饰圆(静态) */
   &::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
+    right: -80px;
+    top: -60px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
+  &::after {
+    content: '';
+    position: absolute;
+    right: 80px;
+    top: 120px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
   }
 }
 
@@ -34,12 +41,12 @@
   z-index: 1;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: rgba(var(--brand-primary-light-rgb), 0.3);
-  border-radius: var(--radius-card);
 
   &.not-logged-in {
-    border: 2px dashed rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-card);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 16px;
 
     &:active {
       transform: scale(0.98);
@@ -52,13 +59,13 @@
   flex-shrink: 0;
 }
 
-/* 头像:圆 128rpx(§8),白描边 */
+/* 头像:圆 96rpx(原型 48px ×2),白描边 */
 .user-avatar,
 .default-avatar {
-  width: 128px;
-  height: 128px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  border: 4px solid rgba(255,255,255,0.35);
+  border: 4px solid rgba(255, 255, 255, 0.35);
   box-sizing: border-box;
 }
 
@@ -66,10 +73,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.24);
 
   .default-avatar-text {
-    font-size: 52px;
+    font-size: 40px;
     font-weight: 600;
     color: #fff;
     line-height: 1;
@@ -87,11 +94,12 @@
 .user-name-section {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .user-name {
-  font-size: 36px; // §8:昵称 18px 物理/600 白字(小程序刻度 36px)
+  /* 原型 20px ×2 = 40rpx,600 白字 */
+  font-size: 40px;
   font-weight: 600;
   color: #fff;
   overflow: hidden;
@@ -101,13 +109,13 @@
 
 .user-phone {
   font-size: 26px;
-  opacity: 0.85;
+  opacity: 0.88;
 }
 
 .login-hint {
   font-size: 22px;
-  color: rgba(255,255,255,0.9);
-  background: rgba(0,0,0,0.2);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.2);
   padding: 4px 12px;
   border-radius: var(--radius-sm);
   display: inline-block;

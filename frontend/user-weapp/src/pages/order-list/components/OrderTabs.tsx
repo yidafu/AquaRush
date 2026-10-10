@@ -10,18 +10,19 @@ interface OrderTabsProps {
 }
 
 /**
- * 状态 Tab 栏(分段胶囊:容器 tint 圆角,选中主色 tint 底 + 主色字,§5)
+ * 状态 Tab 栏 —— WeUI .weui-tabs(白底 + 选中项品牌蓝短下划线,
+ * 设计稿 02-order/order-list.html;Tab 定义来自 common ORDER_TABS)
  */
 const OrderTabs: React.FC<OrderTabsProps> = ({ current, onChange }) => {
   return (
-    <View className='order-tabs'>
+    <View className='weui-tabs order-tabs hair-b'>
       {ORDER_TABS.map((tab, index) => (
         <View
           key={tab.title}
-          className={`order-tab-item ${index === current ? 'order-tab-item-active' : ''}`}
+          className={`weui-tabs__item${index === current ? ' on' : ''}`}
           onClick={() => onChange(index)}
         >
-          <Text className='order-tab-text'>{tab.title}</Text>
+          <Text>{tab.title}</Text>
         </View>
       ))}
     </View>

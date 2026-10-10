@@ -1,10 +1,6 @@
 import React from 'react'
 import { View } from '@tarojs/components'
 import { Map } from '@tarojs/components'
-import { AtButton, AtIcon } from 'taro-ui'
-
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import './TrackingMap.scss'
 
 interface TrackingMapProps {
@@ -17,7 +13,8 @@ interface TrackingMapProps {
 }
 
 /**
- * 配送地图区块:地图 + 右上角控制按钮(刷新位置/查看路线)
+ * 配送地图区块(设计稿 02-order/delivery-tracking.html):地图 + 右上角圆形控制按钮
+ * (⟳ 刷新位置 / ↗ 查看路线,原型 .map-ctrl 同款字形)
  */
 const TrackingMap: React.FC<TrackingMapProps> = ({
   latitude,
@@ -42,29 +39,20 @@ const TrackingMap: React.FC<TrackingMapProps> = ({
         enableZoom={true}
         enableRotate={false}
         enable3D={false}
+        onError={() => {}}
       />
 
       {/* 地图控制按钮 */}
-      <View className='map-controls'>
-        <AtButton
-          type='primary'
-          size='small'
-          circle
+      <View className='map-ctrl'>
+        <View
+          className={`ctrl-btn${refreshing ? ' refreshing' : ''}`}
           onClick={onRefresh}
-          loading={refreshing}
-          className='control-button'
         >
-          <AtIcon value='refresh' size='16' color='white' />
-        </AtButton>
-        <AtButton
-          type='primary'
-          size='small'
-          circle
-          onClick={onShowRoute}
-          className='control-button'
-        >
-          <AtIcon value='navigation' size='16' color='white' />
-        </AtButton>
+          ⟳
+        </View>
+        <View className='ctrl-btn' onClick={onShowRoute}>
+          ↗
+        </View>
       </View>
     </View>
   )

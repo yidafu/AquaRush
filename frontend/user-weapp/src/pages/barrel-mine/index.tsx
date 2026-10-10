@@ -12,6 +12,7 @@ import './index.scss'
 /**
  * 我的水桶(G06:一次性塑料水桶费,独立支付)
  * 展示当前用户购桶单(状态/明细/金额/时间);未购买显示空态并提供「去买水桶」入口。
+ * 视觉:WeUI cells 结构(状态行 / 购买明细 / 时间信息),金额统一 .weui-price。
  */
 const BarrelMinePage: React.FC = () => {
   usePageViewTracking()
@@ -65,6 +66,10 @@ const BarrelMinePage: React.FC = () => {
     }
   }
 
+  const [totalInt, totalDec = '00'] = purchase
+    ? displayCents(normalizeCents(purchase.totalAmountCents)).split('.')
+    : ['', '']
+
   return (
     <BasePageLayout
       requireAuth={true}
@@ -78,55 +83,78 @@ const BarrelMinePage: React.FC = () => {
     >
       {purchase ? (
         <>
-          {/* 购买状态卡 */}
-          <View className='barrel-mine-status'>
-            <Text className='barrel-mine-status-text'>{statusText(purchase.paymentStatus)}</Text>
-            <Text className='barrel-mine-order-no'>购桶单 {purchase.orderNo}</Text>
+          {/* 购买状态行(weui cells:状态 + 购桶单号) */}
+          <View className='weui-cells mt2'>
+            <View className='weui-cell'>
+              <View className='weui-cell__bd'>
+                <Text className='barrel-mine-status-text'>{statusText(purchase.paymentStatus)}</Text>
+              </View>
+              <View className='weui-cell__ft'>
+                <Text className='barrel-mine-order-no'>购桶单 {purchase.orderNo}</Text>
+              </View>
+            </View>
           </View>
 
-          {/* 购买明细 */}
-          <View className='barrel-mine-card'>
-            <View className='barrel-mine-card-header'>
-              <Text className='barrel-mine-card-title'>购买明细</Text>
-              <Text className='barrel-mine-card-total'>{displayCents(normalizeCents(purchase.totalAmountCents))}</Text>
-            </View>
+          {/* 购买明细(weui cells:明细行 + 合计) */}
+          <View className='weui-cells__title'>购买明细</View>
+          <View className='weui-cells'>
             {purchase.items.map((item, idx) => (
-              <View key={idx} className='barrel-mine-item'>
-                <Text className='barrel-mine-item-name'>{item.specification}</Text>
-                <Text className='barrel-mine-item-qty'>{item.quantity} × {displayCents(normalizeCents(item.unitPriceCents))}</Text>
-                <Text className='barrel-mine-item-amount'>{displayCents(normalizeCents(item.amountCents))}</Text>
+              <View key={idx} className='weui-cell'>
+                <View className='weui-cell__bd'>
+                  <Text>{item.specification}</Text>
+                </View>
+                <View className='weui-cell__ft'>
+                  <Text className='barrel-mine-item-qty'>{item.quantity} × {displayCents(normalizeCents(item.unitPriceCents))}</Text>
+                </View>
               </View>
             ))}
+            <View className='weui-cell'>
+              <View className='weui-cell__bd barrel-mine-total-label'>
+                <Text>合计</Text>
+              </View>
+              <View className='weui-cell__ft'>
+                <View className='weui-price weui-price--md'>
+                  <Text className='weui-price__symbol'>¥</Text>
+                  <Text className='weui-price__int'>{totalInt}</Text>
+                  <Text className='weui-price__dec'>.{totalDec}</Text>
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* 时间信息 */}
-          <View className='barrel-mine-card'>
-            <View className='barrel-mine-meta'>
-              <Text className='barrel-mine-meta-label'>下单时间</Text>
-              <Text className='barrel-mine-meta-value'>
-                {purchase.createdAt ? new Date(purchase.createdAt).toLocaleString('zh-CN') : '-'}
-              </Text>
+          {/* 时间信息(weui cells) */}
+          <View className='weui-cells__title'>订单信息</View>
+          <View className='weui-cells'>
+            <View className='weui-cell'>
+              <View className='weui-cell__bd'>
+                <Text>下单时间</Text>
+              </View>
+              <View className='weui-cell__ft'>
+                <Text>{purchase.createdAt ? new Date(purchase.createdAt).toLocaleString('zh-CN') : '-'}</Text>
+              </View>
             </View>
-            <View className='barrel-mine-meta'>
-              <Text className='barrel-mine-meta-label'>支付时间</Text>
-              <Text className='barrel-mine-meta-value'>
-                {purchase.paidAt ? new Date(purchase.paidAt).toLocaleString('zh-CN') : '-'}
-              </Text>
+            <View className='weui-cell'>
+              <View className='weui-cell__bd'>
+                <Text>支付时间</Text>
+              </View>
+              <View className='weui-cell__ft'>
+                <Text>{purchase.paidAt ? new Date(purchase.paidAt).toLocaleString('zh-CN') : '-'}</Text>
+              </View>
             </View>
             {purchase.paymentStatus === BarrelPaymentStatus.REFUNDED && (
-              <View className='barrel-mine-meta'>
-                <Text className='barrel-mine-meta-label'>退还时间</Text>
-                <Text className='barrel-mine-meta-value'>
-                  {purchase.refundedAt ? new Date(purchase.refundedAt).toLocaleString('zh-CN') : '-'}
-                </Text>
+              <View className='weui-cell'>
+                <View className='weui-cell__bd'>
+                  <Text>退还时间</Text>
+                </View>
+                <View className='weui-cell__ft'>
+                  <Text>{purchase.refundedAt ? new Date(purchase.refundedAt).toLocaleString('zh-CN') : '-'}</Text>
+                </View>
               </View>
             )}
           </View>
 
-          <View className='barrel-mine-note'>
-            <Text className='barrel-mine-note-text'>
-              水桶归您所有,一般不可退;特殊情况(退桶/停止服务)请联系门店管理员处理。
-            </Text>
+          <View className='weui-cells__tips barrel-mine-note'>
+            水桶归您所有,一般不可退;特殊情况(退桶/停止服务)请联系门店管理员处理。
           </View>
         </>
       ) : (
@@ -136,9 +164,9 @@ const BarrelMinePage: React.FC = () => {
             trackElementType='button'
             trackElementText='去买水桶'
             onClick={goShop}
-            className='barrel-mine-buy-btn'
+            className='weui-btn weui-btn_primary barrel-mine-buy-btn'
           >
-            <Text className='barrel-mine-buy-text'>去买水桶</Text>
+            去买水桶
           </View>
         </View>
       )}

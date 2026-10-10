@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtForm, AtToast } from 'taro-ui'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { authService, type UserInfo } from '../../utils/auth'
 import { userActionTracker } from '../../utils/tracking'
@@ -11,8 +10,6 @@ import ProfileHeader from './components/ProfileHeader'
 import BasicInfoForm from './components/BasicInfoForm'
 import AccountInfoSection from './components/AccountInfoSection'
 
-import "taro-ui/dist/style/components/form.scss"
-import "taro-ui/dist/style/components/toast.scss"
 import './index.scss'
 
 interface ProfileFormData {
@@ -24,7 +21,8 @@ interface ProfileFormData {
 const EMPTY_FORM: ProfileFormData = { nickname: '', phone: '', avatarUrl: '' }
 
 /**
- * 编辑资料页:页面仅保留用户信息加载/保存/校验编排,渲染由 components/ 完成。
+ * 编辑资料页(profile-edit.html:WeUI 分组表单 cells)——
+ * 页面仅保留用户信息加载/保存/校验编排,渲染由 components/ 完成。
  */
 const ProfileEditPage: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
@@ -241,7 +239,8 @@ const ProfileEditPage: React.FC = () => {
   if (loading && !userInfo) {
     return (
       <View className='profile-edit-page'>
-        <View className='loading-container'>
+        <View className='weui-loadmore weui-loadmore_loading profile-loading'>
+          <View className='spinner' />
           <Text>加载中...</Text>
         </View>
       </View>
@@ -250,44 +249,41 @@ const ProfileEditPage: React.FC = () => {
 
   return (
     <View className='profile-edit-page'>
-      {/* 页面头部 */}
+      {/* 顶部操作条(取消 / 保存) */}
       <ProfileHeader
         hasChanges={hasChanges}
         onCancel={handleCancel}
         onSave={handleSave}
       />
 
-      {/* 表单内容 */}
-      <View className='form-container'>
-        <AtForm>
-          {/* 头像上传 + 昵称 + 手机号 */}
-          <BasicInfoForm
-            avatarUrl={formData.avatarUrl}
-            nickname={formData.nickname}
-            phone={formData.phone}
-            errors={errors}
-            loading={loading}
-            onAvatarChange={handleAvatarChange}
-            onAvatarError={handleAvatarError}
-            onInputChange={handleInputChange}
-          />
+      {/* 表单内容(头像行 / 昵称行 / 手机号行;校验逻辑见 utils/profileValidation) */}
+      <BasicInfoForm
+        avatarUrl={formData.avatarUrl}
+        nickname={formData.nickname}
+        phone={formData.phone}
+        errors={errors}
+        loading={loading}
+        onAvatarChange={handleAvatarChange}
+        onAvatarError={handleAvatarError}
+        onInputChange={handleInputChange}
+      />
 
-          {/* 其他信息（只读显示） */}
-          <AccountInfoSection userInfo={userInfo} />
-        </AtForm>
+      {/* 其他信息（只读显示） */}
+      <AccountInfoSection userInfo={userInfo} />
+
+      <View className='weui-cells__tips profile-tip'>
+        点击头像可更换头像（相册 / 拍照）。
       </View>
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
 
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={hideToast}
-        duration={2000}
-      />
+      {/* Toast 提示(.weui-toast_text 深色轻提示) */}
+      {showToast && (
+        <View className={`profile-toast profile-toast--${toastType} weui-toast weui-toast_text`} onClick={hideToast}>
+          <Text className='weui-toast__text'>{toastText}</Text>
+        </View>
+      )}
     </View>
   )
 }

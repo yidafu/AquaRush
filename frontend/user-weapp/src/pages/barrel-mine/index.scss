@@ -1,112 +1,45 @@
 @import '@/styles/theme.scss';
 
+// ============================================================
+// 我的水桶(G06)—— WeUI 化:weui-cells 状态行 / 购买明细 / 订单信息,
+// 金额统一 .weui-price(旧 #e64340 红已清除)
+// ============================================================
+
 .barrel-mine-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding: 0 32px 48px;
+  background-color: var(--weui-BG-0);
   box-sizing: border-box;
 }
 
-.barrel-mine-status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 48px 0 40px;
-}
-
+// 状态行文字
 .barrel-mine-status-text {
-  font-size: 40px;
-  font-weight: 700;
-  color: var(--theme-text-primary);
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--weui-FG-0);
 }
 
 .barrel-mine-order-no {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+  font-size: 26px;
+  color: var(--weui-FG-1);
 }
 
-.barrel-mine-card {
-  background: var(--theme-background);
-  border-radius: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  padding: 28px 32px;
-  margin-bottom: 32px;
-}
-
-.barrel-mine-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 16px;
-}
-
-.barrel-mine-card-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
-
-.barrel-mine-card-total {
-  font-size: 30px;
-  font-weight: 700;
-  color: #e64340;
-}
-
-.barrel-mine-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
-}
-
-.barrel-mine-item-name {
-  flex: 1;
-  font-size: 28px;
-  color: var(--theme-text-primary);
-}
-
+// 明细数量说明
 .barrel-mine-item-qty {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-item-amount {
-  min-width: 140px;
-  text-align: right;
   font-size: 26px;
-  color: var(--theme-text-primary);
+  color: var(--weui-FG-1);
 }
 
-.barrel-mine-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
+// 合计行标签
+.barrel-mine-total-label {
+  font-weight: 600;
 }
 
-.barrel-mine-meta-label {
-  font-size: 26px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-meta-value {
-  font-size: 26px;
-  color: var(--theme-text-primary);
-}
-
+// 底部说明(左右留白)
 .barrel-mine-note {
-  padding: 0 8px;
+  padding-bottom: 32px;
 }
 
-.barrel-mine-note-text {
-  font-size: 22px;
-  line-height: 1.6;
-  color: var(--theme-text-secondary);
-}
-
+// 空态购买入口(正常流程 BasePageLayout 空态兜底,此分支保留入口)
 .barrel-mine-empty-action {
   padding: 48px 0;
   display: flex;
@@ -114,13 +47,5 @@
 }
 
 .barrel-mine-buy-btn {
-  background: var(--theme-primary);
-  border-radius: 44px;
-  padding: 20px 72px;
-}
-
-.barrel-mine-buy-text {
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 600;
+  min-width: 280px;
 }

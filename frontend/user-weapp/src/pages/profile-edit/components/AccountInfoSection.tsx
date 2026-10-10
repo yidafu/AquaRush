@@ -1,9 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtDivider } from 'taro-ui'
 import type { UserInfo } from '../../../utils/auth'
 
-import "taro-ui/dist/style/components/divider.scss"
 import './AccountInfoSection.scss'
 
 interface AccountInfoSectionProps {
@@ -11,7 +9,7 @@ interface AccountInfoSectionProps {
 }
 
 /**
- * 账户信息只读区块(用户ID)
+ * 账户信息只读区块(profile-edit.html:weui-cells 只读行,值弱灰)
  * 注:会员等级/余额/积分/VIP 字段已从后端 `me` 查询移除(shared-types.graphqls UserInfo 仅
  * id/wechatOpenId/nickname/phone/avatarUrl/createdAt/updatedAt),原展示会运行期崩溃
  * (balance.toFixed(2)),故移除失效行 —— 余额字段不再规划(用户储值不做,2026-10-09 合规
@@ -23,17 +21,16 @@ const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({ userInfo }) => 
   }
 
   return (
-    <>
-      <AtDivider />
-      <View className='form-section readonly-section'>
-        <Text className='section-title'>账户信息</Text>
-
-        <View className='readonly-field'>
-          <Text className='field-label'>用户ID</Text>
-          <Text className='field-value'>{userInfo.id}</Text>
+    <View className='weui-cells mt3 profile-cells'>
+      <View className='weui-cell'>
+        <View className='weui-cell__bd'>
+          <Text>用户ID</Text>
+        </View>
+        <View className='weui-cell__ft profile-readonly-value'>
+          <Text>{userInfo.id}</Text>
         </View>
       </View>
-    </>
+    </View>
   )
 }
 

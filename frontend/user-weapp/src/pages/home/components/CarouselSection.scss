@@ -1,12 +1,10 @@
 @import "../../../styles/theme.scss";
 
-// ---- ③ 活动轮播(卡片化,无生效条目隐藏) ----
+// ---- 运营轮播(容器对齐原型 .banner:16px 圆角 ×2 = 32px,高 148×2=296) ----
 .carousel-section {
-  margin-top: var(--spacing-md);
-
   .carousel-swiper {
-    height: 300px;
-    border-radius: var(--radius-card);
+    height: 296px;
+    border-radius: 32px;
     overflow: hidden;
     background: var(--bg-card);
     box-shadow: var(--shadow-card);
@@ -31,8 +29,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      padding: 16px var(--spacing-lg);
+      padding: 16px 32px;
       background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 100%);
+      border-radius: 0 0 32px 32px;
 
       .carousel-title {
         display: block;

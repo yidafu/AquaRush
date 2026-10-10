@@ -7,14 +7,13 @@ import {
   type StatusTone
 } from '@aquarush/common'
 
-import './index.scss'
-
 /**
- * 状态标签(§2.2:10% tint 底 + 状态色文字,圆角 8)—— weapp 统一实现
+ * 状态标签 —— WeUI 2.x 视觉(.weui-tag 体系,设计稿 02-order/order-list.html 状态标签口径)
  *
- * tone 语义与色值来源:@aquarush/common/utils/status-tone(STATUS_TONE_COLORS),
- * 本组件把 tone 映射为 styles/common.scss 的 .status-tag--* 修饰符(CSS 变量落地,
- * 值由 src/styles/tokens.test.ts 同步守卫锁定 = common STATUS_TONE_COLORS)。
+ * tone 语义与色值来源:@aquarush/common/utils/status-tone(STATUS_TONE_COLORS,
+ * 单一来源);本组件把 tone 映射为 weui.scss 的 .weui-tag--* 修饰符:
+ *   warning→--pay / info→--assign / success→--deliver / neutral→--done / error→--cancel
+ * (accent 为消费者端强调色,weapp 订单状态不命中,映射 --red 兜底)。
  *
  * 用法:
  * - <StatusTag status={order.status} />                     // 订单状态(自动取文案+tone)
@@ -28,17 +27,18 @@ interface StatusTagProps {
   tone?: StatusTone
   /** 显式文案(优先于 status 推导) */
   text?: string
+  /** small=列表标签(weui-tag 36px 高);normal=状态头大号(weui-tag--md 44px) */
   size?: 'small' | 'normal'
 }
 
-/** tone → .status-tag--* 修饰符(CSS 变量落地,见 styles/common.scss) */
+/** tone → .weui-tag--* 修饰符(weui.scss,设计稿 02-order 口径) */
 const TONE_MODIFIER: Record<StatusTone, string> = {
-  warning: 'status-tag--pending-pay',
-  info: 'status-tag--dispatch',
-  success: 'status-tag--delivering',
-  neutral: 'status-tag--completed',
-  error: 'status-tag--cancelled',
-  accent: 'status-tag--action',
+  warning: 'weui-tag--pay',
+  info: 'weui-tag--assign',
+  success: 'weui-tag--deliver',
+  neutral: 'weui-tag--done',
+  error: 'weui-tag--cancel',
+  accent: 'weui-tag--red',
 }
 
 const StatusTag: React.FC<StatusTagProps> = ({ status, tone, text, size = 'normal' }) => {
@@ -48,7 +48,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status, tone, text, size = 'norma
 
   return (
     <Text
-      className={`status-tag ${TONE_MODIFIER[resolvedTone]}${size === 'small' ? ' status-tag--small' : ''}`}
+      className={`weui-tag ${TONE_MODIFIER[resolvedTone]}${size === 'normal' ? ' weui-tag--md' : ''}`}
     >
       {resolvedText}
     </Text>

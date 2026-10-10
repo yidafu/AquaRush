@@ -17,16 +17,13 @@ import {
   maxTicketRedeem
 } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
-import { removeSelectedCartItems, syncCartTabBadge } from '../../utils/cart'
+import { removeSelectedCartItems } from '../../utils/cart'
 import {
   DEFAULT_DELIVERY_SLOTS,
   enabledDeliverySlots,
   resolveSelectedSlot
 } from '../../utils/deliverySlots'
 
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/checkbox.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 // 导入子组件
@@ -76,9 +73,9 @@ const OrderConfirm: React.FC = () => {
   const [deliverySlots, setDeliverySlots] = useState<DeliverySlotVo[]>(DEFAULT_DELIVERY_SLOTS)
   const [remark, setRemark] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
-  // 服务条款勾选:AtCheckbox 的 selectedList 为已选 value 数组(string[]),
-  // 初始为空数组(未勾选),勾选后为 ['agree'] —— 勿用 boolean 数组,否则
-  // onChange 回传的 Set 首位残留 false,校验永远判定未勾选
+  // 服务条款勾选:TermsAgreement 的勾选态为已选 value 数组(string[]),
+  // 初始为空数组(未勾选),勾选后为 ['agree'] —— 勿用 boolean 数组,
+  // 否则 onChange 回传内容与 includes('agree') 校验不匹配
   const [agreeTerms, setAgreeTerms] = useState<string[]>([])
 
   // 请求序号:丢弃过期计价响应(水票/优惠券连续调整时只采纳最后一次)
@@ -369,7 +366,6 @@ const OrderConfirm: React.FC = () => {
         removeSelectedCartItems()
         Taro.removeStorageSync('cartCheckout')
         // 下单后同步购物车 tabBar 角标
-        syncCartTabBadge()
       }
 
       // 发起支付(F-ORD-005):测试环境假支付自动完成(autoCompleted),

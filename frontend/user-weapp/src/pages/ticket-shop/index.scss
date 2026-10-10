@@ -1,183 +1,139 @@
 @import '@/styles/theme.scss';
 
+// ============================================================
+// 水票商城(ticket-mall.html:票种卡品牌蓝,.weui-tag 策略标签,
+// 价格 .weui-price--lg 金额红,购票张数 .weui-stepper)
+// ============================================================
+
 .ticket-shop-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding: 0 32px 32px; // 1x 倍尺寸
+  background-color: var(--weui-BG-0);
   box-sizing: border-box;
 }
 
+// ---- 头部:标题 + 我的水票入口 ----
 .ticket-shop-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32px 8px 24px;
+  padding: 32px 32px 16px;
 }
 
 .ticket-shop-title {
   font-size: 32px;
-  font-weight: 700;
-  color: var(--theme-text-primary);
+  font-weight: 600;
+  color: var(--weui-FG-0);
 }
 
 .ticket-shop-link {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+  font-size: 26px;
+  color: var(--weui-LINK);
 }
 
+// 通兑/限规格说明(圆角 brand notice)
+.notice-wrap {
+  padding-bottom: 0;
+}
+
+.ticket-notice {
+  border-radius: var(--weui-radius);
+  margin: 8px 0;
+
+  .ticket-notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ---- 票种卡列表(白底圆角卡) ----
 .ticket-list {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
+  padding: 16px 16px 0;
 }
 
 .ticket-card {
-  background: var(--theme-background);
-  border-radius: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
-
-.ticket-card-body {
-  display: flex;
-  align-items: stretch;
+  background: var(--weui-BG-2);
+  border-radius: var(--weui-radius);
   padding: 32px;
+  box-sizing: border-box;
 }
 
-.ticket-card-info {
-  flex: 1;
+// 标题行:票种名 + 策略标签
+.ticket-title-row {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
+
+  .ticket-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 34px;
+    font-weight: 600;
+    color: var(--weui-FG-0);
+    line-height: 1.4;
+  }
+
+  .ticket-tags {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
 
-.ticket-name {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
-
-.ticket-count-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ticket-count {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--theme-primary);
-  line-height: 1.2;
-}
-
-.ticket-gift {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--bg-card);
-  background: var(--brand-primary); // 赠票标记:品牌蓝,不用强调橙(§2.1 红线)
-  border-radius: 8px;
-  padding: 4px 10px;
-}
-
-.ticket-validity {
-  font-size: 22px;
-  color: var(--theme-text-secondary);
-}
-
-.ticket-limit {
-  font-size: 22px;
-  color: var(--theme-text-tertiary);
-}
-
-.ticket-card-right {
+// 说明行:有效期 / 限购
+.ticket-meta {
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+
+  .ticket-meta-line {
+    font-size: 26px;
+    line-height: 1.5;
+    color: var(--weui-FG-1);
+  }
+}
+
+// 价格行:套餐价(金额红)+ 立即购买(品牌蓝)
+.ticket-price-row {
+  margin-top: 32px;
+  display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  padding-left: 32px;
+
+  .weui-btn {
+    flex: 0 0 auto;
+    min-width: 200px;
+  }
 }
 
-.ticket-price {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--theme-text-primary);
-}
-
-.ticket-buy-btn {
-  min-width: 140px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--action); // 水票购买 = 消费者最高优先级 CTA(强调橙 #FF5436)
-  box-shadow: var(--shadow-btn);
-  border-radius: 30px;
-  padding: 0 24px;
-}
-
-.ticket-buy-btn-disabled {
-  background: var(--theme-border);
-}
-
-.ticket-buy-text {
-  font-size: 26px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-/* 购票张数选择(1~10,一次购买按张数生成对应水票记录 F-MKT-007) */
+// 购票张数行(.weui-stepper,发丝顶线)
 .ticket-quantity-row {
+  margin-top: 32px;
+  padding-top: 24px;
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 0 32px 32px;
-  border-top: 1px solid var(--theme-border);
-  padding-top: 24px;
-}
 
-.ticket-quantity-label {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
-}
+  .ticket-quantity-label {
+    font-size: 26px;
+    color: var(--weui-FG-1);
+  }
 
-.ticket-stepper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ticket-stepper-btn {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: var(--theme-background-page);
-  border: 1px solid var(--theme-border);
-}
-
-.ticket-stepper-btn-disabled {
-  opacity: 0.4;
-}
-
-.ticket-stepper-icon {
-  font-size: 32px;
-  color: var(--theme-text-primary);
-}
-
-.ticket-stepper-value {
-  min-width: 64px;
-  text-align: center;
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--theme-text-primary);
-}
-
-.ticket-quantity-total {
-  margin-left: auto;
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
+  .ticket-quantity-total {
+    margin-left: auto;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--weui-FG-0);
+  }
 }
