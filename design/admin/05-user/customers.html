@@ -64,7 +64,7 @@
                 <div class="page-title">
                   <div>
                     <h2>用户列表</h2>
-                    <div class="desc">微信登录用户（单类型身份）；手机号脱敏展示；总消费 / 余额分转元</div>
+                    <div class="desc">微信登录用户（单类型身份）；手机号脱敏展示；总消费分转元（无余额列——用户储值不做，2026-10-09 决策）</div>
                   </div>
                   <div class="row gap2">
                     <span class="btn sm">＋ 新增用户</span>
@@ -93,7 +93,6 @@
                         <th>客户分组</th>
                         <th class="num">订单数</th>
                         <th class="num">总消费</th>
-                        <th class="num">余额</th>
                         <th>注册时间</th>
                         <th>操作</th>
                       </tr>
@@ -111,9 +110,8 @@
                         <td>家庭客户</td>
                         <td class="num">42</td>
                         <td class="num bold">¥1,286.00</td>
-                        <td class="num">¥58.00</td>
                         <td>2026-03-12 09:20</td>
-                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">删除</a></div></td>
                       </tr>
                       <tr>
                         <td>
@@ -127,9 +125,8 @@
                         <td>办公客户</td>
                         <td class="num">128</td>
                         <td class="num bold">¥4,320.00</td>
-                        <td class="num">¥0.00</td>
                         <td>2026-02-28 14:05</td>
-                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">删除</a></div></td>
                       </tr>
                       <tr>
                         <td>
@@ -143,9 +140,8 @@
                         <td>企业客户</td>
                         <td class="num">316</td>
                         <td class="num bold">¥12,860.00</td>
-                        <td class="num">¥200.00</td>
                         <td>2025-11-16 10:42</td>
-                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">删除</a></div></td>
                       </tr>
                       <tr>
                         <td>
@@ -159,9 +155,8 @@
                         <td><span class="t-weak">未分组</span></td>
                         <td class="num">3</td>
                         <td class="num bold">¥66.00</td>
-                        <td class="num">¥12.00</td>
                         <td>2026-08-30 17:11</td>
-                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">删除</a></div></td>
                       </tr>
                       <tr>
                         <td>
@@ -175,9 +170,8 @@
                         <td>家庭客户</td>
                         <td class="num">76</td>
                         <td class="num bold">¥2,014.00</td>
-                        <td class="num">¥30.00</td>
                         <td>2026-01-09 08:33</td>
-                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a class="danger">删除</a></div></td>
                       </tr>
                     </tbody>
                   </table>
@@ -315,8 +309,8 @@
         <ol>
           <li>页头：标题「用户列表」+「新增用户」按钮</li>
           <li>筛选卡：关键词（昵称 / 手机号 / 用户ID）·「用户类型」下拉 · 注册时间 · 客户分组 · 是否有订单</li>
-          <li>UserTable：用户（头像+昵称）/ 手机号（脱敏）/ 用户类型 / 客户分组 / 订单数 / 总消费 / 余额 / 注册时间 / 操作</li>
-          <li>操作列：详情 · 编辑 · 重置密码 · 删除</li>
+          <li>UserTable：用户（头像+昵称）/ 手机号（脱敏）/ 用户类型 / 客户分组 / 订单数 / 总消费 / 注册时间 / 操作</li>
+          <li>操作列：详情 · 编辑 · 删除（<strong>不含「重置密码」</strong>——微信登录用户无账号密码，见 07-user.md §3.3）</li>
           <li>分页：共 N 条 · 页码 · 每页条数</li>
         </ol>
       </div>
@@ -344,7 +338,7 @@
         <p><strong>列表不使用 Tab</strong>：用户为单类型身份（PRD §3.3 结论），角色不通过 Tab 切换，统一用「用户类型」下拉筛选。</p>
         <p>管理端<strong>不出现强调橙</strong>；金额分转元（<code>¥0.00</code> 口径）；删除用语义 error 色 + 二次确认。</p>
         <p>客户分组归属「营销管理 §F-MKT-001」，本页仅提供筛选与「设置分组」入口。</p>
-        <p><strong>与规格的偏差说明：</strong>规格文件明确用户列表<strong>不提供「重置密码」</strong>（微信登录用户无账号密码）；本稿按交付清单要求保留了该操作按钮，实现时须以规格为准复核。</p>
+        <p><strong>操作列口径：</strong>按 07-user.md §3.3，用户列表<strong>不提供「重置密码」</strong>（微信登录用户无账号密码，登录态由微信授权维护）。若后续需要封禁/解封能力，应走「状态」字段而非密码类操作。</p>
       </div>
     </div>
 
