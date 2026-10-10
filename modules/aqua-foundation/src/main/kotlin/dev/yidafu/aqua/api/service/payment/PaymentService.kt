@@ -65,6 +65,8 @@ interface PaymentService {
    * 申请退款(带退款类型,R-PAY-02/G06):
    * 退款记录落 payment_refunds.refund_type,供退款统计区分订单退款与押金/水桶费退还
    * (DEPOSIT_REFUND 不计入退款/净营收统计,见 14-misc.md §G06)。
+   * refundRequestId 非空时更新该条退款申请为完成(R-PAY-02 审核制:取消生成 PENDING
+   * 申请,审核通过回写同一条记录),不再新插,避免同一笔退款双记录双计。
    */
   fun refund(
     transactionId: String,
@@ -72,6 +74,7 @@ interface PaymentService {
     totalAmountCents: Long,
     reason: String,
     refundType: RefundType,
+    refundRequestId: Long? = null,
   ): Map<String, Any>
 
   /**

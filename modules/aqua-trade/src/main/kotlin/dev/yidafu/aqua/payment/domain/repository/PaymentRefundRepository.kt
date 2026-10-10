@@ -21,6 +21,7 @@ package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import org.springframework.data.domain.Page
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -34,6 +35,15 @@ import java.util.Optional
 interface PaymentRefundRepository {
   /** 按 id 单行查询:命中且未软删返回实体,不存在或已软删返回 [Optional.empty]。 */
   fun findById(id: Long): Optional<PaymentRefundModel>
+
+  /**
+   * 按订单+退款类型查已有申请:取消事件生成 PENDING 前的幂等检查
+   * (R-PAY-02:同一订单至多一条订单退款申请,Outbox 重投不重复生成)。
+   */
+  fun findByOrderIdAndRefundType(
+    orderId: Long,
+    refundType: RefundType,
+  ): Optional<PaymentRefundModel>
 
   /**
    * upsert 语义:无 id 或 id 不存在时插入(雪花 id 由 [dev.yidafu.aqua.common.id.SnowflakeIdGenerator] 回填),

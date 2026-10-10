@@ -229,7 +229,7 @@ class OrderCancelledNotificationHandler(
     val reason = data["reason"]?.toString() ?: ""
     val shouldRefund = data["shouldRefund"]?.toString()?.toBooleanStrictOrNull() ?: false
     val eventTime = eventTimeMillis(data)
-    val refundText = if (shouldRefund) "已发起退款,请留意到账。" else ""
+    val refundText = if (shouldRefund) "退款申请已提交,审核通过后原路退回。" else ""
     publisher.publish(
       NotificationEventData(
         receiverType = "USER",
