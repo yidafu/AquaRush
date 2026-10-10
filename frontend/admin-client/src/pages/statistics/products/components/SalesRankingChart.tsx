@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { BRAND_PRIMARY } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
 
 export interface SalesRankingChartProps {
@@ -35,7 +35,7 @@ const SalesRankingChart: React.FC<SalesRankingChartProps> = ({ data, loading }) 
         />
         <Legend />
         <Bar yAxisId="left" dataKey="sales" name="销量" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
-        <Bar yAxisId="right" dataKey="revenue" name="营收" fill="#52c41a" radius={[4, 4, 0, 0]} />
+        <Bar yAxisId="right" dataKey="revenue" name="营收" fill={COLOR_SUCCESS} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ChartCard>
   </Col>

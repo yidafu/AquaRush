@@ -215,7 +215,6 @@ const GroupPrices: React.FC = () => {
           min={0.01}
           max={99999}
           precision={2}
-          allowClear
           placeholder="留空 = 清空全部分组价"
           style={{ width: '100%' }}
           value={batchPrice}

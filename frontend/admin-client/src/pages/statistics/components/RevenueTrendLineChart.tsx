@@ -8,7 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
-import { BRAND_PRIMARY } from '../../../config/theme';
+import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
 import ChartCard from '@/components/ChartCard';
 
 export interface RevenueTrendLineChartProps {
@@ -38,9 +38,9 @@ const RevenueTrendLineChart: React.FC<RevenueTrendLineChartProps> = ({ data, loa
           type="monotone"
           dataKey="revenue"
           name="营收"
-          stroke="#52c41a"
+          stroke={COLOR_SUCCESS}
           strokeWidth={2}
-          dot={{ fill: '#52c41a', r: 3 }}
+          dot={{ fill: COLOR_SUCCESS, r: 3 }}
         />
         <Line
           type="monotone"
@@ -55,9 +55,9 @@ const RevenueTrendLineChart: React.FC<RevenueTrendLineChartProps> = ({ data, loa
           type="monotone"
           dataKey="refund"
           name="退款"
-          stroke="#ff4d4f"
+          stroke={COLOR_ERROR}
           strokeWidth={2}
-          dot={{ fill: '#ff4d4f', r: 3 }}
+          dot={{ fill: COLOR_ERROR, r: 3 }}
         />
       </LineChart>
     </ChartCard>

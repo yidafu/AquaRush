@@ -51,28 +51,29 @@ class Http {
    * GET 请求
    */
   get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.get(url, config);
+    // 响应拦截器已解包为 data.data(业务数据),此处仅类型收敛,运行时值即 T
+    return this.instance.get(url, config) as unknown as Promise<T>;
   }
 
   /**
    * POST 请求
    */
   post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.post(url, data, config);
+    return this.instance.post(url, data, config) as unknown as Promise<T>;
   }
 
   /**
    * PUT 请求
    */
   put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.put(url, data, config);
+    return this.instance.put(url, data, config) as unknown as Promise<T>;
   }
 
   /**
    * DELETE 请求
    */
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.instance.delete(url, config);
+    return this.instance.delete(url, config) as unknown as Promise<T>;
   }
 }
 

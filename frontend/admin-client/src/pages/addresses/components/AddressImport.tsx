@@ -95,7 +95,7 @@ export const AddressImport: React.FC<AddressImportProps> = ({
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
           const workbook = XLSXLib.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSXLib.utils.sheet_to_json<ExcelRowData>(firstSheet);
+          const jsonData = XLSXLib.utils.sheet_to_json(firstSheet) as ExcelRowData[];
 
           if (jsonData.length === 0) {
             setError('Excel 文件为空');

@@ -39,8 +39,8 @@ const CouponDetailPage: React.FC = () => {
   const usage = data?.couponTemplateUsage;
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
-    setPage(pagination.current - 1);
-    setSize(pagination.pageSize);
+    setPage((pagination.current ?? 1) - 1);
+    setSize(pagination.pageSize ?? 20);
   };
 
   const renderDiscount = (record: CouponTemplateAdminVo) => {

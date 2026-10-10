@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from 'recharts';
 import ChartCard from '@/components/ChartCard';
+import { COLOR_SUCCESS } from '../../../../config/theme';
 
 export interface LoginTrendChartProps {
   data: { date: string; count: number }[];
@@ -29,9 +30,9 @@ const LoginTrendChart: React.FC<LoginTrendChartProps> = ({ data, loading }) => (
         type="monotone"
         dataKey="count"
         name="登录用户"
-        stroke="#52c41a"
+        stroke={COLOR_SUCCESS}
         strokeWidth={2}
-        dot={{ fill: '#52c41a', r: 3 }}
+        dot={{ fill: COLOR_SUCCESS, r: 3 }}
         activeDot={{ r: 6 }}
       />
     </LineChart>

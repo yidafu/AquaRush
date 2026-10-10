@@ -29,6 +29,7 @@ import {
   GET_DELIVERY_TRAJECTORIES_QUERY,
   GET_DELIVERY_WORKER_LATEST_LOCATION_QUERY,
 } from '../../../../../graphql/queries/trajectory.graphql';
+import { COLOR_ERROR, COLOR_SUCCESS } from '../../../../../config/theme';
 
 const { RangePicker } = DatePicker;
 
@@ -104,14 +105,14 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
   const mapMarkers = useMemo<MapMarker[]>(() => {
     const markers: MapMarker[] = [];
     if (latest) {
-      markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: '#F5222D' });
+      markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: COLOR_ERROR });
     } else if (points.length > 0) {
       // 非配送中无实时位置:以轨迹末点作为「最后位置」展示
       const last = points[points.length - 1];
-      markers.push({ id: 'worker', lng: last.lng, lat: last.lat, label: '最后位置', color: '#F5222D' });
+      markers.push({ id: 'worker', lng: last.lng, lat: last.lat, label: '最后位置', color: COLOR_ERROR });
     }
     if (points.length > 1) {
-      markers.push({ id: 'start', lng: points[0].lng, lat: points[0].lat, label: '起点', color: '#52C41A' });
+      markers.push({ id: 'start', lng: points[0].lng, lat: points[0].lat, label: '起点', color: COLOR_SUCCESS });
     }
     return markers;
   }, [latest, points]);

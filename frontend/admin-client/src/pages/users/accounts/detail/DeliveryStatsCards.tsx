@@ -7,7 +7,7 @@ import {
   DollarOutlined,
 } from '@ant-design/icons';
 import { displayCents } from '@aquarush/common';
-import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
 
 interface DeliveryStatsCardsProps {
   totalOrders: number;
@@ -45,7 +45,7 @@ const DeliveryStatsCards: React.FC<DeliveryStatsCardsProps> = ({
             title="已完成订单"
             value={completedOrders}
             prefix={<CheckCircleOutlined />}
-            valueStyle={{ color: '#52c41a' }}
+            valueStyle={{ color: COLOR_SUCCESS }}
           />
         </Card>
       </Col>

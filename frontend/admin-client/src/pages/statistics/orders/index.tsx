@@ -156,9 +156,9 @@ const OrderStatisticsPage: React.FC = () => {
     : null;
 
   return (
-    <div style={{ padding: 24 }}>
+    <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>订单统计</h1>
+        <h1 className="page-title">订单统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}

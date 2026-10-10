@@ -13,6 +13,7 @@ import { PAYMENT_TYPE_TEXT } from '../../../types/daily-collection';
 import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './constants';
 import { getOrderStatusConfig } from '../../../constants/order';
 import { getToneColor } from '../../../constants/status';
+import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
 
 export interface ReconciliationDetailModalProps {
   open: boolean;
@@ -161,7 +162,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
                 value={centsToYuan(record.discrepancyAmountCents)}
                 precision={2}
                 prefix="¥"
-                valueStyle={{ color: Math.abs(record.discrepancyAmountCents) <= 100 ? '#52c41a' : '#ff4d4f' }}
+                valueStyle={{ color: Math.abs(record.discrepancyAmountCents) <= 100 ? COLOR_SUCCESS : COLOR_ERROR }}
               />
             </Col>
             <Col span={12}>

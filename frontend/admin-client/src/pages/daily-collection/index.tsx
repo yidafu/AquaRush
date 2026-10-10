@@ -188,8 +188,8 @@ const DailyCollectionPage: React.FC = () => {
   const reconciliationPageInfo = pageData?.dailyReconciliations.pageInfo
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 24 }}>
+    <div>
+      <h2 className="page-title" style={{ marginBottom: 24 }}>
         收银对账管理
         <Tag style={{ marginLeft: 12 }} color="blue">
           {summary ? `${summary.collectionDate} 已提交日报 ${summary.totalSubmittedCount} 人` : '汇总加载中'}

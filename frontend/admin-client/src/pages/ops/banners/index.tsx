@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Image, Popconfirm, Switch, message } from 'antd';
+import { Table, Tag, Space, Button, Card, Image, Popconfirm, Switch } from 'antd';
 import { PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime } from '@aquarush/common';

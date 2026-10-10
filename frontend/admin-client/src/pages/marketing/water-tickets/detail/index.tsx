@@ -18,7 +18,7 @@ import {
 import { centsToYuan } from '@aquarush/common';
 import type { TicketTypeStatsVo } from '@aquarush/common';
 import { TICKET_TYPE_STATS_QUERY } from '../../../../graphql/queries/marketing.graphql';
-import { BRAND_PRIMARY } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
 
 const { RangePicker } = DatePicker;
@@ -182,7 +182,7 @@ const WaterTicketDetailPage: React.FC = () => {
                 />
                 <Legend />
                 <Bar yAxisId="left" dataKey="ticketCount" name="销售张数" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" name="销售金额" stroke="#52c41a" strokeWidth={2} dot={{ r: 2 }} />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" name="销售金额" stroke={COLOR_SUCCESS} strokeWidth={2} dot={{ r: 2 }} />
               </BarChart>
             </ChartCard>
 
@@ -199,7 +199,7 @@ const WaterTicketDetailPage: React.FC = () => {
                 <Legend />
                 <Line type="monotone" dataKey="redeemedCount" name="核销" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ r: 2 }} />
                 <Line type="monotone" dataKey="returnedCount" name="退回" stroke="#faad14" strokeWidth={2} dot={{ r: 2 }} />
-                <Line type="monotone" dataKey="expiredCount" name="过期" stroke="#ff4d4f" strokeWidth={2} dot={{ r: 2 }} />
+                <Line type="monotone" dataKey="expiredCount" name="过期" stroke={COLOR_ERROR} strokeWidth={2} dot={{ r: 2 }} />
               </LineChart>
             </ChartCard>
           </Space>

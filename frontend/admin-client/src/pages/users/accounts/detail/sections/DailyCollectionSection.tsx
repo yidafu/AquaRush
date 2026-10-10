@@ -6,6 +6,7 @@ import type { DailyCollectionRecord, DailyCollectionStatus } from '../../../../.
 import { displayCents } from '@aquarush/common';
 import dayjs from 'dayjs';
 import { pagination } from '@/utils/table';
+import { COLOR_ERROR, COLOR_SUCCESS } from '../../../../../config/theme';
 
 interface DailyCollectionSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -106,7 +107,7 @@ const DailyCollectionSection: React.FC<DailyCollectionSectionProps> = ({ deliver
       render: (v: number | string) => {
         const diff = Number(v ?? 0);
         return (
-          <span style={{ color: diff === 0 ? undefined : diff > 0 ? '#f5222d' : '#52c41a' }}>
+          <span style={{ color: diff === 0 ? undefined : diff > 0 ? COLOR_ERROR : COLOR_SUCCESS }}>
             {displayCents(diff)}
           </span>
         );
