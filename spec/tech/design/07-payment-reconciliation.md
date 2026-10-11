@@ -3,6 +3,23 @@
 > 本文档基于 `spec/prd/` v0.33(2026-10-10)编写,**只以 PRD 为需求来源推导实现方案**;业务规则与验收用例以 PRD 为准(以 `R-PAY-04` / `F-ORD-031` / `AC-ORD-031-*` / `G93` 编号引用,不复制全文),本文只管「怎么实现」。
 > 本卷是 `03-core-flows.md §16`「微信资金对账」概要的**详细展开**(数据模型 / 账单下载解析 / 匹配算法 / 调度 / 权限 / 测试);与送水工收款日报对账(R-COL-01~04,`06-collection.md`)相互独立,复用其「重跑幂等、处置闭环」的产品语义但数据与权限互不相通。
 
+## 0. 实现记录与偏差清单(2026-10 G93 收尾)
+
+功能已实现(调度 + 差异处置闭环 + 「支付管理-支付对账」页 `/payments/reconciliation`,权限码 `PAYMENT_RECONCILIATION_READ/EXECUTE` 独立接线)。与本文正文的偏差(保守实现优先,均为已裁决记录):
+
+| # | 正文设计 | 实际实现 | 决策理由 |
+| --- | --- | --- | --- |
+| 1 | §3 V350 三表(bill_date UK、download_url_hash、三方汇总列) | 复用既有 reconciliation_tasks/_discrepancies/_reports(task_id 任务号、total/matched/unmatched);V347 增列 trigger_type/executed_by/wechat_total_*/local_total_* + SKIPPED/IGNORED 状态值域 | 表已随 V100 建成并有数据形态;UK(bill_type,bill_date) 不加(存量可重复,幂等靠 hasRunningTask 守卫 + 手动重跑);download_url_hash 不适用(网关无哈希校验概念) |
+| 2 | §4 wechatpay-java SDK 网关(aqua-trade `WechatBillGateway`,AES-GCM 哈希校验) | aqua-analytics `WeChatReconciliationApi`(restTemplate 直连 + 手写签名,V2 形态) | **高风险大改不做**:换 SDK 涉及凭据链路与全部网关测试重写;真实商户凭据下的账单格式联调验证列为遗留事项(差异告警/资金账单同批) |
+| 3 | §5 本地基准专用 Ledger API + 游标分页 | foundation `PaymentQueryService.getPaidByDateRange` 分页(paid_at 窗口 + SUCCESS/REFUNDING/REFUNDED 过滤),服务端逐页拉取 | 语义等价(规则 10 分页达标);挂在既有 PaymentQueryService 上,不新增接口面 |
+| 4 | §6 匹配键 out_trade_no + 四类差异枚举 | 匹配键 transactionId(微信支付单号,回调落库);差异枚举 MISSING/MISMATCH/EXTRA × SourceSystem(INTERNAL/WECHAT) | PaymentModel 无 orderNo 冗余;四类语义完整覆盖(短款=MISSING+WECHAT、长款=MISSING+INTERNAL、金额=MISMATCH;状态不一致语义由退款账单短款承载) |
+| 5 | §6-2 SKIPPED(未配置商户参数) | 已实现(ReconciliationConfig.weChatConfigured,任务置 SKIPPED + 原因) | 对齐 |
+| 6 | §6/PRD 差异数>0 任务仍为成功 | 已实现(completeTask 恒 SUCCESS;FAILED 仅执行异常) | 修正原实现「有差异即 FAILED」与 PRD 冲突点 |
+| 7 | §7 报表 30 天/已处置差异 180 天清理 | 已实现(03:30 调度,softDelete 分批;UNRESOLVED 永不清理) | 对齐 |
+| 8 | §8.1 resolveDiscrepancy 带 action(RESOLVE/IGNORE) | 已实现(input.action + IGNORED 状态) | 对齐 |
+| 9 | §10 不新增 outbox 事件;差异告警通知为后续增强(§13-7) | 维持:任务事件(RECONCILIATION_COMPLETED/FAILED/SKIPPED)已发;通知触达不做(receiverType 仅 USER/WORKER,管理员触达需扩通知接收人模型,非低成本) | 与 §13-7 建议默认值一致 |
+| 10 | §7 调度 2:00/2:05/3:30(SETTLEMENT 预留) | 多实现 2:10 SETTLEMENT 调度(走 fundflowbill 形态直连) | 保守保留既有能力,不回退;资金账单(手续费/净额)精确对账仍为后续增强 |
+
 ## 文档导航
 
 | 节 | 内容 |
