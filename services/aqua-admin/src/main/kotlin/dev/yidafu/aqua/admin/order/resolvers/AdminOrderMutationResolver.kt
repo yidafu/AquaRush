@@ -42,7 +42,6 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
 
 @Controller("adminOrderMutationResolver")
@@ -122,54 +121,64 @@ class AdminOrderMutationResolver(
   /**
    * 配送员创建订单（配送员为用户创建订单）
    * 配送员不需要用户认证，直接通过地址ID获取用户信息
+   * 号码保护(F-ORD-032/R-ORD-17):送水工视角按订单状态脱敏(新单待派单,回显脱敏)。
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_CREATE')")
   fun createDeliveryOrder(
     @Argument @Valid input: CreateDeliveryOrderInput,
-    @AuthenticationPrincipal userDetail: UserDetails,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderVo {
     logger.info(
       "Delivery creating order: items=${input.items.map { "productId=${it.productId},quantity=${it.quantity}" }.joinToString(
         ";",
       )}, addressId=${input.addressId}, isSelfCollect=${input.isSelfCollect}",
     )
-    val adminId = getAdminId(userDetail.username)
+    val adminId = getAdminId(userPrincipal.username)
     val request = input.toRequest()
     val order =
       orderMutationService.createDeliveryOrder(
         adminId,
         request,
       )
-    return adminOrderMapper.map(
+    return adminOrderMapper.mapForViewer(
       orderQueryService.getOrderById(order.id!!),
+      userPrincipal,
     )
   }
 
   /**
    * 配送员接单（配送员或管理员可调用）
+   * 号码保护(F-ORD-032/R-ORD-17):接单后进入待配送,按返回状态脱敏判定。
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun acceptDelivery(
     @Argument orderId: Long,
-    @AuthenticationPrincipal userDetail: UserDetails,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderVo {
-    val username = userDetail.username
-    logger.info("Worker $username accepting delivery for order $orderId")
-    return adminOrderMapper.map(deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(username)))
+    logger.info("Worker ${userPrincipal.username} accepting delivery for order $orderId")
+    return adminOrderMapper.mapForViewer(
+      deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(userPrincipal.username)),
+      userPrincipal,
+    )
   }
 
   /**
    * 开始配送（配送员点击开始配送按钮）
+   * 号码保护(F-ORD-032/R-ORD-17):开始后进入配送中,按返回状态脱敏判定。
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun startDelivery(
     @Argument orderId: Long,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): OrderVo {
     logger.info("Starting delivery for order $orderId")
-    return adminOrderMapper.map(deliveryTaskMutationService.startDelivery(orderId))
+    return adminOrderMapper.mapForViewer(
+      deliveryTaskMutationService.startDelivery(orderId),
+      userPrincipal,
+    )
   }
 
   /**
@@ -177,6 +186,7 @@ class AdminOrderMutationResolver(
    * @param photos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
    * @param remark 配送员备注
+   * 号码保护(F-ORD-032/R-ORD-17):完成后进入已完成(非配送阶段),送水工视角回显脱敏。
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
@@ -187,9 +197,10 @@ class AdminOrderMutationResolver(
     @Argument remark: String?,
     // 空桶回收登记(F-ORD-011/R-MON-03,非强制;按规格落 barrel_recovery_records)
     @Argument emptyBarrels: List<EmptyBarrelRecoveryInput>? = null,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): OrderVo {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
-    return adminOrderMapper.map(
+    return adminOrderMapper.mapForViewer(
       deliveryTaskMutationService.completeDelivery(
         orderId = orderId,
         deliveryPhotos = photos,
@@ -200,12 +211,14 @@ class AdminOrderMutationResolver(
             EmptyBarrelRecoveryItem(specification = it.specification, count = it.count)
           },
       ),
+      userPrincipal,
     )
   }
 
   /**
    * 配送任务中修正订单收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位)
    * 送水工与管理员共用 DELIVERY_TASK 权限;仅传入字段生效。
+   * 号码保护(F-ORD-032/R-ORD-17):仅非终态订单可改(配送阶段),按返回状态脱敏判定。
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
@@ -220,7 +233,10 @@ class AdminOrderMutationResolver(
         "longitude=${input.longitude}, latitude=${input.latitude}",
     )
     val request = input.toRequest()
-    return adminOrderMapper.map(deliveryTaskMutationService.updateOrderAddress(principal.id, orderId, request))
+    return adminOrderMapper.mapForViewer(
+      deliveryTaskMutationService.updateOrderAddress(principal.id, orderId, request),
+      principal,
+    )
   }
 
   /**
