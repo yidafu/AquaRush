@@ -1,7 +1,7 @@
 -- Insert default user with ID = 1
 -- This script creates a default user for initial system setup
 
-INSERT INTO users (
+INSERT INTO aqua_users (
     id,
     wechat_openid,
     wechat_unionid,
@@ -71,4 +71,4 @@ INSERT INTO delivery_addresses (
 ) ON CONFLICT DO NOTHING;
 
 -- Verify the user was created
-SELECT * FROM users WHERE id = 1;
+SELECT * FROM aqua_users WHERE id = 1;

@@ -9,7 +9,7 @@ class V104AddDailyCollectionTables :
     changeSet(author = "aqua-rush", id = "1.0.4-add-daily-collection-tables") {
       comment("Add daily collection and reconciliation tables for cashier reconciliation")
       // 每日收款记录表
-      createTable(tableName = "daily_collection_records") {
+      createTable(tableName = "aqua_daily_collection_records") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -46,26 +46,43 @@ class V104AddDailyCollectionTables :
         column(name = "is_deleted", type = "boolean", defaultValue = "false") {
           constraints(nullable = false)
         }
+        // 计算列(v1.0.5,日报统计口径)
+        column(name = "calculated_cash_amount_cents", type = "bigint", defaultValue = "0") {
+          constraints(nullable = false)
+        }
+        column(name = "calculated_qr_code_amount_cents", type = "bigint", defaultValue = "0") {
+          constraints(nullable = false)
+        }
+        column(name = "calculated_water_ticket_count", type = "int", defaultValue = "0") {
+          constraints(nullable = false)
+        }
+        column(name = "calculated_order_amount_cents", type = "bigint", defaultValue = "0") {
+          constraints(nullable = false)
+        }
+        // 争议日报驳回留痕(v2.0.0,G28)
+        column(name = "rejected_at", type = "timestamp")
+        column(name = "rejected_by", type = "bigint")
+        column(name = "reject_reason", type = "varchar(500)")
       }
       // 添加唯一约束：每个配送员每天只能有一条记录
       addUniqueConstraint(
-        tableName = "daily_collection_records",
+        tableName = "aqua_daily_collection_records",
         columnNames = "delivery_worker_id, collection_date",
         constraintName = "uk_daily_collection_worker_date",
       )
       // 创建索引
-      createIndex(tableName = "daily_collection_records", indexName = "idx_dcr_worker_date") {
+      createIndex(tableName = "aqua_daily_collection_records", indexName = "idx_dcr_worker_date") {
         column(name = "delivery_worker_id")
         column(name = "collection_date")
       }
-      createIndex(tableName = "daily_collection_records", indexName = "idx_dcr_collection_date") {
+      createIndex(tableName = "aqua_daily_collection_records", indexName = "idx_dcr_collection_date") {
         column(name = "collection_date")
       }
-      createIndex(tableName = "daily_collection_records", indexName = "idx_dcr_status") {
+      createIndex(tableName = "aqua_daily_collection_records", indexName = "idx_dcr_status") {
         column(name = "status")
       }
       // 每日对账记录表
-      createTable(tableName = "daily_reconciliations") {
+      createTable(tableName = "aqua_daily_reconciliations") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -111,10 +128,10 @@ class V104AddDailyCollectionTables :
         }
       }
       // 创建索引
-      createIndex(tableName = "daily_reconciliations", indexName = "idx_dr_reconciliation_date") {
+      createIndex(tableName = "aqua_daily_reconciliations", indexName = "idx_dr_reconciliation_date") {
         column(name = "reconciliation_date")
       }
-      createIndex(tableName = "daily_reconciliations", indexName = "idx_dr_status") {
+      createIndex(tableName = "aqua_daily_reconciliations", indexName = "idx_dr_status") {
         column(name = "status")
       }
     }

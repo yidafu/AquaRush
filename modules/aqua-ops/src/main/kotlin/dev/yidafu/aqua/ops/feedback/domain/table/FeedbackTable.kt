@@ -32,7 +32,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * + `v1.7.0-seed-nanshan-demo-data.xml`(种子数据)。
  * 对应 JPA 实体为 `FeedbackModel`。
  */
-object FeedbackTable : SoftDeletableTable("feedbacks") {
+object FeedbackTable : SoftDeletableTable("aqua_feedbacks") {
   val id = long("id")
   val userId = long("user_id")
   val feedbackType = enumerationByName("feedback_type", 30, FeedbackType::class)

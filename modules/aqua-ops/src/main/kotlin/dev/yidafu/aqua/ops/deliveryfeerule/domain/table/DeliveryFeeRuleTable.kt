@@ -29,7 +29,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * 列定义逐字对齐 `db/changelog/changes/v1.0.7-add-ops-notice-store-delivery-fee.xml`。
  * 对应 JPA 实体为 `DeliveryFeeRuleModel`。
  */
-object DeliveryFeeRuleTable : SoftDeletableTable("delivery_fee_rules") {
+object DeliveryFeeRuleTable : SoftDeletableTable("aqua_delivery_fee_rules") {
   val id = long("id")
   val freeFloorLimit = integer("free_floor_limit").default(4)
   val surchargeCents = long("surcharge_cents").default(200L)

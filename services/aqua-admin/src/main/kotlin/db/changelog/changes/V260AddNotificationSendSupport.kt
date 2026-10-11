@@ -7,25 +7,13 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 class V260AddNotificationSendSupport :
   KotlinCompiledDatabaseChangeLog({
     // 消息发送补齐(PRD 13-notification.md):
-    //        1) notifications 持久化微信订阅消息模板上下文(template_scene/template_page/template_fields),
+    //        1) aqua_notifications 持久化微信订阅消息模板上下文(template_scene/template_page/template_fields),
     //           支撑失败消息手动重发(F-NTF-006 开放问题关闭);
     //        2) 新增系统参数:优惠券即将过期提醒窗口(coupon_expiring_notify_days)、配送超时阈值(delivery_timeout_minutes)。
     changeSet(author = "aqua-rush", id = "2.6.0-add-notification-send-support") {
-      comment("Notification send support: template context columns + coupon-expiring / delivery-timeout params")
-      // ==================== notifications:模板上下文列(F-NTF-006 失败消息手动重发) ====================
-      addColumn(tableName = "notifications") {
-        column(name = "template_scene", type = "varchar(50)") {
-          constraints(nullable = true)
-        }
-        column(name = "template_page", type = "varchar(255)") {
-          constraints(nullable = true)
-        }
-        column(name = "template_fields", type = "text") {
-          constraints(nullable = true)
-        }
-      }
+      comment("Notification send support params: coupon-expiring / delivery-timeout (模板上下文列已并入 v1.5.0 建表)")
       // ==================== 优惠券即将过期提醒窗口(默认 3 天) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "45")
         column(name = "setting_key", value = "coupon_expiring_notify_days")
         column(name = "setting_value", value = "3")
@@ -39,7 +27,7 @@ class V260AddNotificationSendSupport :
         column(name = "updated_at", value = "NOW()")
       }
       // ==================== 配送超时阈值(默认 120 分钟,触发送水工超时推送) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "46")
         column(name = "setting_key", value = "delivery_timeout_minutes")
         column(name = "setting_value", value = "120")

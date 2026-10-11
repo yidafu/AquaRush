@@ -1,6 +1,6 @@
 // 转换自 changes/v1.0.7-add-ops-notice-store-delivery-fee.xml (liquibase-kotlin 4.33.0-0.10.1)
 // changeSet id/author 逐字保留；本文件为编译期 changelog，路径 = 类 FQCN。
-// 存量漂移修复:冗余 addColumn(已被就地并入 v1.0.0)已移除,原因:orders.delivery_fee_cents/addresses.floor 已被就地并入 v1.0.0
+// 存量漂移修复:冗余 addColumn(已被就地并入 v1.0.0)已移除,原因:aqua_orders.delivery_fee_cents/aqua_addresses.floor 已被就地并入 v1.0.0
 package db.changelog.changes
 
 import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
@@ -9,10 +9,10 @@ class V107AddOpsNoticeStoreDeliveryFee :
   KotlinCompiledDatabaseChangeLog({
     changeSet(author = "aqua-rush", id = "1.0.7-add-ops-notice-store-delivery-fee") {
       comment(
-        "Add ops config tables (notices, store_profiles, delivery_fee_rules) and delivery fee snapshot for F-OPS-002/F-OPS-004/F-OPS-005",
+        "Add ops config tables (aqua_notices, aqua_store_profiles, aqua_delivery_fee_rules) and delivery fee snapshot for F-OPS-002/F-OPS-004/F-OPS-005",
       )
       // 公告表(F-OPS-002)
-      createTable(tableName = "notices") {
+      createTable(tableName = "aqua_notices") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -46,12 +46,12 @@ class V107AddOpsNoticeStoreDeliveryFee :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "notices", indexName = "idx_notices_pinned_published_at") {
+      createIndex(tableName = "aqua_notices", indexName = "idx_notices_pinned_published_at") {
         column(name = "pinned")
         column(name = "published_at")
       }
       // 店铺信息配置表(F-OPS-004,单行配置 id=1)
-      createTable(tableName = "store_profiles") {
+      createTable(tableName = "aqua_store_profiles") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -79,7 +79,7 @@ class V107AddOpsNoticeStoreDeliveryFee :
         }
       }
       // 配送费规则配置表(F-OPS-005,单行配置 id=1;楼层口径 R-MON-02)
-      createTable(tableName = "delivery_fee_rules") {
+      createTable(tableName = "aqua_delivery_fee_rules") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -100,6 +100,15 @@ class V107AddOpsNoticeStoreDeliveryFee :
         column(name = "is_deleted", type = "boolean", defaultValue = "false") {
           constraints(nullable = false)
         }
+        // 楼层分档(v3.4.5,R-MON-02 修订;JSON 档位,tiers 缺失时以 surcharge_cents 兜底)
+        column(name = "tiers", type = "json")
+        // 起送门槛与距离阶梯(v3.4.7 G96,R-OPS-03)
+        column(name = "minimum_order_cents", type = "bigint", defaultValueNumeric = 0) {
+          constraints(nullable = false)
+        }
+        column(name = "distance_tiers", type = "json")
+        column(name = "store_longitude", type = "double precision")
+        column(name = "store_latitude", type = "double precision")
       }
     }
   })

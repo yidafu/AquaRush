@@ -31,14 +31,14 @@ enum class LogTableType(
   /** 数据维护参数组中该类日志的保留天数键 */
   val retentionKey: String,
 ) {
-  /** API 请求日志(api_logs) */
-  API_LOG("api_logs", SystemSettingKeys.LOG_RETENTION_API_DAYS),
+  /** API 请求日志(aqua_api_logs) */
+  API_LOG("aqua_api_logs", SystemSettingKeys.LOG_RETENTION_API_DAYS),
 
-  /** 用户操作日志(user_action_logs) */
-  USER_ACTION_LOG("user_action_logs", SystemSettingKeys.LOG_RETENTION_USER_ACTION_DAYS),
+  /** 用户操作日志(aqua_user_action_logs) */
+  USER_ACTION_LOG("aqua_user_action_logs", SystemSettingKeys.LOG_RETENTION_USER_ACTION_DAYS),
 
-  /** 业务日志(business_logs) */
-  BUSINESS_LOG("business_logs", SystemSettingKeys.LOG_RETENTION_BUSINESS_DAYS),
+  /** 业务日志(aqua_business_logs) */
+  BUSINESS_LOG("aqua_business_logs", SystemSettingKeys.LOG_RETENTION_BUSINESS_DAYS),
   ;
 
   companion object {

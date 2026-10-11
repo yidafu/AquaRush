@@ -27,7 +27,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 原 notification_settings 已随 V340 迁数据后删除)。
 
 /** 收货地址表(`addresses`)。 */
-object AddressesTable : SoftDeletableTable("addresses") {
+object AddressesTable : SoftDeletableTable("aqua_addresses") {
   val id = long("id")
   val userId = long("user_id")
   val receiverName = varchar("receiver_name", 50)
@@ -49,7 +49,7 @@ object AddressesTable : SoftDeletableTable("addresses") {
 }
 
 /** 行政区划表(`regions`)。 */
-object RegionsTable : SoftDeletableTable("regions") {
+object RegionsTable : SoftDeletableTable("aqua_regions") {
   val id = long("id")
   val name = varchar("name", 100)
   val code = varchar("code", 12)

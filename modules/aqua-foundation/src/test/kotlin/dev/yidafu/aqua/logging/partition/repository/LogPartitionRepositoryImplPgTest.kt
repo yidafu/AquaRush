@@ -44,13 +44,13 @@ import kotlin.concurrent.thread
  * `COPY ... TO STDOUT` 导出(字节数 + sha256 + gzip/CSV 内容)、DROP 分区、事务级 advisory lock 互斥。
  *
  * 用独立库名 `aquafoundationlogs`(与 `FoundationPgTestSupport` 的 `aquafoundationtables` 隔离):
- * 这里需要 `api_logs` 是**真正的分区父表**,而 `SchemaUtils.create(ApiLogsTable)` 建出的是普通表。
+ * 这里需要 `aqua_api_logs` 是**真正的分区父表**,而 `SchemaUtils.create(ApiLogsTable)` 建出的是普通表。
  */
 class LogPartitionRepositoryImplPgTest :
   FunSpec({
     val database = PostgresTestContainer.connect("aquafoundationlogs")
     val repository = LogPartitionRepositoryImpl(database)
-    val partition = "api_logs_2026_03"
+    val partition = "aqua_api_logs_2026_03"
 
     fun sql(statement: String) {
       transaction(database) { exec(statement) }
@@ -63,10 +63,10 @@ class LogPartitionRepositoryImplPgTest :
 
     fun reset() {
       sql("DROP SCHEMA IF EXISTS log_archive CASCADE")
-      sql("DROP TABLE IF EXISTS api_logs CASCADE")
+      sql("DROP TABLE IF EXISTS aqua_api_logs CASCADE")
       sql(
         """
-        CREATE TABLE api_logs (
+        CREATE TABLE aqua_api_logs (
           id bigint NOT NULL,
           method varchar(16) NOT NULL,
           path varchar(255) NOT NULL,
@@ -80,7 +80,7 @@ class LogPartitionRepositoryImplPgTest :
     fun seedRows() {
       sql(
         """
-        INSERT INTO api_logs (id, method, path, created_at)
+        INSERT INTO aqua_api_logs (id, method, path, created_at)
         VALUES (1, 'GET', '/api/a', '2026-03-05 10:00:00'),
                (2, 'POST', '/api/b', '2026-03-06 11:00:00')
         """.trimIndent(),
@@ -107,10 +107,10 @@ class LogPartitionRepositoryImplPgTest :
 
     test("createMonthPartition:DEFAULT 已有该月行时腾挪建分区,范围外行留在 DEFAULT") {
       // 复刻全新库首启:种子日志先落 DEFAULT,当月分区随后才预建(PG 默认拒绝此操作)
-      sql("CREATE TABLE api_logs_default PARTITION OF api_logs DEFAULT")
+      sql("CREATE TABLE aqua_api_logs_default PARTITION OF aqua_api_logs DEFAULT")
       sql(
         """
-        INSERT INTO api_logs (id, method, path, created_at)
+        INSERT INTO aqua_api_logs (id, method, path, created_at)
         VALUES (1, 'GET', '/api/a', '2026-03-05 10:00:00'),
                (2, 'POST', '/api/b', '2026-03-06 11:00:00'),
                (3, 'GET', '/api/c', '2026-05-01 12:00:00')
@@ -121,11 +121,11 @@ class LogPartitionRepositoryImplPgTest :
       // 分区已存在后的重复调用仍是无冲突的幂等 no-op
       repository.createMonthPartition(LogTableType.API_LOG, "2026-03")
 
-      query("SELECT count(*) FROM api_logs_2026_03") { rs ->
+      query("SELECT count(*) FROM aqua_api_logs_2026_03") { rs ->
         rs.next()
         rs.getInt(1)
       } shouldBe 2
-      query("SELECT count(*) FROM api_logs_default") { rs ->
+      query("SELECT count(*) FROM aqua_api_logs_default") { rs ->
         rs.next()
         rs.getInt(1)
       } shouldBe 1
@@ -141,7 +141,7 @@ class LogPartitionRepositoryImplPgTest :
       repository.ensureColdYearTable(LogTableType.API_LOG, 2026)
 
       repository.appendToColdTable(LogTableType.API_LOG, 2026, partition) shouldBe 2
-      query("SELECT count(*) FROM log_archive.api_logs_2026") { rs ->
+      query("SELECT count(*) FROM log_archive.aqua_api_logs_2026") { rs ->
         rs.next()
         rs.getInt(1)
       } shouldBe 2
@@ -150,13 +150,13 @@ class LogPartitionRepositoryImplPgTest :
       repository.createMonthPartition(LogTableType.API_LOG, "2026-04")
       sql(
         """
-        INSERT INTO api_logs (id, method, path, created_at)
+        INSERT INTO aqua_api_logs (id, method, path, created_at)
         VALUES (3, 'GET', '/api/c', '2026-04-07 09:00:00'),
                (4, 'GET', '/api/d', '2026-04-08 09:00:00')
         """.trimIndent(),
       )
-      repository.appendToColdTable(LogTableType.API_LOG, 2026, "api_logs_2026_04") shouldBe 2
-      query("SELECT count(*) FROM log_archive.api_logs_2026") { rs ->
+      repository.appendToColdTable(LogTableType.API_LOG, 2026, "aqua_api_logs_2026_04") shouldBe 2
+      query("SELECT count(*) FROM log_archive.aqua_api_logs_2026") { rs ->
         rs.next()
         rs.getInt(1)
       } shouldBe 4

@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // created_at/updated_at 均 NOT NULL,由仓储插入时赋值(与 ReconciliationTables 风格一致)。
 
 /** 商品收藏表(`product_favorites`,9 列;(user_id, product_id) 有 DB 唯一约束)。 */
-object ProductFavoritesTable : SoftDeletableTable("product_favorites") {
+object ProductFavoritesTable : SoftDeletableTable("aqua_product_favorites") {
   val id = long("id")
   val userId = long("user_id")
   val productId = long("product_id")
@@ -39,7 +39,7 @@ object ProductFavoritesTable : SoftDeletableTable("product_favorites") {
 }
 
 /** 商品属性选项字典表(`product_options`,10 列,规格/水源下拉候选;无 product_id,全局字典)。 */
-object ProductOptionsTable : SoftDeletableTable("product_options") {
+object ProductOptionsTable : SoftDeletableTable("aqua_product_options") {
   val id = long("id")
   val optionType = varchar("option_type", 32)
   val optionValue = varchar("option_value", 100)

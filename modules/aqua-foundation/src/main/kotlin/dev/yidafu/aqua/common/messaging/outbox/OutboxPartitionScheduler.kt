@@ -31,7 +31,7 @@ import java.time.LocalDateTime
  * 职责(取代原 DONE 行删除任务):
  * 1. 补建「当前半区 + 下一半区」分区,承接未来约 6 个月的事件写入;
  * 2. 分区结束满 [OutboxProperties.partitionRetentionDays] 的分区 DETACH 并改名归档
- *    (`outbox_events_archive_YYYYHn`,数据不丢,主表恒小)。
+ *    (`aqua_outbox_events_archive_YYYYHn`,数据不丢,主表恒小)。
  *
  * 双服务实例并发:事务级 advisory lock 串行化,未获锁本次跳过(另一实例在执行)。
  */

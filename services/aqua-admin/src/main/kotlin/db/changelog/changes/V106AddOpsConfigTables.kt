@@ -7,9 +7,9 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 class V106AddOpsConfigTables :
   KotlinCompiledDatabaseChangeLog({
     changeSet(author = "aqua-rush", id = "1.0.6-add-ops-config-tables") {
-      comment("Add operations config tables (banners, feedbacks) for F-OPS-001/F-OPS-003")
+      comment("Add operations config tables (aqua_banners, aqua_feedbacks) for F-OPS-001/F-OPS-003")
       // 轮播图(运营位)配置表
-      createTable(tableName = "banners") {
+      createTable(tableName = "aqua_banners") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -46,11 +46,11 @@ class V106AddOpsConfigTables :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "banners", indexName = "idx_banners_sort_order") {
+      createIndex(tableName = "aqua_banners", indexName = "idx_banners_sort_order") {
         column(name = "sort_order")
       }
       // 意见反馈表
-      createTable(tableName = "feedbacks") {
+      createTable(tableName = "aqua_feedbacks") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -84,7 +84,7 @@ class V106AddOpsConfigTables :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "feedbacks", indexName = "idx_feedbacks_status_created_at") {
+      createIndex(tableName = "aqua_feedbacks", indexName = "idx_feedbacks_status_created_at") {
         column(name = "status")
         column(name = "created_at")
       }

@@ -9,33 +9,18 @@ class DbChangelogMaster :
   KotlinCompiledDatabaseChangeLog({
     // Development schema recreation - drops and recreates all tables
     include(file = "db/changelog/changes/V100InitComprehensiveSchema", logicalFilePath = "db/changelog/changes/v1.0.0-init-comprehensive-schema.xml")
-    include(file = "db/changelog/changes/V103AddOrderSearchContent", logicalFilePath = "db/changelog/changes/v1.0.3-add-order-search-content.xml")
     include(file = "db/changelog/changes/V104AddDailyCollectionTables", logicalFilePath = "db/changelog/changes/v1.0.4-add-daily-collection-tables.xml")
-    include(file = "db/changelog/changes/V105AddCalculatedFields", logicalFilePath = "db/changelog/changes/v1.0.5-add-calculated-fields.xml")
     include(file = "db/changelog/changes/V106AddOpsConfigTables", logicalFilePath = "db/changelog/changes/v1.0.6-add-ops-config-tables.xml")
     include(file = "db/changelog/changes/V107AddOpsNoticeStoreDeliveryFee", logicalFilePath = "db/changelog/changes/v1.0.7-add-ops-notice-store-delivery-fee.xml")
     include(file = "db/changelog/changes/V108AddSystemConfigParams", logicalFilePath = "db/changelog/changes/v1.0.8-add-system-config-params.xml")
     include(file = "db/changelog/changes/V109AddMarketingTables", logicalFilePath = "db/changelog/changes/v1.0.9-add-marketing-tables.xml")
     include(file = "db/changelog/changes/V110AddMarketingFlashGiftFirstorder", logicalFilePath = "db/changelog/changes/v1.1.0-add-marketing-flash-gift-firstorder.xml")
-    include(file = "db/changelog/changes/V111AddBusinessLogOperation", logicalFilePath = "db/changelog/changes/v1.1.1-add-business-log-operation.xml")
-    include(file = "db/changelog/changes/V120DropOrderSingleProductColumns", logicalFilePath = "db/changelog/changes/v1.2.0-drop-order-single-product-columns.xml")
-    include(file = "db/changelog/changes/V121MergeDeliveryWorkerIntoAdmins", logicalFilePath = "db/changelog/changes/v1.2.1-merge-delivery-worker-into-admins.xml")
-    include(file = "db/changelog/changes/V122AddAdminAccountStatus", logicalFilePath = "db/changelog/changes/v1.2.2-add-admin-account-status.xml")
     include(file = "db/changelog/changes/V123AddDeliveryTrajectory", logicalFilePath = "db/changelog/changes/v1.2.3-add-delivery-trajectory.xml")
     include(file = "db/changelog/changes/V124AddSystemSecurityNotificationDataConfig", logicalFilePath = "db/changelog/changes/v1.2.4-add-system-security-notification-data-config.xml")
-    include(file = "db/changelog/changes/V125AddOrderIdempotencyDeliveryTime", logicalFilePath = "db/changelog/changes/v1.2.5-add-order-idempotency-delivery-time.xml")
     include(file = "db/changelog/changes/V126AddDeliveryPushConfigParams", logicalFilePath = "db/changelog/changes/v1.2.6-add-delivery-push-config-params.xml")
-    include(file = "db/changelog/changes/V130LogPartitionBackup", logicalFilePath = "db/changelog/changes/v1.3.0-log-partition-backup.xml")
-    include(file = "db/changelog/changes/V140FixPaymentRefundsStatusCheck", logicalFilePath = "db/changelog/changes/v1.4.0-fix-payment-refunds-status-check.xml")
     include(file = "db/changelog/changes/V150AddNotificationTables", logicalFilePath = "db/changelog/changes/v1.5.0-add-notification-tables.xml")
     include(file = "db/changelog/changes/V160ConvertAddressCoordsToWgs84", logicalFilePath = "db/changelog/changes/v1.6.0-convert-address-coords-to-wgs84.xml")
     include(file = "db/changelog/changes/V170AddProductOptions", logicalFilePath = "db/changelog/changes/v1.7.0-add-product-options.xml")
-    include(file = "db/changelog/changes/V180DropProductDeliverySettings", logicalFilePath = "db/changelog/changes/v1.8.0-drop-product-delivery-settings.xml")
-    include(file = "db/changelog/changes/V190AddOrderTicketDiscountSnapshot", logicalFilePath = "db/changelog/changes/v1.9.0-add-order-ticket-discount-snapshot.xml")
-    // G23 照片核验 / G28 争议日报驳回留痕
-    include(file = "db/changelog/changes/V200AddReviewColumns", logicalFilePath = "db/changelog/changes/v2.0.0-add-review-columns.xml")
-    // R-PAY-02 退款审核流
-    include(file = "db/changelog/changes/V201AddRefundReviewColumns", logicalFilePath = "db/changelog/changes/v2.0.1-add-refund-review-columns.xml")
     // G06 桶押金模块
     include(file = "db/changelog/changes/V202AddDeposit", logicalFilePath = "db/changelog/changes/v2.0.2-add-deposit.xml")
     // G06 水桶费改造(押金 → 一次性塑料水桶费:价目表/购桶单/明细)
@@ -50,44 +35,18 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V240AddDailyStatFacts", logicalFilePath = "db/changelog/changes/v2.4.0-add-daily-stat-facts.xml")
     // F-STA-007 营销统计:营销日事实 + 营销使用日事实(同一夜间快照任务写入)
     include(file = "db/changelog/changes/V250AddMarketingDailyFacts", logicalFilePath = "db/changelog/changes/v2.5.0-add-marketing-daily-facts.xml")
-    // 消息发送补齐:notifications 模板上下文列(失败消息手动重发) + 优惠过期提醒窗口/配送超时阈值参数
+    // 消息发送补齐:优惠过期提醒窗口/配送超时阈值参数(模板上下文列已并入 v1.5.0 aqua_notifications 建表)
     include(file = "db/changelog/changes/V260AddNotificationSendSupport", logicalFilePath = "db/changelog/changes/v2.6.0-add-notification-send-support.xml")
-    // R-ORD-04 支付超时优化:payments.version 乐观锁列 + chk_payments_status 对齐枚举
-    include(file = "db/changelog/changes/V270AddPaymentExpiryOptimization", logicalFilePath = "db/changelog/changes/v2.7.0-add-payment-expiry-optimization.xml")
     // 营收口径修正:已完成营收按完成时间(completed_at)归属日的日事实表(订单数仍按下单日)
     include(file = "db/changelog/changes/V280AddDailyRevenueFacts", logicalFilePath = "db/changelog/changes/v2.8.0-add-daily-revenue-facts.xml")
-    // G23/F-ORD-008/F-ORD-024:chk_operation_type_valid 对齐域枚举(照片核验/催单/改址操作类型)
-    include(file = "db/changelog/changes/V290FixOrderOperationTypeCheck", logicalFilePath = "db/changelog/changes/v2.9.0-fix-order-operation-type-check.xml")
-    // JPA→Exposed P4:orders.status 加宽到 varchar(30),容纳枚举 AWAITING_CONFIRMATION(21 字符)
-    include(file = "db/changelog/changes/V300WidenOrdersStatus", logicalFilePath = "db/changelog/changes/v3.0.0-widen-orders-status.xml")
-    // P5 收口:补回历史 Hibernate ddl-auto 建出、changelog 缺失的 notification_settings 表
-    include(file = "db/changelog/changes/V310AddNotificationSettings", logicalFilePath = "db/changelog/changes/v3.1.0-add-notification-settings.xml")
-    // Outbox 替代 Artemis MQ:重建 V100 遗留的 outbox_events(从未被读写)
-    include(file = "db/changelog/changes/V320RecreateOutboxEvents", logicalFilePath = "db/changelog/changes/v3.2.0-recreate-outbox-events.xml")
-    // 缺陷 #6:删除 users.balance_cents(储值不做,PRD 2026-10-09 决策)
-    include(file = "db/changelog/changes/V330DropUsersBalanceCents", logicalFilePath = "db/changelog/changes/v3.3.0-drop-users-balance-cents.xml")
-    // 缺陷 #7①:通知设置双表合一,迁数据后删 notification_settings
-    include(file = "db/changelog/changes/V340MergeNotificationSettings", logicalFilePath = "db/changelog/changes/v3.4.0-merge-notification-settings.xml")
-    // 缺陷 #7②:删死表 delivery_addresses + orders.delivery_address_id 恒空列
-    include(file = "db/changelog/changes/V341DropDeliveryAddresses", logicalFilePath = "db/changelog/changes/v3.4.1-drop-delivery-addresses.xml")
-    // outbox 分区化:转按半年 RANGE 分区,配合滚动维护 DETACH 归档
-    include(file = "db/changelog/changes/V342PartitionOutboxEvents", logicalFilePath = "db/changelog/changes/v3.4.2-partition-outbox-events.xml")
-    // B2 订单 7 态(裁决结构 #2):存量 AWAITING_CONFIRMATION 终态化 + 删 delivery_confirmed_at
-    include(file = "db/changelog/changes/V343FinalizeAwaitingOrders", logicalFilePath = "db/changelog/changes/v3.4.3-finalize-awaiting-orders.xml")
-    // B2 缺陷 #9:派单/抢单时间补列(履约时长锚点)
+    // B2 缺陷 #9:aqua_orders.assigned_at 存量回填(列已并入 v1.0.1 aqua_orders 建表)
     include(file = "db/changelog/changes/V344AddOrdersAssignedAt", logicalFilePath = "db/changelog/changes/v3.4.4-add-orders-assigned-at.xml")
-    // B2 配送费分档(结构 #6,R-MON-02):tiers 档位列 + 默认三档回填
+    // B2 配送费分档(结构 #6,R-MON-02):默认三档回填(tiers 列已并入 v1.0.7 建表)
     include(file = "db/changelog/changes/V345AddDeliveryFeeTiers", logicalFilePath = "db/changelog/changes/v3.4.5-add-delivery-fee-tiers.xml")
-    // B2 押金模型回退(结构 #4,R-MON-03):deposit_records 扩列+状态值域 + 退押申请/空桶回收表
+    // B2 押金模型回退(结构 #4,R-MON-03):aqua_deposit_records 状态值域迁移 + 退押申请/空桶回收表(扩列已并入 v2.0.2 建表)
     include(file = "db/changelog/changes/V346AddDepositModel", logicalFilePath = "db/changelog/changes/v3.4.6-add-deposit-model.xml")
     // G77/F-ORD-026:周期订购计划 + 明细表(后台入口,到期自动下单+提醒送水工)
     include(file = "db/changelog/changes/V347AddSubscriptions", logicalFilePath = "db/changelog/changes/v3.4.7-add-subscriptions.xml")
-    // G93 微信支付对账收尾(F-ORD-031/R-PAY-04):任务表触发方式/微信与本地汇总列 + SKIPPED/IGNORED 状态值域
-    include(file = "db/changelog/changes/V347AlignReconciliationSchema", logicalFilePath = "db/changelog/changes/v3.4.7-align-reconciliation-schema.xml")
     // G94 接单超时预警(F-NTF-008/R-NTF-07):F-SYS-002 派单与确认组新增两阈值参数种子
     include(file = "db/changelog/changes/V347AddOrderAcceptTimeoutParams", logicalFilePath = "db/changelog/changes/v3.4.7-add-order-accept-timeout-params.xml")
-    // G97 水票运营策略(R-MKT-08 修订):ticket_types 引流票/复购激活/单次核销上限 + ticket_purchases 激活基线
-    include(file = "db/changelog/changes/V348AddTicketOperationStrategy", logicalFilePath = "db/changelog/changes/v3.4.8-add-ticket-operation-strategy.xml")
-    // G96 起送门槛与距离阶梯运费(R-OPS-03):minimum_order_cents/distance_tiers/store 坐标
-    include(file = "db/changelog/changes/V347AddDeliveryFeeMinimumDistance", logicalFilePath = "db/changelog/changes/v3.4.7-add-delivery-fee-minimum-distance.xml")
   })

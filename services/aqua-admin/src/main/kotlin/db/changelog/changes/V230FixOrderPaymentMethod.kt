@@ -6,7 +6,7 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 
 class V230FixOrderPaymentMethod :
   KotlinCompiledDatabaseChangeLog({
-    // orders.payment_method 枚举对齐:
+    // aqua_orders.payment_method 枚举对齐:
     //     南山演示数据(v1.7.0-seed-nanshan-demo-data.xml)将 2 笔订单的 payment_method
     //     写成 'CASH_ON_DELIVERY',该值不在 JPA 域枚举 PaymentMethod(WECHAT_PAY/CASH,
     //     见 modules/aqua-foundation .../PaymentModel.kt)中 —— 域口径见 spec/prd/04-order.md
@@ -18,8 +18,8 @@ class V230FixOrderPaymentMethod :
     //     (shared-types.graphqls) 的 CASH_ON_DELIVERY 仅用于展示映射,无服务端消费。
     //     幂等 UPDATE,已执行环境无副作用(0 行受影响)。
     changeSet(author = "aqua-rush", id = "2.3.0-fix-order-payment-method") {
-      comment("Normalize orders.payment_method CASH_ON_DELIVERY to CASH (domain enum PaymentMethod)")
-      update(tableName = "orders") {
+      comment("Normalize aqua_orders.payment_method CASH_ON_DELIVERY to CASH (domain enum PaymentMethod)")
+      update(tableName = "aqua_orders") {
         column(name = "payment_method", value = "CASH")
         where("payment_method = 'CASH_ON_DELIVERY'")
       }

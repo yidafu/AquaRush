@@ -51,7 +51,7 @@ import java.time.LocalDateTime
  * 横切问题(见迁移报告):SourceTables.OrdersTable.status 表定义与 DDL 初值可能短于长枚举名,
  * 测试库在建表后统一放宽列宽,避免历史长状态名写入被拒(7 态迁移后仍保留为防御)。
  */
-private const val RELAX_ORDERS_STATUS_SQL = "ALTER TABLE orders ALTER COLUMN status TYPE varchar(32)"
+private const val RELAX_ORDERS_STATUS_SQL = "ALTER TABLE aqua_orders ALTER COLUMN status TYPE varchar(32)"
 
 private var ordersStatusRelaxed = false
 

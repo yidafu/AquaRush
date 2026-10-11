@@ -29,7 +29,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * 列定义逐字对齐 `db/changelog/changes/v1.0.6-add-ops-config-tables.xml`；
  * 对应 JPA 实体为 `BannerModel`。`id` 为应用侧 Snowflake 生成，非数据库自增。
  */
-object BannerTable : SoftDeletableTable("banners") {
+object BannerTable : SoftDeletableTable("aqua_banners") {
   val id = long("id")
   val imageUrl = varchar("image_url", 1000)
   val title = varchar("title", 20)

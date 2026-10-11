@@ -35,7 +35,7 @@ import java.time.ZoneId
  * Transactional Outbox 事件发布器(替代 ArtemisEventPublisher,spec/tech/design/outbox-messaging.md)。
  *
  * 与旧实现的关键语义差异:
- * - 发布 = 向 outbox_events 同步 INSERT,与调用方业务事务同库同事务(原子性);
+ * - 发布 = 向 aqua_outbox_events 同步 INSERT,与调用方业务事务同库同事务(原子性);
  *   序列化或 INSERT 失败向上传播 → 业务事务回滚,不再吞掉异常返回 false
  *   (旧的 catch→false 存在是因为 broker 是独立故障域;outbox 与业务同库,
  *   INSERT 失败即事务本身已不可用)。

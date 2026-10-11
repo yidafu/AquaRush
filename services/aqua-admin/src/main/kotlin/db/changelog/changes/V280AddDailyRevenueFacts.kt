@@ -7,11 +7,11 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 class V280AddDailyRevenueFacts :
   KotlinCompiledDatabaseChangeLog({
     // 已完成营收日事实:营收按完成时间(completed_at)归属日,与订单数(下单日)分离。
-    //        daily_order_facts 的 COMPLETED 行按 created_at 归属,只用于订单数/状态分布;
+    //        aqua_daily_order_facts 的 COMPLETED 行按 created_at 归属,只用于订单数/状态分布;
     //        营收/已完成订单数改由本表提供(PRD 01-overview §日完成订单数 = 当日进入「已完成」状态的订单数)。
     changeSet(author = "aqua-rush", id = "2.8.0-add-daily-revenue-facts") {
       comment("Add daily completed-revenue fact table (revenue attributed by completed_at day)")
-      createTable(tableName = "daily_revenue_facts") {
+      createTable(tableName = "aqua_daily_revenue_facts") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -32,11 +32,11 @@ class V280AddDailyRevenueFacts :
         }
       }
       addUniqueConstraint(
-        tableName = "daily_revenue_facts",
+        tableName = "aqua_daily_revenue_facts",
         columnNames = "stat_date",
         constraintName = "uk_daily_revenue_facts_date",
       )
-      createIndex(tableName = "daily_revenue_facts", indexName = "idx_daily_revenue_facts_date") {
+      createIndex(tableName = "aqua_daily_revenue_facts", indexName = "idx_daily_revenue_facts_date") {
         column(name = "stat_date")
       }
     }

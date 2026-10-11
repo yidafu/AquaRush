@@ -27,8 +27,8 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // subscriber:NULL = 竞争消费(任一服务认领);非空 = 指定服务独享(广播扇出行)。
 // next_run_at = 可认领时刻,延迟投递写未来时间;主键为 Snowflake(应用侧生成)。
 
-/** 事件 outbox(`outbox_events`)。 */
-object OutboxEventsTable : Table("outbox_events") {
+/** 事件 outbox(`aqua_outbox_events`)。 */
+object OutboxEventsTable : Table("aqua_outbox_events") {
   val id = long("id")
   val eventType = varchar("event_type", 100)
   val destination = varchar("destination", 50)

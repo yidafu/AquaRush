@@ -30,7 +30,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * 列定义逐字对齐 `db/changelog/changes/v1.0.7-add-ops-notice-store-delivery-fee.xml`；
  * 对应 JPA 实体为 `NoticeModel`。
  */
-object NoticeTable : SoftDeletableTable("notices") {
+object NoticeTable : SoftDeletableTable("aqua_notices") {
   val id = long("id")
   val title = varchar("title", 50)
   val content = text("content")

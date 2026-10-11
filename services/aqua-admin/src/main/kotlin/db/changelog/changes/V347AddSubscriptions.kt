@@ -6,9 +6,9 @@ import momosetkn.liquibase.kotlin.parser.KotlinCompiledDatabaseChangeLog
 
 class V347AddSubscriptions :
   KotlinCompiledDatabaseChangeLog({
-    changeSet(author = "aqua-rush", id = "3.4.7-add-subscriptions") {
+    changeSet(author = "aqua-rush", id = "3.4.7-add-aqua_subscriptions") {
       comment("Subscription plans + items (F-ORD-026/R-ORD-13 admin-entry auto order + worker reminder)")
-      createTable(tableName = "subscriptions") {
+      createTable(tableName = "aqua_subscriptions") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -53,14 +53,14 @@ class V347AddSubscriptions :
         }
       }
       // 调度扫描键:ACTIVE 且到期的计划分页扫描(R-ORD-13,禁全表)
-      createIndex(tableName = "subscriptions", indexName = "idx_subscription_next") {
+      createIndex(tableName = "aqua_subscriptions", indexName = "idx_subscription_next") {
         column(name = "status")
         column(name = "next_run_date")
       }
-      createIndex(tableName = "subscriptions", indexName = "idx_subscription_user") {
+      createIndex(tableName = "aqua_subscriptions", indexName = "idx_subscription_user") {
         column(name = "user_id")
       }
-      createTable(tableName = "subscription_items") {
+      createTable(tableName = "aqua_subscription_items") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -80,7 +80,7 @@ class V347AddSubscriptions :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "subscription_items", indexName = "idx_subscription_items_sub") {
+      createIndex(tableName = "aqua_subscription_items", indexName = "idx_subscription_items_sub") {
         column(name = "subscription_id")
       }
     }
