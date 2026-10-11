@@ -1,9 +1,10 @@
-import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import type { RefObject } from 'react';
 
 import { Button } from '@/components/button';
 import { PosterView, toPosterOrderData } from '@/components/order-poster';
 import { ThemedText } from '@/components/themed-text';
+import { DialogFrame } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { OrderVo } from '@aquarush/common';
@@ -36,49 +37,46 @@ export function PosterModal({
   const theme = useTheme();
 
   return (
-    <Modal
+    <DialogFrame
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}>
-      <View style={[styles.backdrop, { backgroundColor: theme.overlayStrong }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={styles.body}>
-          <ThemedText type="heading" themeColor="headerText" style={styles.title}>
-            分享订单海报
-          </ThemedText>
-          <View style={styles.posterCard} ref={posterViewRef}>
-            <PosterView order={toPosterOrderData(order)} />
-          </View>
-          <View style={styles.actions}>
-            {wechatConfigured ? (
-              <Button
-                title="分享到微信"
-                size="md"
-                loading={sharing}
-                onPress={onShareToWechat}
-                style={styles.button}
-              />
-            ) : null}
-            {Platform.OS !== 'web' ? (
-              <Button
-                title="系统分享"
-                size="md"
-                variant="ghost"
-                loading={sharing}
-                onPress={onSystemShare}
-                style={styles.button}
-              />
-            ) : null}
-          </View>
-          <Pressable onPress={onClose} style={styles.close}>
-            <ThemedText type="small" themeColor="headerTextSecondary">
-              关闭
-            </ThemedText>
-          </Pressable>
-        </View>
+      onClose={onClose}
+      animation="fade"
+      overlayColor={theme.overlayStrong}
+      containerStyle={styles.backdrop}
+      contentStyle={styles.body}>
+      <ThemedText type="heading" themeColor="headerText" style={styles.title}>
+        分享订单海报
+      </ThemedText>
+      <View style={styles.posterCard} ref={posterViewRef}>
+        <PosterView order={toPosterOrderData(order)} />
       </View>
-    </Modal>
+      <View style={styles.actions}>
+        {wechatConfigured ? (
+          <Button
+            title="分享到微信"
+            size="md"
+            loading={sharing}
+            onPress={onShareToWechat}
+            style={styles.button}
+          />
+        ) : null}
+        {Platform.OS !== 'web' ? (
+          <Button
+            title="系统分享"
+            size="md"
+            variant="ghost"
+            loading={sharing}
+            onPress={onSystemShare}
+            style={styles.button}
+          />
+        ) : null}
+      </View>
+      <Pressable onPress={onClose} style={styles.close}>
+        <ThemedText type="small" themeColor="headerTextSecondary">
+          关闭
+        </ThemedText>
+      </Pressable>
+    </DialogFrame>
   );
 }
 

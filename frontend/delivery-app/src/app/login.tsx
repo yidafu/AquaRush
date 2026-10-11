@@ -4,7 +4,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { usePathname, useRouter, type Href } from 'expo-router';
 import { Button } from '@/components/button';
 import { Gradient } from '@/components/gradient';
 import { Input } from '@/components/input';
+import { Switch } from '@/components/switch';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
@@ -142,8 +142,6 @@ export default function LoginScreen() {
               <Switch
                 value={remember}
                 onValueChange={setRemember}
-                trackColor={{ false: theme.backgroundSelected, true: theme.primary }}
-                ios_backgroundColor={theme.backgroundSelected}
                 disabled={submitting}
               />
             </View>

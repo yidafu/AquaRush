@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { DialogFrame } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { resolveAssetUrl } from '@/utils/url';
@@ -128,10 +129,14 @@ export function ImageUploader({
         ) : null}
       </ScrollView>
 
-      <Modal visible={previewIndex !== null} transparent animationType="fade" onRequestClose={() => setPreviewIndex(null)}>
-        <Pressable
-          style={[styles.previewOverlay, { backgroundColor: theme.overlayStrong }]}
-          onPress={() => setPreviewIndex(null)}>
+      {/* 图片预览:淡入全屏,遮罩点外即关(承接原 Pressable 关闭行为) */}
+      <DialogFrame
+        visible={previewIndex !== null}
+        onClose={() => setPreviewIndex(null)}
+        animation="fade"
+        overlayColor={theme.overlayStrong}
+        contentStyle={StyleSheet.absoluteFill}>
+        <Pressable style={styles.previewOverlay} onPress={() => setPreviewIndex(null)}>
           {previewIndex !== null ? (
             <Image
               source={{ uri: resolveAssetUrl(images[previewIndex]) }}
@@ -143,7 +148,7 @@ export function ImageUploader({
             点击关闭
           </ThemedText>
         </Pressable>
-      </Modal>
+      </DialogFrame>
     </ThemedView>
   );
 }
@@ -202,8 +207,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  previewImage: {
+  },  previewImage: {
     width: '100%',
     height: '80%',
   },

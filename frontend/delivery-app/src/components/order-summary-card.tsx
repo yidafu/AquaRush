@@ -1,13 +1,13 @@
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { Input } from '@/components/input';
 import { OrderInfoRow } from '@/components/order-info-row';
 import { QuantityStepper } from '@/components/quantity-stepper';
+import { Switch } from '@/components/switch';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing, LabelColumnWidth } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 /** 代客下单商品明细行(F-ORD-012 多商品下单,items 为唯一口径 —— F-ORD-004) */
 export interface OrderLine {
@@ -32,7 +32,6 @@ interface OrderSummaryCardProps {
 }
 
 export function OrderSummaryCard({ lines, onLinesChange, orderInfo, onOrderInfoChange }: OrderSummaryCardProps) {
-  const theme = useTheme();
   const { isSelfCollect, remark } = orderInfo;
 
   const totalAmount = lines.reduce(
@@ -98,7 +97,6 @@ export function OrderSummaryCard({ lines, onLinesChange, orderInfo, onOrderInfoC
         <Switch
           value={isSelfCollect}
           onValueChange={(value) => onOrderInfoChange({ ...orderInfo, isSelfCollect: value })}
-          trackColor={{ true: theme.primary }}
         />
       </View>
 

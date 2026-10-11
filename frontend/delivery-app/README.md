@@ -42,6 +42,7 @@ src/
 │   │   └── profile.tsx     # 个人中心
 │   └── order/[orderNo].tsx # 订单详情（按角色展示操作）
 ├── components/
+│   ├── ui/           # primitive 包装层（@rn-primitives + DialogFrame，无品牌样式）
 │   └── manage/       # 管理员子屏（看板 / 全部订单 / 送水员）
 ├── constants/        # 主题常量（Colors / Spacing / Fonts）
 └── hooks/            # 主题、认证等自定义 Hook

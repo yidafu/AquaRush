@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Money } from '@aquarush/common';
 
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { DialogFrame } from '@/components/ui';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { searchProducts } from '@/services/delivery';
@@ -104,8 +105,14 @@ export function ProductSelector({ addedCount, onAdd }: ProductSelectorProps) {
         </ThemedView>
       </Pressable>
 
-      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <ThemedView type="pageBackground" style={styles.modalContainer}>
+      {/* 全屏商品选择器:内容自带背景铺满,遮罩透明仅拦截触摸;点外不关闭(与原 Modal 一致),靠完成按钮关闭 */}
+      <DialogFrame
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        animation="slide"
+        dismissOnOverlayPress={false}
+        contentStyle={[StyleSheet.absoluteFill, styles.modalContainer]}>
+        <ThemedView type="pageBackground" style={styles.modalFill}>
           <ThemedText type="heading" style={styles.modalTitle}>
             选择商品（可多选）
           </ThemedText>
@@ -140,7 +147,7 @@ export function ProductSelector({ addedCount, onAdd }: ProductSelectorProps) {
           </ScrollView>
           <Button title="完成" variant="primary" onPress={() => setModalVisible(false)} />
         </ThemedView>
-      </Modal>
+      </DialogFrame>
     </>
   );
 }
@@ -177,9 +184,11 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   modalContainer: {
-    flex: 1,
     padding: Spacing.four,
     gap: Spacing.three,
+  },
+  modalFill: {
+    flex: 1,
   },
   modalTitle: {
     textAlign: 'center',

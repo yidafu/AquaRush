@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { DialogFrame } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -14,47 +14,47 @@ interface BottomSheetProps {
   children: ReactNode;
 }
 
-/** 底部弹层：overlay 遮罩 + card 面板（顶圆角 24 + 拖拽条），可滚动。见 docs/ui-spec.md §5。 */
+/**
+ * 底部弹层：overlay 遮罩 + card 面板顶圆角 24 + 拖拽条，可滚动。
+ * 基于 ui/DialogFrame（@rn-primitives/dialog），见 docs/ui-spec.md §5。
+ */
 export function BottomSheet({ visible, onClose, title, children }: BottomSheetProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.root}>
-        <Pressable style={[styles.backdrop, { backgroundColor: theme.overlay }]} onPress={onClose} />
-        <ThemedView type="card" style={[styles.sheet, { paddingBottom: insets.bottom + Spacing.three }]}>
-          <View style={[styles.handle, { backgroundColor: theme.borderStrong }]} />
-          {title ? (
-            <ThemedText type="heading" style={styles.title}>
-              {title}
-            </ThemedText>
-          ) : null}
-          <ScrollView bounces={false}>{children}</ScrollView>
-        </ThemedView>
-      </View>
-    </Modal>
+    <DialogFrame
+      visible={visible}
+      onClose={onClose}
+      animation="slide"
+      overlayColor={theme.overlay}
+      containerStyle={styles.container}
+      contentStyle={[
+        styles.panel,
+        { backgroundColor: theme.card, paddingBottom: insets.bottom + Spacing.three },
+      ]}>
+      <View style={[styles.handle, { backgroundColor: theme.borderStrong }]} />
+      {title ? (
+        <ThemedText type="heading" style={styles.title}>
+          {title}
+        </ThemedText>
+      ) : null}
+      <ScrollView bounces={false}>{children}</ScrollView>
+    </DialogFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+  container: {
     justifyContent: 'flex-end',
   },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  sheet: {
+  panel: {
+    width: '100%',
+    maxHeight: '80%',
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     paddingTop: Spacing.two,
     paddingHorizontal: Spacing.four,
-    maxHeight: '80%',
   },
   handle: {
     alignSelf: 'center',

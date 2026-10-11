@@ -10,6 +10,8 @@ import { Toaster } from 'sonner-native';
 
 import { LoadingScreen } from '@/components/loading-screen';
 import { RootStatusBar } from '@/components/root-status-bar';
+// Dialog Portal 的宿主:弹层内容渲染到此处(位于导航之上、Toast 之下),挂载于 AuthProvider 内以继承认证上下文
+import { PortalHost } from '@/components/ui';
 import { TypeScale } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { usePageViewTracking } from '@/hooks/usePageViewTracking';
@@ -124,6 +126,8 @@ export default function RootLayout() {
         <RootStatusBar />
         <AuthProvider>
           <RootNavigator />
+          {/* 弹层 Portal 宿主:兄弟顺序在导航之后 → 绘制于其上;Toaster 更后 → Toast 盖过弹层 */}
+          <PortalHost />
         </AuthProvider>
         <Toaster theme={colorScheme === 'dark' ? 'dark' : 'light'} richColors position="top-center" />
       </ThemeProvider>
