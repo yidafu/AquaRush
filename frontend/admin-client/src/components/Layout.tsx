@@ -54,7 +54,8 @@ const { Header, Sider, Content } = AntLayout;
 
 /* ===================== 侧边栏菜单三分组(spec/design/_spec/_CONTRACT.md 侧边栏菜单 / 原型 admin/*.html) =====================
  * 「经营 / 客户与营销 / 平台」三分组,仅收录 App.tsx 已实现的路由;
- * 「支付管理」分组暂不建:对账/押金/退款并入「经营」组(页面已实现);
+ * 「支付管理」分组(G93,2026-10 建):支付对账(F-ORD-031)+ 退款管理(R-PAY-02)归组,
+ *   押金管理仍留「经营」组(_spec/04-order.md §页面25 未将押金纳入支付管理分组);
  * 系统设置仅超管可见(后端以 PERMISSION_SYSTEM_CONFIG_* 强制,前端菜单隐藏为 UX 层,R-SYS-03)。
  */
 const GROUP_BIZ = '经营';
@@ -104,9 +105,18 @@ const buildMenuItems = (isSuperAdmin: boolean): MenuProps['items'] => [
         ],
       },
       { key: '/daily-collection', icon: <DollarOutlined />, label: '收银对账' },
-      // 押金(G06 deposit 模块)与退款(R-PAY-02 退款审核流):原「支付管理」组并入经营组
+      // 支付管理分组(G93,2026-10 建,F-ORD-031):支付对账 + 退款管理归组(与设计稿「支付管理」组一致);
+      // 押金管理仍留经营组(_spec/04-order.md §页面25 未将押金管理纳入支付管理分组)
+      {
+        key: 'payments',
+        icon: <DollarOutlined />,
+        label: '支付管理',
+        children: [
+          { key: '/payments/reconciliation', icon: <AuditOutlined />, label: '支付对账' },
+          { key: '/payments/refunds', icon: <UndoOutlined />, label: '退款管理' },
+        ],
+      },
       { key: '/barrels', icon: <SafetyOutlined />, label: '押金管理' },
-      { key: '/payments/refunds', icon: <UndoOutlined />, label: '退款管理' },
     ],
   },
   {
@@ -224,8 +234,9 @@ const ROUTE_CRUMBS: Record<string, RouteCrumb> = {
   '/addresses': { group: GROUP_BIZ, parent: '地址与配送', title: '地址管理' },
   '/trajectories': { group: GROUP_BIZ, parent: '地址与配送', title: '配送轨迹' },
   '/daily-collection': { group: GROUP_BIZ, title: '收银对账' },
+  '/payments/reconciliation': { group: GROUP_BIZ, parent: '支付管理', title: '支付对账' },
+  '/payments/refunds': { group: GROUP_BIZ, parent: '支付管理', title: '退款管理' },
   '/barrels': { group: GROUP_BIZ, title: '押金管理' },
-  '/payments/refunds': { group: GROUP_BIZ, title: '退款管理' },
   // —— 客户与营销 ——
   '/users/accounts': { group: GROUP_CRM, parent: '用户管理', title: '账号' },
   '/users/accounts/:id': { group: GROUP_CRM, parent: '用户管理', title: '账号详情' },

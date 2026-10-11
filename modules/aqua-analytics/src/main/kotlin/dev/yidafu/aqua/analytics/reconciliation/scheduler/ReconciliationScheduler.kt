@@ -177,20 +177,16 @@ class ReconciliationScheduler(
   }
 
   /**
-   * 清理旧的对账数据（保留30天）
+   * 清理过期对账数据(每日 03:30,R-PAY-04/设计 07 §3.4):
+   * 报表快照保留 30 天;已处置(已解决/已忽略)差异保留 180 天;未处置差异永不清理。
+   * 软删(UPDATE is_deleted=true),单条件批量删除非全表扫描。
    */
-  @Scheduled(cron = "0 30 3 * * ?") // 每天凌晨3点执行
+  @Scheduled(cron = "0 30 3 * * ?")
   fun cleanupOldReconciliationData() {
     logger.info("开始清理旧的对账数据")
 
     try {
-      val thirtyDaysAgo = LocalDate.now().minusDays(30)
-
-      // TODO: 实现清理逻辑
-      // reconciliationReportRepository.deleteReportsBefore(thirtyDaysAgo.atStartOfDay())
-      // reconciliationDiscrepancyRepository.deleteResolvedBefore(thirtyDaysAgo.atStartOfDay())
-
-      logger.info("旧的对账数据清理完成")
+      reconciliationService.cleanupExpiredData()
     } catch (e: Exception) {
       logger.error("清理旧的对账数据失败", e)
     }

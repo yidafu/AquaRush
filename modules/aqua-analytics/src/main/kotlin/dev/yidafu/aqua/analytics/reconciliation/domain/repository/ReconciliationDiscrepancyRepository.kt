@@ -69,12 +69,13 @@ interface ReconciliationDiscrepancyRepository {
     endDate: LocalDateTime,
   ): List<ReconciliationDiscrepancyModel>
 
-  /** 清理 beforeDate 之前已解决的差异:语义为软删(UPDATE is_deleted=true),返回受影响行数。 */
+  /** 清理 beforeDate 之前已处置(已解决/已忽略)的差异:语义为软删(UPDATE is_deleted=true),返回受影响行数。 */
   fun deleteResolvedBefore(beforeDate: LocalDateTime): Int
 
-  /** 对账差异分页查询(后台微信资金对账页):任务ID/解决状态均可选,按创建时间倒序。 */
+  /** 对账差异分页查询(后台微信资金对账页):任务ID/差异类型/解决状态均可选,按创建时间倒序。 */
   fun findDiscrepanciesPaged(
     taskId: String?,
+    discrepancyType: DiscrepancyType?,
     status: DiscrepancyStatus?,
     pageable: Pageable,
   ): Page<ReconciliationDiscrepancyModel>

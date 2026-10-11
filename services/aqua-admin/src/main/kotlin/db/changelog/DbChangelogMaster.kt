@@ -82,4 +82,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V346AddDepositModel", logicalFilePath = "db/changelog/changes/v3.4.6-add-deposit-model.xml")
     // G77/F-ORD-026:周期订购计划 + 明细表(后台入口,到期自动下单+提醒送水工)
     include(file = "db/changelog/changes/V347AddSubscriptions", logicalFilePath = "db/changelog/changes/v3.4.7-add-subscriptions.xml")
+    // G93 微信支付对账收尾(F-ORD-031/R-PAY-04):任务表触发方式/微信与本地汇总列 + SKIPPED/IGNORED 状态值域
+    include(file = "db/changelog/changes/V347AlignReconciliationSchema", logicalFilePath = "db/changelog/changes/v3.4.7-align-reconciliation-schema.xml")
   })

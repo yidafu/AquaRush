@@ -22,9 +22,12 @@ package dev.yidafu.aqua.api.service.reconciliation
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyResolveAction
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
@@ -35,19 +38,31 @@ import java.util.concurrent.CompletableFuture
  */
 interface ReconciliationService {
   /**
-   * 创建支付对账任务
+   * 创建支付对账任务(triggerType/executedBy:调度为 SCHEDULED/null,手动触发为 MANUAL/管理员 id)
    */
-  fun createPaymentReconciliationTask(date: LocalDate): ReconciliationTaskModel
+  fun createPaymentReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType = ReconciliationTriggerType.SCHEDULED,
+    executedBy: Long? = null,
+  ): ReconciliationTaskModel
 
   /**
    * 创建退款对账任务
    */
-  fun createRefundReconciliationTask(date: LocalDate): ReconciliationTaskModel
+  fun createRefundReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType = ReconciliationTriggerType.SCHEDULED,
+    executedBy: Long? = null,
+  ): ReconciliationTaskModel
 
   /**
    * 创建结算对账任务
    */
-  fun createSettlementReconciliationTask(date: LocalDate): ReconciliationTaskModel
+  fun createSettlementReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType = ReconciliationTriggerType.SCHEDULED,
+    executedBy: Long? = null,
+  ): ReconciliationTaskModel
 
   /**
    * 执行支付对账任务
@@ -104,10 +119,11 @@ interface ReconciliationService {
   fun getDiscrepancies(taskId: String): List<ReconciliationDiscrepancyModel>
 
   /**
-   * 对账差异分页查询(后台微信资金对账页):任务ID/解决状态均可选
+   * 对账差异分页查询(后台微信资金对账页):任务ID/差异类型/解决状态均可选
    */
   fun getDiscrepanciesPaged(
     taskId: String?,
+    discrepancyType: DiscrepancyType?,
     status: DiscrepancyStatus?,
     pageable: Pageable,
   ): Page<ReconciliationDiscrepancyModel>
@@ -126,10 +142,16 @@ interface ReconciliationService {
   ): List<ReconciliationReportModel>
 
   /**
-   * 解决对账差异
+   * 清理过期对账数据(R-PAY-04:报表 30 天 / 已处置差异 180 天,软删分批)
+   */
+  fun cleanupExpiredData(): Pair<Int, Int>
+
+  /**
+   * 解决对账差异(action=RESOLVE 已核实无资金损失或已修复 / IGNORE 跨日边界等可解释差异,备注必填)
    */
   fun resolveDiscrepancy(
     discrepancyId: Long,
+    action: DiscrepancyResolveAction,
     resolutionNotes: String,
     resolvedBy: String,
   ): Boolean

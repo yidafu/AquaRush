@@ -128,8 +128,14 @@ class ReconciliationRepositoriesImplTest :
       discrepancyRepo.countUnresolvedByTaskId("wxpay-20261001") shouldBe 1L
       discrepancyRepo.findByStatus("UNRESOLVED") shouldHaveSize 1
       discrepancyRepo
-        .findDiscrepanciesPaged("wxpay-20261001", DiscrepancyStatus.UNRESOLVED, PageRequest.of(0, 10))
+        .findDiscrepanciesPaged("wxpay-20261001", null, DiscrepancyStatus.UNRESOLVED, PageRequest.of(0, 10))
         .totalElements shouldBe 1L
+      discrepancyRepo
+        .findDiscrepanciesPaged("wxpay-20261001", DiscrepancyType.MISSING, DiscrepancyStatus.UNRESOLVED, PageRequest.of(0, 10))
+        .totalElements shouldBe 1L
+      discrepancyRepo
+        .findDiscrepanciesPaged("wxpay-20261001", DiscrepancyType.MISMATCH, DiscrepancyStatus.UNRESOLVED, PageRequest.of(0, 10))
+        .totalElements shouldBe 0L
 
       found.status = DiscrepancyStatus.RESOLVED
       found.resolvedAt = now

@@ -1,3 +1,21 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2026 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package dev.yidafu.aqua.common.domain.model.enums
 
 /**
@@ -56,6 +74,11 @@ enum class AdminPermission(
   // 支付
   PAYMENT_READ("支付查询"),
   PAYMENT_REFUND("退款"),
+
+  // 支付对账(F-ORD-031/R-PAY-04,G93 微信支付对账,2026-10 接线;与 RECONCILIATION_* 日报对账相互独立,
+  // 见 spec/prd/01-overview.md §权限码目录)
+  PAYMENT_RECONCILIATION_READ("支付对账查询"),
+  PAYMENT_RECONCILIATION_EXECUTE("支付对账执行"),
 
   // 统计
   STATISTICS_READ("统计查询"),

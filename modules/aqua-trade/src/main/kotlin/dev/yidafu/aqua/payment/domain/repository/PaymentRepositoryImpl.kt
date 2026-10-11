@@ -31,6 +31,7 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.lessEq
@@ -43,6 +44,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -155,6 +157,36 @@ class PaymentRepositoryImpl(
         .andWhere { (PaymentsTable.createdAt greaterEq startDate) and (PaymentsTable.createdAt lessEq endDate) }
         .toList()
     }.map(::toModel)
+
+  override fun findPaidByBillDateWindow(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentModel> {
+    // R-PAY-04 本地账实基准:仅「账单上会出现的」成功支付流水的状态集合(设计 07 §5.1)
+    val paidStatuses =
+      listOf(PaymentStatus.SUCCESS, PaymentStatus.REFUNDING, PaymentStatus.REFUNDED).map { it.name }
+    val condition =
+      (PaymentsTable.paidAt greaterEq startDate) and
+        (PaymentsTable.paidAt lessEq endDate) and
+        (PaymentsTable.status inList paidStatuses)
+    val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 500))
+    val (content, total) =
+      transaction(database) {
+        val content =
+          PaymentsTable
+            .selectAll()
+            .andWhere { condition }
+            .orderBy(PaymentsTable.paidAt to SortOrder.DESC, PaymentsTable.id to SortOrder.ASC)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .toList()
+            .map(::toModel)
+        content to PaymentsTable.selectAll().andWhere { condition }.count()
+      }
+    return PageImpl(content, pageable, total)
+  }
 
   override fun findById(id: Long): Optional<PaymentModel> =
     Optional.ofNullable(

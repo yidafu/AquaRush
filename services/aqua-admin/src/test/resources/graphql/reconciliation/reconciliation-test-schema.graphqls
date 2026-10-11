@@ -151,6 +151,17 @@ enum ReconciliationTaskStatus {
   RUNNING
   SUCCESS
   FAILED
+  SKIPPED
+}
+
+enum ReconciliationTriggerType {
+  SCHEDULED
+  MANUAL
+}
+
+enum DiscrepancyResolveAction {
+  RESOLVE
+  IGNORE
 }
 
 enum DiscrepancyType {
@@ -162,6 +173,7 @@ enum DiscrepancyType {
 enum DiscrepancyStatus {
   UNRESOLVED
   RESOLVED
+  IGNORED
 }
 
 enum SourceSystem {
@@ -181,6 +193,12 @@ type ReconciliationTaskVo {
   matchedRecords: Int!
   unmatchedRecords: Int!
   errorMessage: String
+  triggerType: ReconciliationTriggerType!
+  executedBy: PrimaryId
+  wechatTotalCount: Int!
+  wechatTotalAmountCents: Long!
+  localTotalCount: Int!
+  localTotalAmountCents: Long!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
@@ -234,6 +252,7 @@ input ExecuteReconciliationInput {
 
 input ResolveDiscrepancyInput {
   discrepancyId: PrimaryId!
+  action: DiscrepancyResolveAction!
   resolutionNotes: String!
 }
 
@@ -250,6 +269,7 @@ extend type Query {
   reconciliationTask(taskId: String!): ReconciliationTaskVo
   reconciliationDiscrepancies(
     taskId: String
+    discrepancyType: DiscrepancyType
     status: DiscrepancyStatus
     page: Int = 0
     size: Int = 20

@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.domain.table.ReconciliationDiscrepanciesTable
 import dev.yidafu.aqua.common.domain.table.ReconciliationReportsTable
@@ -155,6 +156,12 @@ class ReconciliationTaskRepositoryImpl(
           it[matchedRecords] = entity.matchedRecords
           it[unmatchedRecords] = entity.unmatchedRecords
           it[errorMessage] = entity.errorMessage
+          it[triggerType] = entity.triggerType.name
+          it[executedBy] = entity.executedBy
+          it[wechatTotalCount] = entity.wechatTotalCount
+          it[wechatTotalAmountCents] = entity.wechatTotalAmountCents
+          it[localTotalCount] = entity.localTotalCount
+          it[localTotalAmountCents] = entity.localTotalAmountCents
           it[updatedAt] = now
         }
       } else {
@@ -170,6 +177,12 @@ class ReconciliationTaskRepositoryImpl(
           it[matchedRecords] = entity.matchedRecords
           it[unmatchedRecords] = entity.unmatchedRecords
           it[errorMessage] = entity.errorMessage
+          it[triggerType] = entity.triggerType.name
+          it[executedBy] = entity.executedBy
+          it[wechatTotalCount] = entity.wechatTotalCount
+          it[wechatTotalAmountCents] = entity.wechatTotalAmountCents
+          it[localTotalCount] = entity.localTotalCount
+          it[localTotalAmountCents] = entity.localTotalAmountCents
           it[createdAt] = now
           it[updatedAt] = now
         }
@@ -274,6 +287,12 @@ class ReconciliationTaskRepositoryImpl(
       matchedRecords = row[ReconciliationTasksTable.matchedRecords]
       unmatchedRecords = row[ReconciliationTasksTable.unmatchedRecords]
       errorMessage = row[ReconciliationTasksTable.errorMessage]
+      triggerType = ReconciliationTriggerType.fromValue(row[ReconciliationTasksTable.triggerType])
+      executedBy = row[ReconciliationTasksTable.executedBy]
+      wechatTotalCount = row[ReconciliationTasksTable.wechatTotalCount]
+      wechatTotalAmountCents = row[ReconciliationTasksTable.wechatTotalAmountCents]
+      localTotalCount = row[ReconciliationTasksTable.localTotalCount]
+      localTotalAmountCents = row[ReconciliationTasksTable.localTotalAmountCents]
       createdAt = row[ReconciliationTasksTable.createdAt]
       updatedAt = row[ReconciliationTasksTable.updatedAt]
     }
@@ -537,17 +556,22 @@ class ReconciliationDiscrepancyRepositoryImpl(
   override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int =
     transaction(database) {
       ReconciliationDiscrepanciesTable.softDelete {
-        (ReconciliationDiscrepanciesTable.status eq DiscrepancyStatus.RESOLVED.name) and
+        // 已处置 = 已解决/已忽略(R-PAY-04:未处置差异永不清理,180 天后随批次清理)
+        (
+          ReconciliationDiscrepanciesTable.status inList
+            listOf(DiscrepancyStatus.RESOLVED.name, DiscrepancyStatus.IGNORED.name)
+        ) and
           (ReconciliationDiscrepanciesTable.resolvedAt less beforeDate)
       }
     }
 
   override fun findDiscrepanciesPaged(
     taskId: String?,
+    discrepancyType: DiscrepancyType?,
     status: DiscrepancyStatus?,
     pageable: Pageable,
   ): Page<ReconciliationDiscrepancyModel> {
-    val filter = buildFilter(taskId, status)
+    val filter = buildFilter(taskId, discrepancyType, status)
     val content =
       transaction(database) {
         ReconciliationDiscrepanciesTable
@@ -571,10 +595,12 @@ class ReconciliationDiscrepancyRepositoryImpl(
 
   private fun buildFilter(
     taskId: String?,
+    discrepancyType: DiscrepancyType?,
     status: DiscrepancyStatus?,
   ): Op<Boolean> {
     var op: Op<Boolean> = Op.TRUE
     taskId?.let { op = op and (ReconciliationDiscrepanciesTable.taskId eq it) }
+    discrepancyType?.let { op = op and (ReconciliationDiscrepanciesTable.discrepancyType eq it.name) }
     status?.let { op = op and (ReconciliationDiscrepanciesTable.status eq it.name) }
     return op
   }

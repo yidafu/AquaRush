@@ -56,6 +56,19 @@ interface PaymentRepository {
     endDate: LocalDateTime,
   ): List<PaymentModel>
 
+  /**
+   * 微信资金对账本地账实基准分页查询(R-PAY-04,设计 07 §5.1):
+   * paid_at ∈ [startDate, endDate](两端闭区间)且 status ∈ (SUCCESS, REFUNDING, REFUNDED) ——
+   * 未成功支付(PENDING/FAILED/EXPIRED/CANCELLED)不在微信账单上,不参与比对;
+   * 按 paid_at 倒序 + id 升序稳定排序,content 与 count 同事务(AGENTS.md 规则 10 分页,禁全表)。
+   */
+  fun findPaidByBillDateWindow(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentModel>
+
   /** 按 id 单行查询:命中且未软删返回实体,不存在或已软删返回 [Optional.empty]。 */
   fun findById(id: Long): Optional<PaymentModel>
 

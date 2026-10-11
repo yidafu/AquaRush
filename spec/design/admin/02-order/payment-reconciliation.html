@@ -17,7 +17,7 @@
     </div>
     <div class="chips">
       <span class="chip">F-ORD-031</span>
-      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-ok">已实现(2026-10)</span>
       <span class="chip chip-plain">admin-client</span>
       <span class="chip chip-plain">缺口 G93</span>
     </div>
@@ -344,7 +344,7 @@
         <p><strong>入口：</strong>左侧菜单「支付管理」→ 支付对账（与退款管理同级；2026-10 新增导航分组）</p>
         <p><strong>跳转：</strong>任务行「详情」→ 详情弹窗；差异行「处理」→ 处置弹窗（解决 / 忽略 + 备注必填）</p>
         <p><strong>权限：</strong><code>PAYMENT_RECONCILIATION_READ</code>（可见任务列表）/ <code>PAYMENT_RECONCILIATION_EXECUTE</code>（重跑 / 处置；无权限时入口不可见，R-AUTH-04）</p>
-        <p><strong>状态：</strong><span class="chip chip-plan">规划中</span>（缺口 G93；支付 / 退款链路已实现 R-PAY-01/02，微信侧账单核对为目标形态）</p>
+        <p><strong>状态：</strong><span class="chip chip-ok">已实现(2026-10)</span>（缺口 G93 已闭环；实现为「短款/长款/金额不一致」三枚举 × 来源系统，退款账单短款承载状态不一致语义；差异告警通知与真实商户凭据联调为后续事项）</p>
       </div>
 
       <div class="note-card">

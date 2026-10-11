@@ -6,8 +6,8 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 /**
  * 角色-权限映射配置
  * 与 PRD 01-overview.md §角色权限矩阵 保持一致。
- * - SUPER_ADMIN: 全部 40 码
- * - ADMIN: 业务域 35 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、NOTIFICATION_WRITE 共 5 码,含 NOTIFICATION_READ;
+ * - SUPER_ADMIN: 全部 44 码
+ * - ADMIN: 业务域 39 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、NOTIFICATION_WRITE 共 5 码,含 NOTIFICATION_READ;
  *   兼送水 F-USR-023 覆盖 DELIVERY_TASK/ORDER_CREATE/RECONCILIATION_SUBMIT)
  * - DELIVERY_WORKER: 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)
  */
@@ -63,6 +63,9 @@ object RolePermissionMapping {
           // 支付
           AdminPermission.PAYMENT_READ,
           AdminPermission.PAYMENT_REFUND,
+          // 支付对账(F-ORD-031/G93:任务/报表/差异查询 + 手动执行/差异处置;送水工不授)
+          AdminPermission.PAYMENT_RECONCILIATION_READ,
+          AdminPermission.PAYMENT_RECONCILIATION_EXECUTE,
           // 统计
           AdminPermission.STATISTICS_READ,
           AdminPermission.STATISTICS_EXPORT,

@@ -2167,7 +2167,7 @@ input ReviewReconciliationInput {
 
 # ==================== 微信资金对账域(REC) ====================
 # 微信支付对账:微信账单(交易/退款/结算) vs 内部支付流水(payments)/退款记录(payment_refunds)。
-# 后台「微信资金对账」页(支付管理):对账任务/差异列表与解决/报表查看。
+# 后台「支付管理-支付对账」页:对账任务/差异列表与解决/忽略/报表查看(F-ORD-031/R-PAY-04,G93)。
 # 实现于 aqua-analytics reconciliation 模块(ReconciliationServiceImpl)。
 
 # 对账任务类型
@@ -2180,16 +2180,34 @@ enum ReconciliationTaskType {
   SETTLEMENT
 }
 
-# 对账任务状态
+# 对账任务状态(SKIPPED:未配置真实商户参数——假支付模式下调度跳过并说明原因,R-PAY-04)
 enum ReconciliationTaskStatus {
   # 待执行
   PENDING
   # 执行中
   RUNNING
-  # 执行成功(无差异)
+  # 执行成功(差异数 > 0 仍为成功:对账完成 ≠ 无差异,差异走人工处置)
   SUCCESS
-  # 执行失败(有差异或执行异常)
+  # 执行失败(异常)
   FAILED
+  # 跳过(未配置真实商户参数)
+  SKIPPED
+}
+
+# 对账任务触发方式(详情页「触发方式」)
+enum ReconciliationTriggerType {
+  # 每日调度(02:00 支付 / 02:05 退款)
+  SCHEDULED
+  # 管理员手动触发(重跑同账单日)
+  MANUAL
+}
+
+# 对账差异处置动作(R-PAY-04:解决=已核实无资金损失或已修复;忽略=跨日边界等可解释差异;备注必填)
+enum DiscrepancyResolveAction {
+  # 解决
+  RESOLVE
+  # 忽略
+  IGNORE
 }
 
 # 对账差异类型
@@ -2202,12 +2220,14 @@ enum DiscrepancyType {
   EXTRA
 }
 
-# 对账差异状态
+# 对账差异状态(IGNORED:忽略——跨日边界等可解释差异;已处置状态不可再改)
 enum DiscrepancyStatus {
   # 未解决
   UNRESOLVED
   # 已解决
   RESOLVED
+  # 已忽略
+  IGNORED
 }
 
 # 差异来源系统
@@ -2240,8 +2260,20 @@ type ReconciliationTaskVo {
   matchedRecords: Int!
   # 未匹配记录数
   unmatchedRecords: Int!
-  # 错误信息(有差异时提示差异数,异常时提示异常信息)
+  # 错误信息(异常时提示原因;SKIPPED 时提示跳过原因)
   errorMessage: String
+  # 触发方式(每日调度/管理员手动,F-ORD-031)
+  triggerType: ReconciliationTriggerType!
+  # 手动触发的管理员ID(调度为空)
+  executedBy: PrimaryId
+  # 微信账单侧总笔数(三方校验)
+  wechatTotalCount: Int!
+  # 微信账单侧总金额(分)
+  wechatTotalAmountCents: Long!
+  # 本地账实侧总笔数
+  localTotalCount: Int!
+  # 本地账实侧总金额(分)
+  localTotalAmountCents: Long!
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间
@@ -2322,11 +2354,13 @@ input ExecuteReconciliationInput {
   reconciliationDate: String!
 }
 
-# 解决对账差异输入
+# 差异处置输入(R-PAY-04:解决/忽略均须备注,处置留痕;已处置不可再改)
 input ResolveDiscrepancyInput {
   # 差异记录ID
   discrepancyId: PrimaryId!
-  # 解决备注(必填,留痕)
+  # 处置动作:RESOLVE-解决 / IGNORE-忽略
+  action: DiscrepancyResolveAction!
+  # 处理说明(必填,留痕)
   resolutionNotes: String!
 }
 
