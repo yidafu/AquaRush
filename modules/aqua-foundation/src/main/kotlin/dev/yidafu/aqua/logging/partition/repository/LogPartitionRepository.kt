@@ -39,7 +39,8 @@ interface LogPartitionRepository {
   fun listPartitions(logTable: LogTableType): List<LogPartitionInfo>
 
   /**
-   * 为热表创建指定月份分区(幂等:CREATE TABLE IF NOT EXISTS ... PARTITION OF),yearMonth 形如 2026-01
+   * 为热表创建指定月份分区(幂等:CREATE TABLE IF NOT EXISTS ... PARTITION OF),yearMonth 形如 2026-01。
+   * DEFAULT 兜底分区已有该月数据时自动暂存腾挪后再建(否则 PG 拒绝,当月分区永远建不出来)。
    */
   fun createMonthPartition(
     logTable: LogTableType,

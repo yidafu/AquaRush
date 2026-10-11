@@ -27,6 +27,7 @@ import org.jetbrains.exposed.v1.core.statements.StatementType
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.postgresql.PGConnection
+import org.postgresql.util.PSQLException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.io.BufferedOutputStream
@@ -99,7 +100,8 @@ class LogPartitionRepositoryImpl(
                 partitionMonth = month,
                 rowCount = rs.getLong("row_count"),
                 sizeBytes = rs.getLong("size_bytes"),
-                isDefault = bound == null,
+                // pg_get_expr(relpartbound) 对 DEFAULT 分区返回字面量 'DEFAULT'(非 NULL)
+                isDefault = bound == "DEFAULT",
                 isCurrentMonth = month == LocalDateTime.now().format(monthFmt),
                 fromBound = fromTo?.first,
                 toBound = fromTo?.second,
@@ -116,13 +118,42 @@ class LogPartitionRepositoryImpl(
   ) {
     val (from, to) = monthRange(yearMonth)
     val partitionName = partitionName(logTable, yearMonth)
+    val tableName = logTable.tableName
+    val createSql = "CREATE TABLE IF NOT EXISTS $partitionName PARTITION OF $tableName FOR VALUES FROM ('$from') TO ('$to')"
+    // 首次尝试必须独占一个事务:PG 一旦报错事务即 aborted,同一事务内后续语句全部被拒,
+    // 兜底修复只能等该事务结束(报错被吞,COMMIT 按 PG 语义回滚)后另起事务执行。
+    val failure = transaction(database) { runCatching { exec(createSql) }.exceptionOrNull() }
+    if (failure == null) return
+    if (!isDefaultPartitionConflict(failure)) throw failure
+    // PG 拒绝建分区:DEFAULT 兜底分区已有落在该月的行(典型:全新库首启,种子日志先落 DEFAULT,
+    // 此后当月分区永远建不出来)。修复事务内暂存该月行→腾出区间→建分区→回插;
+    // DEFAULT 全程在位,不阻断其他月份行的并发写入。
     transaction(database) {
-      exec(
-        "CREATE TABLE IF NOT EXISTS $partitionName PARTITION OF ${logTable.tableName} " +
-          "FOR VALUES FROM ('$from') TO ('$to')",
-      )
+      val defaultPartition =
+        exec(
+          """
+          SELECT c.relname
+          FROM pg_inherits i
+          JOIN pg_class c ON c.oid = i.inhrelid
+          JOIN pg_class p ON p.oid = i.inhparent
+          WHERE p.relname = ? AND pg_get_expr(c.relpartbound, c.oid) = 'DEFAULT'
+          """.trimIndent(),
+          listOf(VarCharColumnType() to tableName),
+        ) { rs -> if (rs.next()) rs.getString(1) else null }
+          ?: error("no DEFAULT partition on $tableName")
+      val stash = "${partitionName}_stash"
+      exec("CREATE TEMP TABLE $stash ON COMMIT DROP AS SELECT * FROM $defaultPartition WHERE created_at >= '$from' AND created_at < '$to'")
+      exec("DELETE FROM $defaultPartition WHERE created_at >= '$from' AND created_at < '$to'")
+      exec(createSql)
+      exec("INSERT INTO $partitionName SELECT * FROM $stash")
     }
   }
+
+  /** PG 对「新建分区与 DEFAULT 中已有行冲突」报 23514(check_violation),消息含 default partition。 */
+  private fun isDefaultPartitionConflict(error: Throwable): Boolean =
+    generateSequence(error) { it.cause }
+      .filterIsInstance<PSQLException>()
+      .any { it.sqlState == "23514" && it.message?.contains("default partition") == true }
 
   override fun ensureColdYearTable(
     logTable: LogTableType,

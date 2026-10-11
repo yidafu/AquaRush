@@ -105,6 +105,33 @@ class LogPartitionRepositoryImplPgTest :
       info.isDefault.shouldBeFalse()
     }
 
+    test("createMonthPartition:DEFAULT 已有该月行时腾挪建分区,范围外行留在 DEFAULT") {
+      // 复刻全新库首启:种子日志先落 DEFAULT,当月分区随后才预建(PG 默认拒绝此操作)
+      sql("CREATE TABLE api_logs_default PARTITION OF api_logs DEFAULT")
+      sql(
+        """
+        INSERT INTO api_logs (id, method, path, created_at)
+        VALUES (1, 'GET', '/api/a', '2026-03-05 10:00:00'),
+               (2, 'POST', '/api/b', '2026-03-06 11:00:00'),
+               (3, 'GET', '/api/c', '2026-05-01 12:00:00')
+        """.trimIndent(),
+      )
+
+      repository.createMonthPartition(LogTableType.API_LOG, "2026-03")
+      // 分区已存在后的重复调用仍是无冲突的幂等 no-op
+      repository.createMonthPartition(LogTableType.API_LOG, "2026-03")
+
+      query("SELECT count(*) FROM api_logs_2026_03") { rs ->
+        rs.next()
+        rs.getInt(1)
+      } shouldBe 2
+      query("SELECT count(*) FROM api_logs_default") { rs ->
+        rs.next()
+        rs.getInt(1)
+      } shouldBe 1
+      repository.listPartitions(LogTableType.API_LOG).count { it.isDefault } shouldBe 1
+    }
+
     test("ensureColdYearTable + appendToColdTable 返回真实插入行数") {
       repository.createMonthPartition(LogTableType.API_LOG, "2026-03")
       seedRows()
