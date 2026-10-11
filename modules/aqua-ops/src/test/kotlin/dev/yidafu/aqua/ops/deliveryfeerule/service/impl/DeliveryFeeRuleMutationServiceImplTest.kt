@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.service.impl
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.DeliveryDistanceTierInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeTierInput
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
@@ -58,7 +59,19 @@ class DeliveryFeeRuleMutationServiceImplTest :
       free: Int = 4,
       surcharge: Long = 200,
       tiers: List<DeliveryFeeTierInput> = defaultTiers(),
-    ) = SaveDeliveryFeeRuleInput(freeFloorLimit = free, surchargeCents = surcharge, tiers = tiers)
+      minimumOrderCents: Long = 0L,
+      distanceTiers: List<DeliveryDistanceTierInput> = emptyList(),
+      storeLongitude: Float? = null,
+      storeLatitude: Float? = null,
+    ) = SaveDeliveryFeeRuleInput(
+      distanceTiers = distanceTiers,
+      freeFloorLimit = free,
+      minimumOrderCents = minimumOrderCents,
+      storeLatitude = storeLatitude,
+      storeLongitude = storeLongitude,
+      surchargeCents = surcharge,
+      tiers = tiers,
+    )
 
     test("first save creates singleton row") {
       every { deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID) } returns java.util.Optional.empty()
@@ -157,5 +170,102 @@ class DeliveryFeeRuleMutationServiceImplTest :
       shouldThrow<IllegalArgumentException> {
         service.saveDeliveryFeeRule(1L, "admin", input(free = -1, surcharge = 200))
       }
+    }
+
+    // ===== G96 R-OPS-03:起送门槛 + 距离阶梯配置 =====
+
+    test("save persists minimum order, distance tiers and store coordinates") {
+      every { deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID) } returns java.util.Optional.empty()
+      every { deliveryFeeRuleRepository.save(any()) } answers { firstArg() }
+
+      val saved =
+        service.saveDeliveryFeeRule(
+          1L,
+          "admin",
+          input(
+            minimumOrderCents = 3000L,
+            distanceTiers =
+              listOf(
+                DeliveryDistanceTierInput(feeCents = 0, upToKm = 3f),
+                DeliveryDistanceTierInput(feeCents = 300, upToKm = 5f),
+                DeliveryDistanceTierInput(feeCents = 600, upToKm = null),
+              ),
+            storeLongitude = 113.93f,
+            storeLatitude = 22.53f,
+          ),
+        )
+
+      saved.minimumOrderCents shouldBe 3000L
+      saved.distanceTiers!!.map { it.upToKm } shouldBe listOf(3.0, 5.0, null)
+      saved.distanceTiers!!.map { it.feeCents } shouldBe listOf(0L, 300L, 600L)
+      saved.storeLongitude shouldBe 113.93f.toDouble()
+      saved.storeLatitude shouldBe 22.53f.toDouble()
+    }
+
+    test("negative minimum order rejected") {
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(1L, "admin", input(minimumOrderCents = -1L))
+      }
+    }
+
+    test("distance tiers must ascend and not overlap") {
+      val overlapping =
+        listOf(
+          DeliveryDistanceTierInput(feeCents = 0, upToKm = 5f),
+          DeliveryDistanceTierInput(feeCents = 300, upToKm = 5f),
+        )
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(
+          1L,
+          "admin",
+          input(distanceTiers = overlapping, storeLongitude = 113.93f, storeLatitude = 22.53f),
+        )
+      }
+    }
+
+    test("unbounded distance tier must be last") {
+      val unboundedFirst =
+        listOf(
+          DeliveryDistanceTierInput(feeCents = 300, upToKm = null),
+          DeliveryDistanceTierInput(feeCents = 600, upToKm = 5f),
+        )
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(
+          1L,
+          "admin",
+          input(distanceTiers = unboundedFirst, storeLongitude = 113.93f, storeLatitude = 22.53f),
+        )
+      }
+    }
+
+    test("distance tiers require store coordinates") {
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(
+          1L,
+          "admin",
+          input(distanceTiers = listOf(DeliveryDistanceTierInput(feeCents = 0, upToKm = 3f))),
+        )
+      }
+    }
+
+    test("store coordinates must be paired") {
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(1L, "admin", input(storeLongitude = 113.93f, storeLatitude = null))
+      }
+    }
+
+    test("store coordinate out of range rejected") {
+      shouldThrow<IllegalArgumentException> {
+        service.saveDeliveryFeeRule(1L, "admin", input(storeLongitude = 200f, storeLatitude = 22.53f))
+      }
+    }
+
+    test("distance tiers without store coordinates cleared allowed when empty") {
+      every { deliveryFeeRuleRepository.findById(DeliveryFeeRuleRepository.SINGLETON_ID) } returns java.util.Optional.empty()
+      every { deliveryFeeRuleRepository.save(any()) } answers { firstArg() }
+
+      val saved = service.saveDeliveryFeeRule(1L, "admin", input())
+      saved.minimumOrderCents shouldBe 0L
+      saved.distanceTiers shouldBe null
     }
   })

@@ -54,7 +54,9 @@ class AdminDeliveryFeeRuleMutationResolverTest :
         DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
       val input =
         SaveDeliveryFeeRuleInput(
+          distanceTiers = emptyList(),
           freeFloorLimit = 4,
+          minimumOrderCents = 0L,
           surchargeCents = 200,
           tiers =
             listOf(

@@ -39,6 +39,7 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.OrderGiftModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -62,6 +63,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
+import java.util.Locale
 
 /**
  * 订单变更服务实现(F-ORD-004 多商品下单):
@@ -108,6 +110,8 @@ class OrderMutationServiceImpl(
     val userId: Long,
     val deliveryFeeCents: Long,
     val orderNo: String,
+    /** 本次计价采用的配送费规则(门槛判定与运费同源,避免重复读配置) */
+    val deliveryFeeRule: DeliveryFeeRuleModel,
   )
 
   /**
@@ -144,8 +148,9 @@ class OrderMutationServiceImpl(
     // 3. 验证地址是否在配送范围内
     deliveryAreaQueryService.validateDeliveryAddress(address.province, address.city, address.district)
 
-    // 4. 计算配送费(楼层口径 R-MON-02):免费楼层内免运费,超过免费楼层一次性加收;自提免运费
-    val deliveryFeeCents = computeDeliveryFee(address.floor, isSelfCollect)
+    // 4. 计算配送费(R-MON-02 楼层分档 + R-OPS-03 距离阶梯,叠加):自提免运费
+    val rule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule()
+    val deliveryFeeCents = computeDeliveryFee(rule, address, isSelfCollect)
 
     // 5. 生成唯一订单号
     val orderNo = orderIdGenerator.generateOrderId()
@@ -164,19 +169,46 @@ class OrderMutationServiceImpl(
       userId = userId,
       deliveryFeeCents = deliveryFeeCents,
       orderNo = orderNo,
+      deliveryFeeRule = rule,
     )
   }
 
   /**
-   * 配送费计算(R-MON-02 楼层分档,2026-10 修订;PRD 12-operations-config.md §F-OPS-005):
-   * 委托 [DeliveryFeeRuleModel.feeCentsForFloor] 共享实现——自提/免费楼层免运费、
-   * 超免费楼层按 tiers 档位命中、tiers 缺失回退 surchargeCents(与订单预览同源,保证预览=实付)。
-   * 金额以分存储与服务端计算(R-MON-01);规则配置变更即时生效,已生成订单不受影响(运费按下单时快照)。
+   * 起送门槛拦截(R-OPS-03/G96,服务端最终防线;客户端提交前预检为第一道):
+   * 订单商品金额(成交小计,优惠前)低于启用中的门槛 → 拦截下单并提示差额;自提订单豁免。
+   * 商品金额口径与确认订单页「商品金额」行、orderPreview.belowMinimum 一致。
+   */
+  private fun validateMinimumOrderAmount(
+    rule: DeliveryFeeRuleModel,
+    productAmountCents: Long,
+    isSelfCollect: Boolean,
+  ) {
+    if (isSelfCollect) return
+    if (!rule.belowMinimumOrder(productAmountCents)) return
+    val minimum = rule.minimumOrderCents
+    val gap = minimum - productAmountCents
+    throw BadRequestException(
+      String.format(
+        Locale.ROOT,
+        "商品金额未达起送金额 ¥%.2f，还差 ¥%.2f",
+        minimum / 100.0,
+        gap / 100.0,
+      ),
+    )
+  }
+
+  /**
+   * 配送费计算(R-MON-02 楼层分档 + R-OPS-03 距离阶梯,叠加;PRD 12-operations-config.md §F-OPS-005):
+   * 委托 [DeliveryFeeRuleModel.feeCentsForDelivery] 共享实现——自提免运费、免费楼层内免运费、
+   * 超免费楼层按 tiers 档位命中、距离档按门店与地址直线距离命中(坐标缺失不加收),
+   * 与订单预览同源,保证预览=实付;费用总额落 orders.delivery_fee_cents 快照(R-MON-02)。
+   * 金额以分存储与服务端计算(R-MON-01);规则配置变更即时生效,已生成订单不受影响。
    */
   private fun computeDeliveryFee(
-    floor: Int?,
+    rule: DeliveryFeeRuleModel,
+    address: AddressModel,
     isSelfCollect: Boolean,
-  ): Long = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule().feeCentsForFloor(floor, isSelfCollect)
+  ): Long = rule.feeCentsForDelivery(address.floor, address.longitude, address.latitude, isSelfCollect)
 
   /**
    * 保存订单的公共逻辑(含营销计价快照 R-MKT-02/07/08 与多商品明细落库 F-ORD-004)
@@ -353,6 +385,9 @@ class OrderMutationServiceImpl(
       throw BadRequestException("无权使用此收货地址")
     }
 
+    // 3.2 起送门槛拦截(R-OPS-03 服务端最终防线;在线下单恒为配送单)
+    validateMinimumOrderAmount(validation.deliveryFeeRule, preview.subtotalCents, isSelfCollect = false)
+
     // 3.5 押金试算(R-MON-03 按规格收取;与订单预览同源,金额服务端计算 R-MON-01)
     val deposit =
       depositMutationApiService.calcOrderDeposit(
@@ -444,6 +479,9 @@ class OrderMutationServiceImpl(
         addressId = input.addressId,
         isSelfCollect = isSelfCollect,
       )
+
+    // 起送门槛拦截(R-OPS-03;代客配送单同口径,自提单豁免)
+    validateMinimumOrderAmount(validation.deliveryFeeRule, preview.subtotalCents, isSelfCollect)
 
     // 押金试算(R-MON-03:代客下单同口径按客户 userId 判定在租只收一次)
     val deposit =

@@ -520,11 +520,11 @@ const OrderConfirm: React.FC = () => {
         onTermsChange={handleTermsChange}
       />
 
-      {/* 底部操作栏(计价失败时禁用提交;展示已优惠金额) */}
+      {/* 底部操作栏(计价失败/未达起送门槛时禁用提交;展示已优惠金额;R-OPS-03 服务端二次拦截为最终防线) */}
       <BottomActions
         totalAmount={finalAmount}
         loading={submitting}
-        disabled={!preview || !!previewError || previewLoading}
+        disabled={!preview || !!previewError || previewLoading || !!preview?.belowMinimum}
         discountCents={preview ? preview.totalDiscountCents : 0}
         onSubmit={handleSubmitOrder}
       />

@@ -34,7 +34,7 @@
 | 收银 | AC-COL-001-05~09（容差/争议/重复提交）、AC-COL-011-02~08（对账重算/复核锁定）、AC-COL-012-01~07（结算幂等/差异挂起） |
 | 营销 | AC-MKT-002-05（快照）、AC-MKT-003-03/05/07（门槛/退回/一单一券）、AC-MKT-004-04（多活动取最大）、AC-MKT-006-05（商品维度互斥）、AC-MKT-007-03/05/08/09/10/11（水票全路径含票号）、AC-MKT-009-06（立减×满减取最大）、AC-MKT-010-01~05（套餐卡购买/核销/退款/过期，含「无余额支付选项」）、AC-MKT-012-01~07（积分幂等/原子） |
 | 地址配送 | AC-ADR-003-01~03（范围校验三态）、AC-ADR-012-05/07（弱网补传/拒绝上报）、AC-ADR-013-01~06（片区启停/推荐） |
-| 运营配置 | AC-OPS-005-01~06（楼层分档回显/计费/快照不追溯/配置校验拦截/审计留痕）、AC-OPS-005-07~09（起送门槛服务端拦截/距离阶梯加收/默认 0 不启用——R-OPS-03，G96 规划中） |
+| 运营配置 | AC-OPS-005-01~06（楼层分档回显/计费/快照不追溯/配置校验拦截/审计留痕）、AC-OPS-005-07~09（起送门槛服务端拦截/距离阶梯加收/默认 0 不启用——R-OPS-03，G96 已实现 2026-10-11） |
 | 用户 | AC-USR-001-04/07/08（自动建用户/单飞/回跳）、AC-USR-020-07~10（停用失效/删除保护）、AC-USR-022-10（统计全量口径）、AC-USR-023-02~06（兼送水同权） |
 | 通知 | AC-NTF-001-06~08（降级/门控/回写）、AC-NTF-003-04/05（补发/去重）、AC-NTF-007-01~08（提醒频率上限/场景开关）、AC-NTF-008-01~05（接单超时预警：双阈值/幂等不重复/预警前状态变化不发/阈值即时生效——R-NTF-07，G94 已实现 2026-10，单测覆盖 OrderAcceptTimeoutScannerTest/NotificationEventHandlerTest/NotificationGatewayServiceTest + OrderRepositoryImplTest 锚点分页） |
 | 统计 | AC-STA-002-08~12（口径与负净营收）、AC-STA-005-09~13（分布合计）、AC-STA-007-13（快照两段合并一致） |
@@ -96,7 +96,7 @@
 | --- | --- |
 | ~~G94~~ | 接单超时预警**已交付（2026-10）**：OrderAcceptTimeoutScanner 双阈值分页扫描 → ORDER_ACCEPT_TIMEOUT/DELIVERY_START_TIMEOUT 事件 → 通知网关幂等落库全体管理员站内预警（ADMIN 接收类型）；阈值参数入 F-SYS-002；无新 API；残余（目标形态/裁决）：WS 推送不接入、超时升级通知本期不做——见 03 §18 实现记录 |
 | G95 | 号码保护（送水工端订单查询按订单状态服务端裁剪收货人电话；管理员不受限；无新表，改查询投影+权限主体判定） |
-| G96 | 起送门槛与距离阶梯运费（delivery_fee_rules 增 minimum_order_cents/distance_tiers + store_profiles 增经纬度；orderPreview 下发 belowMinimum + createOrder 拦截；计价叠加进 R-MON-02 快照） |
+| G96 | 起送门槛与距离阶梯运费（delivery_fee_rules 增 minimum_order_cents/distance_tiers/store_longitude/store_latitude【门店坐标原规划 store_profiles,裁决就近本表】；orderPreview 下发 minimumOrderCents/belowMinimum + createOrder 拦截；计价叠加进 R-MON-02 快照——**已交付 2026-10-11**） |
 | ~~G97~~ | 水票运营策略**已交付（2026-10）**：ticket_types 增三列（引流票/复购激活 N/单次核销上限）+ ticket_purchases 激活基线列（V348）；购票链路引流票新客门禁、核销链路待激活剔除+超限拒绝（TicketRule 按票种截断）；GraphQL VO/input 双端同步（@min/@max+服务层双重校验）；admin 票种表单运营策略组+列表标签、user-weapp 商城标识与票夹待激活置灰；测试覆盖三门禁+既有回归；残余：运营策略效果区未实现（缺漏斗/埋点口径，裁决记残留）——见 03 §10 G97 实现记录 |
 
 **不做**：G90 多门店（战略项）、G92 在线客服 IM（替代：一键拨号+订单联系客服）。

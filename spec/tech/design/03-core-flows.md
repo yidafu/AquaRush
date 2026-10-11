@@ -97,7 +97,7 @@ subtotal(现金) = Σ 未被票/赠覆盖的 item：成交单价×数量        
 5. 生成赠品行（gift_activity 命中，0 价）；订单落库 + order_operations(CREATED)；
 6. 提交后：发 ORDER_CREATED 事件（订阅消息「下单成功」、送水工端广播「新订单可抢单」——仅 PENDING_DISPATCH 单）、业务日志。
 7. 周期订购生成单 client_request_id=`sub-{id}-{period}`（同期次仅一单，G77 后台侧已实现 2026-10-11，§12）；企业批量子单逐单独立执行（任一子单失败该子单回滚，其余成功——【开放决策】建议部分成功 + 结果回显）。**企业批量子单 [暂缓]**（2026-10-10 决策，§13，不排期）。
-8. 起送门槛拦截（R-OPS-03，规划中 G96）：非自提单商品金额（未扣优惠）< `minimum_order_cents` → 抛 BUSINESS_RULE「未达起送金额」整体拒绝（不进入扣库存步骤）。
+8. 起送门槛拦截（R-OPS-03，G96 已实现 2026-10-11）：非自提单商品成交小计（未扣优惠）< `minimum_order_cents` → 抛 BUSINESS_RULE「商品金额未达起送金额 ¥X，还差 ¥Y」整体拒绝（不进入扣库存步骤）。
 
 ## 3. 库存联动（R-PRO-01）
 
@@ -274,13 +274,14 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
     否则 → 命中档位 tiers [fromFloor..toFloor|null=∞] 的 feeCents
             (5-6楼+200 / 7-9楼+500 / 10楼+800 默认,可配 —— V345 已落列并回填,结构 #6 完成);
             tiers 为空(存量兼容)回退兜底单档 surchargeCents
-  距离阶梯【R-OPS-03,规划中 G96 排期待定】:
-    distance = Haversine(地址经纬度, 门店经纬度)（直线距离【开放决策→建议默认直线】;
-              地址 WGS-84 对门店 WGS-84 同系直接计算）
-    命中 distanceTiers [fromKm..toKm|null=∞] 的 feeCents（3km 内 0 / 3-5km+300 / 5km+ 600 默认示例,可配;
-              distanceTiers 为空或全 0 → 不加收）
-  起送门槛【R-OPS-03,规划中 G96】: 非自提单商品金额 < minimum_order_cents →
-    确认页 orderPreview 返回 belowMinimum 前置提示 + createOrder 服务端拦截（双保险,§2.3 步骤 8）
+  距离阶梯【R-OPS-03,G96 已实现 2026-10-11】:
+    distance = Haversine(地址经纬度, 门店经纬度)（直线距离【开放决策已收口 2026-10-11:默认直线】;
+              地址 WGS-84 对门店经纬度(delivery_fee_rules.store_longitude/store_latitude) 同系直接计算;
+              任一侧坐标缺失 → 不加收）
+    命中 distanceTiers 首个 upToKm ≥ distance（upToKm=null 不封顶）的 feeCents（≤3km 0 / ≤5km+300 / 5km以上+600 示例,可配;
+              distanceTiers 为空 → 不加收）
+  起送门槛【R-OPS-03,G96 已实现 2026-10-11】: 非自提单商品成交小计 < minimum_order_cents →
+    确认页 orderPreview 返回 belowMinimum 前置提示+禁提交 + createOrder 服务端拦截（双保险,§2.3 步骤 8）
   delivery_fee_cents = 楼层分档 + 距离阶梯 一次快照合计；后续规则/楼层/距离档位变更不追溯；
   确认订单页读规则+地址楼层展示运费/「免配送费」；会员免配送费权益【开放决策→建议权益优先】(G80)
 ```

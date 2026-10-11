@@ -111,6 +111,8 @@ class OrderService {
           totalDiscountCents
           payableProductCents
           deliveryFeeCents
+          minimumOrderCents
+          belowMinimum
           depositCents
           payAmountCents
           availableTicketCount

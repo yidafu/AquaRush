@@ -805,8 +805,22 @@ export type DeliveryAreaVo = {
   readonly province: Scalars['String']['output'];
 };
 
+export type DeliveryDistanceTierInput = {
+  readonly feeCents: Scalars['Long']['input'];
+  readonly upToKm?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type DeliveryDistanceTierVo = {
+  readonly feeCents: Scalars['Long']['output'];
+  readonly upToKm?: Maybe<Scalars['Float']['output']>;
+};
+
 export type DeliveryFeeRuleVo = {
+  readonly distanceTiers?: Maybe<ReadonlyArray<DeliveryDistanceTierVo>>;
   readonly freeFloorLimit: Scalars['Int']['output'];
+  readonly minimumOrderCents: Scalars['Long']['output'];
+  readonly storeLatitude?: Maybe<Scalars['Float']['output']>;
+  readonly storeLongitude?: Maybe<Scalars['Float']['output']>;
   readonly surchargeCents: Scalars['Long']['output'];
   readonly tiers?: Maybe<ReadonlyArray<DeliveryFeeTierVo>>;
   readonly updatedAt?: Maybe<Scalars['LocalDateTime']['output']>;
@@ -2454,6 +2468,7 @@ export type OrderPreviewItemVo = {
 export type OrderPreviewVo = {
   readonly availableCoupons: ReadonlyArray<UserCouponVo>;
   readonly availableTicketCount: Scalars['Int']['output'];
+  readonly belowMinimum: Scalars['Boolean']['output'];
   readonly cashSubtotalCents: Scalars['Long']['output'];
   readonly couponDiscountCents: Scalars['Long']['output'];
   readonly couponOptions: ReadonlyArray<CouponOptionVo>;
@@ -2464,6 +2479,7 @@ export type OrderPreviewVo = {
   readonly firstOrderDiscountCents: Scalars['Long']['output'];
   readonly giftItems: ReadonlyArray<GiftItemVo>;
   readonly items: ReadonlyArray<OrderPreviewItemVo>;
+  readonly minimumOrderCents: Scalars['Long']['output'];
   readonly payAmountCents: Scalars['Long']['output'];
   readonly payableProductCents: Scalars['Long']['output'];
   readonly priceSource: PriceSource;
@@ -3870,7 +3886,11 @@ export type SalesReportVo = {
 };
 
 export type SaveDeliveryFeeRuleInput = {
+  readonly distanceTiers: ReadonlyArray<DeliveryDistanceTierInput>;
   readonly freeFloorLimit: Scalars['Int']['input'];
+  readonly minimumOrderCents: Scalars['Long']['input'];
+  readonly storeLatitude?: InputMaybe<Scalars['Float']['input']>;
+  readonly storeLongitude?: InputMaybe<Scalars['Float']['input']>;
   readonly surchargeCents: Scalars['Long']['input'];
   readonly tiers: ReadonlyArray<DeliveryFeeTierInput>;
 };

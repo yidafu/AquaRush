@@ -26,7 +26,7 @@
 | 商品列表 | `product-list` | 搜索/排序/筛选（首页搜索入口跳转至此） |
 | 商品详情 | `product-detail?id=` | 图集画廊/全屏预览；价格按登录用户解析（分组价/特价/新人价+划线）；库存/销量；收藏；立即购买（BuyModal 1~库存 → pendingOrder 本地缓存 → order-confirm）；售罄/非在售禁购；加载失败重试 3 次间隔 1s |
 | 购物车 | `cart` | 本地存储（同商品合并数量）；勾选/步进/删除/全选/合计实时；超库存拦截；部分缺货整体拦截提示缺货项；去结算写 pendingOrder |
-| 确认订单 | `order-confirm` | **单请求 orderPreview**：地址卡（默认回显/切换，范围校验标红+「更换地址/联系客服」）、商品卡、配送时段 2×2 芯片（deliverySlots 配置驱动，停用回退立即配送）、备注 ≤200、费用明细（商品/优惠/水票抵扣/赠品行/配送费/押金/合计）、券选择、水票核销数、积分抵扣区（预留；**无余额抵扣——用户储值 2026-10-09 决策不做**）、服务条款；**起送门槛**（R-OPS-03 规划中 G96）：orderPreview 返回 belowMinimum 时禁提交+「未达起送金额 ¥X」提示；提交前 `Taro.requestSubscribeMessage` 订阅授权 |
+| 确认订单 | `order-confirm` | **单请求 orderPreview**：地址卡（默认回显/切换，范围校验标红+「更换地址/联系客服」）、商品卡、配送时段 2×2 芯片（deliverySlots 配置驱动，停用回退立即配送）、备注 ≤200、费用明细（商品/优惠/水票抵扣/赠品行/配送费/押金/合计）、券选择、水票核销数、积分抵扣区（预留；**无余额抵扣——用户储值 2026-10-09 决策不做**）、服务条款；**起送门槛**（R-OPS-03，G96 已实现 2026-10-11）：orderPreview 返回 belowMinimum 时禁提交+「商品金额未达起送金额 ¥X，还差 ¥Y」红字提示（@aquarush/common `minimumOrderHint`）；提交前 `Taro.requestSubscribeMessage` 订阅授权 |
 | 订单列表 | `order-list?tab=` | Tab 全部/待付款/待配送/配送中/已完成（10/页）；按状态操作集（取消+立即支付/查看详情/再次购买） |
 | 订单详情 | `order-detail?id=` | 状态步骤条（下单→支付→派单→配送→完成）、地址/商品/配送信息卡（送水工电话可拨、实时位置入口）、费用明细、时间线（order_operations）、操作（催单 5 分钟防抖提示、评价、再来一单、联系客服=拨店铺电话） |
 | 评价 | `order-review?id=` | 1-5 星 + ≤500 字 + 匿名开关 |
@@ -94,7 +94,7 @@
 | 营销管理 | `coupons` / `promotion-full-reduce` / `flash-sale` / `buy-gift` / `newcomer` / `water-tickets`（+`:id` 票种统计；票种表单含运营策略区【引流票/复购激活+需复购单数/单次核销上限，G97 已实现 2026-10】）/ `member-levels` / `package-plans` / `points-rules`（新增页随 F-MKT-010~012） | MKT_READ / MKT_WRITE |
 | 地址管理 | `addresses`（筛选分页/编辑/导入弹窗）/ `addresses/map`（热力图+片区维度视图） | ADDRESS_* |
 | 配送管理 | `trajectories`（实时位置+回放）/ `areas`（配送片区） | DELIVERY_WORKER_READ / OPS_CONFIG_* |
-| 运营配置 | `banners` / `notices` / `feedbacks` / `store-profile`（含门店经纬度【R-OPS-03 距离计算输入，G96 规划中】）/ `delivery-fee-rule`（楼层分档已落地；表单扩展起送门槛+距离阶梯档位表【R-OPS-03 规划中 G96】） | OPS_CONFIG_* / FEEDBACK_* |
+| 运营配置 | `banners` / `notices` / `feedbacks` / `store-profile`（门店经纬度不落此页——G96 裁决就近配送费规则页）/ `delivery-fee-rule`（楼层分档已落地；起送门槛开关+金额、距离阶梯档位表、门店经纬度【R-OPS-03，G96 已实现 2026-10-11】） | OPS_CONFIG_* / FEEDBACK_* |
 | 系统设置 | `system-config/parameters·order·stock·security·notifications·data`（仅超管可见） | SYSTEM_CONFIG_* |
 | 消息通知 | `notifications/messages`（筛选/详情/失败重发[仅超管]） | NOTIFICATION_READ / WRITE |
 | 日志管理 | `logs/api` / `logs/user-actions` / `logs/business`（表格/时间线双视图） | LOG_READ |

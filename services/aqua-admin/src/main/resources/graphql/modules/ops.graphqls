@@ -232,4 +232,12 @@ input SaveDeliveryFeeRuleInput {
   surchargeCents: Long! @min(value: 0, message: "运费金额无效") @max(value: 99900, message: "运费金额无效")
   # 楼层档位(R-MON-02 分档,必填:升序、区间不重叠、起始楼层 > 免费楼层;空数组不允许)
   tiers: [DeliveryFeeTierInput!]!
+  # 起送门槛(分,0=不启用;商品金额低于门槛拦截下单,R-OPS-03/G96)
+  minimumOrderCents: Long! @min(value: 0, message: "起送门槛金额无效")
+  # 距离阶梯档位(R-OPS-03:升序、区间不重叠、至多一档不封顶且必须最后;空数组=不启用)
+  distanceTiers: [DeliveryDistanceTierInput!]!
+  # 门店经度(WGS84,-180~180;与 storeLatitude 成对配置,空=不启用距离计费)
+  storeLongitude: Float
+  # 门店纬度(WGS84,-90~90)
+  storeLatitude: Float
 }
