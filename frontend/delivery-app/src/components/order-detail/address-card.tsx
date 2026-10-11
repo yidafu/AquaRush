@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Linking, Pressable, StyleSheet } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { isDialablePhone } from '@/utils/phone';
 import type { AddressVo } from '@aquarush/common';
 
 interface AddressCardProps {
@@ -18,14 +19,33 @@ export function AddressCard({ address, onEdit }: AddressCardProps) {
   if (!address) return null;
 
   const hasCoords = address.longitude != null && address.latitude != null;
+  // 号码保护(F-ORD-032/R-ORD-17):服务端仅在配送阶段下发完整号码,非配送阶段
+  // 只下发脱敏串(138****1234)。拨号入口按「是否完整号码」渲染 —— 脱敏串不可拨,
+  // 前端不自行脱敏、无「查看完整号码」旁路(AC-ORD-032-05)。
+  const dialable = isDialablePhone(address.phone);
+
+  const handleCall = () => {
+    if (!dialable) return;
+    Linking.openURL(`tel:${address.phone.trim()}`).catch((e) =>
+      console.error('拨打电话失败:', e),
+    );
+  };
 
   return (
     <Card title="收货地址">
       <ThemedView style={styles.row}>
         <ThemedText type="smallBold">{address.receiverName}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {address.phone}
-        </ThemedText>
+        {dialable ? (
+          <Pressable onPress={handleCall} hitSlop={8}>
+            <ThemedText type="small" themeColor="primary">
+              {address.phone} · 拨打
+            </ThemedText>
+          </Pressable>
+        ) : (
+          <ThemedText type="small" themeColor="textSecondary">
+            {address.phone}
+          </ThemedText>
+        )}
       </ThemedView>
       <ThemedText type="small">
         {address.province}
