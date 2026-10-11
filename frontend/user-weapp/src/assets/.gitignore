@@ -1,5 +1,6 @@
 *.png
 *.py
 **/*.png
+!brand-logo.png
 venv/
 *.md

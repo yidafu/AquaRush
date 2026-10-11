@@ -87,7 +87,7 @@ export default function LoginScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          {/* 品牌区(原型 login.html):渐变圆角方块 logo + AquaRush 字标 + 端名副标题 */}
+          {/* 品牌区(原型 login.html):渐变圆角方块 logo + 奔泉字标 + 端名副标题 */}
           <View style={styles.logoSection}>
             <Gradient
               colors={[theme.headerGradientStart, theme.headerGradientEnd] as const}
@@ -98,14 +98,14 @@ export default function LoginScreen() {
                 A
               </ThemedText>
             </Gradient>
-            <ThemedText type="subtitle">AquaRush</ThemedText>
+            <ThemedText type="subtitle">奔泉</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
               送水配送 · 运营管理
             </ThemedText>
           </View>
 
           <ThemedText type="small" themeColor="textSecondary" style={styles.welcome}>
-            欢迎使用 AquaRush 配送与运营平台
+            欢迎使用奔泉配送与运营平台
           </ThemedText>
 
           <View style={[styles.panel, { backgroundColor: theme.card }]}>
@@ -177,7 +177,7 @@ export default function LoginScreen() {
 
           {/* 底部版本号(原型 login.html) */}
           <ThemedText type="caption" themeColor="textTertiary" style={styles.version}>
-            {`AquaRush 配送版 ${APP_VERSION}`}
+            {`奔泉配送版 ${APP_VERSION}`}
           </ThemedText>
         </ScrollView>
       </KeyboardAvoidingView>

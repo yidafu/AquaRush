@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AquaRush UI 设计稿总索引（PRD 驱动）</title>
+<title>奔泉 UI 设计稿总索引（PRD 驱动）</title>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/ui.css">
 </head>
@@ -11,7 +11,7 @@
 <div class="stage">
   <header class="stage-head">
     <div>
-      <h1>AquaRush 三端 UI 设计稿 · 总索引</h1>
+      <h1>奔泉三端 UI 设计稿 · 总索引</h1>
       <p class="sub">依据 PRD 文档（v0.30 · 12 个功能域）逐模块生成，未参考任何代码 · 设计规范来源 <code>spec/design/ui-design-system.md</code></p>
     </div>
     <div class="chips">
@@ -35,7 +35,7 @@
       </div>
       <div class="ix-note mt4">
         <strong>阅读方式：</strong>每张稿为「stage 画布 + 设备外框 + 右侧标注面板」。左侧是设计效果（多状态并排：正常态 / 空态 / 弹窗态 / 视口态），右侧标注面板给出 <strong>页面说明 / 布局结构 / 关键交互 / 状态与规则 / 设计要点·禁忌</strong>；三端稿件的标注面板另含一张「组件与度量」说明卡。
-        <br><strong>小程序端（user-weapp）组件体系：</strong>严格按微信官方 <strong>WeUI 2.x</strong> —— 44px 导航栏 + 87×32 微信胶囊、原生 TabBar（50px / 图标 27px / 文字 10px / 底 <code>#F7F7F7</code>）、页面底 <code>#EDEDED</code>、单元格 17px 主文字与 0.5px 内缩 16px 发丝线、官方 Grids / Loadmore / Actionsheet / HalfScreen / Dialog。主题色经 <code>--weui-BRAND</code> 注入 AquaRush 品牌蓝；<strong>金额用微信电商惯例红 <code>#FA5151</code></strong>。
+        <br><strong>小程序端（user-weapp）组件体系：</strong>严格按微信官方 <strong>WeUI 2.x</strong> —— 44px 导航栏 + 87×32 微信胶囊、原生 TabBar（50px / 图标 27px / 文字 10px / 底 <code>#F7F7F7</code>）、页面底 <code>#EDEDED</code>、单元格 17px 主文字与 0.5px 内缩 16px 发丝线、官方 Grids / Loadmore / Actionsheet / HalfScreen / Dialog。主题色经 <code>--weui-BRAND</code> 注入奔泉品牌蓝；<strong>金额用微信电商惯例红 <code>#FA5151</code></strong>。
         <br><strong>配色红线：</strong>强调橙仅用于消费者端优惠券品牌元素与最高优先级 CTA（每屏 ≤ 3 处）；管理后台与送水工端完全不出现强调橙。增长指标用红、下降用绿（中国口径）。金额一律分存储、展示为元两位小数。
         <br><strong>入口收口：</strong>用户端<strong>不设独立登录页</strong>——微信授权以<strong>半屏授权引导弹层</strong>承载（见「个人中心（我的）」状态三），登录成功后就地返回原动作；水桶账户 / 水票 / 套餐 / 积分 / 优惠券在「我的」聚合为<strong>单一「我的资产」入口</strong>，在资产页内下钻。<strong>不做用户储值</strong>（2026-10-09 合规决策：无预付卡资质，余额充值 / 余额支付 / 余额抵扣均不设，充值页与余额入口已移除，预收资金由水票与套餐卡承接）。<br><strong>价格与圆角分端：</strong>小程序端金额用微信电商红 <code>#FA5151</code>、按钮圆角 8px（WeUI 官方）；管理端 / 配送端金额用品牌蓝加粗、按钮全圆角 24px。<br><strong>状态标记：</strong>与 PRD 功能条目一一对应；「规划中」页面在稿内以「目标形态」标签标出并注明缺口编号（G 编号）。
       </div>

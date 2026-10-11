@@ -381,8 +381,8 @@ const Layout: React.FC = () => {
     <AntLayout style={{ minHeight: '100vh' }}>
       <Sider theme="dark">
         <div style={{ height: 64, display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', color: '#fff' }}>
-          <img src="/aqua-rush-mark.svg" alt="AquaRush" style={{ width: 26, height: 26 }} />
-          <span style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap' }}>AquaRush 运营后台</span>
+          <img src="/aqua-rush-mark.svg" alt="奔泉" style={{ width: 26, height: 26 }} />
+          <span style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap' }}>奔泉运营后台</span>
         </div>
         <Menu
           theme="dark"

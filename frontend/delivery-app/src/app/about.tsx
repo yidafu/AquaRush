@@ -40,7 +40,7 @@ export default function AboutScreen() {
               contentFit="contain"
             />
           </View>
-          <ThemedText type="subtitle">AquaRush 配送版</ThemedText>
+          <ThemedText type="subtitle">奔泉配送版</ThemedText>
           <ThemedText type="small" themeColor="textTertiary">
             版本 {VERSION}
           </ThemedText>
@@ -48,7 +48,7 @@ export default function AboutScreen() {
 
         <Card title="应用简介">
           <ThemedText type="small" themeColor="textSecondary" style={styles.intro}>
-            AquaRush 配送版是一款专业的桶装水配送管理小程序，为配送员提供订单管理、统计查询等功能，提升配送效率，优化用户体验。
+            奔泉配送版是一款专业的桶装水配送管理小程序，为配送员提供订单管理、统计查询等功能，提升配送效率，优化用户体验。
           </ThemedText>
         </Card>
 
@@ -76,7 +76,7 @@ export default function AboutScreen() {
 
         <View style={styles.copyright}>
           <ThemedText type="caption" themeColor="textTertiary">
-            © 2024 AquaRush
+            © 2026 奔泉
           </ThemedText>
           <ThemedText type="caption" themeColor="textTertiary">
             版权所有 保留一切权利

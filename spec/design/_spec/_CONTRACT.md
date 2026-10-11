@@ -124,7 +124,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>用户端 · 首页｜AquaRush UI 设计稿</title>
+<title>用户端 · 首页｜奔泉 UI 设计稿</title>
 <link rel="stylesheet" href="../../assets/tokens.css">
 <link rel="stylesheet" href="../../assets/ui.css">
 </head>
@@ -202,7 +202,7 @@ user-weapp 页面**不得**使用：`.card` `.card-title` `.list` `.list-item` `
   </div>
   <div class="browser-body">
     <aside class="admin-side">
-      <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+      <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
       <div class="admin-menu">…菜单项，当前项加 .on…</div>
     </aside>
     <div class="admin-main">

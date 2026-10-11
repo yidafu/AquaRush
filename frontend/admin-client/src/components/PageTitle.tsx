@@ -7,7 +7,7 @@ interface PageTitleProps {
 
 const PageTitle: React.FC<PageTitleProps> = ({ title }) => (
   <Helmet>
-    <title>{title} - AquaRush 管理后台</title>
+    <title>{title} - 奔泉管理后台</title>
   </Helmet>
 );
 

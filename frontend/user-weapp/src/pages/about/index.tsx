@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
+import brandLogo from '@/assets/brand-logo.png'
 import './index.scss'
 
 // 导入拆分出的组件
@@ -92,7 +93,7 @@ const About: React.FC = () => {
           {storeProfile?.logoUrl ? (
             <Image src={storeProfile.logoUrl} className='about-hero-logo-img' mode='aspectFit' />
           ) : (
-            <Text className='about-hero-logo-emoji'>{BRAND_INFO.LOGO_EMOJI}</Text>
+            <Image src={brandLogo} className='about-hero-logo-img' mode='aspectFit' />
           )}
         </View>
         <Text className='about-hero-name'>{shopName}</Text>

@@ -122,7 +122,7 @@ export default function ProfileScreen() {
         <Button title="退出登录" variant="dangerGhost" onPress={handleLogout} />
 
         <ThemedText type="caption" themeColor="textTertiary" style={styles.version}>
-          AquaRush 配送版 v1.0.0
+          奔泉配送版 v1.0.0
         </ThemedText>
       </SafeAreaView>
     </ThemedView>
