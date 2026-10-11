@@ -2598,7 +2598,7 @@ enum NotificationType {
 type NotificationVo {
   id: PrimaryId!
   type: NotificationType!
-  # 接收人类型(USER/WORKER,后台消息列表展示)
+  # 接收人类型(USER/WORKER/ADMIN,后台消息列表展示;ADMIN=全体管理员共享预警,F-NTF-008)
   receiverType: NotificationReceiverType!
   # 触发场景(领域事件名,如 ORDER_PAID)
   scene: String!
@@ -2643,10 +2643,11 @@ type SubscribeTemplateVo {
   enabled: Boolean!
 }
 
-# 通知接收人类型(后台消息列表筛选,F-NTF-006)
+# 通知接收人类型(后台消息列表筛选,F-NTF-006;ADMIN=全体管理员,F-NTF-008 接单超时预警)
 enum NotificationReceiverType {
   USER
   WORKER
+  ADMIN
 }
 
 # ============ 水桶押金(R-MON-03 / R-PRO-04,B2 押金模型回退 2026-10) ============

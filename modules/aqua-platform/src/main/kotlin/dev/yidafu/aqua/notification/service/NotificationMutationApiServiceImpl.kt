@@ -101,6 +101,9 @@ class NotificationMutationApiServiceImpl(
         notification.receiverType == NotificationReceiverType.USER && notification.userId == receiverId
       NotificationReceiverType.WORKER ->
         notification.receiverType == NotificationReceiverType.WORKER && notification.workerId == receiverId
+      // 管理员预警为全体共享消息,不参与本人已读隔离(后台消息列表无逐人已读交互)
+      NotificationReceiverType.ADMIN ->
+        notification.receiverType == NotificationReceiverType.ADMIN
     }
 
   /**

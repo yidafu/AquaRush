@@ -21,6 +21,7 @@ package dev.yidafu.aqua.notification.gateway
 
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
@@ -646,6 +647,81 @@ class DeliveryTimeoutNotificationHandler(
         ),
       )
     }
+  }
+}
+
+/**
+ * 接单超时预警通知(PRD 13-notification.md F-NTF-008 / R-NTF-07,缺口 G94):
+ * 「待派单」超阈值无人接单 → 全体管理员站内预警(后台消息列表 F-NTF-006 可查),
+ * 摘要含订单号/金额/超时时长。幂等键 = 订单号:ORDER_ACCEPT_TIMEOUT:阶段锚点(扫描载荷 eventTime,
+ * 同一订单同一阶段仅预警一次);消费时订单已被接单/取消则不预警(状态谓词,AC-NTF-008-04)。
+ */
+@Component
+class OrderAcceptTimeoutNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_ACCEPT_TIMEOUT
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val order = orderQueryApiService.findById(orderId)
+    if (order == null || order.status != OrderModelStatus.PENDING_DISPATCH) {
+      logger.debug("订单状态已变化,跳过接单超时预警: orderId={}", orderId)
+      return
+    }
+    val timeoutMinutes = longOrNull(data, "timeoutMinutes") ?: 0L
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "ADMIN",
+        messageType = "ORDER",
+        scene = DomainEventType.ORDER_ACCEPT_TIMEOUT.value,
+        title = "订单接单超时",
+        summary = "订单 ${order.orderNo}(¥${yuan(order.amountCents)})已待派单超 $timeoutMinutes 分钟无人接单,请及时处理。",
+        relatedNo = order.orderNo,
+        eventTime = longOrNull(data, "eventTime") ?: eventTimeMillis(data),
+      ),
+    )
+  }
+}
+
+/**
+ * 开始配送超时预警通知(PRD 13-notification.md F-NTF-008 / R-NTF-07,缺口 G94):
+ * 「待配送」超阈值未开始配送 → 全体管理员站内预警;幂等键锚点 = 派单时间(扫描载荷 eventTime);
+ * 消费时订单已开始配送/取消/完成则不预警(状态谓词,AC-NTF-008-04)。
+ */
+@Component
+class DeliveryStartTimeoutNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.DELIVERY_START_TIMEOUT
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val order = orderQueryApiService.findById(orderId)
+    if (order == null || order.status != OrderModelStatus.PENDING_DELIVERY) {
+      logger.debug("订单状态已变化,跳过开始配送超时预警: orderId={}", orderId)
+      return
+    }
+    val timeoutMinutes = longOrNull(data, "timeoutMinutes") ?: 0L
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "ADMIN",
+        messageType = "ORDER",
+        scene = DomainEventType.DELIVERY_START_TIMEOUT.value,
+        title = "开始配送超时",
+        summary = "订单 ${order.orderNo}(¥${yuan(order.amountCents)})派单后超 $timeoutMinutes 分钟未开始配送,请及时处理。",
+        relatedNo = order.orderNo,
+        eventTime = longOrNull(data, "eventTime") ?: eventTimeMillis(data),
+      ),
+    )
   }
 }
 

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.notification.gateway
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.notification.dto.NotificationEventData
@@ -390,6 +391,118 @@ class NotificationEventHandlerTest :
         user.scene shouldBe "COUPON_EXPIRING"
         user.eventTime shouldBe eventTime
         user.templateScene shouldBe null
+      }
+    }
+
+    context("OrderAcceptTimeoutNotificationHandler(接单超时预警,G94/F-NTF-008)") {
+      test("待派单超阈值 → 全体管理员站内预警,摘要含订单号/金额/超时时长") {
+        val (eventPublishService, maps) = publishHarness()
+        val orderQuery = mockk<OrderQueryApiService>(relaxed = true)
+        every { orderQuery.findById(1001L) } returns
+          OrderModel(
+            id = 1001L,
+            orderNo = "NO1001",
+            userId = 7L,
+            status = OrderModelStatus.PENDING_DISPATCH,
+            amountCents = 2500L,
+          )
+        val handler = OrderAcceptTimeoutNotificationHandler(publisher(eventPublishService), orderQuery)
+
+        handler.handle(
+          businessEvent(
+            "ORDER_ACCEPT_TIMEOUT",
+            mapOf("orderId" to 1001L, "timeoutMinutes" to 30L, "eventTime" to eventTime, "timestamp" to eventTime),
+          ),
+        )
+
+        val events = maps.asEvents()
+        events.size shouldBe 1
+        val alert = events[0]
+        alert.receiverType shouldBe "ADMIN"
+        alert.userId shouldBe null
+        alert.workerId shouldBe null
+        alert.messageType shouldBe "ORDER"
+        alert.scene shouldBe "ORDER_ACCEPT_TIMEOUT"
+        alert.title shouldBe "订单接单超时"
+        alert.summary shouldBe "订单 NO1001(¥25.00)已待派单超 30 分钟无人接单,请及时处理。"
+        alert.relatedNo shouldBe "NO1001"
+        alert.eventTime shouldBe eventTime
+        alert.templateScene shouldBe null
+      }
+
+      test("预警前订单被接单(状态已变化)→ 不预警(AC-NTF-008-04)") {
+        val (eventPublishService, maps) = publishHarness()
+        val orderQuery = mockk<OrderQueryApiService>(relaxed = true)
+        every { orderQuery.findById(1001L) } returns
+          OrderModel(id = 1001L, orderNo = "NO1001", status = OrderModelStatus.DELIVERING)
+        val handler = OrderAcceptTimeoutNotificationHandler(publisher(eventPublishService), orderQuery)
+
+        handler.handle(
+          businessEvent("ORDER_ACCEPT_TIMEOUT", mapOf("orderId" to 1001L, "eventTime" to eventTime)),
+        )
+
+        maps.size shouldBe 0
+      }
+
+      test("订单已取消/不存在 → 不预警(AC-NTF-008-04)") {
+        val (eventPublishService, maps) = publishHarness()
+        val orderQuery = mockk<OrderQueryApiService>(relaxed = true)
+        every { orderQuery.findById(1001L) } returns null
+        val handler = OrderAcceptTimeoutNotificationHandler(publisher(eventPublishService), orderQuery)
+
+        handler.handle(
+          businessEvent("ORDER_ACCEPT_TIMEOUT", mapOf("orderId" to 1001L, "eventTime" to eventTime)),
+        )
+
+        maps.size shouldBe 0
+      }
+    }
+
+    context("DeliveryStartTimeoutNotificationHandler(开始配送超时预警,G94/F-NTF-008)") {
+      test("待配送超阈值 → 全体管理员站内预警") {
+        val (eventPublishService, maps) = publishHarness()
+        val orderQuery = mockk<OrderQueryApiService>(relaxed = true)
+        every { orderQuery.findById(2002L) } returns
+          OrderModel(
+            id = 2002L,
+            orderNo = "NO2002",
+            userId = 7L,
+            status = OrderModelStatus.PENDING_DELIVERY,
+            amountCents = 3300L,
+          )
+        val handler = DeliveryStartTimeoutNotificationHandler(publisher(eventPublishService), orderQuery)
+
+        handler.handle(
+          businessEvent(
+            "DELIVERY_START_TIMEOUT",
+            mapOf("orderId" to 2002L, "timeoutMinutes" to 60L, "eventTime" to eventTime, "timestamp" to eventTime),
+          ),
+        )
+
+        val events = maps.asEvents()
+        events.size shouldBe 1
+        val alert = events[0]
+        alert.receiverType shouldBe "ADMIN"
+        alert.messageType shouldBe "ORDER"
+        alert.scene shouldBe "DELIVERY_START_TIMEOUT"
+        alert.title shouldBe "开始配送超时"
+        alert.summary shouldBe "订单 NO2002(¥33.00)派单后超 60 分钟未开始配送,请及时处理。"
+        alert.relatedNo shouldBe "NO2002"
+        alert.eventTime shouldBe eventTime
+      }
+
+      test("预警前订单已开始配送(状态已变化)→ 不预警(AC-NTF-008-04)") {
+        val (eventPublishService, maps) = publishHarness()
+        val orderQuery = mockk<OrderQueryApiService>(relaxed = true)
+        every { orderQuery.findById(2002L) } returns
+          OrderModel(id = 2002L, orderNo = "NO2002", status = OrderModelStatus.DELIVERING)
+        val handler = DeliveryStartTimeoutNotificationHandler(publisher(eventPublishService), orderQuery)
+
+        handler.handle(
+          businessEvent("DELIVERY_START_TIMEOUT", mapOf("orderId" to 2002L, "eventTime" to eventTime)),
+        )
+
+        maps.size shouldBe 0
       }
     }
 

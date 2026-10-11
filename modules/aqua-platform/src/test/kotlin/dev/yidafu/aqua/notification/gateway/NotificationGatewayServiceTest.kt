@@ -223,4 +223,59 @@ class NotificationGatewayServiceTest :
         )
       data.idempotencyKey shouldBe "1001:ORDER_PAID:1715000000000"
     }
+
+    test("管理员预警事件(ADMIN)幂等落库但不推送/不发微信(G94/F-NTF-008)") {
+      val data =
+        NotificationEventData(
+          receiverType = "ADMIN",
+          messageType = "ORDER",
+          scene = "ORDER_ACCEPT_TIMEOUT",
+          title = "订单接单超时",
+          summary = "订单 ORD-1(¥25.00)已待派单超 30 分钟无人接单,请及时处理。",
+          relatedNo = "ORD-1",
+          eventTime = 1715000000000L,
+        )
+      every { repository.existsByIdempotencyKey(data.idempotencyKey) } returns false
+      val saved =
+        NotificationModel(
+          id = 9L,
+          receiverType = NotificationReceiverType.ADMIN,
+          messageType = dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType.ORDER,
+          scene = "ORDER_ACCEPT_TIMEOUT",
+          title = "订单接单超时",
+          relatedNo = "ORD-1",
+          idempotencyKey = data.idempotencyKey,
+        )
+      every { repository.saveAndFlush(any()) } returns saved
+
+      gateway.handle(event(data))
+
+      // 落库为 ADMIN 共享站内消息(读取面=后台消息列表 F-NTF-006),不绑定具体接收人
+      verify {
+        repository.saveAndFlush(
+          match { it.receiverType == NotificationReceiverType.ADMIN && it.userId == null && it.workerId == null },
+        )
+      }
+      verify(exactly = 0) { repository.countUnread(any(), any()) }
+      verify(exactly = 0) { pushEventPublisher.publish(any()) }
+      verify(exactly = 0) { weChatSubscribeMessageService.trySend(any(), any(), any(), any()) }
+    }
+
+    test("重复管理员预警事件按幂等键跳过(同订单同阶段仅预警一次,R-NTF-07)") {
+      val data =
+        NotificationEventData(
+          receiverType = "ADMIN",
+          messageType = "ORDER",
+          scene = "ORDER_ACCEPT_TIMEOUT",
+          title = "订单接单超时",
+          relatedNo = "ORD-1",
+          eventTime = 1715000000000L,
+        )
+      every { repository.existsByIdempotencyKey(data.idempotencyKey) } returns true
+
+      gateway.handle(event(data))
+
+      verify(exactly = 0) { repository.saveAndFlush(any()) }
+      verify(exactly = 0) { pushEventPublisher.publish(any()) }
+    }
   })

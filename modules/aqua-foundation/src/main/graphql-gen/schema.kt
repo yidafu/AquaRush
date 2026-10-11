@@ -3467,6 +3467,7 @@ enum class NotificationChannelStatus(val label: String) {
 }
 
 enum class NotificationReceiverType(val label: String) {
+      ADMIN("ADMIN"),
       USER("USER"),
       WORKER("WORKER");
 

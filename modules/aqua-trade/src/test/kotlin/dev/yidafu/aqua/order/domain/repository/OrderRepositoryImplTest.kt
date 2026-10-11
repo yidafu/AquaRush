@@ -72,6 +72,8 @@ private fun seedOrder(
   deliveryPhotos: String? = null,
   createdAt: LocalDateTime = LocalDateTime.of(2026, 5, 1, 10, 0),
   updatedAt: LocalDateTime = createdAt,
+  paidAt: LocalDateTime? = null,
+  assignedAt: LocalDateTime? = null,
   deliveryStartedAt: LocalDateTime? = null,
   completedAt: LocalDateTime? = null,
   promotionActivityId: Long? = null,
@@ -108,6 +110,8 @@ private fun seedOrder(
       it[OrdersTable.couponDiscountCents] = couponDiscountCents
       it[OrdersTable.createdAt] = createdAt
       it[OrdersTable.updatedAt] = updatedAt
+      it[OrdersTable.paidAt] = paidAt
+      it[OrdersTable.assignedAt] = assignedAt
       it[OrdersTable.deliveryStartedAt] = deliveryStartedAt
       it[OrdersTable.completedAt] = completedAt
     }
@@ -312,6 +316,60 @@ class OrderRepositoryImplTest :
       page1.content shouldHaveSize 1
       // 无 sort → 默认 id 升序破平,跨页不重不漏
       (page0.content + page1.content).map { it.id } shouldContainExactly listOf(o1, o2, o3)
+    }
+
+    test("findByStatusAndDispatchAnchorBefore:锚点=coalesce(paid_at, created_at) + 状态/软删过滤(G94)") {
+      val before = LocalDateTime.of(2026, 5, 10, 12, 0)
+      // 在线支付订单:created_at 早于边界但 paid_at 晚于边界 → 不命中(以支付时刻起算,尚未超阈值)
+      seedOrder(status = OrderModelStatus.PENDING_DISPATCH, createdAt = before.minusDays(2), paidAt = before.plusMinutes(10))
+      // 在线支付订单:paid_at 早于边界 → 命中
+      val paidOld = seedOrder(status = OrderModelStatus.PENDING_DISPATCH, createdAt = before.minusDays(1), paidAt = before.minusHours(3))
+      // 代客下单(paid_at 为 null):按 created_at 起算
+      val cashOld = seedOrder(status = OrderModelStatus.PENDING_DISPATCH, createdAt = before.minusHours(4))
+      // 恰等边界不含(严格早于)
+      seedOrder(status = OrderModelStatus.PENDING_DISPATCH, createdAt = before.minusDays(1), paidAt = before)
+      // 状态不符不含
+      seedOrder(status = OrderModelStatus.PENDING_DELIVERY, createdAt = before.minusHours(5), paidAt = before.minusHours(5))
+      // 软删不含
+      seedOrder(status = OrderModelStatus.PENDING_DISPATCH, createdAt = before.minusHours(6), paidAt = before.minusHours(6), deleted = true)
+
+      val page =
+        repo.findByStatusAndDispatchAnchorBefore(
+          OrderModelStatus.PENDING_DISPATCH,
+          before,
+          PageRequest.of(0, 10),
+        )
+      page.totalElements shouldBe 2L
+      page.content.map { it.id } shouldContainExactly listOf(paidOld, cashOld)
+    }
+
+    test("findByStatusAndAssignedAtBefore:assigned_at 严格早于截止 + null/状态/软删过滤 + 分页(G94)") {
+      val before = LocalDateTime.of(2026, 5, 10, 12, 0)
+      val a1 = seedOrder(status = OrderModelStatus.PENDING_DELIVERY, assignedAt = before.minusHours(3))
+      val a2 = seedOrder(status = OrderModelStatus.PENDING_DELIVERY, assignedAt = before.minusHours(2))
+      val a3 = seedOrder(status = OrderModelStatus.PENDING_DELIVERY, assignedAt = before.minusHours(1))
+      seedOrder(status = OrderModelStatus.PENDING_DELIVERY, assignedAt = before) // 恰等边界,不含
+      seedOrder(status = OrderModelStatus.PENDING_DELIVERY) // 未派单(assigned_at null),不含
+      seedOrder(status = OrderModelStatus.PENDING_DISPATCH, assignedAt = before.minusHours(4)) // 状态不符,不含
+      seedOrder(status = OrderModelStatus.PENDING_DELIVERY, assignedAt = before.minusHours(5), deleted = true) // 软删,不含
+
+      val page0 =
+        repo.findByStatusAndAssignedAtBefore(
+          OrderModelStatus.PENDING_DELIVERY,
+          before,
+          PageRequest.of(0, 2),
+        )
+      page0.totalElements shouldBe 3L
+      page0.content shouldHaveSize 2
+      val page1 =
+        repo.findByStatusAndAssignedAtBefore(
+          OrderModelStatus.PENDING_DELIVERY,
+          before,
+          PageRequest.of(1, 2),
+        )
+      page1.content shouldHaveSize 1
+      // 无 sort → 默认 id 升序破平,跨页不重不漏
+      (page0.content + page1.content).map { it.id } shouldContainExactly listOf(a1, a2, a3)
     }
 
     test("findByDeliveryWorkerIdOrderByCreatedAtDesc:倒序 + id 破平") {

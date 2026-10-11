@@ -49,6 +49,9 @@ object EventDestinationRouting {
       DomainEventType.DELIVERY_STARTED,
       DomainEventType.DELIVERY_COMPLETED,
       DomainEventType.DELIVERY_TIMEOUT,
+      // 接单超时预警(F-NTF-008/G94):路由随 DELIVERY_TIMEOUT 惯例,通知网关消费落库预警管理员
+      DomainEventType.ORDER_ACCEPT_TIMEOUT,
+      DomainEventType.DELIVERY_START_TIMEOUT,
       -> EventQueueName.DELIVERY_QUEUE.toString()
 
       DomainEventType.USER_REGISTERED,

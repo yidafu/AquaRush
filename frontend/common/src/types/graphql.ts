@@ -2265,6 +2265,7 @@ export enum NotificationChannelStatus {
 }
 
 export enum NotificationReceiverType {
+  ADMIN = 'ADMIN',
   USER = 'USER',
   WORKER = 'WORKER'
 }
