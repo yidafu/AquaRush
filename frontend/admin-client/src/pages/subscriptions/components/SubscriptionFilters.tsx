@@ -5,6 +5,26 @@ import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 import { SUBSCRIPTION_STATUS_TEXT } from '@/utils/subscription';
 import type { SubscriptionStatusValue } from '@/utils/subscription';
+import * as stylex from '@stylexjs/stylex';
+
+// #666 / #bfbfbf 为筛选区局部灰阶,共享 token 无对应项,保留字面量
+const styles = stylex.create({
+  fieldWrap: {
+    marginBottom: '8px',
+  },
+  label: {
+    fontSize: '14px',
+    color: '#666',
+    marginBottom: '4px',
+    display: 'block',
+  },
+  prefixIcon: {
+    color: '#bfbfbf',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -67,8 +87,8 @@ export const SubscriptionFilters: React.FC<SubscriptionFiltersProps> = ({
     <FilterCard onReset={reset}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={8}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.fieldWrap)}>
+            <label {...stylex.props(styles.label)}>
               用户
             </label>
             <Input
@@ -76,18 +96,18 @@ export const SubscriptionFilters: React.FC<SubscriptionFiltersProps> = ({
               value={localFilters.search || ''}
               onChange={handleSearchChange}
               allowClear
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<SearchOutlined {...stylex.props(styles.prefixIcon)} />}
             />
           </div>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.fieldWrap)}>
+            <label {...stylex.props(styles.label)}>
               计划状态
             </label>
             <Select
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               value={localFilters.status || 'ALL'}
               onChange={handleStatusChange}
               placeholder="选择状态"
@@ -103,12 +123,12 @@ export const SubscriptionFilters: React.FC<SubscriptionFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.fieldWrap)}>
+            <label {...stylex.props(styles.label)}>
               下次配送时间
             </label>
             <RangePicker
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               onChange={handleNextRunRangeChange}
               placeholder={['开始日期', '结束日期']}
             />

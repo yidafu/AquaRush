@@ -9,6 +9,8 @@ interface Props {
   onChange?: (value: string) => void;
   placeholder?: string;
   style?: React.CSSProperties;
+  /** 样式类透传(stylex 迁移用;ChartCard 同款) */
+  className?: string;
   allowClear?: boolean;
   disabled?: boolean;
 }
@@ -19,6 +21,7 @@ const ProductSelect: React.FC<Props> = ({
   onChange,
   placeholder = '请选择商品',
   style,
+  className,
   allowClear = true,
   disabled,
 }) => {
@@ -54,6 +57,7 @@ const ProductSelect: React.FC<Props> = ({
       allowClear={allowClear}
       disabled={disabled}
       style={style}
+      className={className}
     />
   );
 };

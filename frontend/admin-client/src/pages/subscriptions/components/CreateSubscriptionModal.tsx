@@ -10,6 +10,16 @@ import { GET_USERS_QUERY } from '../../../graphql/queries/user.graphql';
 import { SUBSCRIPTION_ADDRESSES_QUERY } from '../../../graphql/queries/subscription.graphql';
 import { TIME_SLOT_OPTIONS, WEEKDAY_OPTIONS } from '../../../utils/subscription';
 import type { SubscriptionAddressesQueryResult, SubscriptionWorkerOption } from '../types';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  itemTight: {
+    marginBottom: '8px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 const CYCLE_TYPE_OPTIONS = [
   { value: 'WEEKLY', label: '每周' },
@@ -244,20 +254,20 @@ const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = ({
                   <Row key={field.key} gutter={8} align="middle">
                     <Col span={14}>
                       <Form.Item
-                        style={{ marginBottom: 8 }}
+                        {...stylex.props(styles.itemTight)}
                         name={[field.name, 'productId']}
                         rules={[{ required: true, message: '请选择商品' }]}
                       >
-                        <ProductSelect style={{ width: '100%' }} placeholder="选择商品" />
+                        <ProductSelect {...stylex.props(styles.fullWidth)} placeholder="选择商品" />
                       </Form.Item>
                     </Col>
                     <Col span={7}>
                       <Form.Item
-                        style={{ marginBottom: 8 }}
+                        {...stylex.props(styles.itemTight)}
                         name={[field.name, 'quantity']}
                         rules={[{ required: true, message: '数量必填' }]}
                       >
-                        <InputNumber min={1} max={999} style={{ width: '100%' }} placeholder="数量" />
+                        <InputNumber min={1} max={999} {...stylex.props(styles.fullWidth)} placeholder="数量" />
                       </Form.Item>
                     </Col>
                     <Col span={3}>
@@ -272,7 +282,7 @@ const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = ({
                     </Col>
                   </Row>
                 ))}
-                <Form.Item style={{ marginBottom: 8 }}>
+                <Form.Item {...stylex.props(styles.itemTight)}>
                   <Button
                     type="dashed"
                     block
@@ -308,7 +318,7 @@ const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = ({
             label="每月配送日"
             rules={[{ required: true, message: '请填写每月配送日' }]}
           >
-            <InputNumber min={1} max={31} style={{ width: '100%' }} addonAfter="日" placeholder="1-31" />
+            <InputNumber min={1} max={31} {...stylex.props(styles.fullWidth)} addonAfter="日" placeholder="1-31" />
           </Form.Item>
         ) : (
           <Form.Item
@@ -334,17 +344,17 @@ const CreateSubscriptionModal: React.FC<CreateSubscriptionModalProps> = ({
               label="生效日期"
               rules={[{ required: true, message: '请选择生效日期' }]}
             >
-              <DatePicker style={{ width: '100%' }} placeholder="开始日期" />
+              <DatePicker {...stylex.props(styles.fullWidth)} placeholder="开始日期" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="endDate" label="终止日期(可选)">
-              <DatePicker style={{ width: '100%' }} placeholder="不填则长期有效" />
+              <DatePicker {...stylex.props(styles.fullWidth)} placeholder="不填则长期有效" />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="maxPeriods" label="期次上限(可选)">
-              <InputNumber min={1} style={{ width: '100%' }} placeholder="不填则不限期次" />
+              <InputNumber min={1} {...stylex.props(styles.fullWidth)} placeholder="不填则不限期次" />
             </Form.Item>
           </Col>
         </Row>

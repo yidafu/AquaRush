@@ -34,6 +34,18 @@ const styles = stylex.create({
   hint: {
     fontSize: '12px',
   },
+  // —— G96 起送门槛与距离阶梯区块(master 合并带入的静态内联迁入)——
+  sectionTitle: {
+    marginTop: '24px',
+  },
+  sectionRow: {
+    marginTop: '16px',
+  },
+  hintBlock: {
+    fontSize: '12px',
+    display: 'block',
+    marginTop: '4px',
+  },
 });
 
 interface FeeTierFormValue {
@@ -308,7 +320,7 @@ const DeliveryFeeRule: React.FC = () => {
           )}
         </Form.List>
 
-        <Typography.Paragraph strong style={{ marginTop: 24 }}>
+        <Typography.Paragraph strong {...stylex.props(styles.sectionTitle)}>
           起送门槛与距离阶梯运费(R-OPS-03)
         </Typography.Paragraph>
         <Row gutter={16} align="bottom">
@@ -318,7 +330,7 @@ const DeliveryFeeRule: React.FC = () => {
               label="启用起送门槛"
               valuePropName="checked"
               extra="关闭时门槛为 0(不启用)"
-              style={{ marginBottom: 0 }}
+              {...stylex.props(styles.noMarginBottom)}
             >
               <Switch />
             </Form.Item>
@@ -338,13 +350,13 @@ const DeliveryFeeRule: React.FC = () => {
                       },
                     },
                   ]}
-                  style={{ marginBottom: 0 }}
+                  {...stylex.props(styles.noMarginBottom)}
                 >
                   <InputNumber
                     min={0}
                     max={9999}
                     precision={2}
-                    style={{ width: '100%' }}
+                    {...stylex.props(styles.fullWidth)}
                     placeholder="如 30.00"
                     disabled={!getFieldValue('minimumEnabled')}
                   />
@@ -353,25 +365,25 @@ const DeliveryFeeRule: React.FC = () => {
             </Form.Item>
           </Col>
           <Col span={6}>
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            <Typography.Text type="secondary" {...stylex.props(styles.hint)}>
               订单商品金额低于门槛时服务端拦截下单并提示差额(自提单豁免)
             </Typography.Text>
           </Col>
         </Row>
 
-        <Row gutter={16} style={{ marginTop: 16 }}>
+        <Row gutter={16} {...stylex.props(styles.sectionRow)}>
           <Col span={12}>
             <Form.Item
               name="storeLongitude"
               label="门店经度(WGS84)"
               extra="距离阶梯计费基准;未配置则距离档不生效"
             >
-              <InputNumber style={{ width: '100%' }} placeholder="如 113.930000" />
+              <InputNumber {...stylex.props(styles.fullWidth)} placeholder="如 113.930000" />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item name="storeLatitude" label="门店纬度(WGS84)">
-              <InputNumber style={{ width: '100%' }} placeholder="如 22.530000" />
+              <InputNumber {...stylex.props(styles.fullWidth)} placeholder="如 22.530000" />
             </Form.Item>
           </Col>
         </Row>
@@ -380,26 +392,26 @@ const DeliveryFeeRule: React.FC = () => {
           {(fields, { add, remove }, { errors }) => (
             <>
               {fields.map((field) => (
-                <Row key={field.key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                <Row key={field.key} gutter={8} align="middle" {...stylex.props(styles.tierRow)}>
                   <Col span={8}>
                     <Form.Item
                       name={[field.name, 'upToKm']}
-                      style={{ marginBottom: 0 }}
+                      {...stylex.props(styles.noMarginBottom)}
                     >
-                      <InputNumber min={0.1} precision={1} placeholder="留空=不封顶(仅末档)" style={{ width: '100%' }} addonAfter="km" />
+                      <InputNumber min={0.1} precision={1} placeholder="留空=不封顶(仅末档)" {...stylex.props(styles.fullWidth)} addonAfter="km" />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
                     <Form.Item
                       name={[field.name, 'feeYuan']}
                       rules={[{ required: true, message: '档位加价' }]}
-                      style={{ marginBottom: 0 }}
+                      {...stylex.props(styles.noMarginBottom)}
                     >
-                      <InputNumber min={0} max={999} precision={2} placeholder="加价金额" style={{ width: '100%' }} addonAfter="元" />
+                      <InputNumber min={0} max={999} precision={2} placeholder="加价金额" {...stylex.props(styles.fullWidth)} addonAfter="元" />
                     </Form.Item>
                   </Col>
-                  <Col span={8} style={{ textAlign: 'right' }}>
-                    <MinusCircleOutlined onClick={() => remove(field.name)} style={{ color: tokens.error }} />
+                  <Col span={8} {...stylex.props(styles.rightAlign)}>
+                    <MinusCircleOutlined onClick={() => remove(field.name)} {...stylex.props(styles.removeIcon)} />
                   </Col>
                 </Row>
               ))}
@@ -408,7 +420,7 @@ const DeliveryFeeRule: React.FC = () => {
                   添加距离档位
                 </Button>
                 <Form.ErrorList errors={errors} />
-                <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+                <Typography.Text type="secondary" {...stylex.props(styles.hintBlock)}>
                   示例:≤3km +0 元 / ≤5km +3 元 / 5km 以上(上限留空)+6 元;按距离升序、区间不重叠,与楼层分档叠加计算,空表=不启用
                 </Typography.Text>
               </Form.Item>

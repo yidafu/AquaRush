@@ -14,6 +14,12 @@ const styles = stylex.create({
   fullWidth: {
     width: '100%',
   },
+  groupNoMargin: {
+    marginBottom: '0px',
+  },
+  itemMb12: {
+    marginBottom: '12px',
+  },
 });
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
@@ -263,11 +269,11 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
         >
           <InputNumber min={0} max={1000} precision={0} {...stylex.props(styles.fullWidth)} placeholder="0 = 不限购" />
         </Form.Item>
-        <Form.Item label="运营策略" style={{ marginBottom: 0 }}>
+        <Form.Item label="运营策略" {...stylex.props(styles.groupNoMargin)}>
           <Form.Item
             name="isLeadGeneration"
             valuePropName="checked"
-            style={{ marginBottom: 12 }}
+            {...stylex.props(styles.itemMb12)}
             extra="引流票:小额票拉新,仅无已完成订单的新用户可购买(判定口径同首单立减)"
           >
             <Switch />
@@ -275,6 +281,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           <Form.Item
             name="activationEnabled"
             valuePropName="checked"
+            // 动态间距依赖 activationEnabled state,保留 style
             style={{ marginBottom: activationEnabled ? 8 : 12 }}
             extra="复购激活:购票后需再完成 N 单复购方可核销,防囤票不复购"
           >
@@ -284,7 +291,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             <Form.Item
               name="activationOrderCount"
               label="需复购单数"
-              style={{ marginBottom: 12 }}
+              {...stylex.props(styles.itemMb12)}
               rules={[
                 {
                   validator: (_, value: number | undefined) =>
@@ -295,13 +302,13 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
               ]}
               extra="如 1 = 购票后完成 1 单复购即激活,可核销"
             >
-              <InputNumber min={1} max={100} precision={0} style={{ width: '100%' }} placeholder="如 1" />
+              <InputNumber min={1} max={100} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 1" />
             </Form.Item>
           )}
           <Form.Item
             name="maxRedeemPerOrder"
             label="单次核销上限"
-            style={{ marginBottom: 0 }}
+            {...stylex.props(styles.groupNoMargin)}
             rules={[
               {
                 validator: (_, value: number | undefined) =>
@@ -312,7 +319,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             ]}
             extra="0 = 不限;单笔订单该票种最多核销 N 张,防一次性清票"
           >
-            <InputNumber min={0} max={100} precision={0} style={{ width: '100%' }} placeholder="0 = 不限" />
+            <InputNumber min={0} max={100} precision={0} {...stylex.props(styles.fullWidth)} placeholder="0 = 不限" />
           </Form.Item>
         </Form.Item>
       </Form>

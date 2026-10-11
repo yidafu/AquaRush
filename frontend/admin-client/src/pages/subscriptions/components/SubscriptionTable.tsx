@@ -10,6 +10,19 @@ import {
   getSubscriptionStatusText,
 } from '../../../utils/subscription';
 import type { SubscriptionData } from '../types';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// #999 为表格辅助灰字,共享 token 无对应项,保留字面量
+const styles = stylex.create({
+  meta: {
+    fontSize: '12px',
+    color: '#999',
+  },
+  warningIcon: {
+    color: tokens.warning,
+  },
+});
 
 export interface SubscriptionTableProps {
   dataSource: SubscriptionData[];
@@ -45,7 +58,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
       render: (_: unknown, record: SubscriptionData) => (
         <Space direction="vertical" size={0}>
           <span>{record.user?.nickname || '-'}</span>
-          <span style={{ fontSize: '12px', color: '#999' }}>{record.user?.phone || '-'}</span>
+          <span {...stylex.props(styles.meta)}>{record.user?.phone || '-'}</span>
         </Space>
       ),
     },
@@ -61,7 +74,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
       render: (_: unknown, record: SubscriptionData) => (
         <Space direction="vertical" size={0}>
           <span>{formatCycleRule(record)}</span>
-          <span style={{ fontSize: '12px', color: '#999' }}>
+          <span {...stylex.props(styles.meta)}>
             {TIME_SLOT_TEXT[record.timeSlot] || record.timeSlot}
           </span>
         </Space>
@@ -83,7 +96,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({
           <Tag color={getSubscriptionStatusColor(status)}>{getSubscriptionStatusText(status)}</Tag>
           {record.lastError && (
             <Tooltip title={`上次执行失败:${record.lastError}`}>
-              <WarningOutlined style={{ color: '#faad14' }} aria-label="上次执行失败" />
+              <WarningOutlined {...stylex.props(styles.warningIcon)} aria-label="上次执行失败" />
             </Tooltip>
           )}
         </Space>

@@ -230,7 +230,7 @@ const SystemOrderConfig: React.FC = () => {
             extra="订单「待派单」超阈值仍无人接单 → 预警管理员(站内消息,同订单同阶段仅预警一次,R-NTF-07/F-NTF-008)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item
             name="deliveryStartTimeoutMinutes"
@@ -238,7 +238,7 @@ const SystemOrderConfig: React.FC = () => {
             extra="订单「待配送」超阈值仍未开始配送 → 预警管理员(站内消息,R-NTF-07/F-NTF-008)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item>
             <Space>

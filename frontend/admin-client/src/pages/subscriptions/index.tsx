@@ -14,6 +14,21 @@ import { SubscriptionTable, CreateSubscriptionModal } from './components';
 import type { CreateSubscriptionPayload } from './components/CreateSubscriptionModal';
 import type { SubscriptionsQueryResult, SubscriptionData } from './types';
 import { pagination as createPagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  actionBar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    marginBottom: '16px',
+  },
+});
 
 /** 优先取后端 graphQLError message(表单校验/业务异常),回退 Apollo 错误文案 */
 const toErrorMessage = (error: unknown, fallback: string): string => {
@@ -138,9 +153,9 @@ const Subscriptions: React.FC = () => {
   const workers = data?.deliveryWorkers?.content ?? [];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <SubscriptionFilters filters={filters} onFiltersChange={handleFiltersChange} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      <div {...stylex.props(styles.actionBar)}>
         <Button type="primary" onClick={() => setCreateOpen(true)}>
           新建计划
         </Button>
