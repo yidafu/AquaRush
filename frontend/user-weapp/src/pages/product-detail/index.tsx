@@ -4,6 +4,9 @@ import { AtButton, AtToast } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
+import * as stylex from '@stylexjs/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import { CONTACT_INFO } from '@/constants'
 import ProductService from '../../services/ProductService'
 import FavoriteService from '../../services/FavoriteService'
@@ -12,6 +15,63 @@ import { Product } from '../../types/product'
 import { addToCart } from '../../utils/cart'
 import { normalizeCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+
+// 原 tailwind 工具类(web 375 基准)→ StyleX,长度 ×2 转 rpx(750 基准)。
+// gray-50 #F9FAFB / gray-100 #F3F4F6、shadow-xl 为 tailwind 默认值,未入共享 token。
+const fadeIn = stylex.keyframes({
+  '0%': { opacity: '0' },
+  '100%': { opacity: '1' },
+});
+
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    paddingBottom: '80rpx',
+    backgroundColor: '#F3F4F6',
+    // 嵌入 admin 的 h5 预览(≥768px)居中卡片形态
+    '@media (min-width: 768px)': {
+      maxWidth: '896rpx',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+      borderRadius: '48rpx',
+      overflow: 'hidden',
+    },
+  },
+  pageError: {
+    minHeight: '100vh',
+    paddingBottom: '320rpx',
+    backgroundColor: '#F9FAFB',
+  },
+  // 底部安全区域(原 tailwind h-40 = 160px web → ×2 转 rpx)
+  safeGap: {
+    height: '320rpx',
+  },
+  errorBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    rowGap: '160rpx',
+    minHeight: '768rpx',
+  },
+  detailSection: {
+    marginTop: '32rpx',
+    marginBottom: '40rpx',
+    backgroundColor: tokens.card,
+    borderRadius: '8rpx',
+    animationName: fadeIn,
+    animationDuration: '0.8s',
+    animationTimingFunction: 'ease-out',
+    animationFillMode: 'both',
+  },
+  detailBody: {
+    paddingTop: '32rpx',
+    paddingBottom: '32rpx',
+    paddingLeft: '32rpx',
+    paddingRight: '32rpx',
+  },
+})
 
 // Import extracted components
 import ProductImageGallery from './components/ProductImageGallery'
@@ -354,8 +414,8 @@ const ProductDetail: React.FC = () => {
   // Error state
   if (!state.product) {
     return (
-      <View className='min-h-screen pb-40 bg-gray-50'>
-        <View className='flex flex-col items-center justify-center gap-20 min-h-96'>
+      <View {...stylex.props(pageTheme, styles.pageError)}>
+        <View {...stylex.props(styles.errorBox)}>
           <Text>产品不存在</Text>
           {state.from !== 'rn' && (
             <AtButton
@@ -376,7 +436,7 @@ const ProductDetail: React.FC = () => {
     : [state.product.coverImageUrl]
 
   return (
-    <View className='min-h-screen pb-10 bg-gray-100 md:max-w-md md:mx-auto md:shadow-xl md:rounded-3xl md:overflow-hidden'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 产品图片轮播(嵌入只读场景 from=rn:不传 onImagePress,图片不可点击) */}
       <ProductImageGallery
         images={currentImages}
@@ -397,8 +457,8 @@ const ProductDetail: React.FC = () => {
 
       {/* 产品详情(嵌入只读场景 from=rn:剥离富文本链接,仅展示) */}
       {state.product.detailContent && (
-        <View className='mt-4 mb-5 bg-white rounded animate-fade-in'>
-          <View className='p-4'>
+        <View {...stylex.props(styles.detailSection)}>
+          <View {...stylex.props(styles.detailBody)}>
             <RichText nodes={state.from === 'rn' ? stripRichTextLinks(state.product.detailContent) : state.product.detailContent} />
           </View>
         </View>
@@ -436,8 +496,8 @@ const ProductDetail: React.FC = () => {
         onCancel={handleBuyModalCancel}
       />
 
-      {/* 底部安全区域 */}
-      <View className='h-40' />
+      {/* 底部安全区域(原 tailwind h-40 = 160px ×2) */}
+      <View {...stylex.props(styles.safeGap)} />
     </View>
   )
 }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
 import { fileUploadService } from '../../../services/FileUploadService'
 import { UploadError } from '../../../types/storage'
-
-import './AvatarUpload.scss'
 
 interface AvatarUploadProps {
   currentAvatar?: string
@@ -17,7 +18,48 @@ interface AvatarUploadProps {
 /**
  * 头像上传(profile-edit.html:weui-cell 头像行右侧 48px 圆形缩略图;
  * 选择/上传/错误处理逻辑与原实现一致)
+ *
+ * 样式:StyleX(原 AvatarUpload.scss 迁移,750 基准 rpx)
  */
+const styles = stylex.create({
+  avatarUpload: {
+    position: 'relative',
+    width: '96rpx',
+    height: '96rpx',
+  },
+  avatarUploadThumb: {
+    width: '96rpx',
+    height: '96rpx',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '22rpx',
+    color: 'var(--weui-FG-1)',
+  },
+  avatarUploadPlaceholder: {
+    backgroundColor: 'var(--weui-BG-1)',
+  },
+  avatarUploadOverlay: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: '50%',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarUploadOverlayText: {
+    fontSize: '20rpx',
+    color: tokens.onBrand,
+  },
+  avatarUploadDisabled: {
+    opacity: 0.6,
+  },
+})
 const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentAvatar,
   onAvatarChange,
@@ -115,7 +157,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
   return (
     <View
-      className={`avatar-upload ${disabled ? 'avatar-upload-disabled' : ''}`}
+      {...props(styles.avatarUpload, disabled && styles.avatarUploadDisabled)}
       trackTarget='profile-avatar-upload'
       trackElementType='button'
       trackElementText='上传头像'
@@ -124,18 +166,18 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       {previewUrl ? (
         <Image
           src={previewUrl}
-          className='avatar-upload-thumb'
+          {...stylex.props(styles.avatarUploadThumb)}
           mode='aspectFill'
         />
       ) : (
-        <View className='avatar-upload-thumb avatar-upload-placeholder'>
+        <View {...stylex.props(styles.avatarUploadThumb, styles.avatarUploadPlaceholder)}>
           <Text>头像</Text>
         </View>
       )}
 
       {uploading && (
-        <View className='avatar-upload-overlay'>
-          <Text className='avatar-upload-overlay-text'>上传中</Text>
+        <View {...stylex.props(styles.avatarUploadOverlay)}>
+          <Text {...stylex.props(styles.avatarUploadOverlayText)}>上传中</Text>
         </View>
       )}
     </View>

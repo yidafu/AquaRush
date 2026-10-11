@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtToast } from 'taro-ui'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
 import AssetsEntry from './components/AssetsEntry'
@@ -16,7 +20,6 @@ import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 import { PENDING_ORDER_TAB_STORAGE_KEY } from '../order-list/components/constants'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
-import './index.scss'
 
 interface OrderStats {
   pendingPayment: number
@@ -25,6 +28,38 @@ interface OrderStats {
   completed: number
   afterSales: number
 }
+
+/**
+ * 我的页(spec/design/user-weapp/05-user/my.html)
+ * 布局:渐变头部 → 「我的资产」单 cell → 「我的订单」panel+五宫格
+ *      → 「常用服务」weui-cells 8 行 → 退出登录(语义红)
+ * 页面底 var(--weui-BG-0);区块样式在各 components/ 子组件
+ *
+ * 样式:StyleX(原 index.scss 迁移;750 基准 rpx,weui-* 类保留字符串引用;
+ * 原 .logout-cells .logout-text 后代选择器拍平到 Text)
+ */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    paddingBottom: tokens.s5, // 原 var(--spacing-xl) = 24px
+  },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh',
+    color: 'var(--weui-FG-1)',
+    fontSize: '26rpx',
+  },
+  // 退出登录(weui-cell 形态,语义红 my.html 状态一)
+  logoutCells: {
+    marginTop: '24rpx',
+  },
+  logoutText: {
+    color: 'var(--weui-RED)',
+  },
+})
 
 const MyPage: React.FC = () => {
   usePageViewTracking()
@@ -335,8 +370,8 @@ const MyPage: React.FC = () => {
   // Return JSX directly
   if (loading) {
     return (
-      <View className='my-page'>
-        <View className='loading-container'>
+      <View {...stylex.props(pageTheme, styles.page)}>
+        <View {...stylex.props(styles.loadingContainer)}>
           <Text>加载中...</Text>
         </View>
       </View>
@@ -344,7 +379,7 @@ const MyPage: React.FC = () => {
   }
 
   return (
-    <View className='my-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 渐变头部(头像/昵称/手机号,点击弹头像昵称表单或触发登录) */}
       <UserSection
         userInfo={userInfo}
@@ -365,7 +400,7 @@ const MyPage: React.FC = () => {
 
       {/* 退出登录(语义红,二次确认) */}
       {authService.isAuthenticated() && (
-        <View className='weui-cells logout-cells'>
+        <View {...props('weui-cells', styles.logoutCells)}>
           <View
             className='weui-cell'
             trackTarget='my-logout'
@@ -374,7 +409,7 @@ const MyPage: React.FC = () => {
             onClick={handleLogout}
           >
             <View className='weui-cell__bd'>
-              <Text className='logout-text'>退出登录</Text>
+              <Text {...stylex.props(styles.logoutText)}>退出登录</Text>
             </View>
             <View className='weui-cell__ft weui-cell__ft_in-access' />
           </View>

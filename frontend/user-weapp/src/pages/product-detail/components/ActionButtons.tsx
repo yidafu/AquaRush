@@ -1,8 +1,112 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtButton } from 'taro-ui'
-import Taro from '@tarojs/taro'
 import "taro-ui/dist/style/components/button.scss"
+import * as stylex from '@stylexjs/stylex'
+import { COLORS } from '@aquarush/common/theme'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+
+// 原 tailwind 工具类(web 375 基准)→ StyleX,长度 ×2 转 rpx(750 基准)。
+// AtButton customStyle 里的旧 theme.scss 变量(--brand-primary 等)随 theme.scss
+// 移除,改用 COLORS 真实值(守卫测试与 tokens 一致)。
+// gray-50 #F9FAFB / gray-200 #E5E7EB / red-500 #EF4444 / red-400 #F87171 /
+// shadow-lg 为 tailwind 默认色板值,未入共享 token。
+const slideInLeft = stylex.keyframes({
+  '0%': { opacity: '0', transform: 'translateX(-40rpx)' },
+  '100%': { opacity: '1', transform: 'translateX(0)' },
+});
+
+const styles = stylex.create({
+  bar: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    paddingTop: '16rpx',
+    paddingBottom: '16rpx',
+    paddingLeft: '16rpx',
+    paddingRight: '16rpx',
+    backgroundColor: tokens.card,
+    borderTopWidth: '1rpx',
+    borderTopStyle: 'solid',
+    borderTopColor: '#E5E7EB',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+    animationName: slideInLeft,
+    animationDuration: '0.6s',
+    animationTimingFunction: 'ease-out',
+    animationDelay: '0.8s',
+    animationFillMode: 'both',
+  },
+  row: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '16rpx',
+  },
+  favWrap: {
+    flexShrink: 0,
+  },
+  favBtn: {
+    width: '80rpx',
+    height: '80rpx',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    backgroundColor: '#F9FAFB',
+    transitionProperty: 'all',
+    transitionDuration: '0.3s',
+    cursor: 'pointer',
+  },
+  favBtnActive: {
+    backgroundImage: 'linear-gradient(to bottom right, #EF4444, #F87171)',
+    transform: 'scale(1.05)',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+  },
+  favIcon: {
+    fontSize: '40rpx',
+    transitionProperty: 'color',
+    transitionDuration: '0.3s',
+    color: tokens.textWeak,
+  },
+  favIconActive: {
+    fontSize: '40rpx',
+    transitionProperty: 'color',
+    transitionDuration: '0.3s',
+    color: tokens.onBrand,
+  },
+  serviceBtn: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '80rpx',
+    height: '80rpx',
+    transitionProperty: 'all',
+    transitionDuration: '0.3s',
+    borderRadius: '8rpx',
+    cursor: 'pointer',
+    backgroundColor: '#F9FAFB',
+    ':active': {
+      backgroundColor: '#E5E7EB',
+      transform: 'scale(0.95)',
+    },
+  },
+  serviceIcon: {
+    marginBottom: '8rpx',
+    fontSize: '32rpx',
+  },
+  mainWrap: {
+    display: 'flex',
+    flexGrow: 1,
+    alignItems: 'center',
+    columnGap: '16rpx',
+  },
+  abtn: {
+    height: '80rpx',
+    flexGrow: 1,
+  },
+})
 
 interface ActionButtonsProps {
   isFavorite: boolean
@@ -26,18 +130,18 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   status
 }) => {
   return (
-    <View className='fixed bottom-0 left-0 right-0 z-50 p-2 bg-white border-t border-gray-200 shadow-lg animate-slide-in-left'>
-      <View className='flex items-center gap-2'>
+    <View {...stylex.props(styles.bar)}>
+      <View {...stylex.props(styles.row)}>
         {/* 收藏按钮 */}
-        <View className='flex-shrink-0'>
+        <View {...stylex.props(styles.favWrap)}>
           <View
             trackTarget="toggle-favorite"
             trackElementType="button"
             trackElementText={isFavorite ? '取消收藏' : '收藏'}
             onClick={onToggleFavorite}
-            className={`w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 transition-all duration-300 cursor-pointer ${isFavorite ? 'bg-gradient-to-br from-red-500 to-red-400 transform scale-105 shadow-lg' : ''}`}
+            {...stylex.props(styles.favBtn, isFavorite && styles.favBtnActive)}
           >
-            <Text className={`text-xl transition-colors duration-300 ${isFavorite ? 'text-white' : 'text-gray-400'}`}>{isFavorite ? '♥' : '♡'}</Text>
+            <Text {...stylex.props(isFavorite ? styles.favIconActive : styles.favIcon)}>{isFavorite ? '♥' : '♡'}</Text>
           </View>
         </View>
         {/* 客服按钮 */}
@@ -46,15 +150,15 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           trackElementType="button"
           trackElementText="客服"
           onClick={onContactService}
-          className='flex flex-col items-center justify-center w-10 h-10 transition-all duration-300 rounded cursor-pointer bg-gray-50 active:bg-gray-200 active:scale-95'
+          {...stylex.props(styles.serviceBtn)}
         >
-          <Text className='mb-1 text-base'>📞</Text>
+          <Text {...stylex.props(styles.serviceIcon)}>📞</Text>
           {/* <Text className='text-sm font-medium text-gray-600'>客服</Text> */}
         </View>
 
         {/* 主要操作按钮(F-PRO-004:加入购物车 + 立即购买) */}
         {status === 'ONLINE' && (
-          <View className='flex-1 flex items-center gap-2'>
+          <View {...stylex.props(styles.mainWrap)}>
             {/* 加入购物车按钮(幽灵按钮:品牌蓝边框字,§2) */}
             <AtButton
               trackTarget="add-to-cart"
@@ -63,11 +167,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               trackDisabled={stock <= 0}
               onClick={onAddToCart}
               size='small'
-              className='h-10 flex-1'
+              {...stylex.props(styles.abtn)}
               customStyle={{
-                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'transparent',
-                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--brand-primary)',
-                color: stock <= 0 ? 'var(--bg-card)' : 'var(--brand-primary)',
+                backgroundColor: stock <= 0 ? COLORS.textWeak : 'transparent',
+                borderColor: stock <= 0 ? COLORS.textWeak : COLORS.brand,
+                color: stock <= 0 ? COLORS.card : COLORS.brand,
                 borderWidth: '1px',
                 borderStyle: 'solid'
               }}
@@ -83,12 +187,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               onClick={onBuyNow}
               type='primary'
               size='small'
-              className='h-10 flex-1'
+              {...stylex.props(styles.abtn)}
               customStyle={{
-                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
-                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
-                color: stock <= 0 ? 'var(--bg-card)' : '#ffffff',
-                boxShadow: stock <= 0 ? 'none' : 'var(--shadow-btn)'
+                backgroundColor: stock <= 0 ? COLORS.textWeak : COLORS.action,
+                borderColor: stock <= 0 ? COLORS.textWeak : COLORS.action,
+                color: COLORS.card,
+                boxShadow: stock <= 0 ? 'none' : '0 2px 8px rgba(255, 84, 54, 0.30)'
               }}
             >
               {stock <= 0 ? '暂时缺货' : '立即购买'}

@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import {
   DeliverySlotVo,
   OrderStatus,
@@ -23,7 +25,42 @@ import AddressSummaryCard from '../../components/AddressSummaryCard'
 import OrderActions from './components/OrderActions'
 import type { OrderDetail, ReviewCheckState } from './components/constants'
 
-import './index.scss'
+// 订单详情页(WeUI 2.x:页面底 --weui-BG-0,区块骨架 .weui-cells 由 weui.scss 提供)
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    // 底部固定 .mp-footbar 预留(栏高 96 + 内边距 + 安全区)
+    paddingBottom: '200rpx',
+    boxSizing: 'border-box',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh',
+    rowGap: '24rpx',
+    columnGap: '24rpx',
+  },
+  loadingText: {
+    color: 'var(--weui-FG-1)',
+    fontSize: 'var(--weui-fs-tips)',
+  },
+  errorContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh',
+    rowGap: '24rpx',
+    columnGap: '24rpx',
+  },
+  errorText: {
+    color: 'var(--weui-FG-1)',
+    fontSize: 'var(--weui-fs-cell)',
+  },
+})
 
 /** 时间轴图标语义键 → 图标值(common 视图为平台无关语义;WeUI 版时间轴不再渲染图标,仅保留映射兼容) */
 const TIMELINE_ICON: Record<OrderDetailView['timeline'][number]['icon'], string> = {
@@ -420,9 +457,9 @@ const OrderDetailPage: React.FC = () => {
   // 首帧(useReady 尚未写入路由参数)与加载中统一显示加载态
   if (loading || !orderId) {
     return (
-      <View className='order-detail-page'>
-        <View className='loading-container'>
-          <Text className='loading-text'>加载中...</Text>
+      <View {...stylex.props(pageTheme, styles.page)}>
+        <View {...stylex.props(styles.loadingContainer)}>
+          <Text {...stylex.props(styles.loadingText)}>加载中...</Text>
         </View>
       </View>
     )
@@ -430,9 +467,9 @@ const OrderDetailPage: React.FC = () => {
 
   if (!order) {
     return (
-      <View className='order-detail-page'>
-        <View className='error-container'>
-          <Text className='error-text'>订单不存在</Text>
+      <View {...stylex.props(pageTheme, styles.page)}>
+        <View {...stylex.props(styles.errorContainer)}>
+          <Text {...stylex.props(styles.errorText)}>订单不存在</Text>
           <View className='weui-btn weui-btn_plain-primary weui-btn_mini' onClick={() => Taro.navigateBack()}>
             返回
           </View>
@@ -442,7 +479,7 @@ const OrderDetailPage: React.FC = () => {
   }
 
   return (
-    <View className='order-detail-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       <OrderStatusHeader
         status={rawOrder?.status}
         orderNo={order.orderNo}

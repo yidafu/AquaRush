@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
 import AddressCard from '../../components/AddressCard'
@@ -11,7 +15,45 @@ import AddressSearchSection from './components/AddressSearchSection'
 import AddressListEmptyState from './components/AddressListEmptyState'
 import DeleteAddressModal from './components/DeleteAddressModal'
 
-import './index.scss'
+// 收货地址列表(原 index.scss;后代选择器拆到各子元素,长度保持 scss 来源
+// 750 基准 rpx)
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--weui-BG-0)',
+    // 为底部「新增收货地址」操作栏预留空间
+    paddingBottom: '160rpx',
+  },
+  // 选择模式提示文案单行省略(原 .select-notice 后代规则)
+  selectNoticeText: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  addressList: {
+    // AddressCard 自带留白,这里只做组间距
+    paddingBottom: '16rpx',
+  },
+  // 底部新增收货地址主按钮(原 .add-address-bar,固定底栏 + iOS 安全区)
+  addAddressBar: {
+    position: 'fixed',
+    left: '0',
+    right: '0',
+    bottom: '0',
+    zIndex: 100,
+    paddingBottom: 'calc(16rpx + env(safe-area-inset-bottom))',
+  },
+  // 深色胶囊轻提示文案(原 .address-toast .weui-toast__text 后代选择器)
+  toastText: {
+    color: tokens.onBrand,
+    wordBreak: 'break-all',
+  },
+})
 
 const AddressList: React.FC = () => {
   usePageViewTracking()
@@ -24,7 +66,7 @@ const AddressList: React.FC = () => {
   const [deleteAddressId, setDeleteAddressId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState<boolean>(false)
   const [toastText, setToastText] = useState<string>('')
-  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  // 原 toastType 仅用于 address-toast--* 类(全局无定义的死类,已随 index.scss 删除)
   const [searchValue, setSearchValue] = useState<string>('')
 
   const addressService = AddressService.getInstance()
@@ -68,13 +110,11 @@ const AddressList: React.FC = () => {
         setFilteredAddresses(result.data)
       } else {
         setToastText(result.error?.message || '获取地址列表失败')
-        setToastType('error')
         setShowToast(true)
       }
     } catch (error) {
       console.error('获取地址列表失败:', error)
       setToastText('获取地址列表失败')
-      setToastType('error')
       setShowToast(true)
     } finally {
       setLoading(false)
@@ -115,9 +155,8 @@ const AddressList: React.FC = () => {
     setFilteredAddresses(addresses)
   }
 
-  const handleShowToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+  const handleShowToast = (text: string, _type: 'success' | 'error' | 'loading' = 'success') => {
     setToastText(text)
-    setToastType(type)
     setShowToast(true)
   }
 
@@ -239,7 +278,7 @@ const AddressList: React.FC = () => {
   }
 
   return (
-    <View className='address-list-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 搜索栏 + 统计/微信地址导入(address-list.html) */}
       <AddressSearchSection
         searchValue={searchValue}
@@ -251,13 +290,13 @@ const AddressList: React.FC = () => {
 
       {/* 选择模式提示(address-list.html 状态三 .weui-notice--brand) */}
       {isSelectMode && (
-        <View className='weui-notice weui-notice--brand select-notice'>
-          <Text className='select-notice-text'>选择地址后将回填至确认订单页</Text>
+        <View className='weui-notice weui-notice--brand'>
+          <Text {...stylex.props(styles.selectNoticeText)}>选择地址后将回填至确认订单页</Text>
         </View>
       )}
 
       {/* 地址列表(收货地址 weui cells 组) */}
-      <View className='address-list'>
+      <View {...stylex.props(styles.addressList)}>
         {loading ? (
           <View className='weui-loadmore weui-loadmore_loading'>
             <View className='spinner' />
@@ -290,15 +329,15 @@ const AddressList: React.FC = () => {
         onConfirm={handleDeleteConfirm}
       />
 
-      {/* Toast 提示(.weui-toast_text 深色轻提示;toastType 保留原状态语义) */}
+      {/* Toast 提示(.weui-toast_text 深色胶囊) */}
       {showToast && (
-        <View className={`address-toast address-toast--${toastType} weui-toast weui-toast_text`} onClick={handleHideToast}>
-          <Text className='weui-toast__text'>{toastText}</Text>
+        <View className='weui-toast weui-toast_text' onClick={handleHideToast}>
+          <Text {...props('weui-toast__text', styles.toastText)}>{toastText}</Text>
         </View>
       )}
 
       {/* 底部新增收货地址主按钮(address-list.html .mp-footbar) */}
-      <View className='add-address-bar mp-footbar hair-t'>
+      <View {...props('mp-footbar hair-t', styles.addAddressBar)}>
         <View
           className='weui-btn weui-btn_primary flex1'
           trackTarget='address-add'

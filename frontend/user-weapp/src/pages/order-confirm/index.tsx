@@ -4,6 +4,8 @@ import Taro, {
   useReady,
   useDidShow
 } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import AddressService from '../../services/AddressService'
 import OrderService, { CreateOrderRequest, OrderItemInput } from '../../services/OrderService'
 import NotificationService from '../../services/NotificationService'
@@ -23,8 +25,6 @@ import {
   enabledDeliverySlots,
   resolveSelectedSlot
 } from '../../utils/deliverySlots'
-
-import './index.scss'
 
 // 导入子组件
 import AddressDisplay from './components/AddressDisplay'
@@ -53,7 +53,24 @@ interface OrderItem {
  * 计价全部由服务端 orderPreview 计算(R-MON-01,促销引擎 R-MKT-02/07/08 全链路):
  * 逐商品成交单价/水票抵扣(优先:有可用票默认核销最多张数,可改选/取消)/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
  * 提交订单时回传 items 与 preferredCouponId(0=不用券)/ticketRedeemCount,服务端原子核销。
+ *
+ * 样式:StyleX(原 index.scss 迁移;750 基准 rpx,weui-* 类保留;
+ * 页面根挂 pageTheme,底部为固定 .mp-footbar 预留 200rpx)
  */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    paddingTop: '24rpx',
+    paddingRight: '0rpx',
+    paddingBottom: '200rpx',
+    paddingLeft: '0rpx',
+    boxSizing: 'border-box',
+  },
+  safeBottom: {
+    height: '40rpx',
+  },
+})
 const OrderConfirm: React.FC = () => {
   usePageViewTracking()
 
@@ -446,7 +463,7 @@ const OrderConfirm: React.FC = () => {
   })
 
   return (
-    <View className='order-confirm-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 收货地址 */}
       <AddressDisplay
         selectedAddress={selectedAddress}
@@ -530,7 +547,7 @@ const OrderConfirm: React.FC = () => {
       />
 
       {/* 底部安全区域 */}
-      <View className='safe-bottom' />
+      <View {...stylex.props(styles.safeBottom)} />
     </View>
   )
 }

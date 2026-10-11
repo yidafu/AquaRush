@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useReady, useDidShow, usePullDownRefresh, useReachBottom } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import { ORDER_TABS, OrderStatus, normalizeCents, usePagedList } from '@aquarush/common'
 import { userActionTracker } from '../../utils/tracking'
 import OrderService from '../../services/OrderService'
@@ -12,7 +14,30 @@ import OrderEmptyState from './components/OrderEmptyState'
 import { ORDER_TAB_KEYS, PENDING_ORDER_TAB_STORAGE_KEY } from './components/constants'
 import type { OrderItem, OrderProduct } from './components/constants'
 
-import './index.scss'
+// 订单列表页(WeUI 2.x:页面底 --weui-BG-0,骨架类由 weui.scss 提供)
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box',
+  },
+  orderContent: {
+    paddingBottom: '32rpx',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '50vh',
+    rowGap: '24rpx',
+    columnGap: '24rpx',
+  },
+  loadingText: {
+    color: 'var(--weui-FG-1)',
+    fontSize: 'var(--weui-fs-tips)',
+  },
+})
 
 const PAGE_SIZE = 10
 
@@ -272,13 +297,13 @@ const OrderListPage: React.FC = () => {
   }, [showToastMessage])
 
   return (
-    <View className='order-list-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       <OrderTabs current={currentTab} onChange={handleTabChange} />
 
-      <View className='order-content'>
+      <View {...stylex.props(styles.orderContent)}>
         {loading && orders.length === 0 ? (
-          <View className='loading-container'>
-            <Text className='loading-text'>加载中...</Text>
+          <View {...stylex.props(styles.loadingContainer)}>
+            <Text {...stylex.props(styles.loadingText)}>加载中...</Text>
           </View>
         ) : orders.length === 0 ? (
           <OrderEmptyState
@@ -287,7 +312,7 @@ const OrderListPage: React.FC = () => {
             onGoShopping={() => Taro.switchTab({ url: '/pages/home/index' })}
           />
         ) : (
-          <View className='order-list'>
+          <View>
             {orders.map(order => (
               <OrderCardItem
                 key={order.id}

@@ -1,10 +1,28 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import CustomIcon from '@/components/CustomIcon'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import './index.scss'
+// 我的资产聚合页(原 index.scss;长度保持 scss 来源 750 基准 rpx)
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+  },
+  assetsTitle: {
+    marginTop: 0,
+  },
+  assetsEntryIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--weui-BRAND)',
+  },
+})
 
 interface AssetEntry {
   /** trackTarget 后缀 */
@@ -56,8 +74,8 @@ const AssetsPage: React.FC = () => {
   }
 
   return (
-    <View className='assets-page'>
-      <View className='weui-cells__title assets-title'>资产概览</View>
+    <View {...stylex.props(pageTheme, styles.page)}>
+      <View {...props('weui-cells__title', styles.assetsTitle)}>资产概览</View>
       <View className='weui-cells'>
         {ASSET_ENTRIES.map((entry) => (
           <View
@@ -69,7 +87,7 @@ const AssetsPage: React.FC = () => {
             onClick={() => handleEntryClick(entry)}
           >
             <View className='weui-cell__hd'>
-              <View className='weui-cell__icon assets-entry-icon'>
+              <View {...props('weui-cell__icon', styles.assetsEntryIcon)}>
                 <CustomIcon value={entry.icon} size={24} />
               </View>
             </View>

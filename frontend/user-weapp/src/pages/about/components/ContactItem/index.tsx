@@ -1,5 +1,16 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+
+const styles = stylex.create({
+  value: {
+    color: 'var(--weui-FG-1)',
+  },
+  valueLink: {
+    color: 'var(--weui-LINK)',
+  },
+})
 
 interface ContactItemProps {
   label: string
@@ -13,7 +24,7 @@ const ContactItem: React.FC<ContactItemProps> = ({ label, value, link = false })
   return (
     <View className='weui-cell'>
       <View className='weui-cell__bd'>{label}</View>
-      <View className={`weui-cell__ft contact-value ${link ? 'contact-value-link' : ''}`}>
+      <View {...props('weui-cell__ft', styles.value, link && styles.valueLink)}>
         <Text>{value}</Text>
       </View>
     </View>

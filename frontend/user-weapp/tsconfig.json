@@ -14,7 +14,6 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "rootDir": ".",
     "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
@@ -24,6 +23,18 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@aquarush/common/stylex": [
+        "../common/src/stylex/props.ts"
+      ],
+      "@aquarush/common/theme": [
+        "../common/src/theme/index.ts"
+      ],
+      "@aquarush/common/theme/tokens.stylex": [
+        "../common/src/theme/tokens.stylex.ts"
+      ],
+      "@aquarush/common/tracking": [
+        "../common/src/tracking/index.ts"
       ]
     }
   },

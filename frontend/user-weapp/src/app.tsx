@@ -6,6 +6,9 @@ import { testConfigurationInDevelopment } from './config/config-test'
 import { connectWsPushIfLoggedIn } from './services/wsPush'
 
 import './app.scss'
+// StyleX 抽取 CSS:h5 走 vite-plugin-aquarush-stylex 虚拟模块;
+// weapp 构建经 config 别名到空文件(样式由 weapp-stylex 抽成 stylex.wxss)
+import 'virtual:stylex.css'
 
 function App({ children }: PropsWithChildren) {
   // 执行静默登录

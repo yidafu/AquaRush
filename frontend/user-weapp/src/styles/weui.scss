@@ -294,6 +294,9 @@ page {
 .mp-footbar__info { flex: 1 1 auto; min-width: 0; }
 .mp-footbar__lbl { font-size: 24px; color: var(--weui-FG-1); line-height: 1.3; }
 .mp-footbar .weui-btn { min-width: 240px; }
+/* 抵消上面的最小宽(多按钮态,如 order-detail 三按钮):stylex 原子类是 (0,1,0),
+   输给 .mp-footbar .weui-btn 的 (0,2,0),故在此以同类级 + 后置顺序提供开关 */
+.mp-footbar .weui-btn--no-min { min-width: 0; }
 
 /* ==========================================================================
    5. 表单控件

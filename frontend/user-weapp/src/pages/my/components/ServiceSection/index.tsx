@@ -1,10 +1,10 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import CustomIcon from '@/components/CustomIcon'
 import Taro from '@tarojs/taro'
 import { CONTACT_INFO } from '@/constants'
-
-import './index.scss'
 
 interface ServiceEntry {
   icon: string
@@ -24,7 +24,25 @@ interface ServiceSectionProps {
  * 「常用服务」(my.html:.weui-cells 8 行):
  * 收货地址 / 购物车 / 领券中心 / 消息中心(未读角标) / 客服中心 / 意见反馈 / 反馈记录 / 关于我们。
  * 收藏 / 优惠券 / 水票 / 水桶已收口进「我的资产」聚合页,此处不再重复。
+ *
+ * 样式:StyleX(原 index.scss 迁移,长度值保持 750 基准 rpx;weui-* 类保留)
  */
+const styles = stylex.create({
+  // 「常用服务」weui-cells 行:品牌蓝图标 + 标题 + 箭头(my.html)
+  serviceCellIcon: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--weui-BRAND)',
+  },
+  // 消息未读角标(语义红,F-NTF-002;>99 显示 99+)
+  serviceCellBadge: {
+    position: 'absolute',
+    top: '-10rpx',
+    left: '28rpx',
+  },
+})
 const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
   const serviceEntries: ServiceEntry[] = [
     {
@@ -102,17 +120,17 @@ const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
         {serviceEntries.map((item) => (
           <View
             key={item.title}
-            className='weui-cell service-cell'
+            className='weui-cell'
             trackTarget={`my-service-${item.track}`}
             trackElementType='cell'
             trackElementText={item.title}
             onClick={item.onClick}
           >
             <View className='weui-cell__hd'>
-              <View className='weui-cell__icon service-cell-icon'>
+              <View {...props('weui-cell__icon', styles.serviceCellIcon)}>
                 <CustomIcon value={item.icon} size={24} />
                 {!!item.badge && item.badge > 0 && (
-                  <View className='weui-badge service-cell-badge'>
+                  <View {...props('weui-badge', styles.serviceCellBadge)}>
                     <Text>{item.badge > 99 ? '99+' : item.badge}</Text>
                   </View>
                 )}

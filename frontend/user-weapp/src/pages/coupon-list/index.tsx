@@ -1,6 +1,10 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import CouponService from '../../services/CouponService'
 import { authService } from '../../utils/auth'
 import {
@@ -15,7 +19,175 @@ import {
 import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import './index.scss'
+/**
+ * 我的券包样式(原 index.scss 迁移;750 基准 rpx,weui 平台变量保留字符串引用;
+ * 券卡面额/类型标签/去使用按钮用 tokens.action —— 设计系统 §2.1 券例外橙红;
+ * 原 .coupon-card-muted 后代覆盖拍平为 muted 系列类,按可用态条件挂载)
+ */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box'
+  },
+  // Tab 行贴顶白底(coupon-mine.html .weui-tabs hair-b)
+  tabs: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
+  },
+  // ---- 券卡列表(白底圆角卡,面额区 + 齿孔 + 虚线分割 + 券信息) ----
+  list: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16rpx',
+    paddingTop: '16rpx',
+    paddingRight: '16rpx',
+    paddingBottom: '0',
+    paddingLeft: '16rpx'
+  },
+  card: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+    backgroundColor: 'var(--weui-BG-2)',
+    borderRadius: 'var(--weui-radius)',
+    overflow: 'hidden'
+  },
+  // 非可用(已用/已退回/已过期):整卡置灰只读(coupon-mine.html opacity .62)
+  cardMuted: {
+    opacity: 0.62
+  },
+  // 左侧面额区(104px → 208rpx,橙红 tint 底)
+  face: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: '208rpx',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    rowGap: '8rpx',
+    paddingTop: '44rpx',
+    paddingRight: '0',
+    paddingBottom: '44rpx',
+    paddingLeft: '0',
+    boxSizing: 'border-box'
+  },
+  faceBg: {
+    backgroundColor: 'var(--coupon-primary-light)'
+  },
+  faceBgMuted: {
+    backgroundColor: 'var(--weui-BG-1)'
+  },
+  // 券面额:优惠券品牌橙红(§2.1 券例外)
+  facePrice: {
+    color: tokens.action
+  },
+  facePriceMuted: {
+    color: 'var(--weui-FG-1)'
+  },
+  faceThreshold: {
+    fontSize: '24rpx',
+    color: tokens.action
+  },
+  faceThresholdMuted: {
+    color: 'var(--weui-FG-2)'
+  },
+  // 齿孔(分割线上下两枚圆形遮罩,透出页面底色)
+  notch: {
+    position: 'absolute',
+    left: '208rpx',
+    transform: 'translateX(-50%)',
+    width: '28rpx',
+    height: '28rpx',
+    borderRadius: '50%',
+    backgroundColor: 'var(--weui-BG-0)',
+    zIndex: 1
+  },
+  notchTop: {
+    top: '-14rpx'
+  },
+  notchBottom: {
+    bottom: '-14rpx'
+  },
+  // 虚线分割
+  divider: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: '0%',
+    width: '0',
+    borderLeftWidth: '2rpx',
+    borderLeftStyle: 'dashed',
+    borderLeftColor: 'var(--weui-FG-3)',
+    marginTop: '28rpx',
+    marginBottom: '28rpx'
+  },
+  // 右侧券信息区
+  info: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: '24rpx',
+    paddingTop: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '32rpx',
+    paddingLeft: '32rpx',
+    boxSizing: 'border-box'
+  },
+  infoMain: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '8rpx'
+  },
+  nameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: '12rpx',
+    rowGap: '12rpx'
+  },
+  name: {
+    fontSize: '30rpx',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)'
+  },
+  // 可用券类型标签(橙红 tint);非可用走默认灰 tag
+  typeTag: {
+    backgroundColor: 'var(--coupon-primary-light)',
+    color: tokens.action
+  },
+  scope: {
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-1)'
+  },
+  validity: {
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-2)'
+  },
+  // 「去使用」CTA(券品牌橙红,coupon-mine.html .weui-btn_xs)
+  useBtn: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto',
+    backgroundColor: tokens.action,
+    color: tokens.onBrand
+  },
+  // 非可用状态标签
+  statusTag: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto'
+  }
+})
 
 interface CouponTab {
   key: UserCouponStatus
@@ -103,10 +275,10 @@ const CouponListPage: React.FC = () => {
       loading={loading}
       error={error}
       onRetry={loadCoupons}
-      className='coupon-list-page'
+      rootStyles={[pageTheme, styles.page]}
     >
       {/* 状态 Tab(coupon-mine.html .weui-tabs 下划线式) */}
-      <View className='weui-tabs coupon-tabs'>
+      <View {...props('weui-tabs', styles.tabs)}>
         {TABS.map(tab => (
           <View
             key={tab.key}
@@ -131,37 +303,37 @@ const CouponListPage: React.FC = () => {
         />
       ) : (
         /* 优惠券列表(券卡:面额区 + 齿孔 + 券信息 + 状态) */
-        <View className='coupon-list'>
+        <View {...stylex.props(styles.list)}>
           {filtered.map(coupon => {
             const available = coupon.status === UserCouponStatus.RECEIVED
             const { symbol, int, dec, unit } = parseDenomination(coupon)
             return (
               <View
                 key={coupon.id}
-                className={`coupon-card ${available ? '' : 'coupon-card-muted'}`}
+                {...props(styles.card, !available && styles.cardMuted)}
               >
-                <View className='coupon-face'>
-                  <View className='weui-price weui-price--lg coupon-face-price'>
+                <View {...props(styles.face, available ? styles.faceBg : styles.faceBgMuted)}>
+                  <View {...props('weui-price', 'weui-price--lg', styles.facePrice, !available && styles.facePriceMuted)}>
                     {symbol && <Text className='weui-price__symbol'>{symbol}</Text>}
                     <Text className='weui-price__int'>{int}</Text>
                     {dec && <Text className='weui-price__dec'>.{dec}</Text>}
                     {unit && <Text className='weui-price__dec'>{unit}</Text>}
                   </View>
-                  <Text className='coupon-face-threshold'>{getCouponThresholdText(coupon.thresholdCents)}</Text>
+                  <Text {...props(styles.faceThreshold, !available && styles.faceThresholdMuted)}>{getCouponThresholdText(coupon.thresholdCents)}</Text>
                 </View>
-                <View className='coupon-notch coupon-notch-top' />
-                <View className='coupon-notch coupon-notch-bottom' />
-                <View className='coupon-divider' />
-                <View className='coupon-info'>
-                  <View className='coupon-info-main'>
-                    <View className='coupon-name-row'>
-                      <Text className='coupon-name'>{coupon.name}</Text>
-                      <Text className={`weui-tag ${available ? 'coupon-type-tag' : ''}`}>
+                <View {...props(styles.notch, styles.notchTop)} />
+                <View {...props(styles.notch, styles.notchBottom)} />
+                <View {...stylex.props(styles.divider)} />
+                <View {...stylex.props(styles.info)}>
+                  <View {...stylex.props(styles.infoMain)}>
+                    <View {...stylex.props(styles.nameRow)}>
+                      <Text {...stylex.props(styles.name)}>{coupon.name}</Text>
+                      <Text {...props('weui-tag', available && styles.typeTag)}>
                         {getCouponStatusLabel(coupon.status)}
                       </Text>
                     </View>
-                    <Text className='coupon-scope'>适用范围:{scopeText(coupon.scope)}</Text>
-                    <Text className='coupon-validity'>有效期至 {formatDateTime(coupon.expireTime)}</Text>
+                    <Text {...stylex.props(styles.scope)}>适用范围:{scopeText(coupon.scope)}</Text>
+                    <Text {...stylex.props(styles.validity)}>有效期至 {formatDateTime(coupon.expireTime)}</Text>
                   </View>
                   {available ? (
                     <View
@@ -170,12 +342,12 @@ const CouponListPage: React.FC = () => {
                       trackElementText="去使用"
                       trackProps={{ couponId: coupon.id }}
                       onClick={goUseCoupon}
-                      className="weui-btn weui-btn_xs coupon-use-btn"
+                      {...props('weui-btn', 'weui-btn_xs', styles.useBtn)}
                     >
                       去使用
                     </View>
                   ) : (
-                    <Text className='weui-tag weui-tag--done coupon-status-tag'>
+                    <Text {...props('weui-tag', 'weui-tag--done', styles.statusTag)}>
                       {getCouponStatusLabel(coupon.status)}
                     </Text>
                   )}

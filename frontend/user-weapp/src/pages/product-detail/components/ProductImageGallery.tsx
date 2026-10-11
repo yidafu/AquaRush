@@ -1,6 +1,86 @@
 import React from 'react'
 import { View, Image, Swiper, SwiperItem, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { COLORS } from '@aquarush/common/theme'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+
+// 原 tailwind 工具类(web 375 基准)→ StyleX,长度 ×2 转 rpx(750 基准)。
+// gray-50 #F9FAFB、shadow-sm 为本组件局部色值,未入共享 token。
+const styles = stylex.create({
+  section: {
+    paddingTop: '16rpx',
+    backgroundColor: tokens.card,
+  },
+  swiper: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: '16rpx',
+    overflow: 'hidden',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    height: '840rpx',
+    borderRadius: '24rpx',
+    backgroundColor: '#F9FAFB',
+    '@media (min-width: 768px)': {
+      height: '920rpx',
+      borderRadius: '48rpx',
+    },
+  },
+  slide: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8rpx',
+    backgroundColor: '#F9FAFB',
+  },
+  overlayCol: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8rpx',
+    backgroundColor: '#F9FAFB',
+  },
+  overlayText: {
+    fontSize: '32rpx',
+    color: tokens.textWeak,
+  },
+  overlayTextGap: {
+    marginBottom: '8rpx',
+    fontSize: '32rpx',
+    color: tokens.textWeak,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: '8rpx',
+    transitionProperty: 'transform',
+    transitionDuration: '0.3s',
+    cursor: 'pointer',
+    ':hover': {
+      transform: 'scale(1.05)',
+    },
+  },
+})
 
 interface ProductImageGalleryProps {
   images: string[]
@@ -23,34 +103,34 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   onImageError
 }) => {
   return (
-    <View className='px-0 pt-2 bg-white'>
+    <View {...stylex.props(styles.section)}>
       <Swiper
-        className='flex items-center justify-center w-full mb-2 overflow-hidden shadow-sm h-105 rounded-xl bg-gray-50 md:h-115 md:rounded-3xl'
+        {...stylex.props(styles.swiper)}
         indicatorDots
         autoplay
         interval={3000}
         duration={500}
         indicatorColor='rgba(255, 255, 255, 0.5)'
-        indicatorActiveColor='#3A9BD9'
+        indicatorActiveColor={COLORS.brand}
         circular
       >
         {images.map((image, index) => (
           <SwiperItem key={index}>
-            <View className='relative flex items-center justify-center w-full h-full'>
+            <View {...stylex.props(styles.slide)}>
               {imageLoadingStates[index] && !imagesWithError[index] && (
-                <View className='absolute top-0 bottom-0 left-0 right-0 flex items-center justify-center rounded bg-gray-50'>
-                  <Text className='text-base text-gray-400'>加载中...</Text>
+                <View {...stylex.props(styles.overlay)}>
+                  <Text {...stylex.props(styles.overlayText)}>加载中...</Text>
                 </View>
               )}
               {imagesWithError[index] ? (
-                <View className='absolute top-0 bottom-0 left-0 right-0 flex flex-col items-center justify-center rounded bg-gray-50'>
-                  <Text className='mb-1 text-base text-gray-400'>图片加载失败</Text>
+                <View {...stylex.props(styles.overlayCol)}>
+                  <Text {...stylex.props(styles.overlayTextGap)}>图片加载失败</Text>
                 </View>
               ) : (
                 <Image
                   src={image}
                   mode='aspectFit'
-                  className='w-full h-full transition-transform duration-300 rounded cursor-pointer hover:scale-105'
+                  {...stylex.props(styles.image)}
                   onLoad={() => onImageLoad(index)}
                   onError={() => onImageError(index)}
                   onClick={onImagePress ? () => onImagePress(index) : undefined}

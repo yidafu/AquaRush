@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import { Money } from '@aquarush/common'
 import type { OrderDetail, ReviewCheckState } from './constants'
-import './OrderActions.scss'
 
 interface OrderActionsProps {
   order: OrderDetail
@@ -22,7 +23,35 @@ interface OrderActionsProps {
  * 待付款 = 取消 + 立即支付;配送中 = 催单 + 查看配送;
  * 已完成 = 评价/再次购买/继续购物(送达即完成,无确认收货 —— PRD R-ORD-11 简化);
  * 待配送/已取消 = 再次购买
+ *
+ * 样式:StyleX(原 OrderActions.scss 迁移;750 基准 rpx,weui / mp-footbar 类保留;
+ * 原后代选择器拍平到子元素;原双写 padding-bottom(constant + env)收敛为 env)
  */
+const styles = stylex.create({
+  orderFootbar: {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    paddingBottom: 'calc(16rpx + env(safe-area-inset-bottom))',
+  },
+  footbarBtn: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: '24rpx',
+    paddingRight: '24rpx',
+  },
+  footbarFlex1: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+  },
+})
 const OrderActions: React.FC<OrderActionsProps> = ({
   order,
   reviewInfo,
@@ -35,7 +64,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   onContinueShopping
 }) => {
   return (
-    <View className='mp-footbar hair-t order-footbar'>
+    <View {...props('mp-footbar hair-t', styles.orderFootbar)}>
       <View className='mp-footbar__info'>
         <View className='mp-footbar__lbl'>实付</View>
         <Text className='weui-price weui-price--lg'>
@@ -46,7 +75,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
       {order.status === 'pending_payment' && (
         <>
           <View
-            className='weui-btn weui-btn_plain-default'
+            {...props('weui-btn weui-btn--no-min weui-btn_plain-default', styles.footbarBtn)}
             trackTarget='order-cancel'
             trackElementType='button'
             trackElementText='取消订单'
@@ -56,7 +85,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             取消订单
           </View>
           <View
-            className='weui-btn weui-btn_primary'
+            {...props('weui-btn weui-btn--no-min weui-btn_primary', styles.footbarBtn)}
             trackTarget='order-pay'
             trackElementType='button'
             trackElementText='立即支付'
@@ -71,7 +100,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
       {order.status === 'delivering' && (
         <>
           <View
-            className='weui-btn weui-btn_plain-default'
+            {...props('weui-btn weui-btn--no-min weui-btn_plain-default', styles.footbarBtn)}
             trackTarget='order-urge'
             trackElementType='button'
             trackElementText='催单'
@@ -80,7 +109,10 @@ const OrderActions: React.FC<OrderActionsProps> = ({
           >
             催单
           </View>
-          <View className='weui-btn weui-btn_primary' onClick={onTrack}>
+          <View
+            {...props('weui-btn weui-btn--no-min weui-btn_primary', styles.footbarBtn)}
+            onClick={onTrack}
+          >
             查看配送
           </View>
         </>
@@ -89,7 +121,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
       {order.status === 'completed' && (
         <>
           <View
-            className='weui-btn weui-btn_primary'
+            {...props('weui-btn weui-btn--no-min weui-btn_primary', styles.footbarBtn)}
             trackTarget='order-review'
             trackElementType='button'
             trackElementText={reviewInfo?.hasReviewed ? '查看评价' : '评价'}
@@ -99,7 +131,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             {reviewInfo?.hasReviewed ? '查看评价' : '评价'}
           </View>
           <View
-            className='weui-btn weui-btn_plain-default'
+            {...props('weui-btn weui-btn--no-min weui-btn_plain-default', styles.footbarBtn)}
             trackTarget='order-reorder'
             trackElementType='button'
             trackElementText='再次购买'
@@ -108,14 +140,18 @@ const OrderActions: React.FC<OrderActionsProps> = ({
           >
             再次购买
           </View>
-          <View className='weui-btn weui-btn_plain-default' onClick={onContinueShopping}>
+          <View
+            {...props('weui-btn weui-btn--no-min weui-btn_plain-default', styles.footbarBtn)}
+            onClick={onContinueShopping}
+          >
             继续购物
           </View>
         </>
       )}
 
       {(order.status === 'pending_delivery' || order.status === 'cancelled') && (
-        <View className='weui-btn weui-btn_plain-primary footbar-flex1'
+        <View
+          {...props('weui-btn weui-btn--no-min weui-btn_plain-primary', styles.footbarBtn, styles.footbarFlex1)}
           onClick={onReorder}
         >
           再次购买

@@ -1,9 +1,0 @@
-// 订单信息卡:WeUI cells 骨架由 weui.scss 提供,仅补值列排版(等宽数字)
-.info-card .info-value {
-  .info-text {
-    font-size: var(--weui-fs-tips);
-    color: var(--weui-FG-1);
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-  }
-}

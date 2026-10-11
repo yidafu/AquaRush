@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
 import AddressService from '../../services/AddressService'
 import { AddressFormData } from '../../types/address'
@@ -19,7 +23,20 @@ import FloorField from './components/FloorField'
 import MapPreviewSection from './components/MapPreviewSection'
 import SubmitSection from './components/SubmitSection'
 
-import './index.scss'
+// 新增/编辑收货地址(原 index.scss;长度保持 scss 来源 750 基准 rpx)
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--weui-BG-0)',
+  },
+  // 深色胶囊轻提示文案(原 .address-toast .weui-toast__text 后代选择器,
+  // stylex 无法表达后代关系,直接挂到 Text 上)
+  toastText: {
+    color: tokens.onBrand,
+    wordBreak: 'break-all',
+  },
+})
 
 const AddressEdit: React.FC = () => {
   usePageViewTracking()
@@ -41,7 +58,7 @@ const AddressEdit: React.FC = () => {
   const [addressId, setAddressId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
-  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  // 原 toastType 仅用于 address-toast--* 类(全局无定义的死类,已随 index.scss 删除)
 
   // 是否为「新增地址」模式(无 id 且非微信导入):路由参数同步可得,用于
   // 地区级联加载,避免依赖异步 setState 的 isEdit 造成竞态
@@ -59,10 +76,9 @@ const AddressEdit: React.FC = () => {
     }
   })
 
-  const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+  const showToastMessage = useCallback((text: string, _type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
     setToastText(text)
-    setToastType(type)
   }, [])
 
   const hideToast = useCallback(() => {
@@ -382,7 +398,7 @@ const AddressEdit: React.FC = () => {
   }, [loadAddressDetail, loadWechatAddress])
 
   return (
-    <View className='address-edit-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 收货人 + 手机号 + 所在地区 + 详细地址(address-edit.html 第一组 cells) */}
       <View className='weui-cells mt2'>
         <ContactFields
@@ -441,10 +457,10 @@ const AddressEdit: React.FC = () => {
         onSubmit={handleSubmit}
       />
 
-      {/* Toast 提示(.weui-toast_text 深色轻提示;toastType 保留原状态语义) */}
+      {/* Toast 提示(.weui-toast_text 深色胶囊) */}
       {showToast && (
-        <View className={`address-toast address-toast--${toastType} weui-toast weui-toast_text`} onClick={hideToast}>
-          <Text className='weui-toast__text'>{toastText}</Text>
+        <View className='weui-toast weui-toast_text' onClick={hideToast}>
+          <Text {...props('weui-toast__text', styles.toastText)}>{toastText}</Text>
         </View>
       )}
 

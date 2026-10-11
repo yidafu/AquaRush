@@ -1,10 +1,11 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import { Money, OrderStatus, normalizeCents } from '@aquarush/common'
 import StatusTag from '../../../components/StatusTag'
 import OrderItemRow from '../../../components/OrderItemRow'
 import type { OrderItem } from './constants'
-import './OrderCardItem.scss'
 
 interface OrderCardItemProps {
   order: OrderItem
@@ -13,6 +14,65 @@ interface OrderCardItemProps {
   onReorder: (order: OrderItem) => void
   onClick: (order: OrderItem) => void
 }
+
+// 订单列表卡:WeUI .weui-cells 组卡(全幅白底 + 发丝线,原型 02-order/order-list.html mt3 间距)
+const styles = stylex.create({
+  orderCard: {
+    marginTop: '24rpx',
+  },
+  orderNo: {
+    display: 'block',
+    fontSize: 'var(--weui-fs-cell)',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  orderTime: {
+    display: 'block',
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  // 商品 cell:内边距交给 OrderItemRow 的 .weui-media-box
+  orderProductCell: {
+    paddingTop: 0,
+    paddingRight: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+  },
+  orderDiscountTags: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    rowGap: '12rpx',
+    columnGap: '12rpx',
+  },
+  payDiscount: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)',
+  },
+  payLabel: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)',
+  },
+  orderAddress: {
+    display: 'block',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  orderActions: {
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    rowGap: '16rpx',
+    columnGap: '16rpx',
+  },
+})
 
 /**
  * 订单列表卡 —— WeUI .weui-cells 组卡(设计稿 02-order/order-list.html 骨架):
@@ -55,7 +115,7 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
 
     return (
       <View className='weui-cell'>
-        <View className='weui-cell__bd order-discount-tags'>
+        <View {...props('weui-cell__bd', styles.orderDiscountTags)}>
           {tags.map(tag => (
             <Text key={tag} className='weui-tag weui-tag--orange'>{tag}</Text>
           ))}
@@ -67,13 +127,13 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
   const stop = (e: { stopPropagation: () => void }) => e.stopPropagation()
 
   return (
-    <View className='order-card'>
+    <View {...stylex.props(styles.orderCard)}>
       <View className='weui-cells' onClick={() => onClick(order)}>
         {/* 头 cell:订单号 + 下单时间 + 状态标签 */}
         <View className='weui-cell'>
           <View className='weui-cell__bd'>
-            <Text className='order-no'>{order.orderNo}</Text>
-            <Text className='order-time'>{order.createTime}</Text>
+            <Text {...stylex.props(styles.orderNo)}>{order.orderNo}</Text>
+            <Text {...stylex.props(styles.orderTime)}>{order.createTime}</Text>
           </View>
           <View className='weui-cell__ft'>
             <StatusTag status={order.status} size='small' />
@@ -82,7 +142,7 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
 
         {/* 商品 cell(F-ORD-004 多商品:首件 + 「等N件」) */}
         {order.product && (
-          <View className='weui-cell order-product-cell'>
+          <View {...props('weui-cell', styles.orderProductCell)}>
             <OrderItemRow
               image={order.product.image}
               name={order.product.name}
@@ -101,13 +161,13 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
         {/* 下单时间 + 实付 cell */}
         <View className='weui-cell'>
           <View className='weui-cell__bd'>
-            <Text className='order-time'>{order.createTime}</Text>
+            <Text {...stylex.props(styles.orderTime)}>{order.createTime}</Text>
           </View>
-          <View className='weui-cell__ft order-pay'>
+          <View className='weui-cell__ft'>
             {discount > 0 && (
-              <Text className='pay-discount'>已优惠 <Money cents={discount} /></Text>
+              <Text {...stylex.props(styles.payDiscount)}>已优惠 <Money cents={discount} /></Text>
             )}
-            <Text className='pay-label'>实付</Text>
+            <Text {...stylex.props(styles.payLabel)}>实付</Text>
             <Text className='weui-price weui-price--md'>
               <Money cents={order.payAmountCents} />
             </Text>
@@ -118,13 +178,13 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
         <View className='weui-cell'>
           <View className='weui-cell__bd'>
             {order.address && (
-              <Text className='order-address'>
+              <Text {...stylex.props(styles.orderAddress)}>
                 {order.address.receiverName} {order.address.phone}
                 {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
               </Text>
             )}
           </View>
-          <View className='weui-cell__ft order-actions'>
+          <View {...props('weui-cell__ft', styles.orderActions)}>
             {order.status === OrderStatus.PENDING_PAYMENT && (
               <>
                 <View

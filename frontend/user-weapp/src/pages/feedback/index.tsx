@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Textarea, Input, Image } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
-import './index.scss'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 
 // 导入常量(店铺信息未配置时兜底展示)
 import { CONTACT_INFO } from '../../constants'
@@ -37,6 +40,93 @@ interface FeedbackForm {
   images: string[]
   contactInfo: string
 }
+
+/**
+ * 意见反馈样式(原 feedback 目录的 scss 迁移;750 基准 rpx,
+ * 嵌套后代选择器已拍平;weui 平台变量保留 var 字符串引用)
+ */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--weui-BG-0)',
+  },
+  intro: {
+    paddingTop: '24rpx',
+  },
+  introText: {
+    fontSize: '26rpx',
+    color: 'var(--weui-FG-1)',
+  },
+  // 类型芯片容器(可换行)
+  types: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    rowGap: '16rpx',
+    columnGap: '16rpx',
+  },
+  type: {
+    height: '56rpx',
+    paddingTop: '0',
+    paddingBottom: '0',
+    paddingLeft: '24rpx',
+    paddingRight: '24rpx',
+    borderRadius: '8rpx',
+    cursor: 'default',
+  },
+  // 内容文本域(去自带 padding 贴 cell)
+  textarea: {
+    minHeight: '192rpx',
+    paddingTop: '16rpx',
+    paddingRight: '0',
+    paddingBottom: '0',
+    paddingLeft: '0',
+    backgroundColor: 'transparent',
+  },
+  // 图片上传格(图片铺满 + 删除角标)
+  fileImg: {
+    position: 'absolute',
+    left: '0',
+    top: '0',
+    width: '100%',
+    height: '100%',
+  },
+  fileDel: {
+    position: 'absolute',
+    top: '0',
+    right: '0',
+    width: '44rpx',
+    height: '44rpx',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderRadius: '0 0 0 var(--weui-radius)',
+    color: tokens.onBrand,
+    fontSize: '28rpx',
+    lineHeight: 1,
+  },
+  // 页脚(热线 + 反馈记录链接,居中)
+  footerTip: {
+    textAlign: 'center',
+  },
+  footer: {
+    paddingTop: '16rpx',
+    paddingBottom: '48rpx',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    rowGap: '12rpx',
+  },
+  footerText: {
+    fontSize: '26rpx',
+    color: 'var(--weui-FG-1)',
+  },
+  footerLink: {
+    fontSize: '26rpx',
+    color: 'var(--weui-LINK)',
+  },
+})
 
 /**
  * 意见反馈(feedback.html:WeUI 表单 —— 类型 .weui-tag--md 芯片、
@@ -171,20 +261,20 @@ const Feedback: React.FC = () => {
   }
 
   return (
-    <View className='feedback-page'>
-      <View className='mp-pad-16 feedback-intro'>
-        <Text className='feedback-intro-text'>您的意见对我们很重要</Text>
+    <View {...stylex.props(pageTheme, styles.page)}>
+      <View {...props('mp-pad-16', styles.intro)}>
+        <Text {...stylex.props(styles.introText)}>您的意见对我们很重要</Text>
       </View>
 
       {/* 反馈类型(feedback.html .weui-tag--md 芯片,选中 --brand) */}
       <View className='weui-cells__title'>反馈类型</View>
       <View className='weui-cells'>
         <View className='weui-cell weui-cell_vertical'>
-          <View className='feedback-types'>
+          <View {...stylex.props(styles.types)}>
             {feedbackTypes.map((type) => (
               <View
                 key={type.value}
-                className={`weui-tag weui-tag--md feedback-type ${form.type === type.value ? 'weui-tag--brand' : ''}`}
+                {...props('weui-tag weui-tag--md', styles.type, form.type === type.value && 'weui-tag--brand')}
                 trackTarget='feedback-type'
                 trackElementType='tag'
                 trackElementText={type.label}
@@ -202,7 +292,7 @@ const Feedback: React.FC = () => {
       <View className='weui-cells'>
         <View className='weui-cell weui-cell_vertical'>
           <Textarea
-            className='weui-textarea feedback-textarea'
+            {...props('weui-textarea', styles.textarea)}
             placeholderClass='ph'
             placeholder='请详细描述您遇到的问题或建议，至少输入10个字'
             value={form.content}
@@ -222,10 +312,10 @@ const Feedback: React.FC = () => {
         <View className='weui-cell weui-cell_vertical'>
           <View className='weui-uploader'>
             {form.images.map((image, index) => (
-              <View key={index} className='weui-uploader__file feedback-file'>
-                <Image className='feedback-file-img' src={image} mode='aspectFill' />
+              <View key={index} className='weui-uploader__file'>
+                <Image {...stylex.props(styles.fileImg)} src={image} mode='aspectFill' />
                 <View
-                  className='feedback-file-del'
+                  {...stylex.props(styles.fileDel)}
                   onClick={() => handleRemoveImage(index)}
                 >
                   <Text>×</Text>
@@ -281,11 +371,11 @@ const Feedback: React.FC = () => {
       </View>
 
       {/* 页脚说明 + 反馈记录链接(feedback.html) */}
-      <View className='weui-cells__tips feedback-footer-tip'>我们会在1-2个工作日内处理您的反馈</View>
-      <View className='feedback-footer'>
-        <Text className='feedback-footer-text'>客服热线 {storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
+      <View {...props('weui-cells__tips', styles.footerTip)}>我们会在1-2个工作日内处理您的反馈</View>
+      <View {...stylex.props(styles.footer)}>
+        <Text {...stylex.props(styles.footerText)}>客服热线 {storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
         <Text
-          className='feedback-footer-link'
+          {...stylex.props(styles.footerLink)}
           trackTarget="feedback-records-link"
           trackAction="CLICK"
           trackElementType="link"

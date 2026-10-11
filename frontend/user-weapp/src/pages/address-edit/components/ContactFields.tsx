@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text, Input } from '@tarojs/components'
+import { props } from '@aquarush/common/stylex'
 import { AddressFormData } from '../../../types/address'
 
-import './fields.scss'
+import { fieldStyles } from './fields.stylex'
 
 interface ContactFieldsProps {
   receiverName: string
@@ -18,7 +19,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({ receiverName, phone, erro
   return (
     <>
       {/* 收货人 */}
-      <View className='weui-cell address-field-cell'>
+      <View className='weui-cell'>
         <View className='weui-cell__hd'>
           <View className='weui-label weui-label--req'>收货人</View>
         </View>
@@ -34,13 +35,13 @@ const ContactFields: React.FC<ContactFieldsProps> = ({ receiverName, phone, erro
         </View>
       </View>
       {errors.receiverName && (
-        <View className='field-error'>
+        <View {...props(fieldStyles.fieldError)}>
           <Text>{errors.receiverName}</Text>
         </View>
       )}
 
       {/* 手机号 */}
-      <View className='weui-cell address-field-cell'>
+      <View className='weui-cell'>
         <View className='weui-cell__hd'>
           <View className='weui-label weui-label--req'>手机号</View>
         </View>
@@ -57,7 +58,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({ receiverName, phone, erro
         </View>
       </View>
       {errors.phone && (
-        <View className='field-error'>
+        <View {...props(fieldStyles.fieldError)}>
           <Text>{errors.phone}</Text>
         </View>
       )}

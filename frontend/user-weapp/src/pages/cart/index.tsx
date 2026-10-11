@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import { Money } from '@aquarush/common'
+import { pageTheme } from '../../styles/theme.stylex'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import EmptyState from '../../components/EmptyState'
 import {
@@ -15,7 +18,73 @@ import {
   getSelectedTotalCents
 } from '../../utils/cart'
 
-import './index.scss'
+/** 购物车样式(原 index.scss 迁移;750 基准 rpx,weui 平台变量保留字符串引用) */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box'
+  },
+  scroll: {
+    flexGrow: 1,
+    height: 'calc(100vh - 128rpx - env(safe-area-inset-bottom))',
+    boxSizing: 'border-box'
+  },
+  // 原 .cart-cells 后代选择器拍平到子元素
+  checkHd: {
+    alignSelf: 'center',
+    marginRight: '20rpx'
+  },
+  itemImage: {
+    overflow: 'hidden'
+  },
+  row: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: '16rpx'
+  },
+  subtotal: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)'
+  },
+  delete: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-RED)'
+  },
+  empty: {
+    flexGrow: 1
+  },
+  emptyEmoji: {
+    fontSize: '72rpx'
+  },
+  // 底部结算栏:固定 + 安全区(原 .cart-footbar 后代选择器拍平)
+  footbar: {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    paddingBottom: 'calc(16rpx + env(safe-area-inset-bottom))'
+  },
+  selectAll: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '12rpx',
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto'
+  },
+  selectAllLbl: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)'
+  },
+  total: {
+    textAlign: 'right'
+  }
+})
 
 /**
  * 购物车页(F-PRO-004,本地存储;设计稿 01-product/cart.html WeUI 视觉重排):
@@ -105,11 +174,11 @@ const CartPage: React.FC = () => {
   const selectedCount = getSelectedCartItems().length
 
   return (
-    <View className='cart-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {cartItems.length === 0 ? (
-        <View className='cart-empty'>
+        <View {...stylex.props(styles.empty)}>
           <EmptyState
-            icon={<Text className='cart-empty-emoji'>🛒</Text>}
+            icon={<Text {...stylex.props(styles.emptyEmoji)}>🛒</Text>}
             title='购物车还是空的'
             description='去挑几桶好水,加入购物车一起下单'
             actionText='去逛逛'
@@ -118,14 +187,14 @@ const CartPage: React.FC = () => {
         </View>
       ) : (
         <>
-          <ScrollView scrollY className='cart-scroll'>
+          <ScrollView scrollY {...stylex.props(styles.scroll)}>
             <View className='weui-cells__title'>全部商品</View>
-            <View className='weui-cells cart-cells'>
+            <View className='weui-cells'>
               {cartItems.map(item => (
-                <View key={item.id} className='weui-media-box cart-item'>
+                <View key={item.id} className='weui-media-box'>
                   {/* 勾选 */}
                   <View
-                    className='weui-media-box__hd cart-check-hd'
+                    {...props('weui-media-box__hd', styles.checkHd)}
                     onClick={() => handleSelect(item.id, !item.selected)}
                   >
                     <View className={`weui-checkbox${item.selected ? ' on' : ''}`} />
@@ -135,7 +204,7 @@ const CartPage: React.FC = () => {
                     <Image
                       src={item.image || '/assets/default-product.png'}
                       mode='aspectFill'
-                      className='weui-media-box__thumb cart-item-image'
+                      {...props('weui-media-box__thumb', styles.itemImage)}
                     />
                   </View>
                   {/* 商品信息 */}
@@ -144,7 +213,7 @@ const CartPage: React.FC = () => {
                     {item.specification && (
                       <Text className='weui-media-box__desc'>规格:{item.specification}</Text>
                     )}
-                    <View className='cart-row'>
+                    <View {...stylex.props(styles.row)}>
                       <Text className='weui-price weui-price--md'>
                         <Money cents={item.priceCents} />
                       </Text>
@@ -164,11 +233,11 @@ const CartPage: React.FC = () => {
                         </View>
                       </View>
                     </View>
-                    <View className='cart-row'>
-                      <Text className='cart-subtotal'>
+                    <View {...stylex.props(styles.row)}>
+                      <Text {...stylex.props(styles.subtotal)}>
                         小计 <Text className='weui-price weui-price--sm'><Money cents={item.priceCents * item.quantity} /></Text>
                       </Text>
-                      <Text className='cart-delete' onClick={() => handleRemove(item.id)}>删除</Text>
+                      <Text {...stylex.props(styles.delete)} onClick={() => handleRemove(item.id)}>删除</Text>
                     </View>
                   </View>
                 </View>
@@ -177,12 +246,12 @@ const CartPage: React.FC = () => {
           </ScrollView>
 
           {/* 底部结算栏(WeUI .mp-footbar) */}
-          <View className='mp-footbar hair-t cart-footbar'>
-            <View className='cart-select-all' onClick={() => handleSelectAll(!allSelected)}>
+          <View {...props('mp-footbar', 'hair-t', styles.footbar)}>
+            <View {...props(styles.selectAll)} onClick={() => handleSelectAll(!allSelected)}>
               <View className={`weui-checkbox${allSelected ? ' on' : ''}`} />
-              <Text className='select-all-lbl'>全选</Text>
+              <Text {...stylex.props(styles.selectAllLbl)}>全选</Text>
             </View>
-            <View className='mp-footbar__info cart-total'>
+            <View {...props('mp-footbar__info', styles.total)}>
               <View className='mp-footbar__lbl'>合计</View>
               <Text className='weui-price weui-price--lg'>
                 <Money cents={totalCents} />

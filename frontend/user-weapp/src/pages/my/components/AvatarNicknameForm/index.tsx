@@ -1,13 +1,95 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Image } from '@tarojs/components'
 import { AtAvatar, AtButton, AtModal, AtModalHeader, AtModalContent, AtModalAction, AtToast, AtForm, AtInput } from 'taro-ui'
+import * as stylex from '@stylexjs/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
 import { fileUploadService } from '@/services/FileUploadService'
 import { UploadError } from '@/types/storage'
 import "taro-ui/dist/style/components/avatar.scss"
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/modal.scss"
 import "taro-ui/dist/style/components/toast.scss"
-import './index.scss'
+
+/**
+ * 样式:StyleX(原同目录 index.scss 迁移;750 基准 rpx;主题色改用共享 token;
+ * 死类 form-content / nickname-section / nickname-input 及未定义的
+ * border-b、flex、text-center 等工具串已删除;
+ * 原 `.avatar-nickname-modal .at-modal__container` 为 taro-ui 内部后代选择器,
+ * stylex 无法表达,容器尺寸退回 taro-ui 默认)
+ */
+const styles = stylex.create({
+  formTip: {
+    display: 'block',
+    textAlign: 'center',
+    color: tokens.textSub,
+    fontSize: '26rpx',
+    marginBottom: '30rpx',
+  },
+  sectionTitle: {
+    display: 'block',
+    fontSize: '32rpx',
+    width: '172rpx',
+    lineHeight: 1.5,
+    color: tokens.text,
+    marginBottom: '15rpx',
+  },
+  avatarSection: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+    paddingTop: '24rpx',
+    paddingBottom: '24rpx',
+    color: tokens.text,
+    marginLeft: '32rpx',
+    position: 'relative',
+  },
+  avatarButton: {
+    backgroundColor: 'transparent',
+    borderWidth: '0',
+    borderStyle: 'none',
+    paddingTop: '0',
+    paddingBottom: '0',
+    paddingLeft: '0',
+    paddingRight: '0',
+    marginTop: '0',
+    marginBottom: '0',
+    marginLeft: '0',
+    marginRight: '0',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    width: '100rpx',
+    height: '100rpx',
+    position: 'relative',
+    // 原生 button 默认 ::after 描边
+    '::after': {
+      borderWidth: '0',
+      borderStyle: 'none',
+    },
+  },
+  avatarPreview: {
+    width: '100rpx',
+    height: '100rpx',
+    borderRadius: '50%',
+    borderWidth: '2rpx',
+    borderStyle: 'solid',
+    borderColor: tokens.border,
+  },
+  defaultAvatar: {
+    width: '100rpx',
+    height: '100rpx',
+    borderRadius: '50%',
+    borderWidth: '2rpx',
+    borderStyle: 'solid',
+    borderColor: tokens.border,
+    backgroundColor: tokens.bg,
+  },
+  avatarHint: {
+    fontSize: '28rpx',
+    color: tokens.textSub,
+    marginTop: '10rpx',
+  },
+})
 
 interface AvatarNicknameFormProps {
   visible: boolean
@@ -153,7 +235,6 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
       <AtModal
         isOpened={visible}
         onClose={handleClose}
-        className='avatar-nickname-modal'
         confirmText='确认'
         cancelText='取消'
         onConfirm={handleSubmit}
@@ -161,23 +242,23 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
         <AtModalHeader>完善个人资料</AtModalHeader>
 
         <AtModalContent>
-          <Text className='form-tip'>请选择您的头像并设置昵称</Text>
+          <Text {...stylex.props(styles.formTip)}>请选择您的头像并设置昵称</Text>
 
           <AtForm>
             {/* 头像选择区域 */}
-            <View className='border-b avatar-section border-b-stone-300'>
-              <Text className='section-title'>头像</Text>
-              <View className='flex flex-col justify-center'>
+            <View {...stylex.props(styles.avatarSection)}>
+              <Text {...stylex.props(styles.sectionTitle)}>头像</Text>
+              <View>
 
               <Button
-                className='avatar-button'
+                {...stylex.props(styles.avatarButton)}
                 openType='chooseAvatar'
                 onChooseAvatar={handleChooseAvatar}
               >
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
-                    className='avatar-preview'
+                    {...stylex.props(styles.avatarPreview)}
                     mode='aspectFill'
                   />
                 ) : (
@@ -185,11 +266,11 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
                     size='large'
                     circle
                     text='头像'
-                    className='default-avatar'
+                    className={stylex.props(styles.defaultAvatar).className}
                   />
                 )}
               </Button>
-                <Text className='text-center avatar-hint '>点击选择头像</Text>
+                <Text {...stylex.props(styles.avatarHint)}>点击选择头像</Text>
               </View>
 
             </View>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import './PaymentMethodSelector.scss'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 
 interface PaymentMethod {
   id: string
@@ -18,7 +19,29 @@ interface PaymentMethodSelectorProps {
 /**
  * 支付方式选择 —— WeUI .weui-cells 单选行(.weui-radio + 推荐 .weui-tag--brand,
  * 设计稿 02-order/order-confirm.html「支付方式」)
+ *
+ * 样式:StyleX(原 PaymentMethodSelector.scss 迁移;750 基准 rpx,weui-* 类保留;
+ * 原后代选择器拍平到子元素)
  */
+const styles = stylex.create({
+  paymentSection: {
+    marginTop: '8rpx',
+  },
+  paymentNameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '12rpx',
+  },
+  paymentDesc: {
+    display: 'block',
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+  },
+  paymentMethodDisabled: {
+    opacity: 0.4,
+  },
+})
 const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   selectedMethod,
   onMethodChange
@@ -33,7 +56,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   ]
 
   return (
-    <View className='payment-section'>
+    <View {...stylex.props(styles.paymentSection)}>
       <View className='weui-cells__title'>支付方式</View>
       <View className='weui-cells'>
         {paymentMethods.map(method => {
@@ -42,18 +65,18 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           return (
             <View
               key={method.id}
-              className={`weui-cell${disabled ? ' payment-method-disabled' : ''}`}
+              {...props('weui-cell', disabled && styles.paymentMethodDisabled)}
               onClick={() => {
                 if (!disabled) onMethodChange(method.id)
               }}
             >
               <View className='weui-cell__bd'>
-                <View className='payment-name-row'>
+                <View {...stylex.props(styles.paymentNameRow)}>
                   <Text>{method.name}</Text>
                   {!disabled && <Text className='weui-tag weui-tag--brand'>推荐</Text>}
                   {disabled && <Text className='weui-tag'>即将上线</Text>}
                 </View>
-                <Text className='payment-desc'>{method.description}</Text>
+                <Text {...stylex.props(styles.paymentDesc)}>{method.description}</Text>
               </View>
               <View className='weui-cell__ft'>
                 <View className={`weui-radio${selected && !disabled ? ' on' : ''}`} />

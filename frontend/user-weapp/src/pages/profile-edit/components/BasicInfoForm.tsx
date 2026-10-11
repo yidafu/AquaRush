@@ -1,8 +1,8 @@
 import React from 'react'
 import { View, Text, Input } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import AvatarUpload from '../components/AvatarUpload'
-
-import './BasicInfoForm.scss'
 
 interface BasicInfoFormProps {
   avatarUrl: string
@@ -19,7 +19,31 @@ interface BasicInfoFormProps {
  * 基本信息表单区块(profile-edit.html:weui-cells 分组 ——
  * 头像行(圆形缩略图)/ 昵称行(.weui-label + .weui-input)/ 手机号行;
  * 校验与提交逻辑由页面编排,此处仅渲染)
+ *
+ * 样式:StyleX(原 BasicInfoForm.scss 迁移,750 基准 rpx;weui- / mt2 保留)
  */
+const styles = stylex.create({
+  profileCells: {
+    marginLeft: '16rpx',
+    marginRight: '16rpx',
+    borderRadius: 'var(--weui-radius)',
+  },
+  profileAvatarFt: {
+    marginLeft: 0,
+  },
+  fieldError: {
+    paddingTop: '12rpx',
+    paddingRight: '32rpx',
+    paddingBottom: 0,
+    paddingLeft: '32rpx',
+    marginBottom: '12rpx',
+    fontSize: '24rpx',
+    lineHeight: 1.5,
+    color: 'var(--weui-RED)',
+    backgroundColor: 'var(--weui-BG-2)',
+  },
+})
+
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   avatarUrl,
   nickname,
@@ -31,13 +55,13 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   onInputChange
 }) => {
   return (
-    <View className='weui-cells mt2 profile-cells'>
+    <View {...props('weui-cells', 'mt2', styles.profileCells)}>
       {/* 头像行 */}
       <View className='weui-cell'>
         <View className='weui-cell__bd'>
           <Text>头像</Text>
         </View>
-        <View className='weui-cell__ft profile-avatar-ft'>
+        <View {...props('weui-cell__ft', styles.profileAvatarFt)}>
           <AvatarUpload
             currentAvatar={avatarUrl}
             onAvatarChange={onAvatarChange}
@@ -47,7 +71,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         </View>
       </View>
       {errors.avatarUrl && (
-        <View className='field-error'>
+        <View {...stylex.props(styles.fieldError)}>
           <Text>{errors.avatarUrl}</Text>
         </View>
       )}
@@ -71,7 +95,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         </View>
       </View>
       {errors.nickname && (
-        <View className='field-error'>
+        <View {...stylex.props(styles.fieldError)}>
           <Text>{errors.nickname}</Text>
         </View>
       )}
@@ -95,7 +119,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         </View>
       </View>
       {errors.phone && (
-        <View className='field-error'>
+        <View {...stylex.props(styles.fieldError)}>
           <Text>{errors.phone}</Text>
         </View>
       )}

@@ -1,13 +1,48 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { displayCents } from '@aquarush/common'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import './index.scss'
+/**
+ * 我的收藏样式(原 index.scss 迁移;750 基准 rpx,weui 平台变量保留字符串引用)
+ */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)'
+  },
+  // 缩略图(product-list 原型 144×144,圆角走 .weui-media-box__thumb)
+  thumb: {
+    display: 'block'
+  },
+  // 价格行:.weui-price 居左 + 已售居右(favorites.html row between)
+  priceRow: {
+    marginTop: '16rpx',
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    columnGap: '16rpx'
+  },
+  sales: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto',
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-2)'
+  },
+  // 缺货标签行
+  tagRow: {
+    marginTop: '12rpx',
+    display: 'flex'
+  }
+})
 
 interface FavoriteProduct {
   id: string
@@ -142,7 +177,7 @@ const FavoritesPage: React.FC = () => {
       emptySubtitle='快去收藏喜欢的商品吧'
       emptyActionText='去逛逛'
       onEmptyAction={handleGoHome}
-      className='favorites-page'
+      rootStyles={[pageTheme, styles.page]}
       safeArea={true}
     >
       {/* 页头统计(favorites.html .weui-cells__title) */}
@@ -155,7 +190,7 @@ const FavoritesPage: React.FC = () => {
           return (
             <View
               key={product.id}
-              className='weui-media-box favorite-item'
+              className='weui-media-box'
               trackTarget='favorites-item'
               trackElementType='card'
               trackElementText={product.name}
@@ -164,7 +199,7 @@ const FavoritesPage: React.FC = () => {
               <View className='weui-media-box__hd'>
                 <Image
                   src={product.coverImageUrl}
-                  className='weui-media-box__thumb favorite-thumb'
+                  {...props('weui-media-box__thumb', styles.thumb)}
                   mode='aspectFill'
                   lazyLoad
                 />
@@ -174,18 +209,18 @@ const FavoritesPage: React.FC = () => {
                 {product.subtitle && (
                   <Text className='weui-media-box__desc'>{product.subtitle}</Text>
                 )}
-                <View className='favorite-price-row'>
+                <View {...stylex.props(styles.priceRow)}>
                   <View className='weui-price weui-price--md'>
                     <Text className='weui-price__symbol'>¥</Text>
                     <Text className='weui-price__int'>{intPart}</Text>
                     <Text className='weui-price__dec'>.{decPart}</Text>
                   </View>
                   {product.salesVolume > 0 && (
-                    <Text className='favorite-sales'>已售 {product.salesVolume}</Text>
+                    <Text {...stylex.props(styles.sales)}>已售 {product.salesVolume}</Text>
                   )}
                 </View>
                 {product.stock <= 0 && (
-                  <View className='favorite-tag-row'>
+                  <View {...stylex.props(styles.tagRow)}>
                     <Text className='weui-tag weui-tag--orange'>暂时缺货</Text>
                   </View>
                 )}

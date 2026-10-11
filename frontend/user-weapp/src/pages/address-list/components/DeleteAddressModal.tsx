@@ -1,7 +1,8 @@
 import React from 'react'
 import { View } from '@tarojs/components'
 
-import './DeleteAddressModal.scss'
+// 原 DeleteAddressModal.scss 仅含注释(视觉全部来自 weui.scss 的
+// weui-mask / weui-dialog 体系,无页内覆盖),已随 scss 删除
 
 interface DeleteAddressModalProps {
   visible: boolean

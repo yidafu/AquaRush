@@ -1,7 +1,14 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 
-import './SubmitSection.scss'
+// 保存按钮区(原 SubmitSection.scss;长度保持 scss 来源 750 基准 rpx)
+const styles = stylex.create({
+  submitSection: {
+    paddingBottom: 'calc(32rpx + env(safe-area-inset-bottom))',
+  },
+})
 
 interface SubmitSectionProps {
   isDefault: boolean
@@ -31,7 +38,7 @@ const SubmitSection: React.FC<SubmitSectionProps> = ({ isDefault, loading, onDef
       </View>
 
       {/* 保存按钮(.weui-btn_area) */}
-      <View className='weui-btn_area submit-section'>
+      <View {...props('weui-btn_area', styles.submitSection)}>
         <View
           trackTarget="address-save"
           trackAction="FORM_SUBMIT"

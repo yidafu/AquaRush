@@ -1,6 +1,17 @@
 import { Component, PropsWithChildren } from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
 import { authService } from '../../utils/auth'
+
+const styles = stylex.create({
+  loading: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // 原 tailwind h-[200px](web 200px)→ rpx ×2
+    height: '400rpx',
+  },
+})
 
 interface AuthGuardProps {
   fallback?: React.ReactNode
@@ -56,7 +67,7 @@ class AuthGuard extends Component<PropsWithChildren<AuthGuardProps>, AuthGuardSt
 
     if (loading) {
       return (
-        <View className='flex justify-center items-center h-[200px]'>
+        <View {...stylex.props(styles.loading)}>
           <Text>加载中...</Text>
         </View>
       )

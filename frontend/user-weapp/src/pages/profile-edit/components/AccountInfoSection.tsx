@@ -1,8 +1,8 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import type { UserInfo } from '../../../utils/auth'
-
-import './AccountInfoSection.scss'
 
 interface AccountInfoSectionProps {
   userInfo: UserInfo | null
@@ -14,19 +14,32 @@ interface AccountInfoSectionProps {
  * id/wechatOpenId/nickname/phone/avatarUrl/createdAt/updatedAt),原展示会运行期崩溃
  * (balance.toFixed(2)),故移除失效行 —— 余额字段不再规划(用户储值不做,2026-10-09 合规
  * 决策),会员等级/积分随 F-MKT-011/012 落地后恢复。
+ *
+ * 样式:StyleX(原 AccountInfoSection.scss 迁移,750 基准 rpx;weui- / mt3 保留)
  */
+const styles = stylex.create({
+  profileCells: {
+    marginLeft: '16rpx',
+    marginRight: '16rpx',
+    borderRadius: 'var(--weui-radius)',
+  },
+  profileReadonlyValue: {
+    color: 'var(--weui-FG-2)',
+  },
+})
+
 const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({ userInfo }) => {
   if (!userInfo) {
     return null
   }
 
   return (
-    <View className='weui-cells mt3 profile-cells'>
+    <View {...props('weui-cells', 'mt3', styles.profileCells)}>
       <View className='weui-cell'>
         <View className='weui-cell__bd'>
           <Text>用户ID</Text>
         </View>
-        <View className='weui-cell__ft profile-readonly-value'>
+        <View {...props('weui-cell__ft', styles.profileReadonlyValue)}>
           <Text>{userInfo.id}</Text>
         </View>
       </View>

@@ -1,6 +1,10 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { View, Text, Input, Textarea, Picker } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import BarrelService from '../../services/BarrelService'
 import { authService } from '../../utils/auth'
 import {
@@ -17,8 +21,6 @@ import {
 import BasePageLayout from '../../components/BasePageLayout'
 import StatusTag from '../../components/StatusTag'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
-
-import './index.scss'
 
 const PAGE_SIZE = 10
 const APPLICATION_SIZE = 20
@@ -56,6 +58,103 @@ const emptyForm: RefundForm = {
   receiverDetail: '',
   remark: ''
 }
+
+/**
+ * 水桶账户样式(原 index.scss 迁移;750 基准 rpx,weui 平台变量保留字符串引用)
+ * 注:输入占位符颜色 .ph 由全局 weui 样式(weui-input 下的 .ph)覆盖,不重复定义
+ */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    boxSizing: 'border-box',
+    backgroundColor: 'var(--weui-BG-0)',
+    paddingBottom: '32rpx'
+  },
+  // 分区标题行(左侧标题 + 右侧操作/计数)
+  titleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '16rpx',
+    paddingLeft: '32rpx'
+  },
+  title: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)',
+    lineHeight: 1.4
+  },
+  count: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)'
+  },
+  link: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: tokens.brand
+  },
+  // 规格桶账行 / 表单辅助说明
+  specName: {
+    fontSize: 'var(--weui-fs-cell)',
+    color: 'var(--weui-FG-0)'
+  },
+  specMeta: {
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)'
+  },
+  // 退押表单
+  fieldInput: {
+    width: '100%'
+  },
+  picker: {
+    width: '100%',
+    fontSize: 'var(--weui-fs-cell)',
+    color: 'var(--weui-FG-0)'
+  },
+  remark: {
+    minHeight: '120rpx',
+    marginTop: '16rpx'
+  },
+  // 押金记录 / 退押申请记录行
+  recordMain: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: '16rpx'
+  },
+  recordSpec: {
+    fontSize: 'var(--weui-fs-cell)',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)'
+  },
+  recordMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: '16rpx',
+    marginTop: '12rpx'
+  },
+  recordMetaText: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)'
+  },
+  recordTime: {
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)'
+  },
+  recordRemark: {
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)'
+  },
+  recordReject: {
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: tokens.price
+  }
+})
 
 /**
  * 水桶账户(F-PRO-010 水桶账户与退押)
@@ -270,7 +369,7 @@ const BarrelMinePage: React.FC = () => {
       empty={specs.length === 0 && !loading && !error}
       emptyTitle='暂无水桶账户'
       emptySubtitle='使用循环水桶配送后,押金与桶数会记录在这里'
-      className='barrel-mine-page'
+      rootStyles={[pageTheme, styles.page]}
     >
       {/* 押金合计 / 欠桶合计(mp-statgrid 顶部汇总) */}
       <View className='mp-statgrid'>
@@ -291,8 +390,8 @@ const BarrelMinePage: React.FC = () => {
       </View>
 
       {/* 按规格桶账 */}
-      <View className='barrel-mine-title-row'>
-        <Text className='barrel-mine-title'>按规格桶账</Text>
+      <View {...stylex.props(styles.titleRow)}>
+        <Text {...stylex.props(styles.title)}>按规格桶账</Text>
         <View
           trackTarget='barrel-open-refund'
           trackElementType='button'
@@ -305,10 +404,10 @@ const BarrelMinePage: React.FC = () => {
       </View>
       <View className='weui-cells'>
         {specs.map((spec) => (
-          <View key={spec.specification} className='weui-cell barrel-mine-spec'>
+          <View key={spec.specification} className='weui-cell'>
             <View className='weui-cell__bd'>
-              <View className='barrel-mine-spec-name'>{spec.specification}</View>
-              <View className='barrel-mine-spec-meta'>
+              <View {...stylex.props(styles.specName)}>{spec.specification}</View>
+              <View {...stylex.props(styles.specMeta)}>
                 在租 {spec.heldBucketCount} 桶 · 欠桶 {spec.owedBucketCount} 个
               </View>
             </View>
@@ -321,14 +420,14 @@ const BarrelMinePage: React.FC = () => {
       {/* 退押申请表单 */}
       {formVisible && (
         <>
-          <View className='barrel-mine-title-row'>
-            <Text className='barrel-mine-title'>申请退押</Text>
-            <Text className='barrel-mine-link' onClick={closeForm}>
+          <View {...stylex.props(styles.titleRow)}>
+            <Text {...stylex.props(styles.title)}>申请退押</Text>
+            <Text {...stylex.props(styles.link)} onClick={closeForm}>
               收起
             </Text>
           </View>
           <View className='weui-cells'>
-            <View className='weui-cell barrel-mine-field'>
+            <View className='weui-cell'>
               <View className='weui-cell__hd'>
                 <View className='weui-label weui-label--req'>水桶规格</View>
               </View>
@@ -339,10 +438,10 @@ const BarrelMinePage: React.FC = () => {
                   value={specPickerIndex}
                   onChange={(e) => updateForm('specification', refundableSpecs[Number(e.detail.value)]?.specification ?? '')}
                 >
-                  <View className='barrel-mine-picker'>{form.specification || '请选择规格'}</View>
+                  <View {...stylex.props(styles.picker)}>{form.specification || '请选择规格'}</View>
                 </Picker>
                 {selectedSpec && (
-                  <View className='barrel-mine-spec-meta'>
+                  <View {...stylex.props(styles.specMeta)}>
                     可退 {selectedSpec.heldBucketCount} 桶(在租)
                   </View>
                 )}
@@ -350,13 +449,13 @@ const BarrelMinePage: React.FC = () => {
               <View className='weui-cell__ft weui-cell__ft_in-access' />
             </View>
 
-            <View className='weui-cell barrel-mine-field'>
+            <View className='weui-cell'>
               <View className='weui-cell__hd'>
                 <View className='weui-label weui-label--req'>退押桶数</View>
               </View>
               <View className='weui-cell__bd'>
                 <Input
-                  className='weui-input'
+                  {...props('weui-input', styles.fieldInput)}
                   placeholderClass='ph'
                   type='number'
                   value={form.bucketCount}
@@ -366,13 +465,13 @@ const BarrelMinePage: React.FC = () => {
               </View>
             </View>
 
-            <View className='weui-cell barrel-mine-field'>
+            <View className='weui-cell'>
               <View className='weui-cell__hd'>
                 <View className='weui-label weui-label--req'>回收联系人</View>
               </View>
               <View className='weui-cell__bd'>
                 <Input
-                  className='weui-input'
+                  {...props('weui-input', styles.fieldInput)}
                   placeholderClass='ph'
                   type='text'
                   value={form.receiverName}
@@ -382,13 +481,13 @@ const BarrelMinePage: React.FC = () => {
               </View>
             </View>
 
-            <View className='weui-cell barrel-mine-field'>
+            <View className='weui-cell'>
               <View className='weui-cell__hd'>
                 <View className='weui-label weui-label--req'>联系电话</View>
               </View>
               <View className='weui-cell__bd'>
                 <Input
-                  className='weui-input'
+                  {...props('weui-input', styles.fieldInput)}
                   placeholderClass='ph'
                   type='number'
                   maxlength={11}
@@ -399,13 +498,13 @@ const BarrelMinePage: React.FC = () => {
               </View>
             </View>
 
-            <View className='weui-cell barrel-mine-field'>
+            <View className='weui-cell'>
               <View className='weui-cell__hd'>
                 <View className='weui-label weui-label--req'>回收地址</View>
               </View>
               <View className='weui-cell__bd'>
                 <Input
-                  className='weui-input'
+                  {...props('weui-input', styles.fieldInput)}
                   placeholderClass='ph'
                   type='text'
                   value={form.receiverDetail}
@@ -421,7 +520,7 @@ const BarrelMinePage: React.FC = () => {
               </View>
               <View className='weui-cell__bd'>
                 <Textarea
-                  className='weui-textarea barrel-mine-remark'
+                  {...props('weui-textarea', styles.remark)}
                   value={form.remark}
                   onInput={(e) => updateForm('remark', e.detail.value)}
                   maxlength={200}
@@ -446,20 +545,20 @@ const BarrelMinePage: React.FC = () => {
       )}
 
       {/* 押金记录 */}
-      <View className='barrel-mine-title-row'>
-        <Text className='barrel-mine-title'>押金记录</Text>
-        <Text className='barrel-mine-count'>共 {recordTotal} 条</Text>
+      <View {...stylex.props(styles.titleRow)}>
+        <Text {...stylex.props(styles.title)}>押金记录</Text>
+        <Text {...stylex.props(styles.count)}>共 {recordTotal} 条</Text>
       </View>
       <View className='weui-cells'>
         {records.map((record) => (
           <View key={record.id} className='weui-cell weui-cell_vertical'>
             <View className='weui-cell__bd'>
-              <View className='barrel-mine-record-main'>
-                <Text className='barrel-mine-record-spec'>{record.specification || '水桶押金'}</Text>
+              <View {...stylex.props(styles.recordMain)}>
+                <Text {...stylex.props(styles.recordSpec)}>{record.specification || '水桶押金'}</Text>
                 {renderPrice(record.depositAmountCents)}
               </View>
-              <View className='barrel-mine-record-meta'>
-                <Text className='barrel-mine-record-meta-text'>
+              <View {...stylex.props(styles.recordMeta)}>
+                <Text {...stylex.props(styles.recordMetaText)}>
                   {record.bucketCount != null ? `${record.bucketCount} 桶` : ''}
                   {record.unitDepositCents != null ? ` · 单桶押金 ${money(record.unitDepositCents)}` : ''}
                 </Text>
@@ -469,9 +568,9 @@ const BarrelMinePage: React.FC = () => {
                   size='small'
                 />
               </View>
-              <Text className='barrel-mine-record-time'>{formatDateTime(record.createdAt)}</Text>
+              <Text {...stylex.props(styles.recordTime)}>{formatDateTime(record.createdAt)}</Text>
               {record.refundRemark && (
-                <Text className='barrel-mine-record-remark'>退还备注:{record.refundRemark}</Text>
+                <Text {...stylex.props(styles.recordRemark)}>退还备注:{record.refundRemark}</Text>
               )}
             </View>
           </View>
@@ -482,15 +581,15 @@ const BarrelMinePage: React.FC = () => {
       </View>
 
       {/* 退押申请记录 */}
-      <View className='barrel-mine-title-row'>
-        <Text className='barrel-mine-title'>退押申请记录</Text>
+      <View {...stylex.props(styles.titleRow)}>
+        <Text {...stylex.props(styles.title)}>退押申请记录</Text>
       </View>
       <View className='weui-cells'>
         {applications.map((app) => (
           <View key={app.id} className='weui-cell weui-cell_vertical'>
             <View className='weui-cell__bd'>
-              <View className='barrel-mine-record-main'>
-                <Text className='barrel-mine-record-spec'>
+              <View {...stylex.props(styles.recordMain)}>
+                <Text {...stylex.props(styles.recordSpec)}>
                   {app.specification} × {app.bucketCount} 桶
                 </Text>
                 <StatusTag
@@ -499,18 +598,18 @@ const BarrelMinePage: React.FC = () => {
                   size='small'
                 />
               </View>
-              <View className='barrel-mine-record-meta'>
-                <Text className='barrel-mine-record-meta-text'>退押金额 {money(app.depositCents)}</Text>
-                <Text className='barrel-mine-record-meta-text'>{formatDateTime(app.createdAt)}</Text>
+              <View {...stylex.props(styles.recordMeta)}>
+                <Text {...stylex.props(styles.recordMetaText)}>退押金额 {money(app.depositCents)}</Text>
+                <Text {...stylex.props(styles.recordMetaText)}>{formatDateTime(app.createdAt)}</Text>
               </View>
               {app.recoveredAt && (
-                <Text className='barrel-mine-record-time'>空桶回收:{formatDateTime(app.recoveredAt)}</Text>
+                <Text {...stylex.props(styles.recordTime)}>空桶回收:{formatDateTime(app.recoveredAt)}</Text>
               )}
               {app.refundedAt && (
-                <Text className='barrel-mine-record-time'>押金退还:{formatDateTime(app.refundedAt)}</Text>
+                <Text {...stylex.props(styles.recordTime)}>押金退还:{formatDateTime(app.refundedAt)}</Text>
               )}
               {app.status === 'REJECTED' && (
-                <Text className='barrel-mine-record-reject'>驳回原因:{app.rejectReason || '无'}</Text>
+                <Text {...stylex.props(styles.recordReject)}>驳回原因:{app.rejectReason || '无'}</Text>
               )}
             </View>
           </View>

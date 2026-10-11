@@ -1,7 +1,30 @@
 import React from 'react'
 import { View, Text, Image } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
 import CustomIcon from '../CustomIcon'
-import './index.scss'
+
+/**
+ * 样式:StyleX(原 index.scss 迁移,长度值保持 750 基准 rpx;weui-* 平台变量保留字符串引用;
+ * .weui-empty 体系类名仍由 weui.scss 提供,empty-* 类名已内联为 style)
+ */
+const styles = stylex.create({
+  emptyImage: {
+    width: '120rpx',
+    height: '120rpx',
+    borderRadius: '50%',
+  },
+  emptyTitle: {
+    display: 'block',
+    color: 'var(--weui-FG-0)',
+    fontSize: 'var(--weui-fs-cell)',
+  },
+  emptyDesc: {
+    display: 'block',
+    marginTop: '8rpx',
+    color: 'var(--weui-FG-1)',
+    fontSize: 'var(--weui-fs-tips)',
+  },
+})
 
 /**
  * 空态占位 —— WeUI 2.x 视觉(.weui-empty:品牌 tint 圆 + 图标/插图 + 文案 + 可选主色按钮,
@@ -33,7 +56,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     <View className='weui-empty'>
       <View className='weui-empty__icon'>
         {image ? (
-          <Image src={image} mode='aspectFit' className='empty-image' />
+          <Image src={image} mode='aspectFit' {...stylex.props(styles.emptyImage)} />
         ) : icon ? (
           icon
         ) : (
@@ -41,8 +64,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         )}
       </View>
       <View className='weui-empty__text'>
-        <Text className='empty-title'>{title}</Text>
-        {description && <Text className='empty-desc'>{description}</Text>}
+        <Text {...stylex.props(styles.emptyTitle)}>{title}</Text>
+        {description && <Text {...stylex.props(styles.emptyDesc)}>{description}</Text>}
       </View>
       {actionText && onAction && (
         <View

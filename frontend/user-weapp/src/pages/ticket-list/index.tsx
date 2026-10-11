@@ -1,6 +1,9 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import TicketService from '../../services/TicketService'
 import { authService } from '../../utils/auth'
 import {
@@ -11,8 +14,6 @@ import {
 } from '@aquarush/common'
 import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
-
-import './index.scss'
 
 interface TicketTab {
   key: string
@@ -41,7 +42,129 @@ const statusTagClass = (ticket: UserTicketVo): string => {
  * 我的水票(F-MKT-007,ticket-mine.html:汇总 statgrid + tabs + 票夹卡)
  * 展示已购水票,按状态 Tab(.weui-tabs)过滤;可用张数 = 未用 + 已退回;
  * 汇总行 .mp-statgrid(可用/总张数/已核销);票号长按复制(.weui-cell 行)。
+ *
+ * 样式:StyleX(原 index.scss 迁移,750 基准 rpx;weui- / mp- / hair-t 保留)
  */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box',
+  },
+  // 汇总卡(白底 .mp-statgrid)
+  statgridWrap: {
+    marginLeft: '16rpx',
+    marginRight: '16rpx',
+    borderRadius: 'var(--weui-radius)',
+  },
+  // 水票商城入口行(右对齐链接)
+  ticketListHeader: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    paddingTop: '16rpx',
+    paddingRight: '32rpx',
+    paddingBottom: 0,
+    paddingLeft: '32rpx',
+  },
+  ticketShopLink: {
+    fontSize: '26rpx',
+    color: 'var(--weui-LINK)',
+  },
+  // 状态 Tab(白底下划线式)
+  ticketTabs: {
+    marginTop: '16rpx',
+  },
+  // ---- 票夹卡列表 ----
+  ticketList: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16rpx',
+    paddingTop: '16rpx',
+    paddingRight: '16rpx',
+    paddingBottom: 0,
+    paddingLeft: '16rpx',
+  },
+  ticketItem: {
+    backgroundColor: 'var(--weui-BG-2)',
+    borderRadius: 'var(--weui-radius)',
+    paddingTop: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: 0,
+    paddingLeft: '32rpx',
+    boxSizing: 'border-box',
+  },
+  // 卡头:票名(+赠标签)+ 状态标签
+  ticketItemHead: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: '16rpx',
+  },
+  ticketItemNameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '12rpx',
+    minWidth: 0,
+  },
+  ticketItemName: {
+    fontSize: '34rpx',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  // 规格 / 有效期说明行
+  ticketItemSpec: {
+    display: 'block',
+    marginTop: '12rpx',
+    fontSize: '26rpx',
+    lineHeight: 1.5,
+    color: 'var(--weui-FG-1)',
+  },
+  ticketItemExpire: {
+    display: 'block',
+    marginTop: '12rpx',
+    fontSize: '26rpx',
+    lineHeight: 1.5,
+    color: 'var(--weui-FG-1)',
+  },
+  // 票号行(等宽字体,长按复制)
+  ticketItemNoRow: {
+    marginTop: '24rpx',
+    paddingTop: '24rpx',
+    paddingRight: 0,
+    paddingBottom: '24rpx',
+    paddingLeft: 0,
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '16rpx',
+  },
+  ticketItemNoLabel: {
+    flexGrow: 0,
+    flexShrink: 0,
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-1)',
+  },
+  ticketItemNo: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    minWidth: 0,
+    fontSize: '26rpx',
+    fontFamily: 'Menlo, Monaco, monospace',
+    color: 'var(--weui-FG-0)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  ticketItemNoCopy: {
+    flexGrow: 0,
+    flexShrink: 0,
+    fontSize: '24rpx',
+    color: 'var(--weui-BRAND)',
+  },
+})
 const TicketListPage: React.FC = () => {
   usePageViewTracking()
 
@@ -106,10 +229,10 @@ const TicketListPage: React.FC = () => {
       loading={loading}
       error={error}
       onRetry={loadTickets}
-      className='ticket-list-page'
+      rootStyles={[pageTheme, styles.page]}
     >
       {/* 汇总(ticket-mine.html .mp-statgrid:可用张数/总张数/已核销) */}
-      <View className='weui-cells mt2 statgrid-wrap'>
+      <View {...props('weui-cells', 'mt2', styles.statgridWrap)}>
         <View className='mp-statgrid'>
           <View className='mp-statgrid__item'>
             <View className='mp-statgrid__num'>{availableCount}<Text className='unit'>张</Text></View>
@@ -127,16 +250,16 @@ const TicketListPage: React.FC = () => {
       </View>
 
       {/* 头部:水票商城入口 */}
-      <View className='ticket-list-header'>
-        <Text className='ticket-shop-link' onClick={goTicketShop}>水票商城 ›</Text>
+      <View {...stylex.props(styles.ticketListHeader)}>
+        <Text {...stylex.props(styles.ticketShopLink)} onClick={goTicketShop}>水票商城 ›</Text>
       </View>
 
       {/* 状态 Tab(coupon-mine.html .weui-tabs 下划线式) */}
-      <View className='weui-tabs ticket-tabs'>
+      <View {...props('weui-tabs', styles.ticketTabs)}>
         {TABS.map(tab => (
           <View
             key={tab.key}
-            className={`weui-tabs__item ${activeTab === tab.key ? 'on' : ''}`}
+            {...props('weui-tabs__item', activeTab === tab.key && 'on')}
             trackTarget='ticket-list-tab'
             trackElementType='tab'
             trackElementText={tab.label}
@@ -157,32 +280,32 @@ const TicketListPage: React.FC = () => {
         />
       ) : (
         /* 票夹卡(ticket-mine.html:白底圆角卡,票名 + 状态标签 + 规格/有效期/票号) */
-        <View className='ticket-list'>
+        <View {...stylex.props(styles.ticketList)}>
           {filtered.map(ticket => (
-            <View key={ticket.id} className='ticket-item'>
-              <View className='ticket-item-head'>
-                <View className='ticket-item-name-row'>
-                  <Text className='ticket-item-name'>{ticket.ticketTypeName}</Text>
+            <View key={ticket.id} {...stylex.props(styles.ticketItem)}>
+              <View {...stylex.props(styles.ticketItemHead)}>
+                <View {...stylex.props(styles.ticketItemNameRow)}>
+                  <Text {...stylex.props(styles.ticketItemName)}>{ticket.ticketTypeName}</Text>
                   {ticket.isGift && (
                     <Text className='weui-tag weui-tag--brand'>赠</Text>
                   )}
                 </View>
-                <Text className={`weui-tag weui-tag--md ${statusTagClass(ticket)}`}>
+                <Text {...props('weui-tag', 'weui-tag--md', statusTagClass(ticket))}>
                   {getTicketStatusLabel(ticket.status)}
                 </Text>
               </View>
               {ticket.specification && (
-                <Text className='ticket-item-spec'>规格限定:{ticket.specification}</Text>
+                <Text {...stylex.props(styles.ticketItemSpec)}>规格限定:{ticket.specification}</Text>
               )}
-              <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
+              <Text {...stylex.props(styles.ticketItemExpire)}>有效期至 {formatDateTime(ticket.expireTime)}</Text>
               {/* 水票唯一递增票号(长按复制,ticket-mine.html 票号行) */}
               <View
-                className='ticket-item-no-row hair-t'
+                {...props('hair-t', styles.ticketItemNoRow)}
                 onLongPress={() => copyTicketNo(ticket.ticketNo)}
               >
-                <Text className='ticket-item-no-label'>票号</Text>
-                <Text className='ticket-item-no'>{ticket.ticketNo}</Text>
-                <Text className='ticket-item-no-copy'>长按复制</Text>
+                <Text {...stylex.props(styles.ticketItemNoLabel)}>票号</Text>
+                <Text {...stylex.props(styles.ticketItemNo)}>{ticket.ticketNo}</Text>
+                <Text {...stylex.props(styles.ticketItemNoCopy)}>长按复制</Text>
               </View>
             </View>
           ))}

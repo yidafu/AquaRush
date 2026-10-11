@@ -9,7 +9,7 @@ interface ContentSectionProps {
 /** 分区标题(about.html .weui-cells__title)+ 分区内容插槽 */
 const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => {
   return (
-    <View className='about-section'>
+    <View>
       <View className='weui-cells__title'>{title}</View>
       {children}
     </View>

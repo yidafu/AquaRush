@@ -1,64 +1,58 @@
 /**
- * 设计 token 同步守卫:user-weapp theme.scss 的 --status-* 变量值必须与
- * @aquarush/common STATUS_TONE_COLORS 一致(标签颜色单一来源,spec/design/ui-design-system.md §2.2)。
- * 任何一端漂移都会在此测试失败。
+ * 设计 token 同步守卫(user-weapp 侧):theme.stylex.ts 的 pageTheme 状态色对
+ * (statusXxxFg/statusXxxBg)必须与 @aquarush/common STATUS_TONE_COLORS 一致
+ * (标签颜色单一来源,spec/design/ui-design-system.md §2.2)。
+ *
+ * 原实现守卫 theme.scss 的 --status-* 变量;StyleX 迁移后 theme.scss 已删除,
+ * 载体换成 pageTheme(源码文本解析 —— stylex 运行时不暴露主题值)。
+ * 共享层 tokens.stylex ↔ STATUS_TONE_COLORS 由 common 的 tokens.test.ts 守卫。
  */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from '@jest/globals'
 import { STATUS_TONE_COLORS } from '@aquarush/common'
 
-const themeScss = readFileSync(join(__dirname, 'theme.scss'), 'utf8')
+const themeStylexSource = readFileSync(join(__dirname, 'theme.stylex.ts'), 'utf8')
 
-/** 提取 --status-xxx: value; 映射 */
-const extractStatusVars = (): Record<string, string> => {
+/** 截取 pageTheme 主体(createTheme 花括号内),避免误匹配文件其它部分 */
+const pageThemeBody = (): string => {
+  const start = themeStylexSource.indexOf('export const pageTheme')
+  expect(start).toBeGreaterThan(-1)
+  const open = themeStylexSource.indexOf('{', start)
+  const close = themeStylexSource.lastIndexOf('}')
+  return themeStylexSource.slice(open, close)
+}
+
+/** 提取 statusXxxFg / statusXxxBg: value; 映射 */
+const extractStatusPairs = (): Record<string, string> => {
   const map: Record<string, string> = {}
-  const re = /--status-([a-z-]+):\s*([^;]+);/g
+  const body = pageThemeBody()
+  const re = /status([A-Za-z]+)(Fg|Bg):\s*'([^']+)'/g
   let m: RegExpExecArray | null
-  while ((m = re.exec(themeScss)) !== null) {
-    map[m[1]] = m[2].trim()
+  while ((m = re.exec(body)) !== null) {
+    map[`${m[1]}${m[2]}`] = m[3]
   }
   return map
 }
 
-describe('theme.scss --status-* 与 common STATUS_TONE_COLORS 同步', () => {
-  it('theme.scss 定义全部 --status-* 变量', () => {
-    const vars = extractStatusVars()
-    const expected = [
-      'pending-pay-text',
-      'pending-pay-bg',
-      'dispatch-text',
-      'dispatch-bg',
-      'delivering-text',
-      'delivering-bg',
-      'completed-text',
-      'completed-bg',
-      'cancelled-text',
-      'cancelled-bg',
-    ]
-    expected.forEach((name) => {
-      expect(vars[name]).toBeDefined()
+describe('pageTheme 状态色对与 common STATUS_TONE_COLORS 同步', () => {
+  it('pageTheme 定义全部 6 个 tone 的 Fg/Bg 色对', () => {
+    const vars = extractStatusPairs()
+    const tones = Object.keys(STATUS_TONE_COLORS)
+    expect(tones.length).toBeGreaterThan(0)
+    tones.forEach((tone) => {
+      const capitalized = tone[0].toUpperCase() + tone.slice(1)
+      expect(vars[`${capitalized}Fg`]).toBeDefined()
+      expect(vars[`${capitalized}Bg`]).toBeDefined()
     })
   })
 
   it('tone 色对与 common 逐值一致(§2.2)', () => {
-    const vars = extractStatusVars()
-    const cases: Array<[string, string, string]> = [
-      ['pending-pay-text', 'warning', 'text'],
-      ['pending-pay-bg', 'warning', 'bg'],
-      ['dispatch-text', 'info', 'text'],
-      ['dispatch-bg', 'info', 'bg'],
-      ['delivering-text', 'success', 'text'],
-      ['delivering-bg', 'success', 'bg'],
-      ['completed-text', 'neutral', 'text'],
-      ['completed-bg', 'neutral', 'bg'],
-      ['cancelled-text', 'error', 'text'],
-      ['cancelled-bg', 'error', 'bg'],
-    ]
-    cases.forEach(([varSuffix, tone, key]) => {
-      expect(vars[varSuffix]).toBe(
-        STATUS_TONE_COLORS[tone as keyof typeof STATUS_TONE_COLORS][key as 'text' | 'bg']
-      )
-    })
+    const vars = extractStatusPairs()
+    for (const [tone, pair] of Object.entries(STATUS_TONE_COLORS)) {
+      const capitalized = tone[0].toUpperCase() + tone.slice(1)
+      expect(vars[`${capitalized}Fg`]).toBe(pair.text)
+      expect(vars[`${capitalized}Bg`]).toBe(pair.bg)
+    }
   })
 })

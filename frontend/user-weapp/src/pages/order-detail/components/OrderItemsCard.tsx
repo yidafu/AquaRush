@@ -1,10 +1,11 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import type { CostRow } from '@aquarush/common'
 import OrderItemRow from '../../../components/OrderItemRow'
 import CostRowList from '../../../components/CostRowList'
 import type { OrderItem } from './constants'
-import './OrderItemsCard.scss'
 
 interface OrderItemsCardProps {
   items: OrderItem[]
@@ -16,20 +17,40 @@ interface OrderItemsCardProps {
  * 「商品清单 / 共 N 件」标题 + .weui-media-box 商品行 + 「金额明细」标题 + 费用行,
  * 营销优惠明细来自订单快照 —— R-MKT-02/07/08/09/10,由父组件 buildCostRows 组装)。
  * 商品行与费用明细行渲染分别复用共享 OrderItemRow / CostRowList。
+ *
+ * 样式:StyleX(原 OrderItemsCard.scss 迁移;750 基准 rpx,weui-* 类保留;
+ * 原后代选择器拍平到子元素;原 .weui-cells .order-item 底色与父级
+ * .weui-cells 的 var(--weui-BG-2) 同值属冗余,随 scss 删除;
+ * items-card 纯锚点无自有样式按死类删除)
  */
+const styles = stylex.create({
+  titleRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  titleExtra: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+  },
+  itemsEmpty: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+  },
+})
 const OrderItemsCard: React.FC<OrderItemsCardProps> = ({ items, costRows }) => {
   const safeItems = Array.isArray(items) ? items : []
   const totalQuantity = safeItems.reduce((sum, item) => sum + (item.quantity || 0), 0)
 
   return (
-    <View className='items-card'>
-      <View className='weui-cells__title title-row'>
+    <View>
+      <View {...props('weui-cells__title', styles.titleRow)}>
         <Text>商品清单</Text>
-        {safeItems.length > 0 && <Text className='title-extra'>共 {totalQuantity} 件</Text>}
+        {safeItems.length > 0 && <Text {...stylex.props(styles.titleExtra)}>共 {totalQuantity} 件</Text>}
       </View>
       <View className='weui-cells'>
         {safeItems.length === 0 ? (
-          <View className='weui-cell'><Text className='items-empty'>暂无商品信息</Text></View>
+          <View className='weui-cell'><Text {...stylex.props(styles.itemsEmpty)}>暂无商品信息</Text></View>
         ) : (
           safeItems.map((item, index) => (
             <OrderItemRow

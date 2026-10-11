@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import { authService, type UserInfo } from '../../utils/auth'
 import { userActionTracker } from '../../utils/tracking'
 import { validateProfileForm } from './utils/profileValidation'
@@ -9,8 +13,6 @@ import { validateProfileForm } from './utils/profileValidation'
 import ProfileHeader from './components/ProfileHeader'
 import BasicInfoForm from './components/BasicInfoForm'
 import AccountInfoSection from './components/AccountInfoSection'
-
-import './index.scss'
 
 interface ProfileFormData {
   nickname: string
@@ -23,7 +25,28 @@ const EMPTY_FORM: ProfileFormData = { nickname: '', phone: '', avatarUrl: '' }
 /**
  * 编辑资料页(profile-edit.html:WeUI 分组表单 cells)——
  * 页面仅保留用户信息加载/保存/校验编排,渲染由 components/ 完成。
+ *
+ * 样式:StyleX(原 index.scss 迁移,750 基准 rpx;weui- / 全局类保留)
  */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box',
+    paddingBottom: 'env(safe-area-inset-bottom)',
+  },
+  profileLoading: {
+    paddingTop: '40vh',
+  },
+  profileTip: {
+    paddingBottom: '48rpx',
+  },
+  // 轻提示(.weui-toast_text 深色胶囊;原后代选择器拍平到子元素)
+  toastText: {
+    color: tokens.onBrand,
+    wordBreak: 'break-all',
+  },
+})
 const ProfileEditPage: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [formData, setFormData] = useState<ProfileFormData>(EMPTY_FORM)
@@ -32,14 +55,13 @@ const ProfileEditPage: React.FC = () => {
   const [hasChanges, setHasChanges] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<boolean>(false)
   const [toastText, setToastText] = useState<string>('')
-  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
 
   const originalDataRef = useRef<Partial<UserInfo>>({})
 
-  const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+  // type 仅保留调用方语义(success / error / loading),样式变体类无定义不迁移
+  const showToastMessage = useCallback((text: string, _type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
     setToastText(text)
-    setToastType(type)
   }, [])
 
   const hideToast = useCallback(() => {
@@ -238,8 +260,8 @@ const ProfileEditPage: React.FC = () => {
 
   if (loading && !userInfo) {
     return (
-      <View className='profile-edit-page'>
-        <View className='weui-loadmore weui-loadmore_loading profile-loading'>
+      <View {...stylex.props(pageTheme, styles.page)}>
+        <View {...props('weui-loadmore', 'weui-loadmore_loading', styles.profileLoading)}>
           <View className='spinner' />
           <Text>加载中...</Text>
         </View>
@@ -248,7 +270,7 @@ const ProfileEditPage: React.FC = () => {
   }
 
   return (
-    <View className='profile-edit-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 顶部操作条(取消 / 保存) */}
       <ProfileHeader
         hasChanges={hasChanges}
@@ -271,7 +293,7 @@ const ProfileEditPage: React.FC = () => {
       {/* 其他信息（只读显示） */}
       <AccountInfoSection userInfo={userInfo} />
 
-      <View className='weui-cells__tips profile-tip'>
+      <View {...props('weui-cells__tips', styles.profileTip)}>
         点击头像可更换头像（相册 / 拍照）。
       </View>
 
@@ -280,8 +302,8 @@ const ProfileEditPage: React.FC = () => {
 
       {/* Toast 提示(.weui-toast_text 深色轻提示) */}
       {showToast && (
-        <View className={`profile-toast profile-toast--${toastType} weui-toast weui-toast_text`} onClick={hideToast}>
-          <Text className='weui-toast__text'>{toastText}</Text>
+        <View className='weui-toast weui-toast_text' onClick={hideToast}>
+          <Text {...props('weui-toast__text', styles.toastText)}>{toastText}</Text>
         </View>
       )}
     </View>

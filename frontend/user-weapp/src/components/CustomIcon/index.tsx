@@ -1,6 +1,30 @@
 import React from 'react'
 import { Image } from '@tarojs/components'
 import { AtIcon } from 'taro-ui'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+
+const styles = stylex.create({
+  image: {
+    display: 'inline-block',
+    verticalAlign: 'middle',
+    objectFit: 'contain',
+  },
+  fallback: {
+    borderRadius: '8rpx',
+    fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+    fontWeight: '700',
+    userSelect: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'var(--weui-BG-1)',
+    borderWidth: '1rpx',
+    borderStyle: 'dashed',
+    borderColor: 'var(--weui-FG-3)',
+    color: 'var(--weui-FG-2)',
+  },
+})
 
 interface CustomIconProps {
   value: string           // Icon identifier
@@ -52,12 +76,15 @@ const CustomIcon: React.FC<CustomIconProps> = ({
       return (
         <Image
           src={iconSrc}
-          className={`inline-block align-middle object-contain ${className || ''}`}
-          style={{
-            width: typeof size === 'number' ? `${size}px` : size,
-            height: typeof size === 'number' ? `${size}px` : size,
-            ...style
-          }}
+          {...props(styles.image, className)}
+          style={
+            {
+              // 动态值:stylex 不支持静态编译(size 为运行时 prop)
+              width: typeof size === 'number' ? `${size}px` : size,
+              height: typeof size === 'number' ? `${size}px` : size,
+              ...style
+            } as React.CSSProperties
+          }
           onClick={onClick}
           onError={handleError}
         />
@@ -67,16 +94,16 @@ const CustomIcon: React.FC<CustomIconProps> = ({
     default:
       return (
         <div
-          className={`rounded font-mono font-bold select-none cursor-default flex items-center justify-center ${className || ''}`}
-          style={{
-            width: typeof size === 'number' ? `${size}px` : size,
-            height: typeof size === 'number' ? `${size}px` : size,
-            backgroundColor: 'var(--bg)',
-            border: '1px dashed var(--border)',
-            color: 'var(--text-weak)',
-            fontSize: typeof size === 'number' ? `${size * 0.6}px` : '12px',
-            ...style
-          }}
+          {...props(styles.fallback, className)}
+          style={
+            {
+              // 动态值:stylex 不支持静态编译(size 为运行时 prop)
+              width: typeof size === 'number' ? `${size}px` : size,
+              height: typeof size === 'number' ? `${size}px` : size,
+              fontSize: typeof size === 'number' ? `${size * 0.6}px` : '12px',
+              ...style
+            } as React.CSSProperties
+          }
           onClick={onClick}
         >
           ?

@@ -12,13 +12,15 @@ import { displayCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
 import CustomIcon from '@/components/CustomIcon'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'
+import { pageTheme, gradientBox } from '../../styles/theme.stylex'
 
 // 子组件
 import HomeNoticeBar from './components/HomeNoticeBar'
 import AddressBar from './components/AddressBar'
 import CarouselSection from './components/CarouselSection'
-
-import './index.scss'
 
 /**
  * 首页(spec/design/user-weapp/01-product/home.html)
@@ -28,7 +30,130 @@ import './index.scss'
  * 数据:单次 GraphQL 请求聚合(规则 #10,HomeService.loadHomeData),
  *      最常买/更多商品合并为推荐产品网格(取前 6)。
  * 时效选择能力在 order-confirm 页,首页不再有时效卡(R-PRO-01 首屏 ≤3 信息)。
+ *
+ * 样式:StyleX(原 index.scss 迁移;750 基准 rpx,后代选择器拍平;
+ * hero 装饰圆与搜索放大镜柄原为伪元素,改为真实子节点)
  */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    paddingBottom: tokens.s5, // 原 var(--spacing-xl) = 24px
+  },
+  // ① 渐变 hero(渐变底由 gradientBox 提供)
+  hero: {
+    position: 'relative',
+    overflow: 'hidden',
+    paddingTop: '24rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '32rpx',
+    paddingLeft: '32rpx',
+    color: tokens.onBrand,
+  },
+  // 原型 hero 伪元素装饰圆(右上两个白色半透明圆)
+  heroCircleA: {
+    position: 'absolute',
+    right: '-80rpx',
+    top: '-60rpx',
+    width: '340rpx',
+    height: '340rpx',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
+  },
+  heroCircleB: {
+    position: 'absolute',
+    right: '80rpx',
+    top: '120rpx',
+    width: '180rpx',
+    height: '180rpx',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+  },
+  // 白底搜索框(weui 类自带底色/圆角/行高)
+  search: {
+    position: 'relative',
+    zIndex: 1,
+    marginTop: '20rpx',
+  },
+  searchPh: {
+    color: 'var(--weui-FG-2)',
+  },
+  // 搜索放大镜(weapp 无 svg,用 CSS 画:圆环 + 斜柄)
+  searchGlyph: {
+    position: 'relative',
+    width: '28rpx',
+    height: '28rpx',
+    borderWidth: '3rpx',
+    borderStyle: 'solid',
+    borderColor: 'var(--weui-FG-2)',
+    borderRadius: '50%',
+  },
+  searchGlyphHandle: {
+    position: 'absolute',
+    right: '-9rpx',
+    bottom: '-7rpx',
+    width: '12rpx',
+    height: '3rpx',
+    backgroundColor: 'var(--weui-FG-2)',
+    borderRadius: '2rpx',
+    transform: 'rotate(45deg)',
+  },
+  // ④ 快捷入口四宫格(weui-cells 包裹 + 上下 8px 内边距)
+  gridsCells: {
+    marginTop: '16rpx',
+    paddingTop: '8rpx',
+    paddingBottom: '8rpx',
+    backgroundColor: 'var(--weui-BG-2)',
+  },
+  // 四宫格图标 tint 底(CustomIcon 图标置入容器居中)
+  gridIcon: {
+    borderRadius: '50%',
+    backgroundColor: 'var(--weui-BRAND-100)',
+  },
+  // ⑤ 推荐产品两列网格
+  prodPriceCol: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    minWidth: '0',
+  },
+  prodPriceRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+  },
+  prodTagRow: {
+    marginTop: '8rpx',
+    display: 'flex',
+    alignItems: 'center',
+    rowGap: '8rpx',
+    columnGap: '8rpx',
+  },
+  // 封面:1:1 hack 容器内子元素绝对定位铺满
+  prodCoverImg: {
+    position: 'absolute',
+    left: '0',
+    top: '0',
+    width: '100%',
+    height: '100%',
+  },
+  // 无图占位:品牌 tint 底 + 商品名首字
+  prodCoverPlaceholder: {
+    position: 'absolute',
+    left: '0',
+    top: '0',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prodCoverPlaceholderText: {
+    fontSize: '64rpx',
+    fontWeight: 600,
+    color: 'var(--weui-BRAND-DARK)',
+  },
+})
 
 /** 快捷入口四宫格(order-list 为 tabBar 页,须 switchTab) */
 const QUICK_ENTRIES = [
@@ -198,8 +323,8 @@ const HomePage: React.FC = () => {
     const lowStock = product.stock <= LOW_STOCK_THRESHOLD
 
     return (
-      <View className='prod-price-col'>
-        <View className='prod-price-row'>
+      <View {...stylex.props(styles.prodPriceCol)}>
+        <View {...stylex.props(styles.prodPriceRow)}>
           <View className='weui-price weui-price--md'>
             <Text className='weui-price__symbol'>¥</Text>
             <Text className='weui-price__int'>{intPart}</Text>
@@ -210,7 +335,7 @@ const HomePage: React.FC = () => {
           )}
         </View>
         {(tag !== '' || lowStock) && (
-          <View className='prod-tag-row'>
+          <View {...stylex.props(styles.prodTagRow)}>
             {tag !== '' && <Text className='weui-tag weui-tag--brand'>{tag}</Text>}
             {lowStock && <Text className='weui-tag weui-tag--orange'>仅剩 {product.stock} 桶</Text>}
           </View>
@@ -220,19 +345,24 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <View className='home-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* ① 渐变 hero:定位行 + 白底搜索框(home.html .hero) */}
-      <View className='home-hero'>
+      <View {...stylex.props(gradientBox.gradient, styles.hero)}>
+        {/* 原 hero 伪元素装饰圆(右上两个白色半透明圆) */}
+        <View {...stylex.props(styles.heroCircleA)} />
+        <View {...stylex.props(styles.heroCircleB)} />
         <AddressBar
           addressText={addressText()}
           onAddressClick={handleAddressClick}
         />
         <View
-          className='weui-searchbar__box on-brand home-search'
+          {...props('weui-searchbar__box on-brand', styles.search)}
           onClick={handleSearchClick}
         >
-          <View className='search-glyph' />
-          <Text className='home-search__ph'>搜索「怡宝」「农夫山泉」</Text>
+          <View {...stylex.props(styles.searchGlyph)}>
+            <View {...stylex.props(styles.searchGlyphHandle)} />
+          </View>
+          <Text {...stylex.props(styles.searchPh)}>搜索「怡宝」「农夫山泉」</Text>
         </View>
       </View>
 
@@ -250,7 +380,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ④ 快捷入口四宫格(.weui-cells 包裹 + .weui-grids 官方四宫格) */}
-      <View className='weui-cells home-grids-cells'>
+      <View {...props('weui-cells', styles.gridsCells)}>
         <View className='weui-grids'>
           {QUICK_ENTRIES.map((entry) => (
             <View
@@ -261,7 +391,7 @@ const HomePage: React.FC = () => {
               trackElementText={entry.label}
               onClick={() => handleQuickEntry(entry.type)}
             >
-              <View className='weui-grid__icon'>
+              <View {...props('weui-grid__icon', styles.gridIcon)}>
                 <CustomIcon value={entry.icon} size={30} />
               </View>
               <Text className='weui-grid__label'>{entry.label}</Text>
@@ -311,12 +441,12 @@ const HomePage: React.FC = () => {
                   <Image
                     src={p.coverImageUrl}
                     mode='aspectFill'
-                    className='prod-cover-img'
+                    {...stylex.props(styles.prodCoverImg)}
                     lazyLoad
                   />
                 ) : (
-                  <View className='prod-cover-placeholder'>
-                    <Text>{p.name.slice(0, 1)}</Text>
+                  <View {...stylex.props(styles.prodCoverPlaceholder)}>
+                    <Text {...stylex.props(styles.prodCoverPlaceholderText)}>{p.name.slice(0, 1)}</Text>
                   </View>
                 )}
               </View>

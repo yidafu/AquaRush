@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import { OrderPreviewVo, buildCostRows, orderCostFromPreview } from '@aquarush/common'
 import CostRowList from '../../../components/CostRowList'
-import './CostSummary.scss'
 
 interface CostSummaryProps {
   /** 服务端计价预览(R-MON-01);null=计价未就绪 */
@@ -20,7 +21,22 @@ interface CostSummaryProps {
  * (设计稿 02-order/order-confirm.html「金额明细」)。
  * 行数据全部由 buildCostRows(preview) 派生:商品金额 / 水票抵扣(-¥x,桶数入标签)/
  * 满减或首单立减 / 优惠券 / 赠品(¥0.00) / 配送费 / 实付;计价失败/未就绪态内联展示。
+ *
+ * 样式:StyleX(原 CostSummary.scss 迁移;750 基准 rpx,weui-* 类保留;
+ * 原后代选择器拍平到子元素)
  */
+const styles = stylex.create({
+  costSection: {
+    marginTop: '8rpx',
+  },
+  costHint: {
+    color: 'var(--weui-FG-2)',
+  },
+  costErrorText: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-RED)',
+  },
+})
 const CostSummary: React.FC<CostSummaryProps> = ({
   preview,
   error,
@@ -30,12 +46,12 @@ const CostSummary: React.FC<CostSummaryProps> = ({
   const rows = preview ? buildCostRows(orderCostFromPreview(preview)) : []
 
   return (
-    <View className='cost-section'>
+    <View {...stylex.props(styles.costSection)}>
       <View className='weui-cells__title'>金额明细</View>
 
       {/* 计价刷新中(细条提示,不占独立区块) */}
       {preview && loading && !error && (
-        <View className='weui-cells__tips cost-hint'>
+        <View {...props('weui-cells__tips', styles.costHint)}>
           <Text>价格更新中…</Text>
         </View>
       )}
@@ -45,7 +61,7 @@ const CostSummary: React.FC<CostSummaryProps> = ({
         <View className='weui-cells'>
           <View className='weui-cell' onClick={onRetry}>
             <View className='weui-cell__bd'>计价失败</View>
-            <View className='weui-cell__ft cost-error-text'>{error}，点击重试</View>
+            <View {...props('weui-cell__ft', styles.costErrorText)}>{error}，点击重试</View>
           </View>
         </View>
       )}

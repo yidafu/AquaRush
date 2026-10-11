@@ -1,6 +1,9 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import FeedbackService from '../../services/FeedbackService'
 import { authService } from '../../utils/auth'
 import {
@@ -15,9 +18,89 @@ import StatusTag from '../../components/StatusTag'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import './index.scss'
-
 const PAGE_SIZE = 10
+
+/** 反馈记录样式(原 index.scss 迁移;750 基准 rpx,weui 平台变量保留字符串引用;原嵌套后代选择器拍平) */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box'
+  },
+  list: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16rpx',
+    paddingTop: '0',
+    paddingRight: '16rpx',
+    paddingBottom: '0',
+    paddingLeft: '16rpx'
+  },
+  // 面板内 media-box 纵向排布(feedback-records.html flex-direction:column)
+  record: {
+    flexDirection: 'column',
+    alignItems: 'stretch'
+  },
+  recordHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: '16rpx'
+  },
+  recordContent: {
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: 2,
+    overflow: 'hidden',
+    marginTop: '24rpx',
+    fontSize: '30rpx',
+    lineHeight: 1.6,
+    color: 'var(--weui-FG-0)'
+  },
+  recordImages: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    rowGap: '16rpx',
+    columnGap: '16rpx',
+    marginTop: '24rpx'
+  },
+  recordImage: {
+    display: 'block'
+  },
+  recordTime: {
+    marginTop: '24rpx',
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-2)'
+  },
+  // 处理结果内嵌块(浅灰底圆角,feedback-records.html 嵌套 .weui-cells 形态)
+  recordHandle: {
+    marginTop: '24rpx',
+    paddingTop: '24rpx',
+    paddingRight: '24rpx',
+    paddingBottom: '24rpx',
+    paddingLeft: '24rpx',
+    borderRadius: 'var(--weui-radius)',
+    backgroundColor: 'var(--weui-BG-1)'
+  },
+  handleTitle: {
+    paddingTop: '0',
+    paddingRight: '0',
+    paddingBottom: '12rpx',
+    paddingLeft: '0'
+  },
+  handleText: {
+    display: 'block',
+    fontSize: '26rpx',
+    lineHeight: 1.6,
+    color: 'var(--weui-FG-1)'
+  },
+  handledBy: {
+    display: 'block',
+    marginTop: '12rpx',
+    fontSize: '24rpx',
+    color: 'var(--weui-FG-2)'
+  }
+})
 
 /**
  * 我的-反馈记录(F-USR-005 处理结果回传,feedback-records.html)
@@ -106,18 +189,18 @@ const FeedbackRecordsPage: React.FC = () => {
       emptySubtitle='您的意见对我们很重要'
       emptyActionText='去反馈'
       onEmptyAction={handleGoFeedback}
-      className='feedback-records-page'
+      rootStyles={[pageTheme, styles.page]}
     >
       {/* 统计行 */}
       <View className='weui-cells__title'>共 {totalElements} 条反馈</View>
 
       {/* 记录列表(.weui-panel 块) */}
-      <View className='feedback-records-list'>
+      <View {...stylex.props(styles.list)}>
         {records.map(record => (
           <View key={record.id} className='weui-panel'>
             <View className='weui-panel__bd'>
-              <View className='weui-media-box feedback-record'>
-                <View className='feedback-record-header'>
+              <View {...props('weui-media-box', styles.record)}>
+                <View {...stylex.props(styles.recordHeader)}>
                   <Text className='weui-tag'>{getFeedbackTypeLabel(record.feedbackType)}</Text>
                   <StatusTag
                     tone={getStatusTone(FEEDBACK_STATUS_TONE, record.status)}
@@ -126,14 +209,14 @@ const FeedbackRecordsPage: React.FC = () => {
                   />
                 </View>
 
-                <Text className='feedback-record-content'>{record.content}</Text>
+                <Text {...stylex.props(styles.recordContent)}>{record.content}</Text>
 
                 {record.images && record.images.length > 0 && (
-                  <View className='feedback-record-images'>
+                  <View {...stylex.props(styles.recordImages)}>
                     {record.images.map((url, index) => (
                       <Image
                         key={index}
-                        className='weui-media-box__thumb weui-media-box__thumb--sm feedback-record-image'
+                        {...props('weui-media-box__thumb', 'weui-media-box__thumb--sm', styles.recordImage)}
                         src={url}
                         mode='aspectFill'
                         lazyLoad
@@ -142,14 +225,14 @@ const FeedbackRecordsPage: React.FC = () => {
                   </View>
                 )}
 
-                <Text className='feedback-record-time'>提交时间:{formatDateTime(record.createdAt)}</Text>
+                <Text {...stylex.props(styles.recordTime)}>提交时间:{formatDateTime(record.createdAt)}</Text>
 
                 {record.handleResult && (
-                  <View className='feedback-record-handle'>
-                    <View className='weui-cells__title feedback-record-handle-title'>处理结果</View>
-                    <Text className='feedback-record-handle-text'>{record.handleResult}</Text>
+                  <View {...stylex.props(styles.recordHandle)}>
+                    <View {...props('weui-cells__title', styles.handleTitle)}>处理结果</View>
+                    <Text {...stylex.props(styles.handleText)}>{record.handleResult}</Text>
                     {record.handledByName && (
-                      <Text className='feedback-record-handled-by'>
+                      <Text {...stylex.props(styles.handledBy)}>
                         {record.handledAt ? `${formatDateTime(record.handledAt)} · ` : ''}{record.handledByName} 处理
                       </Text>
                     )}

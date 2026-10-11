@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { View, Text, Input } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh, useShareAppMessage } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import ProductService from '../../services/ProductService'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
@@ -11,8 +13,6 @@ import ProductCard from './components/ProductCard'
 import SortBar from './components/SortBar'
 import type { ProductListItem } from './components/constants'
 
-import './index.scss'
-
 /**
  * 全部商品列表页(product-list.html:WeUI 搜索页)
  * 首页「更多商品 > 更多」入口(以及后续搜索入口)落地页。
@@ -21,7 +21,55 @@ import './index.scss'
  * - 分页:上拉加载更多(useReachBottom,.weui-loadmore),下拉刷新
  * - 促销价展示走 R-MKT-02 单价链(priceSource/effectivePriceCents,见 utils/productPrice)
  * 渲染由 components/ 完成。
+ *
+ * 样式:StyleX(原 index.scss 迁移,750 基准 rpx;weui- / mp- / 全局类保留)
  */
+
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box',
+  },
+  searchBarWrap: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 30,
+    backgroundColor: 'var(--weui-BG-2)',
+  },
+  searchIcon: {
+    width: '32rpx',
+    height: '32rpx',
+    flexGrow: 0,
+    flexShrink: 0,
+    borderWidth: '3rpx',
+    borderStyle: 'solid',
+    borderColor: 'var(--weui-FG-2)',
+    borderRadius: '50%',
+    position: 'relative',
+    '::after': {
+      content: '""',
+      position: 'absolute',
+      right: '-8rpx',
+      bottom: '-6rpx',
+      width: '12rpx',
+      height: '3rpx',
+      backgroundColor: 'var(--weui-FG-2)',
+      borderRadius: '2rpx',
+      transform: 'rotate(45deg)',
+    },
+  },
+  searchInput: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    minWidth: 0,
+    height: '48rpx',
+    lineHeight: '48rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-0)',
+  },
+})
 
 const PAGE_SIZE = 10
 
@@ -194,9 +242,9 @@ const ProductListPage: React.FC = () => {
   }, [])
 
   return (
-    <View className='product-list-page'>
+    <View {...stylex.props(pageTheme, styles.page)}>
       {/* 搜索栏(关键词过滤,服务端 activeProducts.keyword;product-list.html .weui-searchbar) */}
-      <View className='search-bar-wrap'>
+      <View {...stylex.props(styles.searchBarWrap)}>
         <View className='weui-searchbar'>
           <View
             className='weui-searchbar__box start'
@@ -204,9 +252,9 @@ const ProductListPage: React.FC = () => {
             trackElementType='input'
             trackElementText='搜索商品'
           >
-            <View className='search-icon' />
+            <View {...stylex.props(styles.searchIcon)} />
             <Input
-              className='search-input'
+              {...stylex.props(styles.searchInput)}
               value={keyword}
               onInput={(e) => setKeyword(e.detail.value)}
               onConfirm={handleSearch}

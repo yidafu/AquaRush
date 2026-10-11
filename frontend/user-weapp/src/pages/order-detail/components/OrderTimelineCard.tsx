@@ -1,11 +1,41 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
 import type { OrderTimeline } from './constants'
-import './OrderTimelineCard.scss'
 
 interface OrderTimelineCardProps {
   timeline: OrderTimeline[]
 }
+
+// 订单跟踪时间轴:WeUI cells 骨架由 weui.scss 提供,仅补事件行排版
+const styles = stylex.create({
+  timelineHead: {
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    columnGap: '24rpx',
+  },
+  timelineTitle: {
+    fontSize: 'var(--weui-fs-cell)',
+    fontWeight: 500,
+    color: 'var(--weui-FG-0)',
+  },
+  timelineTime: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: 'auto',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  timelineContent: {
+    display: 'block',
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-1)',
+    lineHeight: 1.5,
+  },
+})
 
 const toLines = (content?: string): string[] => {
   if (!content) return []
@@ -22,7 +52,7 @@ const OrderTimelineCard: React.FC<OrderTimelineCardProps> = ({ timeline }) => {
   }
 
   return (
-    <View className='timeline-card'>
+    <View>
       <View className='weui-cells__title'>订单跟踪</View>
       <View className='weui-cells'>
         {timeline.map((item, index) => {
@@ -30,14 +60,14 @@ const OrderTimelineCard: React.FC<OrderTimelineCardProps> = ({ timeline }) => {
           return (
             <View
               key={`${item.time}-${index}`}
-              className='weui-cell weui-cell_vertical timeline-item'
+              className='weui-cell weui-cell_vertical'
             >
-              <View className='timeline-head'>
-                <Text className='timeline-title'>{item.title || '状态更新'}</Text>
-                <Text className='timeline-time'>{item.time}</Text>
+              <View {...stylex.props(styles.timelineHead)}>
+                <Text {...stylex.props(styles.timelineTitle)}>{item.title || '状态更新'}</Text>
+                <Text {...stylex.props(styles.timelineTime)}>{item.time}</Text>
               </View>
               {lines.map((line, lineIndex) => (
-                <Text key={lineIndex} className='timeline-content'>{line}</Text>
+                <Text key={lineIndex} {...stylex.props(styles.timelineContent)}>{line}</Text>
               ))}
             </View>
           )

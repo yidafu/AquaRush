@@ -1,7 +1,8 @@
 import React from 'react'
 import { View, Text, Input } from '@tarojs/components'
+import { props } from '@aquarush/common/stylex'
 
-import './fields.scss'
+import { fieldStyles } from './fields.stylex'
 
 interface FloorFieldProps {
   value: string
@@ -17,7 +18,7 @@ const FloorField: React.FC<FloorFieldProps> = ({ value, error, onChange }) => {
   return (
     <>
       {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
-      <View className='weui-cell address-field-cell'>
+      <View className='weui-cell'>
         <View className='weui-cell__hd'>
           <View className='weui-label'>楼层</View>
         </View>
@@ -36,9 +37,9 @@ const FloorField: React.FC<FloorFieldProps> = ({ value, error, onChange }) => {
           />
         </View>
       </View>
-      <View className='weui-cells__tips field-tip'>配送费按楼层计算:免费楼层内免运费,超过免费楼层加收运费</View>
+      <View {...props('weui-cells__tips', fieldStyles.fieldTip)}>配送费按楼层计算:免费楼层内免运费,超过免费楼层加收运费</View>
       {error && (
-        <View className='field-error'>
+        <View {...props(fieldStyles.fieldError)}>
           <Text>{error}</Text>
         </View>
       )}

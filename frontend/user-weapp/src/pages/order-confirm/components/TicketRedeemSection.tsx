@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import './TicketRedeemSection.scss'
+import * as stylex from '@stylexjs/stylex'
 
 interface TicketRedeemSectionProps {
   /** 可用水票张数(preview.availableTicketCount) */
@@ -16,7 +16,26 @@ interface TicketRedeemSectionProps {
 /**
  * 水票抵扣选择(F-MKT-007,F-ORD-023)—— WeUI .weui-cells 单元格 + .weui-stepper
  * 步进器 0 ~ min(quantity, availableTicketCount);变化后由父级重新请求 orderPreview 计价。
+ *
+ * 样式:StyleX(原 TicketRedeemSection.scss 迁移;750 基准 rpx,weui-* 类保留;
+ * 原后代选择器拍平到子元素)
  */
+const styles = stylex.create({
+  ticketRedeemSection: {
+    marginTop: '8rpx',
+  },
+  ticketRedeemText: {
+    display: 'block',
+    fontSize: 'var(--weui-fs-cell)',
+    color: 'var(--weui-FG-0)',
+  },
+  ticketRedeemHint: {
+    display: 'block',
+    marginTop: '8rpx',
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-FG-2)',
+  },
+})
 const TicketRedeemSection: React.FC<TicketRedeemSectionProps> = ({
   availableTicketCount,
   quantity,
@@ -34,13 +53,13 @@ const TicketRedeemSection: React.FC<TicketRedeemSectionProps> = ({
   }
 
   return (
-    <View className='ticket-redeem-section'>
+    <View {...stylex.props(styles.ticketRedeemSection)}>
       <View className='weui-cells__title'>水票抵扣</View>
       <View className='weui-cells'>
         <View className='weui-cell'>
           <View className='weui-cell__bd'>
-            <Text className='ticket-redeem-text'>可用 {availableTicketCount} 张，最多核销 {max} 张</Text>
-            <Text className='ticket-redeem-hint'>每张水票抵扣 1 桶</Text>
+            <Text {...stylex.props(styles.ticketRedeemText)}>可用 {availableTicketCount} 张，最多核销 {max} 张</Text>
+            <Text {...stylex.props(styles.ticketRedeemHint)}>每张水票抵扣 1 桶</Text>
           </View>
           <View className='weui-cell__ft'>
             <View className='weui-stepper'>

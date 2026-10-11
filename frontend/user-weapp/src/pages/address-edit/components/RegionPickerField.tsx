@@ -1,8 +1,17 @@
 import React from 'react'
 import { View, Text, Picker } from '@tarojs/components'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
 import { Region } from '../../../types/region'
 
-import './RegionPickerField.scss'
+import { fieldStyles } from './fields.stylex'
+
+// 地区选择单元格(原 RegionPickerField.scss;长度保持 scss 来源 750 基准 rpx)
+const styles = stylex.create({
+  regionPlaceholder: {
+    color: 'var(--weui-FG-2)',
+  },
+})
 
 interface RegionPickerFieldProps {
   provinces: Region[]
@@ -61,29 +70,29 @@ const RegionPickerField: React.FC<RegionPickerFieldProps> = ({
           onChange={handlePickerChange}
           disabled={regionLoading}
         >
-          <View className='weui-cell address-field-cell'>
+          <View className='weui-cell'>
             <View className='weui-cell__hd'>
               <View className='weui-label weui-label--req'>所在地区</View>
             </View>
             <View className='weui-cell__bd' />
-            <View className={`weui-cell__ft weui-cell__ft_in-access ${getFullRegionText() ? '' : 'region-placeholder'}`}>
+            <View {...props('weui-cell__ft weui-cell__ft_in-access', !getFullRegionText() && styles.regionPlaceholder)}>
               <Text>{regionLoading ? '正在加载地区数据...' : (getFullRegionText() || '请选择省市区')}</Text>
             </View>
           </View>
         </Picker>
       ) : (
-        <View className='weui-cell address-field-cell'>
+        <View className='weui-cell'>
           <View className='weui-cell__hd'>
             <View className='weui-label weui-label--req'>所在地区</View>
           </View>
           <View className='weui-cell__bd' />
-          <View className='weui-cell__ft weui-cell__ft_in-access region-placeholder'>
+          <View {...props('weui-cell__ft weui-cell__ft_in-access', styles.regionPlaceholder)}>
             <Text>正在加载地区数据...</Text>
           </View>
         </View>
       )}
       {error && (
-        <View className='field-error'>
+        <View {...props(fieldStyles.fieldError)}>
           <Text>{error}</Text>
         </View>
       )}

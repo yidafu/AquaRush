@@ -1,6 +1,9 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import * as stylex from '@stylexjs/stylex'
+import { props } from '@aquarush/common/stylex'
+import { pageTheme } from '../../styles/theme.stylex'
 import TicketService from '../../services/TicketService'
 import { authService } from '../../utils/auth'
 import {
@@ -12,8 +15,6 @@ import {
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import './index.scss'
-
 // 单次购票张数上限(GraphQL input 与后端均限制 1~10)
 const MAX_PACKAGE_COUNT = 10
 
@@ -22,7 +23,145 @@ const MAX_PACKAGE_COUNT = 10
  * 在售票种套餐列表(购票即预收款项,一经购买不支持退款 R-MKT-08);
  * 支持选择购票张数 1~10(.weui-stepper,上限 min(10, 剩余限购)),一次购买按张数生成对应水票记录(每张唯一递增票号);
  * 当前支付为桩实现(requiresSimulation),真实微信支付待 SDK 接入。
+ *
+ * 样式:StyleX(原 index.scss 迁移,750 基准 rpx;weui- / mp- / hair-t 保留;
+ * 原后代选择器 .ticket-price-row .weui-btn 拍平到 buyBtn)
  */
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    backgroundColor: 'var(--weui-BG-0)',
+    boxSizing: 'border-box',
+  },
+  // ---- 头部:标题 + 我的水票入口 ----
+  ticketShopHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '16rpx',
+    paddingLeft: '32rpx',
+  },
+  ticketShopTitle: {
+    fontSize: '32rpx',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)',
+  },
+  ticketShopLink: {
+    fontSize: '26rpx',
+    color: 'var(--weui-LINK)',
+  },
+  // 通兑/限规格说明(圆角 brand notice;原 mp-pad-16 + padding-bottom:0 拍平)
+  noticeWrap: {
+    paddingTop: 0,
+    paddingRight: '32rpx',
+    paddingBottom: 0,
+    paddingLeft: '32rpx',
+  },
+  ticketNotice: {
+    borderRadius: 'var(--weui-radius)',
+    marginTop: '8rpx',
+    marginBottom: '8rpx',
+  },
+  ticketNoticeText: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  // ---- 票种卡列表(白底圆角卡) ----
+  ticketList: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16rpx',
+    paddingTop: '16rpx',
+    paddingRight: '16rpx',
+    paddingBottom: 0,
+    paddingLeft: '16rpx',
+  },
+  ticketCard: {
+    backgroundColor: 'var(--weui-BG-2)',
+    borderRadius: 'var(--weui-radius)',
+    paddingTop: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '32rpx',
+    paddingLeft: '32rpx',
+    boxSizing: 'border-box',
+  },
+  // 标题行:票种名 + 策略标签
+  ticketTitleRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    columnGap: '16rpx',
+  },
+  ticketName: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    minWidth: 0,
+    fontSize: '34rpx',
+    fontWeight: 600,
+    color: 'var(--weui-FG-0)',
+    lineHeight: 1.4,
+  },
+  ticketTags: {
+    flexGrow: 0,
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '8rpx',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  // 说明行:有效期 / 限购
+  ticketMeta: {
+    marginTop: '16rpx',
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '8rpx',
+  },
+  ticketMetaLine: {
+    fontSize: '26rpx',
+    lineHeight: 1.5,
+    color: 'var(--weui-FG-1)',
+  },
+  // 价格行:套餐价(金额红)+ 立即购买(品牌蓝)
+  ticketPriceRow: {
+    marginTop: '32rpx',
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    columnGap: '24rpx',
+  },
+  buyBtn: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minWidth: '200rpx',
+  },
+  // 购票张数行(.weui-stepper,发丝顶线)
+  ticketQuantityRow: {
+    marginTop: '32rpx',
+    paddingTop: '24rpx',
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '24rpx',
+  },
+  ticketQuantityLabel: {
+    fontSize: '26rpx',
+    color: 'var(--weui-FG-1)',
+  },
+  ticketQuantityTotal: {
+    marginLeft: 'auto',
+    fontSize: '26rpx',
+    fontWeight: 500,
+    color: 'var(--weui-FG-0)',
+  },
+})
 const TicketShopPage: React.FC = () => {
   usePageViewTracking()
 
@@ -173,13 +312,13 @@ const TicketShopPage: React.FC = () => {
       empty={ticketTypes.length === 0 && !loading}
       emptyTitle='暂无在售水票'
       emptySubtitle='敬请期待更多水票套餐'
-      className='ticket-shop-page'
+      rootStyles={[pageTheme, styles.page]}
     >
       {/* 头部:标题 + 我的水票入口 */}
-      <View className='ticket-shop-header'>
-        <Text className='ticket-shop-title'>水票商城</Text>
+      <View {...stylex.props(styles.ticketShopHeader)}>
+        <Text {...stylex.props(styles.ticketShopTitle)}>水票商城</Text>
         <Text
-          className='ticket-shop-link'
+          {...stylex.props(styles.ticketShopLink)}
           trackTarget='ticket-shop-mine'
           trackElementType='link'
           trackElementText='我的水票'
@@ -190,14 +329,14 @@ const TicketShopPage: React.FC = () => {
       </View>
 
       {/* 通兑/限规格说明(ticket-mall.html .weui-notice--brand) */}
-      <View className='mp-pad-16 notice-wrap'>
-        <View className='weui-notice weui-notice--brand ticket-notice'>
-          <Text className='ticket-notice-text'>通兑票按规格限定,跨容量不通用;票号可在我的水票查看</Text>
+      <View {...stylex.props(styles.noticeWrap)}>
+        <View {...props('weui-notice', 'weui-notice--brand', styles.ticketNotice)}>
+          <Text {...stylex.props(styles.ticketNoticeText)}>通兑票按规格限定,跨容量不通用;票号可在我的水票查看</Text>
         </View>
       </View>
 
       {/* 水票套餐列表(票种卡:名称+策略标签 / 适用规格 / 有效期 / 限购 / 价格+购买) */}
-      <View className='ticket-list'>
+      <View {...stylex.props(styles.ticketList)}>
         {ticketTypes.map(ticketType => {
           const limitReached = isLimitReached(ticketType)
           const count = quantityOf(ticketType)
@@ -205,11 +344,11 @@ const TicketShopPage: React.FC = () => {
           const totalCents = normalizeCents(ticketType.packagePriceCents) * count
           const [intPart, decPart = '00'] = displayCents(normalizeCents(ticketType.packagePriceCents)).split('.')
           return (
-            <View key={ticketType.id} className='ticket-card'>
+            <View key={ticketType.id} {...stylex.props(styles.ticketCard)}>
               {/* 标题行:票种名 + 策略标签(G97:买N送M .weui-tag--red) */}
-              <View className='ticket-title-row'>
-                <Text className='ticket-name'>{ticketType.name}</Text>
-                <View className='ticket-tags'>
+              <View {...stylex.props(styles.ticketTitleRow)}>
+                <Text {...stylex.props(styles.ticketName)}>{ticketType.name}</Text>
+                <View {...stylex.props(styles.ticketTags)}>
                   {ticketType.giftCount > 0 && (
                     <Text className='weui-tag weui-tag--red weui-tag--md'>买 {ticketType.packageCount} 送 {ticketType.giftCount}</Text>
                   )}
@@ -220,9 +359,9 @@ const TicketShopPage: React.FC = () => {
               </View>
 
               {/* 说明行:有效期 / 限购 */}
-              <View className='ticket-meta'>
-                <Text className='ticket-meta-line'>有效期:{getValidityText(ticketType)}</Text>
-                <Text className='ticket-meta-line'>
+              <View {...stylex.props(styles.ticketMeta)}>
+                <Text {...stylex.props(styles.ticketMetaLine)}>有效期:{getValidityText(ticketType)}</Text>
+                <Text {...stylex.props(styles.ticketMetaLine)}>
                   {ticketType.perUserLimit === 0
                     ? '限购:不限'
                     : `限购:每人 ${ticketType.perUserLimit} 份(已购 ${ticketType.myPurchasedCount})`}
@@ -230,7 +369,7 @@ const TicketShopPage: React.FC = () => {
               </View>
 
               {/* 价格行:套餐价 + 立即购买 */}
-              <View className='ticket-price-row'>
+              <View {...stylex.props(styles.ticketPriceRow)}>
                 <View className='weui-price weui-price--lg'>
                   <Text className='weui-price__symbol'>¥</Text>
                   <Text className='weui-price__int'>{intPart}</Text>
@@ -245,31 +384,37 @@ const TicketShopPage: React.FC = () => {
                   onClick={() => {
                     if (!limitReached && purchasingId !== ticketType.id) handlePurchase(ticketType)
                   }}
-                  className={`weui-btn weui-btn_mini weui-btn_primary ${limitReached || purchasingId === ticketType.id ? 'weui-btn_disabled' : ''}`}
+                  {...props(
+                    styles.buyBtn,
+                    'weui-btn',
+                    'weui-btn_mini',
+                    'weui-btn_primary',
+                    (limitReached || purchasingId === ticketType.id) && 'weui-btn_disabled'
+                  )}
                 >
                   {purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '立即购买'}
                 </View>
               </View>
 
               {/* 购票张数选择(1~10,.weui-stepper,一次购买按张数生成对应水票记录) */}
-              <View className='ticket-quantity-row hair-t'>
-                <Text className='ticket-quantity-label'>购票张数</Text>
+              <View {...props('hair-t', styles.ticketQuantityRow)}>
+                <Text {...stylex.props(styles.ticketQuantityLabel)}>购票张数</Text>
                 <View className='weui-stepper'>
                   <View
-                    className={`weui-stepper__btn ${count <= 1 ? 'disabled' : ''}`}
+                    {...props('weui-stepper__btn', count <= 1 && 'disabled')}
                     onClick={() => changeQuantity(ticketType, -1)}
                   >
                     <Text>−</Text>
                   </View>
                   <Text className='weui-stepper__num'>{count}</Text>
                   <View
-                    className={`weui-stepper__btn ${count >= max ? 'disabled' : ''}`}
+                    {...props('weui-stepper__btn', count >= max && 'disabled')}
                     onClick={() => changeQuantity(ticketType, 1)}
                   >
                     <Text>+</Text>
                   </View>
                 </View>
-                <Text className='ticket-quantity-total'>合计 {displayCents(totalCents)}</Text>
+                <Text {...stylex.props(styles.ticketQuantityTotal)}>合计 {displayCents(totalCents)}</Text>
               </View>
             </View>
           )
