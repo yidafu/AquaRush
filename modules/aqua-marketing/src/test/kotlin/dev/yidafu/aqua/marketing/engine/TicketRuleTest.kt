@@ -90,11 +90,12 @@ class TicketRuleTest :
     fun ticket(
       id: Long,
       expire: LocalDateTime = now.plusDays(10),
+      typeId: Long = 1L,
     ): UserTicketModel =
       UserTicketModel(
         id = id,
         userId = 1L,
-        ticketTypeId = 1L,
+        ticketTypeId = typeId,
         purchaseId = 1L,
         status = UserTicketStatus.UNUSED,
         expireTime = expire,
@@ -105,6 +106,8 @@ class TicketRuleTest :
       ticketQueryApiService = mockk()
       userTicketRepository = mockk()
       ticketTypeRepository = mockk()
+      // 默认无待激活票(具体用例覆盖);G97 复购激活门禁
+      every { ticketQueryApiService.findPendingActivationIds(any(), any()) } returns emptySet()
       rule = TicketRule(ticketQueryApiService, userTicketRepository, ticketTypeRepository)
     }
     test("redeems earliest expiring first") {
@@ -177,5 +180,146 @@ class TicketRuleTest :
 
       s.ticketRedeemCount shouldBe 2
       verify(exactly = 2) { userTicketRepository.redeemAtomically(any(), any(), any(), any()) }
+    }
+    test("pending activation ticket rejected on explicit redeem") {
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(ticket(1L))
+      every { ticketQueryApiService.findPendingActivationIds(1L, any()) } returns setOf(1L)
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "激活票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            activationOrderCount = 1,
+          ),
+        )
+
+      val error =
+        shouldThrow<BadRequestException> {
+          rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 1), state())
+        }
+      error.message shouldBe "水票待激活:需完成复购后方可核销"
+    }
+    test("activated tickets redeem while pending excluded from pool") {
+      val pending = ticket(1L)
+      val activated = ticket(2L)
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(pending, activated)
+      every { ticketQueryApiService.findPendingActivationIds(1L, any()) } returns setOf(1L)
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "激活票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            activationOrderCount = 1,
+          ),
+        )
+
+      val s = state()
+      rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 1), s)
+
+      s.ticketRedeemCount shouldBe 1
+      s.availableTicketCount shouldBe 1
+    }
+    test("request within activation pool does not throw when pending exist") {
+      val activated = ticket(1L)
+      val pending = ticket(2L)
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(activated, pending)
+      every { ticketQueryApiService.findPendingActivationIds(1L, any()) } returns setOf(2L)
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "激活票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            activationOrderCount = 1,
+          ),
+        )
+
+      val s = state()
+      rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 1), s)
+
+      s.ticketRedeemCount shouldBe 1
+    }
+    test("per-type redeem cap rejects request above cap") {
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(ticket(1L), ticket(2L), ticket(3L))
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "限次票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            maxRedeemPerOrder = 2,
+          ),
+        )
+
+      val error =
+        shouldThrow<BadRequestException> {
+          rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 3), state())
+        }
+      error.message shouldBe "超出单次核销上限:单笔订单最多可核销 2 张水票"
+    }
+    test("per-type redeem cap truncates pool to cap") {
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(ticket(1L), ticket(2L), ticket(3L))
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "限次票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            maxRedeemPerOrder = 2,
+          ),
+        )
+
+      val s = state()
+      rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 2), s)
+
+      s.ticketRedeemCount shouldBe 2
+      s.availableTicketCount shouldBe 2
+    }
+    test("cap applies per ticket type across mixed pools") {
+      every { ticketQueryApiService.findUsableTickets(1L) } returns
+        listOf(ticket(1L), ticket(2L), ticket(3L, typeId = 2L))
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(
+          TicketTypeModel(
+            id = 1L,
+            name = "限次票",
+            ticketType = TicketTypeKind.UNIVERSAL,
+            specification = "19L",
+            maxRedeemPerOrder = 1,
+          ),
+        )
+      every { ticketTypeRepository.findById(2L) } returns
+        Optional.of(TicketTypeModel(id = 2L, name = "通兑2", ticketType = TicketTypeKind.UNIVERSAL, specification = "19L"))
+
+      // 票种1 截断至 1 张 + 票种2 不限 1 张 = 池 2;请求 3 超过截断池且上限确为瓶颈 → 拒
+      val error =
+        shouldThrow<BadRequestException> {
+          rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 3), state())
+        }
+      error.message shouldBe "超出单次核销上限:单笔订单最多可核销 2 张水票"
+
+      // 请求 2 = 池上限:正常核销,可用数按票种截断后为 2
+      val s = state()
+      rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 2), s)
+      s.ticketRedeemCount shouldBe 2
+      s.availableTicketCount shouldBe 2
+    }
+    test("plain insufficiency still truncates silently without cap") {
+      every { ticketQueryApiService.findUsableTickets(1L) } returns listOf(ticket(1L))
+      every { ticketTypeRepository.findById(1L) } returns
+        Optional.of(TicketTypeModel(id = 1L, name = "通兑", ticketType = TicketTypeKind.UNIVERSAL, specification = "19L"))
+
+      val s = state()
+      rule.evaluate(ctx(quantity = 5, ticketRedeemCount = 3), s)
+
+      s.ticketRedeemCount shouldBe 1
+      s.availableTicketCount shouldBe 1
     }
   })

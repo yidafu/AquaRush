@@ -20,9 +20,11 @@
 package dev.yidafu.aqua.marketing.ticket.service.impl
 
 import dev.yidafu.aqua.api.dto.PurchaseTicketsRequest
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
@@ -51,6 +53,7 @@ class TicketMutationApiServiceImplTest :
     var ticketTypeRepository: TicketTypeRepository = mockk()
     var ticketPurchaseRepository: TicketPurchaseRepository = mockk()
     var userTicketRepository: UserTicketRepository = mockk()
+    var orderQueryApiService: OrderQueryApiService = mockk()
     var bizLogger: BizLogger = mockk()
     var service: TicketMutationApiServiceImpl = mockk()
 
@@ -60,6 +63,8 @@ class TicketMutationApiServiceImplTest :
       specification: String? = "19L",
       perUserLimit: Int = 0,
       giftCount: Int = 0,
+      isLeadGeneration: Boolean = false,
+      activationOrderCount: Int? = null,
     ): TicketTypeModel =
       TicketTypeModel(
         id = id,
@@ -74,6 +79,8 @@ class TicketMutationApiServiceImplTest :
         validFrom = LocalDateTime.now().minusDays(1),
         validTo = LocalDateTime.now().plusDays(365),
         perUserLimit = perUserLimit,
+        isLeadGeneration = isLeadGeneration,
+        activationOrderCount = activationOrderCount,
         status = TicketTypeStatus.ACTIVE,
       )
 
@@ -81,8 +88,19 @@ class TicketMutationApiServiceImplTest :
       ticketTypeRepository = mockk()
       ticketPurchaseRepository = mockk()
       userTicketRepository = mockk()
+      orderQueryApiService = mockk()
       bizLogger = mockk(relaxed = true)
-      service = TicketMutationApiServiceImpl(ticketTypeRepository, ticketPurchaseRepository, userTicketRepository, bizLogger)
+      // 默认:非新用户判定按用例覆盖;未启用复购激活时不触发订单数查询
+      every { orderQueryApiService.hasCompletedOrders(any()) } returns false
+      every { orderQueryApiService.countByUserIdGroupByStatus(any()) } returns emptyMap()
+      service =
+        TicketMutationApiServiceImpl(
+          ticketTypeRepository,
+          ticketPurchaseRepository,
+          userTicketRepository,
+          orderQueryApiService,
+          bizLogger,
+        )
     }
     test("purchaseTickets creates pending purchase") {
       every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(perUserLimit = 20))
@@ -193,5 +211,46 @@ class TicketMutationApiServiceImplTest :
       val returned = service.returnTicketsByOrder(99L)
 
       returned shouldBe 3
+    }
+    test("lead generation ticket rejected for user with completed orders") {
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(isLeadGeneration = true))
+      every { orderQueryApiService.hasCompletedOrders(1L) } returns true
+
+      val error =
+        shouldThrow<IllegalArgumentException> {
+          service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 1))
+        }
+      error.message shouldBe "引流票仅限新用户(无已完成订单)购买"
+      verify(exactly = 0) { ticketPurchaseRepository.save(any()) }
+    }
+    test("lead generation ticket purchasable by new user") {
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(isLeadGeneration = true))
+      every { orderQueryApiService.hasCompletedOrders(1L) } returns false
+      every { ticketPurchaseRepository.save(any()) } answers { firstArg() }
+
+      val purchase = service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 1))
+
+      purchase.paymentStatus shouldBe TicketPurchaseStatus.PENDING
+      purchase.completedOrdersAtPurchase shouldBe null
+    }
+    test("activation enabled purchase records completed orders baseline") {
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(activationOrderCount = 2))
+      every { orderQueryApiService.countByUserIdGroupByStatus(1L) } returns mapOf(OrderModelStatus.COMPLETED to 3L)
+      val purchaseSlot = slot<TicketPurchaseModel>()
+      every { ticketPurchaseRepository.save(capture(purchaseSlot)) } answers { firstArg() }
+
+      service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 1))
+
+      purchaseSlot.captured.completedOrdersAtPurchase shouldBe 3
+    }
+    test("activation disabled purchase keeps baseline null") {
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType())
+      val purchaseSlot = slot<TicketPurchaseModel>()
+      every { ticketPurchaseRepository.save(capture(purchaseSlot)) } answers { firstArg() }
+
+      service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 1))
+
+      purchaseSlot.captured.completedOrdersAtPurchase shouldBe null
+      verify(exactly = 0) { orderQueryApiService.countByUserIdGroupByStatus(any()) }
     }
   })

@@ -181,7 +181,7 @@ object UserCouponsTable : SoftDeletableTable("user_coupons") {
   override val primaryKey = PrimaryKey(id)
 }
 
-/** 购桶票订单表(`ticket_purchases`,marketing 域,16 列)。 */
+/** 购桶票订单表(`ticket_purchases`,marketing 域,17 列)。 */
 object TicketPurchasesTable : SoftDeletableTable("ticket_purchases") {
   val id = long("id")
   val userId = long("user_id")
@@ -194,6 +194,9 @@ object TicketPurchasesTable : SoftDeletableTable("ticket_purchases") {
   val paymentStatus = varchar("payment_status", 30)
   val transactionId = varchar("transaction_id", 64).nullable()
   val paidAt = datetime("paid_at").nullable()
+
+  // G97 复购激活基线(V348):购票时刻已完成订单数,NULL=该单不参与激活判定
+  val completedOrdersAtPurchase = integer("completed_orders_at_purchase").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)

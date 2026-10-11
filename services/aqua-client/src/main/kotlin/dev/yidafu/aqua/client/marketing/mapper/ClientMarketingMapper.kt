@@ -201,14 +201,19 @@ fun TicketTypeModel.toGraphQL(myPurchasedCount: Int): TicketTypeVo =
     validDays = validDays,
     perUserLimit = perUserLimit,
     myPurchasedCount = myPurchasedCount,
+    isLeadGeneration = isLeadGeneration,
+    activationOrderCount = activationOrderCount,
   )
 
 /**
- * 我的水票 → UserTicketVO(票种名称/通兑票限定规格取自票种,由服务端查询注入)
+ * 我的水票 → UserTicketVO(票种名称/通兑票限定规格取自票种,由服务端查询注入;
+ * pendingActivation/activationOrderCount 为 G97 复购激活展示态,由服务端判定注入)
  */
 fun UserTicketModel.toGraphQL(
   ticketTypeName: String,
   specification: String?,
+  pendingActivation: Boolean,
+  activationOrderCount: Int?,
 ): UserTicketVo =
   UserTicketVo(
     id = id ?: 0L,
@@ -218,6 +223,8 @@ fun UserTicketModel.toGraphQL(
     status = status.toGraphQL(),
     expireTime = expireTime,
     isGift = isGift,
+    pendingActivation = pendingActivation,
+    activationOrderCount = activationOrderCount,
   )
 
 /**

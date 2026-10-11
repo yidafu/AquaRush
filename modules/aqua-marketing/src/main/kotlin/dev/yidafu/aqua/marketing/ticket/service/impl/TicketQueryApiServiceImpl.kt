@@ -20,9 +20,11 @@
 package dev.yidafu.aqua.marketing.ticket.service.impl
 
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
@@ -41,6 +43,7 @@ class TicketQueryApiServiceImpl(
   private val ticketTypeRepository: TicketTypeRepository,
   private val userTicketRepository: UserTicketRepository,
   private val ticketPurchaseRepository: TicketPurchaseRepository,
+  private val orderQueryApiService: OrderQueryApiService,
 ) : TicketQueryApiService {
   override fun findActiveTicketTypes(): List<TicketTypeModel> = ticketTypeRepository.findByStatus(TicketTypeStatus.ACTIVE)
 
@@ -59,6 +62,48 @@ class TicketQueryApiServiceImpl(
     return userTicketRepository
       .findByUserIdAndStatusIn(userId, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED))
       .filter { it.expireTime.isAfter(now) }
+  }
+
+  /**
+   * G97 复购激活待激活判定(R-MKT-08 运营策略):
+   * 仅 UNUSED/RETURNED 且未过期的票可能待激活;购票单落了基线且票种当前启用激活才参与判定;
+   * 口径 = 当前已完成订单数 − 基线 < activation_order_count → 待激活(条件满足即自动可用,无需手动激活)。
+   * 无基线候选时短路,不查订单数。
+   */
+  override fun findPendingActivationIds(
+    userId: Long,
+    tickets: List<UserTicketModel>,
+  ): Set<Long> {
+    if (tickets.isEmpty()) return emptySet()
+    val now = LocalDateTime.now()
+    val candidates =
+      tickets.filter {
+        (it.status == UserTicketStatus.UNUSED || it.status == UserTicketStatus.RETURNED) && it.expireTime.isAfter(now)
+      }
+    if (candidates.isEmpty()) return emptySet()
+    val purchaseById = ticketPurchaseRepository.findByIds(candidates.map { it.purchaseId }.distinct()).associateBy { it.id!! }
+    val gated =
+      candidates.filter { ticket ->
+        val purchase = purchaseById[ticket.purchaseId] ?: return@filter false
+        purchase.completedOrdersAtPurchase != null
+      }
+    if (gated.isEmpty()) return emptySet()
+    val typeById = ticketTypeRepository.findAllById(gated.map { it.ticketTypeId }.distinct()).associateBy { it.id!! }
+    // 类型层短路:票种未启用复购激活(配置变更不影响已购票 R-MKT-08)→ 不查订单数
+    val activationEnabled =
+      gated.filter { ticket ->
+        val required = typeById[ticket.ticketTypeId]?.activationOrderCount
+        required != null && required > 0
+      }
+    if (activationEnabled.isEmpty()) return emptySet()
+    val completed = orderQueryApiService.countByUserIdGroupByStatus(userId)[OrderModelStatus.COMPLETED] ?: 0L
+    return activationEnabled
+      .filter { ticket ->
+        val required = typeById[ticket.ticketTypeId]!!.activationOrderCount!!
+        val baseline = purchaseById[ticket.purchaseId]!!.completedOrdersAtPurchase!!
+        completed - baseline < required
+      }.mapNotNull { it.id }
+      .toSet()
   }
 
   /**

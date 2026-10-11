@@ -186,4 +186,34 @@ class TicketPurchaseRepositoryImplTest :
         )
       repo.markPaidAtomically(gone, "wx", now) shouldBe 0
     }
+
+    test("findByIds 批量回读复购激活基线(G97)") {
+      repo.findByIds(emptyList()) shouldBe emptyList()
+      val a =
+        repo.save(
+          TicketPurchaseModel(
+            userId = 100L,
+            ticketTypeId = 1L,
+            orderNo = "TK-BASE-A",
+            totalCount = 10,
+            packagePriceCents = 1000L,
+            completedOrdersAtPurchase = 5,
+          ),
+        )
+      val b =
+        repo.save(
+          TicketPurchaseModel(
+            userId = 100L,
+            ticketTypeId = 1L,
+            orderNo = "TK-BASE-B",
+            totalCount = 10,
+            packagePriceCents = 1000L,
+            completedOrdersAtPurchase = null,
+          ),
+        )
+
+      val loaded = repo.findByIds(listOf(a.id!!, b.id!!)).associateBy { it.id }
+      loaded[a.id]?.completedOrdersAtPurchase shouldBe 5
+      loaded[b.id]?.completedOrdersAtPurchase shouldBe null
+    }
   })

@@ -155,7 +155,7 @@ object FirstOrderActivitiesTable : SoftDeletableTable("first_order_activities") 
   override val primaryKey = PrimaryKey(id)
 }
 
-/** 桶水票票种表(`ticket_types`,19 列)。 */
+/** 桶水票票种表(`ticket_types`,22 列)。 */
 object TicketTypesTable : SoftDeletableTable("ticket_types") {
   val id = long("id")
   val name = varchar("name", 100)
@@ -170,6 +170,11 @@ object TicketTypesTable : SoftDeletableTable("ticket_types") {
   val validTo = datetime("valid_to").nullable()
   val validDays = integer("valid_days").nullable()
   val perUserLimit = integer("per_user_limit").default(0)
+
+  // G97 运营策略(V348,R-MKT-08 修订):引流票标记 / 复购激活单数(NULL=关) / 单次核销上限(NULL=不限)
+  val isLeadGeneration = bool("is_lead_generation").default(false)
+  val activationOrderCount = integer("activation_order_count").nullable()
+  val maxRedeemPerOrder = integer("max_redeem_per_order").nullable()
   val status = varchar("status", 30)
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")

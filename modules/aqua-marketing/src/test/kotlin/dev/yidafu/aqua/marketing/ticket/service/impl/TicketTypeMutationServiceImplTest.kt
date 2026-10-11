@@ -190,4 +190,66 @@ class TicketTypeMutationServiceImplTest :
         service.disableTicketType(1L, "admin", 99L)
       }
     }
+    test("createTicketType persists operation strategy fields") {
+      every { ticketTypeRepository.save(any()) } answers { (firstArg() as TicketTypeModel).apply { id = 1L } }
+
+      val saved =
+        service.createTicketType(
+          1L,
+          "admin",
+          createRequest().copy(isLeadGeneration = true, activationOrderCount = 2, maxRedeemPerOrder = 3),
+        )
+
+      saved.isLeadGeneration shouldBe true
+      saved.activationOrderCount shouldBe 2
+      saved.maxRedeemPerOrder shouldBe 3
+    }
+    test("createTicketType normalizes zero strategy values to disabled") {
+      every { ticketTypeRepository.save(any()) } answers { (firstArg() as TicketTypeModel).apply { id = 1L } }
+
+      val saved =
+        service.createTicketType(
+          1L,
+          "admin",
+          createRequest().copy(isLeadGeneration = false, activationOrderCount = 0, maxRedeemPerOrder = 0),
+        )
+
+      saved.isLeadGeneration shouldBe false
+      saved.activationOrderCount shouldBe null
+      saved.maxRedeemPerOrder shouldBe null
+    }
+    test("createTicketType rejects out-of-range strategy values") {
+      shouldThrow<IllegalArgumentException> {
+        service.createTicketType(1L, "admin", createRequest().copy(activationOrderCount = -1))
+      }
+      shouldThrow<IllegalArgumentException> {
+        service.createTicketType(1L, "admin", createRequest().copy(maxRedeemPerOrder = 101))
+      }
+    }
+    test("updateTicketType toggles operation strategy off") {
+      val existing =
+        TicketTypeModel(
+          id = 1L,
+          name = "旧票",
+          ticketType = DomainTicketTypeKind.UNIVERSAL,
+          specification = "19L",
+          isLeadGeneration = true,
+          activationOrderCount = 1,
+          maxRedeemPerOrder = 2,
+        )
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(existing)
+      every { ticketTypeRepository.save(any()) } answers { firstArg() }
+
+      val updated =
+        service.updateTicketType(
+          1L,
+          "admin",
+          1L,
+          updateRequest().copy(isLeadGeneration = false, activationOrderCount = null, maxRedeemPerOrder = null),
+        )
+
+      updated.isLeadGeneration shouldBe false
+      updated.activationOrderCount shouldBe null
+      updated.maxRedeemPerOrder shouldBe null
+    }
   })

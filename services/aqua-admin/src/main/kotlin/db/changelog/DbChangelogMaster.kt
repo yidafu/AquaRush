@@ -82,4 +82,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V346AddDepositModel", logicalFilePath = "db/changelog/changes/v3.4.6-add-deposit-model.xml")
     // G94 接单超时预警(F-NTF-008/R-NTF-07):F-SYS-002 派单与确认组新增两阈值参数种子
     include(file = "db/changelog/changes/V347AddOrderAcceptTimeoutParams", logicalFilePath = "db/changelog/changes/v3.4.7-add-order-accept-timeout-params.xml")
+    // G97 水票运营策略(R-MKT-08 修订):ticket_types 引流票/复购激活/单次核销上限 + ticket_purchases 激活基线
+    include(file = "db/changelog/changes/V348AddTicketOperationStrategy", logicalFilePath = "db/changelog/changes/v3.4.8-add-ticket-operation-strategy.xml")
   })

@@ -146,6 +146,8 @@ class ClientMarketingResolverTest :
         validFrom = LocalDateTime.now().minusDays(1),
         validTo = LocalDateTime.now().plusDays(365),
         perUserLimit = 0,
+        // G97 复购激活票种(展示文案「需复购 1 单后可核销」)
+        activationOrderCount = 1,
         status = TicketTypeStatus.ACTIVE,
       )
 
@@ -198,6 +200,8 @@ class ClientMarketingResolverTest :
       couponQueryApiService = mockk()
       couponMutationApiService = mockk()
       ticketQueryApiService = mockk()
+      // 默认无待激活票(G97 复购激活展示态;具体用例覆盖)
+      every { ticketQueryApiService.findPendingActivationIds(any(), any()) } returns emptySet()
       ticketMutationApiService = mockk()
       ticketTypeQueryService = mockk()
       marketingPricingQueryApiService = mockk()
@@ -270,6 +274,18 @@ class ClientMarketingResolverTest :
       result[0].ticketTypeName shouldBe "通兑19L"
       result[0].specification shouldBe "19L"
       result[0].ticketNo shouldBe "SP20260800000001"
+      result[0].pendingActivation shouldBe false
+      result[0].activationOrderCount shouldBe 1
+    }
+    test("myTickets marks pending activation ticket") {
+      every { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) } returns listOf(userTicket())
+      every { ticketQueryApiService.findPendingActivationIds(1L, any()) } returns setOf(1L)
+      every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
+      val resolver = ClientTicketQueryResolver(ticketQueryApiService, ticketTypeQueryService)
+
+      val result = resolver.myTickets(GraphQLUserTicketStatus.UNUSED, principal)
+
+      result[0].pendingActivation shouldBe true
     }
     test("purchaseTickets marks simulation when payment stubbed") {
       val purchase =

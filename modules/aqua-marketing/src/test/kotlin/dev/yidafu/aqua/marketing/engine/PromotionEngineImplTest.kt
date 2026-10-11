@@ -335,6 +335,8 @@ class PromotionEngineImplTest :
       productQueryApiService = mockk()
       marketingPricingQueryApiService = mockk()
       ticketQueryApiService = mockk()
+      // 默认无待激活票(G97 复购激活门禁;具体用例覆盖)
+      every { ticketQueryApiService.findPendingActivationIds(any(), any()) } returns emptySet()
       userTicketRepository = mockk()
       ticketTypeRepository = mockk()
       promotionActivityRepository = mockk()

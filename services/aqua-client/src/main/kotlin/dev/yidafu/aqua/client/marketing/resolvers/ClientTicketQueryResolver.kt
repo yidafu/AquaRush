@@ -58,19 +58,25 @@ class ClientTicketQueryResolver(
     }
 
   /**
-   * 我的水票(按状态过滤,空=全部;票种名称/通兑票限定规格取自票种)
+   * 我的水票(按状态过滤,空=全部;票种名称/通兑票限定规格取自票种;
+   * pendingActivation=G97 复购激活待激活展示态,服务端按基线差一次判定)
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
   fun myTickets(
     @Argument status: UserTicketStatus?,
     @AuthenticationPrincipal principal: UserPrincipal,
-  ): List<UserTicketVo> =
-    ticketQueryApiService.findUserTickets(principal.id, status?.toDomain()).map { ticket ->
+  ): List<UserTicketVo> {
+    val tickets = ticketQueryApiService.findUserTickets(principal.id, status?.toDomain())
+    val pendingIds = ticketQueryApiService.findPendingActivationIds(principal.id, tickets)
+    return tickets.map { ticket ->
       val ticketType = ticketTypeQueryService.getTicketType(ticket.ticketTypeId)
       ticket.toGraphQL(
         ticketTypeName = ticketType?.name ?: "水票",
         specification = ticketType?.specification,
+        pendingActivation = ticket.id != null && pendingIds.contains(ticket.id!!),
+        activationOrderCount = ticketType?.activationOrderCount,
       )
     }
+  }
 }

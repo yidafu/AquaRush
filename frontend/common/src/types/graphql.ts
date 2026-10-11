@@ -576,7 +576,10 @@ export type CreateReviewRequest = {
 };
 
 export type CreateTicketTypeInput = {
+  readonly activationOrderCount?: InputMaybe<Scalars['Int']['input']>;
   readonly giftCount: Scalars['Int']['input'];
+  readonly isLeadGeneration?: InputMaybe<Scalars['Boolean']['input']>;
+  readonly maxRedeemPerOrder?: InputMaybe<Scalars['Int']['input']>;
   readonly name: Scalars['String']['input'];
   readonly packageCount: Scalars['Int']['input'];
   readonly packagePriceCents: Scalars['Long']['input'];
@@ -3970,9 +3973,12 @@ export type TicketStatsSummaryVo = {
 };
 
 export type TicketTypeAdminVo = {
+  readonly activationOrderCount?: Maybe<Scalars['Int']['output']>;
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly giftCount: Scalars['Int']['output'];
   readonly id: Scalars['PrimaryId']['output'];
+  readonly isLeadGeneration: Scalars['Boolean']['output'];
+  readonly maxRedeemPerOrder?: Maybe<Scalars['Int']['output']>;
   readonly name: Scalars['String']['output'];
   readonly packageCount: Scalars['Int']['output'];
   readonly packagePriceCents: Scalars['Long']['output'];
@@ -4014,8 +4020,10 @@ export enum TicketTypeStatus {
 }
 
 export type TicketTypeVo = {
+  readonly activationOrderCount?: Maybe<Scalars['Int']['output']>;
   readonly giftCount: Scalars['Int']['output'];
   readonly id: Scalars['PrimaryId']['output'];
+  readonly isLeadGeneration: Scalars['Boolean']['output'];
   readonly myPurchasedCount: Scalars['Int']['output'];
   readonly name: Scalars['String']['output'];
   readonly packageCount: Scalars['Int']['output'];
@@ -4233,7 +4241,10 @@ export type UpdatePromotionActivityInput = {
 };
 
 export type UpdateTicketTypeInput = {
+  readonly activationOrderCount?: InputMaybe<Scalars['Int']['input']>;
   readonly giftCount: Scalars['Int']['input'];
+  readonly isLeadGeneration?: InputMaybe<Scalars['Boolean']['input']>;
+  readonly maxRedeemPerOrder?: InputMaybe<Scalars['Int']['input']>;
   readonly name: Scalars['String']['input'];
   readonly packageCount: Scalars['Int']['input'];
   readonly packagePriceCents: Scalars['Long']['input'];
@@ -4410,9 +4421,11 @@ export enum UserTicketStatus {
 }
 
 export type UserTicketVo = {
+  readonly activationOrderCount?: Maybe<Scalars['Int']['output']>;
   readonly expireTime: Scalars['LocalDateTime']['output'];
   readonly id: Scalars['PrimaryId']['output'];
   readonly isGift: Scalars['Boolean']['output'];
+  readonly pendingActivation: Scalars['Boolean']['output'];
   readonly specification?: Maybe<Scalars['String']['output']>;
   readonly status: UserTicketStatus;
   readonly ticketNo: Scalars['String']['output'];

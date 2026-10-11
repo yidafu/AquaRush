@@ -1063,9 +1063,16 @@ data class CreateReviewRequestInput(
 }
 
 data class CreateTicketTypeInput(
+    @field:Min(value = 0, message = "复购激活单数无效")
+    @field:Max(value = 100, message = "复购激活单数不能超过100")
+    val activationOrderCount: kotlin.Int? = null,
     @field:Min(value = 0, message = "赠送张数无效")
     @field:Max(value = 1000, message = "赠送张数不能超过1000")
     val giftCount: kotlin.Int,
+    val isLeadGeneration: kotlin.Boolean? = null,
+    @field:Min(value = 0, message = "单次核销上限无效")
+    @field:Max(value = 100, message = "单次核销上限不能超过100")
+    val maxRedeemPerOrder: kotlin.Int? = null,
     @field:NotBlank(message = "票种名称不能为空")
     @field:Size(max = 100, message = "票种名称不能超过100个字")
     val name: kotlin.String,
@@ -1090,7 +1097,10 @@ data class CreateTicketTypeInput(
     val validityType: ValidityType
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["activationOrderCount"] as kotlin.Int?,
       args["giftCount"] as kotlin.Int,
+      args["isLeadGeneration"] as kotlin.Boolean?,
+      args["maxRedeemPerOrder"] as kotlin.Int?,
       args["name"] as kotlin.String,
       args["packageCount"] as kotlin.Int,
       args["packagePriceCents"] as kotlin.Long,
@@ -5968,9 +5978,12 @@ data class TicketStatsSummaryVo(
 )
 
 data class TicketTypeAdminVo(
+    val activationOrderCount: kotlin.Int?,
     val createdAt: java.time.LocalDateTime,
     val giftCount: kotlin.Int,
     val id: kotlin.Long,
+    val isLeadGeneration: kotlin.Boolean,
+    val maxRedeemPerOrder: kotlin.Int?,
     val name: kotlin.String,
     val packageCount: kotlin.Int,
     val packagePriceCents: kotlin.Long,
@@ -6033,8 +6046,10 @@ enum class TicketTypeStatus(val label: String) {
 }
 
 data class TicketTypeVo(
+    val activationOrderCount: kotlin.Int?,
     val giftCount: kotlin.Int,
     val id: kotlin.Long,
+    val isLeadGeneration: kotlin.Boolean,
     val myPurchasedCount: kotlin.Int,
     val name: kotlin.String,
     val packageCount: kotlin.Int,
@@ -6557,9 +6572,16 @@ data class UpdatePromotionActivityInput(
 }
 
 data class UpdateTicketTypeInput(
+    @field:Min(value = 0, message = "复购激活单数无效")
+    @field:Max(value = 100, message = "复购激活单数不能超过100")
+    val activationOrderCount: kotlin.Int? = null,
     @field:Min(value = 0, message = "赠送张数无效")
     @field:Max(value = 1000, message = "赠送张数不能超过1000")
     val giftCount: kotlin.Int,
+    val isLeadGeneration: kotlin.Boolean? = null,
+    @field:Min(value = 0, message = "单次核销上限无效")
+    @field:Max(value = 100, message = "单次核销上限不能超过100")
+    val maxRedeemPerOrder: kotlin.Int? = null,
     @field:NotBlank(message = "票种名称不能为空")
     @field:Size(max = 100, message = "票种名称不能超过100个字")
     val name: kotlin.String,
@@ -6584,7 +6606,10 @@ data class UpdateTicketTypeInput(
     val validityType: ValidityType
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["activationOrderCount"] as kotlin.Int?,
       args["giftCount"] as kotlin.Int,
+      args["isLeadGeneration"] as kotlin.Boolean?,
+      args["maxRedeemPerOrder"] as kotlin.Int?,
       args["name"] as kotlin.String,
       args["packageCount"] as kotlin.Int,
       args["packagePriceCents"] as kotlin.Long,
@@ -6836,9 +6861,11 @@ enum class UserTicketStatus(val label: String) {
 }
 
 data class UserTicketVo(
+    val activationOrderCount: kotlin.Int?,
     val expireTime: java.time.LocalDateTime,
     val id: kotlin.Long,
     val isGift: kotlin.Boolean,
+    val pendingActivation: kotlin.Boolean,
     val specification: kotlin.String?,
     val status: UserTicketStatus,
     val ticketNo: kotlin.String,
