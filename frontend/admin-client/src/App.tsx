@@ -10,6 +10,7 @@ import ProductFormPage from './pages/products/form';
 import ProductOptionsPage from './pages/products/options';
 import Orders from './pages/orders';
 import OrderDetailPage from './pages/orders/detail';
+import Subscriptions from './pages/subscriptions';
 import Statistics from './pages/statistics';
 import UserStatistics from './pages/statistics/users';
 import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
@@ -90,6 +91,7 @@ const App: React.FC = () => {
         <Route path="products/options" element={page('规格与水源地配置', <ProductOptionsPage />)} />
         <Route path="orders" element={page('订单管理', <Orders />)} />
         <Route path="orders/:id" element={page('订单详情', <OrderDetailPage />)} />
+        <Route path="subscriptions" element={page('周期订购计划', <Subscriptions />)} />
         <Route path="statistics" element={page('营收统计', <Statistics />)} />
         <Route path="statistics/users" element={page('用户统计', <UserStatistics />)} />
         <Route path="statistics/delivery-workers" element={page('送水员统计', <DeliveryWorkerStatistics />)} />

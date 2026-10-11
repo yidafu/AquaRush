@@ -681,3 +681,58 @@ class OrderCompletedNotificationHandler(
     )
   }
 }
+
+/**
+ * 周期订购到期订单通知(G77/F-ORD-026 新方向:提醒送水工按时配送,非提醒用户):
+ * 计划绑定送水工 → 定向落站内消息 + WebSocket/系统通知栏推送;
+ * 未绑定 → 广播推送全部在线送水工(广播不落库,与「新订单可抢单」同口径);
+ * 开关 `delivery_push_subscription_enabled`(默认开)。幂等键 = 订单号:场景:eventTime(R-NTF-02,
+ * eventTime 锚定计划到期日,重复发布不重复提醒)。
+ */
+@Component
+class SubscriptionOrderNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.SUBSCRIPTION_ORDER_CREATED
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val orderNo = data["orderNo"]?.toString() ?: orderId.toString()
+    val period = longOrNull(data, "period") ?: 1L
+    val timeSlot = data["deliveryTimeSlot"]?.toString() ?: ""
+    val workerId = longOrNull(data, "workerId")
+    val eventTime = eventTimeMillis(data)
+
+    val pushEnabled = systemConfigQueryApiService.getBooleanValue("delivery_push_subscription_enabled", true)
+    if (!pushEnabled) {
+      return
+    }
+
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "WORKER",
+        workerId = workerId,
+        messageType = "ORDER",
+        scene = DomainEventType.SUBSCRIPTION_ORDER_CREATED.value,
+        title = "周期配送提醒",
+        summary = "周期订购第${period}期订单($orderNo)已生成,${slotLabel(timeSlot)},请按时接单配送。",
+        relatedNo = orderNo,
+        eventTime = eventTime,
+        broadcast = workerId == null,
+      ),
+    )
+  }
+
+  private fun slotLabel(slot: String): String =
+    when (slot) {
+      "MORNING" -> "配送时段:上午(9:00-12:00)"
+      "AFTERNOON" -> "配送时段:下午(14:00-18:00)"
+      "EVENING" -> "配送时段:晚上(18:00-21:00)"
+      "IMMEDIATE" -> "配送时段:立即配送"
+      else -> "配送时段:$slot"
+    }
+}

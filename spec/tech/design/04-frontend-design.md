@@ -31,7 +31,7 @@
 | 订单详情 | `order-detail?id=` | 状态步骤条（下单→支付→派单→配送→完成）、地址/商品/配送信息卡（送水工电话可拨、实时位置入口）、费用明细、时间线（order_operations）、操作（催单 5 分钟防抖提示、评价、再来一单、联系客服=拨店铺电话） |
 | 评价 | `order-review?id=` | 1-5 星 + ≤500 字 + 匿名开关 |
 | 配送跟踪 | `delivery-tracking?orderId=` | 状态门控；双标记地图（概略位置+地址）、ETA；送达「已送达」停止刷新 |
-| 周期订购 | `subscriptions`（新增） | 计划列表/创建（商品/周期/时段/地址/终止条件/自动或提醒）/暂停/恢复/终止（**[暂缓]** 2026-10-10 决策，不实现） |
+| 周期订购 | `subscriptions` | **用户端入口本期不开发（继续暂缓，2026-10-11 新方向：入口仅管理后台）**；后台侧见 §3.1 |
 | 企业下单 | `enterprise-order`（新增） | 多地址多商品批量提交；拆单结果回显；月结标识（**[暂缓]** 随 F-ORD-027，不实现） |
 | 地址列表/编辑 | `address-list?select=true` / `address-edit` | 选择模式回填；三级联动；地图选点（GCJ-02→WGS-84 转换后提交，失败可手填坐标可空）；默认唯一切换 |
 | 我的 | `my` | 头像昵称（编辑弹层）、订单角标（myOrderStatistics 单请求，>99 显 99+）、资产入口（收藏/地址/水桶账户/会员/积分/水票/优惠券）、消息中心角标、客服拨号、反馈、关于 |
@@ -86,7 +86,7 @@
 | 商品管理 | `products/list`（筛选/多条件/着色/快速操作：导出+批量导入）/ `products/new·:id/edit`（分组表单+小程序实时预览）/ `products/options`（规格/水源地字典）/ `group-prices`（分组价） | PRODUCT_* / MKT_* |
 | 押金管理 | `barrel-ledger`（桶账台账+导出）/ 退押申请处理 / 押金价目 | PRODUCT_* |
 | 订单管理 | `orders`（筛选/多选批量派单/导出）/ `orders/detail`（时间线/交付照片核验/取消/地址修正入口） | ORDER_* |
-| 周期订购 | `subscriptions` | ORDER_READ（**[暂缓]** G77，不实现） |
+| 周期订购计划 | `subscriptions`（菜单「订单管理 → 周期订购计划」） | SUBSCRIPTION_READ / SUBSCRIPTION_WRITE（G77 后台侧已实现 2026-10-11：列表筛选分页、新建（绑定用户/地址/可选送水工）、暂停/恢复/终止、lastError 展示） |
 | 企业客户 | `enterprise-customers`（档案/账单/开票） | ORDER_*（**[暂缓]** G83，不实现） |
 | 收银对账 | `daily-collection`（每日收款记录 Tab + 对账记录 Tab）/ `payroll`（工资结算） | RECONCILIATION_* |
 | 用户管理 | `users/customers`（列表+分组列）/ `users/:id`（信息卡+统计卡+7 Tab）/ `users/accounts`（账号列表，用户类型下拉）/ `users/accounts/:id`（统一账号详情：管理员 8 Tab / 送水工 6 Tab） | USER_* / ADMIN_USER_* / DELIVERY_WORKER_* |

@@ -60,6 +60,9 @@ object FoundationPgTestSupport {
       DailyCollectionRecordsTable,
       DailyReconciliationsTable,
       DeliveryAreasTable,
+      // SubscriptionTables(G77/F-ORD-026 周期订购计划)
+      SubscriptionsTable,
+      SubscriptionItemsTable,
       // MarketingTables
       CouponTemplatesTable,
       CustomerGroupsTable,

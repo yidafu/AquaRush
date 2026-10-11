@@ -19,6 +19,10 @@ enum class AdminPermission(
   ORDER_ASSIGN("派单"),
   ORDER_REVIEW("配送照片核验"),
 
+  // 周期订购计划(G77/F-ORD-026,后台入口:查询列表 / 创建与暂停恢复终止)
+  SUBSCRIPTION_READ("周期订购计划查询"),
+  SUBSCRIPTION_WRITE("周期订购计划管理"),
+
   // 配送执行
   DELIVERY_TASK("配送任务执行"),
 

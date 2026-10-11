@@ -31,6 +31,9 @@ import dev.yidafu.aqua.common.domain.table.OrdersTable
 import dev.yidafu.aqua.common.domain.table.PaymentRefundsTable
 import dev.yidafu.aqua.common.domain.table.PaymentsTable
 import dev.yidafu.aqua.common.domain.table.ReviewsTable
+import dev.yidafu.aqua.common.domain.table.SubscriptionItemsTable
+import dev.yidafu.aqua.common.domain.table.SubscriptionsTable
+import dev.yidafu.aqua.common.domain.table.UsersTable
 import dev.yidafu.aqua.common.testsupport.PostgresTestContainer
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -75,6 +78,11 @@ object TradePgTestSupport {
       DailyCollectionRecordsTable,
       DailyReconciliationsTable,
       DeliveryAreasTable,
+      // 周期订购计划(G77/F-ORD-026)
+      SubscriptionsTable,
+      SubscriptionItemsTable,
+      // 计划列表关键字筛选联查用户子查询(search keyword → users)
+      UsersTable,
     )
 
   @Volatile

@@ -36,6 +36,9 @@ object RolePermissionMapping {
           AdminPermission.ORDER_REVIEW,
           // 代客下单(兼送水 F-USR-023):送水工端 create-order 入口对 ADMIN 开放(见 delivery-app docs/ui-spec.md §7)
           AdminPermission.ORDER_CREATE,
+          // 周期订购计划(G77/F-ORD-026 后台入口)
+          AdminPermission.SUBSCRIPTION_READ,
+          AdminPermission.SUBSCRIPTION_WRITE,
           // 配送执行(管理员兼送水,F-USR-023)
           AdminPermission.DELIVERY_TASK,
           // 送水工管理
