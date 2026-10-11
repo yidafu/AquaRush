@@ -61,7 +61,7 @@
 
 - 订单/业务状态一律用「10% tint 底 + 状态色文字」的标签表达。
 - **唯一事实来源**：`frontend/common/src/utils/status-tone.ts` —— 与平台无关的语义 tone（6 种）+ `STATUS_TONE_COLORS` 色对，以及各业务域的「状态 → tone」映射（`ORDER_STATUS_TONE`、`FEEDBACK_STATUS_TONE`、`COUPON_STATUS_TONE`、`TICKET_STATUS_TONE`）。**新增业务状态必须先在该模块增加映射，页面不得自配色**。
-- 三端渲染通道：admin-client 经 `toneToAntDColor`（AntD preset 色名）；user-weapp 经 `StatusTag` 组件 + `--status-*` CSS 变量（守卫测试锁定）；delivery-app 经 `StatusTints`（light 取自 `STATUS_TONE_COLORS`，dark 本地适配）。
+- 三端渲染通道：admin-client 经 `toneToAntDColor`（AntD preset 色名）；user-weapp 经 `StatusTag` 组件 + `tokens.statusXxxFg/Bg`（值守卫锁定）；delivery-app 经 `StatusTints`（light 取自 `STATUS_TONE_COLORS`，dark 本地适配）。
 
 | tone | text / bg | 典型状态 |
 | --- | --- | --- |
@@ -77,43 +77,58 @@
 - 标签尺寸：圆角 8，内边距 4×8，字号 12（sm 档，对应 weapp `.theme-tag` / tokens.css `--st-*`）。
 - 亮色端 tint 统一 10%；delivery-app 暗色模式用 16% tint + 提亮文字保证夜间可读（tone 语义不变）。
 
-### 2.3 三端 Token 落地（V1.1 迁移已完成）
+### 2.3 三端 Token 落地（V1.1 迁移已完成；V1.2 StyleX 化）
 
-#### user-weapp（CSS 变量，载体 `src/styles/theme.scss`）
+> **V1.2（2026-10-11）**：user-weapp 与 admin-client 样式方案统一为 StyleX，
+> token 单一来源收敛到 `frontend/common/src/theme/tokens.stylex.ts`
+> （StyleX `defineVars`，web/375 基准，值镜像 `assets/tokens.css`）；
+> 图表等需真实色值的场景用 `@aquarush/common/theme` 的 `COLORS`。
+> `tokens.css` 仍为设计稿镜像；token 变更顺序：本文件 → `tokens.stylex.ts`
+> → `tokens.css`（守卫测试 `common tokens.test.ts`）。
+
+#### user-weapp（StyleX，载体 `@aquarush/common/theme/tokens.stylex` + `src/styles/theme.stylex.ts`）
+
+- 页面样式一律 `stylex.create`（编译期抽取，`weapp-stylex` 适配器自动产出
+  `stylex.wxss`）；颜色用共享 token；WeUI 平台色继续用 `var(--weui-*)`
+  （载体 `src/styles/weui.scss`，挂 `page` 选择器）。
+- **页面根元素必须挂 `pageTheme`**（`src/styles/theme.stylex.ts` 的
+  `createTheme` 覆盖：颜色同 web；长度 token 为 750 基准 rpx，页面底
+  `#EDEDED`（§2.3 微信官方灰）；weapp 无 `:root`，全靠页面根级联）。
+- 长度换算：scss 来源 1:1 转 rpx；内联 style 来源 ×2（运行时不转换内联 px）；
+  tailwind 来源 ×2。原 `theme.scss` 已删除（`.theme-*` 工具类从未被页面引用）。
 
 | Token | 值 | 用途 |
 | --- | --- | --- |
-| `--brand-primary` | `#3A9BD9` | 主按钮、选中态、链接 |
-| `--brand-primary-light` | `rgba(58,155,217,0.10)` | 浅蓝 tint 底 |
-| `--brand-primary-dark` | `#2E7FB8` | 按压态 |
-| `--brand-gradient-start` / `--brand-gradient-end` | `#4DB6E5` / `#3A9BD9` | Banner / 页头渐变（135°） |
-| `--action` | `#FF5436` | 消费者端 CTA（仅此，§2.1 红线） |
-| `--coupon-primary` / `--coupon-primary-light` | `#FF5436` / `rgba(255,84,54,0.10)` | 优惠券品牌色 |
-| `--success` / `--warning` / `--error` | `#52C41A` / `#FAAD14` / `#FF4D4F` | 语义色 |
-| `--text-main` / `--text-sub` / `--text-weak` | `#1A1A1A` / `#8C8C8C` / `#B8B8B8` | 主 / 辅 / 弱文字 |
-| `--bg-card` / `--bg` | `#FFFFFF` / `#F5F7FA` | 卡片 / 页面背景 |
-| `--border` | `rgba(0,0,0,0.06)` | 发丝线 / 弱边框 |
-| `--status-*`（10 对） | §2.2 | 状态标签文字 / 底色 |
-| `--spacing-*` / `--radius-*` / `--shadow-*` | §3 | 间距 / 圆角 / 阴影 |
+| `tokens.brand` | `#3A9BD9` | 主按钮、选中态、链接 |
+| `tokens.brandTint` | `rgba(58,155,217,0.10)` | 浅蓝 tint 底 |
+| `tokens.brandDark` | `#2E7FB8` | 按压态 |
+| `tokens.brandGradient` | 135° `#4DB6E5 → #3A9BD9` | Banner / 页头渐变 |
+| `tokens.action` | `#FF5436` | 消费者端 CTA（仅此，§2.1 红线） |
+| `tokens.success` / `tokens.warning` / `tokens.error` | `#52C41A` / `#FAAD14` / `#FF4D4F` | 语义色 |
+| `tokens.text` / `tokens.textSub` / `tokens.textWeak` | `#1A1A1A` / `#8C8C8C` / `#B8B8B8` | 主 / 辅 / 弱文字 |
+| `tokens.card` / `tokens.bg` | `#FFFFFF` / `#F5F7FA`（weapp 覆盖 `#EDEDED`） | 卡片 / 页面背景 |
+| `tokens.border` | `rgba(0,0,0,0.06)` | 发丝线 / 弱边框 |
+| `tokens.statusXxxFg / statusXxxBg`（6 对） | §2.2 | 状态标签文字 / 底色（对应 STATUS_TONE_COLORS） |
+| `tokens.s1…s5 / r* / sh*` | §3 | 间距 / 圆角 / 阴影（weapp 端 rpx 覆盖） |
 
-> 旧 `--theme-*` 名称以**别名**形式保留（指向品牌值），迁移期**勿再新增引用**；存量引用替换完成后删除别名块。主题切换（原 aqua/blue/green/purple 预设 + ThemeProvider）已移除（F-USR-004 → `spec/prd/07-user.md` [已移除]）。
+#### admin-client（AntD 6 `ConfigProvider theme` + StyleX）
 
-#### admin-client（AntD 5 `ConfigProvider theme`，载体 `src/main.tsx` `themeToken`）
+- `themeToken` 收敛为 `@aquarush/common/theme` 的 `ANTD_THEME_TOKEN`
+  （守卫测试锁定与 tokens 一致），`main.tsx` 不再内联色值：
 
 | AntD token | 值 | 说明 |
 | --- | --- | --- |
-| `colorPrimary` | `#3A9BD9` | 主按钮、链接、选中态 |
-| `colorLink` | `#3A9BD9` | 链接 |
+| `colorPrimary` / `colorLink` | `#3A9BD9` | 主按钮、链接、选中态 |
 | `colorBgLayout` | `#F5F7FA` | 页面背景 |
 | `colorBgContainer` | `#FFFFFF` | 卡片/容器背景 |
 | `colorText` | `#1A1A1A` | 主文字 |
 | `colorTextSecondary` | `#8C8C8C` | 次要文字 |
-| `borderRadius` | `8` | 控件圆角（AntD 默认 6 → 8） |
-| `colorError` | `#FF4D4F` | 危险操作/删除 |
-| `colorSuccess` / `colorWarning` | `#52C41A` / `#FAAD14` | 状态色 |
+| `borderRadius` / `borderRadiusLG` | `8` / `16` | 控件圆角（tokens.rSm / rCard） |
+| `colorError` / `colorSuccess` / `colorWarning` | `#FF4D4F` / `#52C41A` / `#FAAD14` | 状态色 |
 | 侧边栏 | 深色 `#001529`（保持现状） | 菜单高亮色随 `colorPrimary` |
 
-> 硬编码色（如 `index.css` 的 `#e6f4ff` hover 行）已清理；新样式一律走 token。
+> 页面/组件样式一律 `stylex.create`（web 基准 px），`.ant-*` 内部结构覆盖与
+> 后代选择器保留在 `src/index.css`；tailwind 已移除。
 
 #### delivery-app（载体 `src/constants/theme.ts`，亮/暗全表）
 
@@ -262,5 +277,6 @@ delivery-app 亮色为主（默认）；可选「夜间模式」（设计系统�
 
 ## 变更记录
 
+- **V1.2（2026-10-11）**：样式方案 StyleX 化 —— user-weapp / admin-client 页面样式统一 `stylex.create`，token 单一来源收敛 `frontend/common/src/theme/tokens.stylex.ts`（weapp 端 `createTheme` 覆盖 750 基准）；tailwind（两端使用率≈0）与 weapp `theme.scss`（`.theme-*` 工具类零引用）移除；详见 §2.3 V1.2 说明与 `agents/frontend.md` 样式约定。
 - **V1.1（2026-10-11）**：对齐已落地实现 —— PRD 引用路径迁移至 `spec/prd/`；§2.2 收敛为 StatusTone 体系（`@aquarush/common` status-tone 为唯一来源）；§2.3 由「现状→目标」迁移表改为已落地 token 表；delivery-app `accent` 定案 `#FA8C16`；§6 由实施计划改为落地状态（新增 6.1-6.6 子节）。
 - **V1.0**：初版 —— 设计系统定义 + 三端迁移计划。

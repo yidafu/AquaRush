@@ -32,7 +32,7 @@ A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-clie
 1. **项目内组件复用**:同一组件或近重复实现被 ≥2 个页面使用 → 提升到该项目 `src/components/`(命名唯一,如 `OrderItemRow`/`CostRowList`/`StatusTag`);仅单页使用的组件留在 `pages/*/components`。"仅相似"的(表格 columns、表单字段、图表配色)只抽壳层(`ChartCard`/`FormModal`/`FilterCard`/`DetailModal`),不强行合并。
 2. **工具函数跨项目共用**:纯函数(无 `@tarojs/taro`/`react-native`/`window`/存储依赖)且跨端可能复用 → 进 `@aquarush/common/src/utils/` 并配 jest 测试;平台适配层(网络 RequestHandler、tracking adapter、上传 File 归一化、RN localhost 资产 URL 重写)留在各端。既有公共模块:`order-cost`(费用明细行)、`order-status`(订单文案/步骤/Tab)、`marketing`(券/票/反馈标签)、`status-tone`(标签颜色)、`tianditu`(天地图)。
 3. **双端页面 Hook 共享**:weapp 与 RN 共有的页面处理逻辑(加载编排、订单快照归一化、状态/费用/时间轴派生、分页状态机)经 `@aquarush/common/src/hooks/`(`useOrderDetail`/`usePagedList`/`order-view`)共享;hook 平台无关,数据获取一律 fetcher 注入,生命周期重取由页面调用返回的 `refresh()`/`loadMore()`(Taro `useDidShow`/RN `useEffect`);角色动作(支付/接单/派单等)与 UI 留在各端。
-4. **标签颜色单一来源**:状态标签的「状态 → 颜色」以 `spec/design/ui-design-system.md §2.2` 为语义权威,机器可读值为 `@aquarush/common` 的 `STATUS_TONE_COLORS` + 各域 tone 映射(`ORDER_STATUS_TONE`/`FEEDBACK_STATUS_TONE`/`COUPON_STATUS_TONE`/`TICKET_STATUS_TONE`/`DAILY_COLLECTION_STATUS_TONE`/`RECONCILIATION_STATUS_TONE`);各端只保留「tone → 平台渲染」薄桥:weapp 共享 `StatusTag` + `theme.scss` 的 `--status-*` 变量(值由 `src/styles/tokens.test.ts` 同步守卫锁定)、admin `toneToAntDColor`、delivery `StatusTints`(light 派生自 common)。禁止在页面里散落状态色字面量。
+4. **标签颜色单一来源**:状态标签的「状态 → 颜色」以 `spec/design/ui-design-system.md §2.2` 为语义权威,机器可读值为 `@aquarush/common` 的 `STATUS_TONE_COLORS` + 各域 tone 映射(`ORDER_STATUS_TONE`/`FEEDBACK_STATUS_TONE`/`COUPON_STATUS_TONE`/`TICKET_STATUS_TONE`/`DAILY_COLLECTION_STATUS_TONE`/`RECONCILIATION_STATUS_TONE`);各端只保留「tone → 平台渲染」薄桥:weapp 共享 `StatusTag` + `tokens.statusXxxFg/Bg`(值由 `@aquarush/common` 的 `src/theme/tokens.test.ts` 同步守卫锁定)、admin `toneToAntDColor`、delivery `StatusTints`(light 派生自 common)。禁止在页面里散落状态色字面量。
 5. **金额一律经 common money**(R-MON-01);UI 组件不跨项目共享(Taro/RN/AntD 不兼容)。
 
 ### Admin Dashboard (`frontend/admin-client`, React + Vite + Ant Design)
@@ -279,73 +279,97 @@ export default MyPage
 - Improved user experience on smaller screens
 - Consistent visual hierarchy across all pages
 
-**Page Layout Standards**:
+**Page Layout Standards（StyleX）**:
 
-```scss
-// 页面容器
-.page {
-  min-height: 100vh;
-  padding: 60px 32px 32px; // 1x 倍尺寸，充足的间距
-  box-sizing: border-box;
-}
+> 样式方案：user-weapp / admin-client 页面样式一律 **StyleX**（`stylex.create` +
+> `stylex.props`，编译期抽取为原子类）。delivery-app 仍用 RN `StyleSheet`。
 
-// 标题样式
-.title {
-  font-size: 40px; // 大标题使用 40px
-  font-weight: bold;
-  margin-bottom: 16px;
-}
+```tsx
+import * as stylex from '@stylexjs/stylex'
+import { tokens } from '@aquarush/common/theme/tokens.stylex'   // token 唯一导入路径
+import { pageTheme } from '@/styles/theme.stylex'               // 仅 user-weapp
 
-.subtitle {
-  font-size: 20px; // 副标题使用 20px
-  margin-bottom: 12px;
-}
+const styles = stylex.create({
+  page: {
+    minHeight: '100vh',
+    paddingTop: '60rpx',      // weapp: 750 基准 rpx（数字同设计稿 px）
+    paddingLeft: '32rpx',
+    paddingRight: '32rpx',
+    paddingBottom: '32rpx',
+    boxSizing: 'border-box',
+  },
+  title: {
+    fontSize: '40rpx',
+    fontWeight: 'bold',
+    marginBottom: '16rpx',
+    color: tokens.text,       // 颜色一律 token,禁止硬编码 hex
+  },
+  card: {
+    backgroundColor: tokens.card,
+    borderRadius: tokens.rCard,
+    boxShadow: tokens.shCard,
+  },
+})
 
-// 表单元素
-.form-input {
-  height: 64px; // 输入框高度 64px
-  font-size: 20px; // 输入文字大小 20px
-  padding: 16px 20px;
-  border-radius: 12px;
-}
-
-.form-textarea {
-  min-height: 180px; // 文本域最小高度 180px
-  font-size: 20px; // 文本大小 20px
-  padding: 20px;
-  line-height: 1.6;
-}
-
-// 按钮样式
-.primary-button {
-  height: 64px; // 按钮高度 64px
-  font-size: 20px; // 按钮文字大小 20px
-  border-radius: 16px;
-  font-weight: 600;
-}
-
-// 卡片和容器
-.card {
-  padding: 32px; // 卡片内边距 32px
-  border-radius: 20px;
-  margin-bottom: 32px;
-}
-
-// 图片上传区域
-.image-upload-item {
-  width: 140px; // 图片预览尺寸 140px x 140px
-  height: 140px;
-  border-radius: 12px;
-}
-
-// 选择器按钮
-.selector-option {
-  padding: 12px 24px;
-  border-radius: 28px;
-  font-size: 16px;
-  min-height: 48px;
-}
+// 页面根挂主题(weapp 无 :root,token 经页面根级联):
+//   <View {...stylex.props(pageTheme, styles.page)}>
+// admin(web)同构,单位用 px、无需 pageTheme。
+// 混入全局类(weui-* / antd 内部类)用类型放宽包装:
+//   import { props } from '@aquarush/common/stylex'
+//   <View {...props('weui-cell', styles.cell)}>
 ```
+
+**StyleX 约定**:
+
+- token 唯一来源:`@aquarush/common/theme/tokens.stylex`(禁止经
+  `@aquarush/common/theme` barrel 导入 token —— stylex 插件无法跟随 re-export);
+  图表/antd color props 等需真实值的场景用 `@aquarush/common/theme` 的 `COLORS`。
+- 禁止 CSS 简写:background/margin/padding/gap/flex/border/transition/font
+  一律拆 longhand(StyleX 规则,违者编译报错);单值 `padding: '24px'` 也要拆四边。
+- 依赖 props/state 的动态值保留 `style={{ }}` 并注释;静态值全部进 stylex。
+- weapp 长度换算:scss 来源 1:1 转 rpx;内联 style / tailwind 来源 ×2
+  (运行时不转换内联 px)。admin 保持 px。新增尺寸优先 8 的倍数。
+- 块注释里禁止出现 `*/` 序列(如 `weui-*/at-*` 写成 `weui / at`;会提前
+  终止注释导致 babel/tsc 报「Unterminated regular expression」)。
+- 颜色一律 token / `var(--weui-*)`(weapp 白名单) / `.ant-*` 保留(admin);
+  tokens 没有的颜色**保留字面量 + 注释并在完成报告列出**,不许自创 token。
+- weapp 页面根必须挂 pageTheme,多个顶层元素(fixed 弹层/遮罩)都要挂;
+  BasePageLayout 页面用 `rootStyles={[pageTheme, styles.page]}`。
+  weapp 禁止引用 admin 专用 token(`tokens.fs*/lh*/font/fontNum`)与
+  pageTheme 未覆盖的 token(side* 等),尺寸用 rpx 字面量。
+- 状态标签色用 `tokens.statusXxxFg/statusXxxBg`(与 STATUS_TONE_COLORS 对齐,
+  守卫:common `src/theme/tokens.test.ts` + weapp `src/styles/tokens.test.ts`)。
+- taro-ui(At*)内置样式保持字符串类名不迁移;At* 的 className 是字符串 prop,
+  用 `stylex.props(styles.x).className` 提取;At* 内部结构选择器(如
+  `.at-modal__container`)stylex 表达不了的保留原样或退回默认。
+- 迁移完的页面删除对应 `index.scss`(不留空文件);无定义的死类直接删。
+
+**构建管线(两端接线,改动样式方案时先读)**:
+
+- admin:`vite.config.ts` 挂 `aquarushStylexVitePlugin`(工作区包
+  `vite-plugin-aquarush-stylex`),入口 `main.tsx` `import 'virtual:stylex.css'`;
+  CSS 经占位规则 + generateBundle 回填进产物。
+- weapp:weapp 构建走 `weapp-stylex/taro`(Taro `plugins`,抽取为各级
+  `stylex.wxss`);h5 构建(含 `build:h5:admin` 预览)weapp-stylex 硬校验
+  `TARO_ENV=weapp only`,改走同一自研插件 `aquarushStylexVitePlugin({
+  convertRpx: true })`(rpx→px÷2);`app.tsx` 静态 import
+  `virtual:stylex.css`,weapp 侧由 config `alias` 落到空文件
+  `src/styles/stylex-empty.css`。
+- weapp config 里有 `aquarush-wxss-rekey` 修复插件:**不要删**。
+  `taro:vite-style` 只改 asset `.fileName`(.css→.wxss)不改 bundle key,
+  weapp-stylex 的 companion 判定按 key 查 `bundle['pages/x/index.wxss']`
+  恒为缺失,会发一个仅含 `@import stylex.wxss` 的同名资产覆盖真样式
+  (症状:app.wxss 25 字节、app-origin.wxss 无人引用、页面 scss 内容丢失)。
+  rekey 在 normal 阶段(style.js 之后、emitter 之前)把 key 对齐 fileName。
+- weapp 全局层:`app.scss`(weui/common 引入 + page 底色/文字字面量)、
+  `styles/weui.scss`(WeUI 平台层,含 `.mp-footbar` 等项目扩展)、
+  `styles/common.scss`(仅 `.safe-bottom`);`theme.scss` 已删除,
+  设计 token 载体 = `@aquarush/common/theme/tokens.stylex` +
+  weapp `src/styles/theme.stylex.ts`(pageTheme 覆盖 750 基准)。
+- admin `index.css` 仅保留:reset、body/#root、`.ant-*` 覆盖与后代选择器
+  (如 `.ant-table .num`);自研类(原 `.page-title`)已内联进组件 stylex。
+- tailwind 两端已移除(tailwind.config/postcss 插件/依赖);残留的
+  tailwind 工具类是死类,发现即转 stylex。
 
 **Touch Target Guidelines**:
 
