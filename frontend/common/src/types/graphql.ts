@@ -1036,7 +1036,13 @@ export enum DepositStatus {
   REFUNDED = 'REFUNDED'
 }
 
+export enum DiscrepancyResolveAction {
+  IGNORE = 'IGNORE',
+  RESOLVE = 'RESOLVE'
+}
+
 export enum DiscrepancyStatus {
+  IGNORED = 'IGNORED',
   RESOLVED = 'RESOLVED',
   UNRESOLVED = 'UNRESOLVED'
 }
@@ -3440,6 +3446,7 @@ export type QueryPromotionActivityUsageArgs = {
 
 
 export type QueryReconciliationDiscrepanciesArgs = {
+  discrepancyType?: InputMaybe<DiscrepancyType>;
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
   status?: InputMaybe<DiscrepancyStatus>;
@@ -3619,6 +3626,7 @@ export enum ReconciliationTaskStatus {
   FAILED = 'FAILED',
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
+  SKIPPED = 'SKIPPED',
   SUCCESS = 'SUCCESS'
 }
 
@@ -3632,7 +3640,10 @@ export type ReconciliationTaskVo = {
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly endTime?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly errorMessage?: Maybe<Scalars['String']['output']>;
+  readonly executedBy?: Maybe<Scalars['PrimaryId']['output']>;
   readonly id: Scalars['PrimaryId']['output'];
+  readonly localTotalAmountCents: Scalars['Long']['output'];
+  readonly localTotalCount: Scalars['Int']['output'];
   readonly matchedRecords: Scalars['Int']['output'];
   readonly startTime?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly status: ReconciliationTaskStatus;
@@ -3640,8 +3651,11 @@ export type ReconciliationTaskVo = {
   readonly taskId: Scalars['String']['output'];
   readonly taskType: ReconciliationTaskType;
   readonly totalRecords: Scalars['Int']['output'];
+  readonly triggerType: ReconciliationTriggerType;
   readonly unmatchedRecords: Scalars['Int']['output'];
   readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly wechatTotalAmountCents: Scalars['Long']['output'];
+  readonly wechatTotalCount: Scalars['Int']['output'];
 };
 
 export type ReconciliationTaskVoPage = {
@@ -3651,6 +3665,11 @@ export type ReconciliationTaskVoPage = {
   readonly totalElements: Scalars['Int']['output'];
   readonly totalPages: Scalars['Int']['output'];
 };
+
+export enum ReconciliationTriggerType {
+  MANUAL = 'MANUAL',
+  SCHEDULED = 'SCHEDULED'
+}
 
 export type RefreshTokenInput = {
   readonly refreshToken: Scalars['String']['input'];
@@ -3742,6 +3761,7 @@ export type ReportTrajectoryInput = {
 };
 
 export type ResolveDiscrepancyInput = {
+  readonly action: DiscrepancyResolveAction;
   readonly discrepancyId: Scalars['PrimaryId']['input'];
   readonly resolutionNotes: Scalars['String']['input'];
 };

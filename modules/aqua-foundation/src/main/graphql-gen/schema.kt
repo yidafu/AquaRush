@@ -1683,7 +1683,20 @@ enum class DepositStatus(val label: String) {
   }
 }
 
+enum class DiscrepancyResolveAction(val label: String) {
+      IGNORE("IGNORE"),
+      RESOLVE("RESOLVE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DiscrepancyResolveAction? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 enum class DiscrepancyStatus(val label: String) {
+      IGNORED("IGNORED"),
       RESOLVED("RESOLVED"),
       UNRESOLVED("UNRESOLVED");
 
@@ -5034,12 +5047,14 @@ data class QueryPromotionActivityUsageArgs(
   )
 }
 data class QueryReconciliationDiscrepanciesArgs(
+    val discrepancyType: DiscrepancyType? = null,
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
     val status: DiscrepancyStatus? = null,
     val taskId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["discrepancyType"] as DiscrepancyType?,
       args["page"] as kotlin.Int? ?: 0,
       args["size"] as kotlin.Int? ?: 20,
       args["status"] as DiscrepancyStatus?,
@@ -5404,6 +5419,7 @@ enum class ReconciliationTaskStatus(val label: String) {
       FAILED("FAILED"),
       PENDING("PENDING"),
       RUNNING("RUNNING"),
+      SKIPPED("SKIPPED"),
       SUCCESS("SUCCESS");
 
   companion object {
@@ -5431,7 +5447,10 @@ data class ReconciliationTaskVo(
     val createdAt: java.time.LocalDateTime,
     val endTime: java.time.LocalDateTime?,
     val errorMessage: kotlin.String?,
+    val executedBy: kotlin.Long?,
     val id: kotlin.Long,
+    val localTotalAmountCents: kotlin.Long,
+    val localTotalCount: kotlin.Int,
     val matchedRecords: kotlin.Int,
     val startTime: java.time.LocalDateTime?,
     val status: ReconciliationTaskStatus,
@@ -5439,8 +5458,11 @@ data class ReconciliationTaskVo(
     val taskId: kotlin.String,
     val taskType: ReconciliationTaskType,
     val totalRecords: kotlin.Int,
+    val triggerType: ReconciliationTriggerType,
     val unmatchedRecords: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime
+    val updatedAt: java.time.LocalDateTime,
+    val wechatTotalAmountCents: kotlin.Long,
+    val wechatTotalCount: kotlin.Int
 )
 
 data class ReconciliationTaskVoPage(
@@ -5450,6 +5472,18 @@ data class ReconciliationTaskVoPage(
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
 )
+
+enum class ReconciliationTriggerType(val label: String) {
+      MANUAL("MANUAL"),
+      SCHEDULED("SCHEDULED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ReconciliationTriggerType? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class RefreshTokenInput(
     @field:NotBlank(message = "刷新令牌不能为空")
@@ -5603,10 +5637,12 @@ data class ReportTrajectoryInput(
 }
 
 data class ResolveDiscrepancyInput(
+    val action: DiscrepancyResolveAction,
     val discrepancyId: kotlin.Long,
     val resolutionNotes: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["action"] as DiscrepancyResolveAction,
       args["discrepancyId"] as kotlin.Long,
       args["resolutionNotes"] as kotlin.String
   )

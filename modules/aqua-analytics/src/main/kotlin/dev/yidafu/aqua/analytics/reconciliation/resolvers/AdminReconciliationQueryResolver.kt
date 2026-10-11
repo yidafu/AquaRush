@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyStatus
+import dev.yidafu.aqua.common.graphql.generated.DiscrepancyType
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyVoPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationReportVo
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
@@ -43,7 +44,8 @@ import java.time.LocalDate
 
 /**
  * 管理端微信资金对账查询解析器
- * 对账任务/差异/报表查询;权限:PERMISSION_RECONCILIATION_READ。
+ * 对账任务/差异/报表查询;权限:PERMISSION_PAYMENT_RECONCILIATION_READ(F-ORD-031/G93,
+ * 与 RECONCILIATION_* 日报对账相互独立,见 spec/prd/01-overview.md §权限码目录)。
  */
 @Controller
 class AdminReconciliationQueryResolver(
@@ -55,7 +57,7 @@ class AdminReconciliationQueryResolver(
    * 对账任务分页查询(类型/状态/对账日期范围筛选)
    */
   @QueryMapping
-  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
+  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_RECONCILIATION_READ')")
   fun reconciliationTasks(
     @Argument taskType: ReconciliationTaskType?,
     @Argument status: ReconciliationTaskStatus?,
@@ -106,7 +108,7 @@ class AdminReconciliationQueryResolver(
    * 对账任务详情
    */
   @QueryMapping
-  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
+  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_RECONCILIATION_READ')")
   fun reconciliationTask(
     @Argument taskId: String,
     @AuthenticationPrincipal userDetails: UserDetails?,
@@ -123,12 +125,13 @@ class AdminReconciliationQueryResolver(
   }
 
   /**
-   * 对账差异分页查询(任务ID/解决状态筛选)
+   * 对账差异分页查询(任务ID/差异类型/解决状态筛选)
    */
   @QueryMapping
-  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
+  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_RECONCILIATION_READ')")
   fun reconciliationDiscrepancies(
     @Argument taskId: String?,
+    @Argument discrepancyType: DiscrepancyType?,
     @Argument status: DiscrepancyStatus?,
     @Argument page: Int,
     @Argument size: Int,
@@ -138,19 +141,22 @@ class AdminReconciliationQueryResolver(
       throw UnauthorizedException("请先登录")
     }
     logger.info(
-      "管理员查询对账差异列表, taskId={}, status={}, page={}, size={}",
+      "管理员查询对账差异列表, taskId={}, discrepancyType={}, status={}, page={}, size={}",
       taskId,
+      discrepancyType,
       status,
       page,
       size,
     )
     val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100))
     // GraphQL 生成枚举 → 域枚举(同名常量)
+    val typeDomain = discrepancyType?.let { it.toDomain() }
     val statusDomain =
       status?.let { it.toDomain() }
     val result =
       reconciliationService.getDiscrepanciesPaged(
         taskId = taskId,
+        discrepancyType = typeDomain,
         status = statusDomain,
         pageable = pageable,
       )
@@ -167,7 +173,7 @@ class AdminReconciliationQueryResolver(
    * 对账报表列表(按任务,可选报表类型过滤)
    */
   @QueryMapping
-  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
+  @PreAuthorize("hasAuthority('PERMISSION_PAYMENT_RECONCILIATION_READ')")
   fun reconciliationReports(
     @Argument taskId: String,
     @Argument reportType: String?,
@@ -208,10 +214,19 @@ private fun ReconciliationTaskStatus.toDomain(): dev.yidafu.aqua.common.domain.m
     ReconciliationTaskStatus.PENDING -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.PENDING
     ReconciliationTaskStatus.RUNNING -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.RUNNING
     ReconciliationTaskStatus.SUCCESS -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SUCCESS
+    ReconciliationTaskStatus.SKIPPED -> dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SKIPPED
   }
 
 private fun DiscrepancyStatus.toDomain(): dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus =
   when (this) {
     DiscrepancyStatus.RESOLVED -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.RESOLVED
     DiscrepancyStatus.UNRESOLVED -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.UNRESOLVED
+    DiscrepancyStatus.IGNORED -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.IGNORED
+  }
+
+private fun DiscrepancyType.toDomain(): dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType =
+  when (this) {
+    DiscrepancyType.MISSING -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.MISSING
+    DiscrepancyType.MISMATCH -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.MISMATCH
+    DiscrepancyType.EXTRA -> dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.EXTRA
   }

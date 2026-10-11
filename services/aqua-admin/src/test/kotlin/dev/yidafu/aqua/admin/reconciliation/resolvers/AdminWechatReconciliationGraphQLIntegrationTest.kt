@@ -57,18 +57,26 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.LocalDate
 
 /**
- * 微信资金对账 GraphQL 集成测试(后台「微信资金对账」页):
- * 对账任务/差异/报表查询、手动执行对账(executeReconciliation)、解决差异(resolveDiscrepancy)。
+ * 微信资金对账 GraphQL 集成测试(后台「支付管理-支付对账」页):
+ * 对账任务/差异/报表查询、手动执行对账(executeReconciliation)、差异处置(解决/忽略 resolveDiscrepancy)。
  *
- * 权限:查询 PERMISSION_RECONCILIATION_READ、执行 PERMISSION_RECONCILIATION_EXECUTE、
- * 差异解决 PERMISSION_RECONCILIATION_REVIEW。
+ * 权限:查询 PERMISSION_PAYMENT_RECONCILIATION_READ、执行与差异处置 PERMISSION_PAYMENT_RECONCILIATION_EXECUTE
+ * (F-ORD-031/G93 独立权限码,见 spec/prd/01-overview.md §权限码目录)。
  */
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.MOCK,
   classes = [AquaAdminApplication::class],
 )
 @ActiveProfiles("test")
-@TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/reconciliation/"])
+@TestPropertySource(
+  properties = [
+    "spring.graphql.schema.locations=classpath:graphql/reconciliation/",
+    // R-PAY-04 SKIPPED 分支门槛:未配置商户参数时任务置 SKIPPED;本集成测试需走完整执行链路
+    "aqua.reconciliation.weChatAppId=wx-test-app",
+    "aqua.reconciliation.weChatMchId=mch-test",
+    "aqua.reconciliation.weChatApiKey=test-api-key",
+  ],
+)
 @ApplyExtension(SpringExtension::class)
 class AdminWechatReconciliationGraphQLIntegrationTest(
   context: WebApplicationContext,
@@ -140,7 +148,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("reconciliationTasks returns paged tasks with filters") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val date = LocalDate.of(2026, 8, 20)
       taskRepository.save(ReconciliationTaskModel.createPaymentTask(date.atStartOfDay()))
       taskRepository.save(ReconciliationTaskModel.createRefundTask(date.atStartOfDay()))
@@ -156,7 +164,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
       }
     }
 
-    test("reconciliationTasks requires RECONCILIATION_READ permission") {
+    test("reconciliationTasks requires PAYMENT_RECONCILIATION_READ permission") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_ORDER_READ"))
       val json = postGraphql("{ reconciliationTasks { content { taskId } totalElements } }")
       withClue("reconciliationTasks should be denied without permission: $json") {
@@ -165,7 +173,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("reconciliationTask returns task detail by taskId") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val date = LocalDate.of(2026, 8, 20)
       val task = taskRepository.save(ReconciliationTaskModel.createPaymentTask(date.atStartOfDay()))
 
@@ -181,7 +189,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("reconciliationDiscrepancies returns paged discrepancies with status filter") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val task = taskRepository.save(ReconciliationTaskModel.createPaymentTask(LocalDate.of(2026, 8, 20).atStartOfDay()))
       discrepancyRepository.save(
         ReconciliationDiscrepancyModel.createMissingRecord(
@@ -205,7 +213,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("reconciliationReports returns reports by task") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val task = taskRepository.save(ReconciliationTaskModel.createPaymentTask(LocalDate.of(2026, 8, 20).atStartOfDay()))
       reportRepository.save(
         ReconciliationReportModel.createSummaryReport(
@@ -226,10 +234,12 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("executeReconciliation creates a payment task and executes it to SUCCESS") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_EXECUTE", "PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_EXECUTE", "PERMISSION_PAYMENT_RECONCILIATION_READ"))
+      // 账单日窗口 [T-30, T-1](R-PAY-04):固定历史日期会被窗口校验拒绝,取 T-1
+      val billDate = LocalDate.now().minusDays(1)
       val json =
         postGraphql(
-          "mutation { executeReconciliation(input: { taskType: PAYMENT, reconciliationDate: \"2026-08-20\" }) { taskId taskType status } }",
+          "mutation { executeReconciliation(input: { taskType: PAYMENT, reconciliationDate: \"$billDate\" }) { taskId taskType status triggerType } }",
         )
       withClue("executeReconciliation should return the created task: $json") {
         json.contains("\"taskType\" : \"PAYMENT\"") && !json.contains("\"errors\"") shouldBe true
@@ -247,7 +257,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     test("resolveDiscrepancy marks the discrepancy as resolved") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_REVIEW", "PERMISSION_RECONCILIATION_READ"))
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_EXECUTE", "PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val task = taskRepository.save(ReconciliationTaskModel.createPaymentTask(LocalDate.of(2026, 8, 20).atStartOfDay()))
       val discrepancy =
         discrepancyRepository.save(
@@ -261,7 +271,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
 
       val json =
         postGraphql(
-          "mutation { resolveDiscrepancy(input: { discrepancyId: ${discrepancy.id}, resolutionNotes: \"人工核对无误\" }) }",
+          "mutation { resolveDiscrepancy(input: { discrepancyId: ${discrepancy.id}, action: RESOLVE, resolutionNotes: \"人工核对无误\" }) }",
         )
       withClue("resolveDiscrepancy should return true: $json") {
         json.contains("\"resolveDiscrepancy\" : true") && !json.contains("\"errors\"") shouldBe true
@@ -276,8 +286,8 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
       resolved.resolvedAt.shouldNotBeNull()
     }
 
-    test("resolveDiscrepancy requires RECONCILIATION_REVIEW permission") {
-      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+    test("resolveDiscrepancy requires PAYMENT_RECONCILIATION_EXECUTE permission") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_PAYMENT_RECONCILIATION_READ"))
       val task = taskRepository.save(ReconciliationTaskModel.createPaymentTask(LocalDate.of(2026, 8, 20).atStartOfDay()))
       val discrepancy =
         discrepancyRepository.save(
@@ -291,9 +301,9 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
 
       val json =
         postGraphql(
-          "mutation { resolveDiscrepancy(input: { discrepancyId: ${discrepancy.id}, resolutionNotes: \"无权限\" }) }",
+          "mutation { resolveDiscrepancy(input: { discrepancyId: ${discrepancy.id}, action: IGNORE, resolutionNotes: \"无权限\" }) }",
         )
-      withClue("resolveDiscrepancy should be denied without REVIEW permission: $json") {
+      withClue("resolveDiscrepancy should be denied without EXECUTE permission: $json") {
         json.contains("\"errors\"") || !json.contains("\"resolveDiscrepancy\"") shouldBe true
       }
     }

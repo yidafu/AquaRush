@@ -21,6 +21,13 @@ class PaymentQueryServiceImpl(
     endDate: LocalDateTime,
   ): List<PaymentModel> = paymentRepository.findByCreatedAtBetween(startDate, endDate)
 
+  override fun getPaidByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentModel> = paymentRepository.findPaidByBillDateWindow(startDate, endDate, page, size)
+
   override fun getRefundRequests(
     status: RefundStatus?,
     dateFrom: LocalDateTime?,
