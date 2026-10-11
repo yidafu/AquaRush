@@ -163,7 +163,7 @@ subtotal(现金) = Σ 未被票/赠覆盖的 item：成交单价×数量        
 - 就近派单（F-ADR-013）：派单弹窗按订单地址所属片区（省市区匹配）**置顶推荐**片区绑定且在线的送水工，仍可人工改选；
 - 派单超时提醒（`delivery.assign_timeout_remind_minutes`）：待派单滞留超阈值 → 提醒管理员（通知域）；
 - 接单超时预警（F-NTF-008/R-NTF-07，已实现 2026-10 G94）：与配送超时（G72）对称覆盖「无人接单」侧——「待派单」超 `order_accept_timeout_minutes`（默认 30 分钟）→ ORDER_ACCEPT_TIMEOUT（阶段锚点=coalesce(支付时刻,建单时刻)）、「待配送」超 `delivery_start_timeout_minutes`（默认 60 分钟）→ DELIVERY_START_TIMEOUT（阶段锚点=派单时刻），落库**全体管理员站内预警**（接收人类型 ADMIN；幂等键=订单号+事件类型+阶段锚点、同阶段仅一次，预警前已接单/取消则不发）；WS 实时推送为目标形态本期不接入（偏差见 §18 实现记录）；调度接入见 §21；
-- 号码保护（F-ORD-032/R-ORD-17，规划中 G95）：送水工端任务/订单查询由服务端按订单状态裁剪收货人电话——仅 PENDING_DELIVERY/DELIVERING 下发完整号码，其余状态下发脱敏串（前端不可绕过）；ADMIN/SUPER_ADMIN 兼送水不受限（02 §4.4）。
+- 号码保护（F-ORD-032/R-ORD-17，已实现 2026-10-11，G95 已闭环）：送水工端任务/订单查询由服务端按订单状态裁剪收货人电话——仅 PENDING_DELIVERY/DELIVERING 下发完整号码，其余状态下发脱敏串（前端不可绕过）；ADMIN/SUPER_ADMIN 兼送水不受限（02 §4.4）。
 
 ## 7. 转单（R-ORD-15，目标形态）
 

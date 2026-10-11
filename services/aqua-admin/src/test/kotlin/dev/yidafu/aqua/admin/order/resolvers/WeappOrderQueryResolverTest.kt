@@ -78,8 +78,24 @@ class WeappOrderQueryResolverTest :
       UserPrincipal(
         id = 1L,
         _username = "worker1",
-        userType = "WORKER",
-        _authorities = listOf(SimpleGrantedAuthority("ROLE_WORKER")),
+        userType = "DELIVERY_WORKER",
+        _authorities =
+          listOf(
+            SimpleGrantedAuthority("ROLE_DELIVERY_WORKER"),
+            SimpleGrantedAuthority("PERMISSION_ORDER_READ"),
+          ),
+      )
+
+    fun adminPrincipal(): UserPrincipal =
+      UserPrincipal(
+        id = 9L,
+        _username = "admin1",
+        userType = "ADMIN",
+        _authorities =
+          listOf(
+            SimpleGrantedAuthority("ROLE_ADMIN"),
+            SimpleGrantedAuthority("PERMISSION_ORDER_READ"),
+          ),
       )
 
     beforeTest {
@@ -95,11 +111,37 @@ class WeappOrderQueryResolverTest :
       every { deliveryTaskQueryService.getPendingDeliveryOrders() } returns listOf(createSampleOrder())
 
       // When
-      val result = resolver.pendingDeliveryOrders()
+      val result = resolver.pendingDeliveryOrders(principal())
 
       // Then
       result.size shouldBe 1
       verify { deliveryTaskQueryService.getPendingDeliveryOrders() }
+    }
+    test("pendingDeliveryOrders should mask contacts for worker (F-ORD-032 待派单脱敏)") {
+      // Given
+      every { deliveryTaskQueryService.getPendingDeliveryOrders() } returns
+        listOf(createSampleOrder().copy(status = OrderModelStatus.PENDING_DISPATCH))
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.PENDING_DISPATCH)
+
+      // When
+      val result = resolver.pendingDeliveryOrders(principal())
+
+      // Then
+      result.size shouldBe 1
+      result[0].address?.phone shouldBe "138****1234"
+      result[0].user?.phone shouldBe "138****1234"
+    }
+    test("pendingDeliveryOrders should keep full phone for admin (F-ORD-032 管理员不受限)") {
+      // Given
+      every { deliveryTaskQueryService.getPendingDeliveryOrders() } returns listOf(createSampleOrder())
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.PENDING_DISPATCH)
+
+      // When
+      val result = resolver.pendingDeliveryOrders(adminPrincipal())
+
+      // Then
+      result[0].address?.phone shouldBe "13812341234"
+      result[0].user?.phone shouldBe "13812341234"
     }
     test("assignedOrders should use resolved admin id") {
       // Given
@@ -112,6 +154,19 @@ class WeappOrderQueryResolverTest :
       // Then
       result.size shouldBe 1
       verify { deliveryTaskQueryService.getAssignedOrders(1L) }
+    }
+    test("assignedOrders should keep full phone for worker (F-ORD-032 待配送完整可见)") {
+      // Given
+      every { adminService.findByUsername("worker1") } returns createSampleAdmin()
+      every { deliveryTaskQueryService.getAssignedOrders(1L) } returns listOf(createSampleOrder())
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.PENDING_DELIVERY)
+
+      // When
+      val result = resolver.assignedOrders(principal())
+
+      // Then
+      result[0].address?.phone shouldBe "13812341234"
+      result[0].user?.phone shouldBe "13812341234"
     }
     test("assignedOrders should throw when admin not found") {
       // Given
@@ -132,6 +187,19 @@ class WeappOrderQueryResolverTest :
       // Then
       result.size shouldBe 1
       verify { deliveryTaskQueryService.getOrdersByStatus(1L, OrderModelStatus.DELIVERING) }
+    }
+    test("deliveringOrders should keep full phone for worker (F-ORD-032 配送中完整可见)") {
+      // Given
+      every { adminService.findByUsername("worker1") } returns createSampleAdmin()
+      every { deliveryTaskQueryService.getOrdersByStatus(1L, OrderModelStatus.DELIVERING) } returns listOf(createSampleOrder())
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.DELIVERING)
+
+      // When
+      val result = resolver.deliveringOrders(principal())
+
+      // Then
+      result[0].address?.phone shouldBe "13812341234"
+      result[0].user?.phone shouldBe "13812341234"
     }
     test("todayStatistics should map stats for worker") {
       // Given
@@ -172,6 +240,21 @@ class WeappOrderQueryResolverTest :
       // Then
       result.content.size shouldBe 1
       verify { orderQueryService.getDeliveryWorkerHistoryOrders(1L, OrderModelStatus.COMPLETED, "关键词", 0, 20) }
+    }
+    test("deliveryWorkerHistoryOrders should mask contacts for worker (F-ORD-032 终态脱敏)") {
+      // Given
+      every { adminService.findByUsername("worker1") } returns createSampleAdmin(AdminRoleModel.DELIVERY_WORKER)
+      every {
+        orderQueryService.getDeliveryWorkerHistoryOrders(1L, OrderModelStatus.COMPLETED, "关键词", 0, 20)
+      } returns PageImpl(listOf(createSampleOrder().copy(status = OrderModelStatus.COMPLETED)))
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.COMPLETED)
+
+      // When
+      val result = resolver.deliveryWorkerHistoryOrders(OrderStatus.COMPLETED, "关键词", 0, 20, principal())
+
+      // Then
+      result.content[0].address?.phone shouldBe "138****1234"
+      result.content[0].user?.phone shouldBe "138****1234"
     }
     test("deliveryWorkerHistoryOrders should pass null worker id for non delivery roles") {
       // Given

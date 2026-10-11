@@ -135,7 +135,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `workbenchData` | DELIVERY_TASK | 工作台单请求：今日四卡（总订单/已完成/未完成/今日营收）+ 近 7 天双折线 + 快捷入口九宫格（30s 轮询）。现状替代实现：`todayStatistics`+`weekStatistics` 单请求双字段（§5.7），聚合查询补全列零散清单（A 类） |
 | `deliveryWorkerHistoryOrders(status,keyword,page,size)` | ORDER_READ | 历史订单（状态 Tab + 关键字，统计卡跳转；原设计名 workerHistoryOrders） |
 
-> **号码保护（F-ORD-032/R-ORD-17，规划中 G95）**：`workerTasks` / `deliveryWorkerHistoryOrders` / 订单详情查询对 DELIVERY_WORKER 主体**服务端按订单状态裁剪收货人电话**——仅 PENDING_DELIVERY/DELIVERING 返回完整号码，其余状态一律返回脱敏串（138\*\*\*\*1234），完整号码不下发（前端不可绕过，AC-ORD-032-05）；ADMIN/SUPER_ADMIN 主体（兼送水）不受限。`tel:` 一键拨号仅在有完整号码阶段渲染。
+> **号码保护（F-ORD-032/R-ORD-17，已实现 2026-10-11，G95 已闭环）**：`workerTasks` / `deliveryWorkerHistoryOrders` / 订单详情查询对 DELIVERY_WORKER 主体**服务端按订单状态裁剪收货人电话**——仅 PENDING_DELIVERY/DELIVERING 返回完整号码，其余状态一律返回脱敏串（138\*\*\*\*1234），完整号码不下发（前端不可绕过，AC-ORD-032-05）；ADMIN/SUPER_ADMIN 主体（兼送水）不受限。`tel:` 一键拨号仅在有完整号码阶段渲染。
 
 ### 4.5 消息中心（两端）
 
