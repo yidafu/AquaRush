@@ -1357,8 +1357,29 @@ data class DeliveryAreaVo(
     val province: kotlin.String
 )
 
+data class DeliveryDistanceTierInput(
+    @field:Min(value = 0, message = "距离档金额无效")
+    @field:Max(value = 99900, message = "距离档金额无效")
+    val feeCents: kotlin.Long,
+    val upToKm: kotlin.Float? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["feeCents"] as kotlin.Long,
+      args["upToKm"] as kotlin.Float?
+  )
+}
+
+data class DeliveryDistanceTierVo(
+    val feeCents: kotlin.Long,
+    val upToKm: kotlin.Float?
+)
+
 data class DeliveryFeeRuleVo(
+    val distanceTiers: kotlin.collections.List<DeliveryDistanceTierVo>?,
     val freeFloorLimit: kotlin.Int,
+    val minimumOrderCents: kotlin.Long,
+    val storeLatitude: kotlin.Float?,
+    val storeLongitude: kotlin.Float?,
     val surchargeCents: kotlin.Long,
     val tiers: kotlin.collections.List<DeliveryFeeTierVo>?,
     val updatedAt: java.time.LocalDateTime?
@@ -3669,6 +3690,7 @@ data class OrderPreviewItemVo(
 data class OrderPreviewVo(
     val availableCoupons: kotlin.collections.List<UserCouponVo>,
     val availableTicketCount: kotlin.Int,
+    val belowMinimum: kotlin.Boolean,
     val cashSubtotalCents: kotlin.Long,
     val couponDiscountCents: kotlin.Long,
     val couponOptions: kotlin.collections.List<CouponOptionVo>,
@@ -3679,6 +3701,7 @@ data class OrderPreviewVo(
     val firstOrderDiscountCents: kotlin.Long,
     val giftItems: kotlin.collections.List<GiftItemVo>,
     val items: kotlin.collections.List<OrderPreviewItemVo>,
+    val minimumOrderCents: kotlin.Long,
     val payAmountCents: kotlin.Long,
     val payableProductCents: kotlin.Long,
     val priceSource: PriceSource,
@@ -5684,8 +5707,13 @@ data class SalesReportVo(
 )
 
 data class SaveDeliveryFeeRuleInput(
+    val distanceTiers: kotlin.collections.List<DeliveryDistanceTierInput>,
     @field:Min(value = 0, message = "免费楼层不能小于0")
     val freeFloorLimit: kotlin.Int,
+    @field:Min(value = 0, message = "起送门槛金额无效")
+    val minimumOrderCents: kotlin.Long,
+    val storeLatitude: kotlin.Float? = null,
+    val storeLongitude: kotlin.Float? = null,
     @field:Min(value = 0, message = "运费金额无效")
     @field:Max(value = 99900, message = "运费金额无效")
     val surchargeCents: kotlin.Long,
@@ -5693,7 +5721,11 @@ data class SaveDeliveryFeeRuleInput(
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
+      args["distanceTiers"]!!.let { distanceTiers -> (distanceTiers as List<Map<String, Any>>).map { DeliveryDistanceTierInput(it) } },
       args["freeFloorLimit"] as kotlin.Int,
+      args["minimumOrderCents"] as kotlin.Long,
+      args["storeLatitude"] as kotlin.Float?,
+      args["storeLongitude"] as kotlin.Float?,
       args["surchargeCents"] as kotlin.Long,
       args["tiers"]!!.let { tiers -> (tiers as List<Map<String, Any>>).map { DeliveryFeeTierInput(it) } }
   )

@@ -88,20 +88,30 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest(
     }
     test("save and query delivery fee rule round trip") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"))
+      // G96 R-OPS-03:起送门槛 + 距离阶梯 + 门店坐标一并落库回读
       val json =
         postGraphql(
-          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 6, surchargeCents: 500}) { freeFloorLimit surchargeCents } }""",
+          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 6, surchargeCents: 500, minimumOrderCents: 3000, distanceTiers: [{upToKm: 3, feeCents: 0}, {upToKm: null, feeCents: 300}], storeLongitude: 113.93, storeLatitude: 22.53}) { freeFloorLimit surchargeCents minimumOrderCents distanceTiers { upToKm feeCents } storeLongitude storeLatitude } }""",
         )
-      json.contains("\"freeFloorLimit\" : 6") && json.contains("\"surchargeCents\" : \"500\"") && !json.contains("\"errors\"") shouldBe true
+      json.contains("\"freeFloorLimit\" : 6") &&
+        json.contains("\"surchargeCents\" : \"500\"") &&
+        json.contains("\"minimumOrderCents\" : \"3000\"") &&
+        json.contains("\"feeCents\" : \"300\"") &&
+        !json.contains("\"errors\"") shouldBe true
 
-      val queryJson = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
-      queryJson.contains("\"freeFloorLimit\" : 6") && queryJson.contains("\"surchargeCents\" : \"500\"") shouldBe true
+      val queryJson =
+        postGraphql(
+          "{ deliveryFeeRule { freeFloorLimit surchargeCents minimumOrderCents distanceTiers { upToKm feeCents } storeLongitude storeLatitude } }",
+        )
+      queryJson.contains("\"freeFloorLimit\" : 6") &&
+        queryJson.contains("\"minimumOrderCents\" : \"3000\"") &&
+        queryJson.contains("\"upToKm\" : 3.0") shouldBe true
     }
     test("saveDeliveryFeeRule rejects invalid amount") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
       val json =
         postGraphql(
-          "mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000, " +
+          "mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000, minimumOrderCents: 0, distanceTiers: [], " +
             "tiers: [{fromFloor: 5, toFloor: 6, feeCents: 200}, {fromFloor: 7, toFloor: null, feeCents: 800}]}) { freeFloorLimit } }",
         )
       json.contains("\"errors\"") shouldBe true
@@ -110,7 +120,7 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest(
       setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
       val json =
         postGraphql(
-          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200, tiers: [{fromFloor: 5, toFloor: 6, feeCents: 200}, {fromFloor: 7, toFloor: 9, feeCents: 500}, {fromFloor: 10, toFloor: null, feeCents: 800}]}) { freeFloorLimit } }""",
+          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200, minimumOrderCents: 0, distanceTiers: [], tiers: [{fromFloor: 5, toFloor: 6, feeCents: 200}, {fromFloor: 7, toFloor: 9, feeCents: 500}, {fromFloor: 10, toFloor: null, feeCents: 800}]}) { freeFloorLimit } }""",
         )
       val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_DELIVERY_FEE_RULE_SAVE)
       !json.contains("\"errors\"") shouldBe true

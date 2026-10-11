@@ -199,12 +199,21 @@ type DeliveryFeeRuleVo {
   freeFloorLimit: Int!
   surchargeCents: Long!
   tiers: [DeliveryFeeTierVo!]
+  minimumOrderCents: Long!
+  distanceTiers: [DeliveryDistanceTierVo!]
+  storeLongitude: Float
+  storeLatitude: Float
   updatedAt: LocalDateTime
 }
 
 type DeliveryFeeTierVo {
   fromFloor: Int!
   toFloor: Int
+  feeCents: Long!
+}
+
+type DeliveryDistanceTierVo {
+  upToKm: Float
   feeCents: Long!
 }
 
@@ -248,10 +257,19 @@ input SaveDeliveryFeeRuleInput {
   freeFloorLimit: Int!
   surchargeCents: Long!
   tiers: [DeliveryFeeTierInput!]!
+  minimumOrderCents: Long!
+  distanceTiers: [DeliveryDistanceTierInput!]!
+  storeLongitude: Float
+  storeLatitude: Float
 }
 
 input DeliveryFeeTierInput {
   fromFloor: Int!
   toFloor: Int
+  feeCents: Long!
+}
+
+input DeliveryDistanceTierInput {
+  upToKm: Float
   feeCents: Long!
 }

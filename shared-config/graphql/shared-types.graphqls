@@ -2461,7 +2461,7 @@ type StoreProfileVo {
   updatedAt: LocalDateTime
 }
 
-# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元)
+# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元;R-OPS-03 起送门槛/距离阶梯)
 type DeliveryFeeRuleVo {
   # 免费楼层(楼层 ≤ 该值免运费)
   freeFloorLimit: Int!
@@ -2469,6 +2469,14 @@ type DeliveryFeeRuleVo {
   surchargeCents: Long!
   # 楼层档位(R-MON-02 分档,按楼层升序;空=未配置分档,计价回退 surchargeCents)
   tiers: [DeliveryFeeTierVo!]
+  # 起送门槛(分,0=不启用;商品金额低于门槛拦截下单,R-OPS-03)
+  minimumOrderCents: Long!
+  # 距离阶梯档位(按距离上限升序、末档可不封顶;空=不启用距离计费,R-OPS-03)
+  distanceTiers: [DeliveryDistanceTierVo!]
+  # 门店经度(WGS84;距离阶梯计费基准,空=未配置距离计费)
+  storeLongitude: Float
+  # 门店纬度(WGS84)
+  storeLatitude: Float
   # 更新时间
   updatedAt: LocalDateTime
 }
@@ -2484,6 +2492,19 @@ input DeliveryFeeTierInput {
   fromFloor: Int! @min(value: 1, message: "档位起始楼层至少为1")
   toFloor: Int
   feeCents: Long! @min(value: 0, message: "档位金额无效") @max(value: 99900, message: "档位金额无效")
+}
+
+# 距离阶梯档位(R-OPS-03:直线距离 ≤ upToKm 加收 feeCents;upToKm=null 不封顶,必须最后一档)
+type DeliveryDistanceTierVo {
+  upToKm: Float
+  feeCents: Long!
+}
+
+input DeliveryDistanceTierInput {
+  # 距离上限(km,>0;空=不封顶,仅允许最后一档)
+  upToKm: Float
+  # 加价(分,0-99900)
+  feeCents: Long! @min(value: 0, message: "距离档金额无效") @max(value: 99900, message: "距离档金额无效")
 }
 
 # ==================== 营销域(MKT,PRD 10-marketing.md) ====================

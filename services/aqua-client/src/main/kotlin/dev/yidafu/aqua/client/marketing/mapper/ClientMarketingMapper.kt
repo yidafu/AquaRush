@@ -254,12 +254,14 @@ fun CouponOption.toGraphQL(): CouponOptionVo =
   )
 
 /**
- * 计价结果 → OrderPreviewVO(deliveryFeeCents/depositCents/payAmountCents 由调用方
- * 按配送费规则与押金试算(R-MON-03)计算后注入;availableCoupons 为可用券详情列表,
- * 由服务端按 couponOptions 补全后注入)
+ * 计价结果 → OrderPreviewVO(deliveryFeeCents/minimumOrderCents/belowMinimum 由调用方
+ * 按配送费规则(R-MON-02 + R-OPS-03)、depositCents/payAmountCents 按押金试算(R-MON-03)
+ * 计算后注入;availableCoupons 为可用券详情列表,由服务端按 couponOptions 补全后注入)
  */
 fun OrderPricingResult.toGraphQL(
   deliveryFeeCents: Long,
+  minimumOrderCents: Long,
+  belowMinimum: Boolean,
   depositCents: Long,
   payAmountCents: Long,
   availableCoupons: List<UserCouponVo>,
@@ -284,6 +286,9 @@ fun OrderPricingResult.toGraphQL(
     totalDiscountCents = totalDiscountCents,
     payableProductCents = payableProductCents,
     deliveryFeeCents = deliveryFeeCents,
+    // 起送门槛(R-OPS-03):0=不启用;belowMinimum 驱动前端禁提交+提示,服务端 createOrder 二次拦截
+    minimumOrderCents = minimumOrderCents,
+    belowMinimum = belowMinimum,
     // 随单押金试算(分,R-MON-03:首购规格收取,与 createOrder 同源)
     depositCents = depositCents,
     payAmountCents = payAmountCents,

@@ -80,4 +80,6 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V345AddDeliveryFeeTiers", logicalFilePath = "db/changelog/changes/v3.4.5-add-delivery-fee-tiers.xml")
     // B2 押金模型回退(结构 #4,R-MON-03):deposit_records 扩列+状态值域 + 退押申请/空桶回收表
     include(file = "db/changelog/changes/V346AddDepositModel", logicalFilePath = "db/changelog/changes/v3.4.6-add-deposit-model.xml")
+    // G96 起送门槛与距离阶梯运费(R-OPS-03):minimum_order_cents/distance_tiers/store 坐标
+    include(file = "db/changelog/changes/V347AddDeliveryFeeMinimumDistance", logicalFilePath = "db/changelog/changes/v3.4.7-add-delivery-fee-minimum-distance.xml")
   })

@@ -94,6 +94,8 @@ class OrderMutationServiceImplTest :
     fun address(
       floor: Int? = null,
       userId: Long = 100L,
+      longitude: Double? = null,
+      latitude: Double? = null,
     ) = AddressModel(
       id = 1L,
       userId = userId,
@@ -104,6 +106,8 @@ class OrderMutationServiceImplTest :
       district = "西湖区",
       detailAddress = "文一西路100号",
       floor = floor,
+      longitude = longitude,
+      latitude = latitude,
     )
 
     fun pricingFor(request: OrderPricingRequest): OrderPricingResult {
@@ -311,6 +315,100 @@ class OrderMutationServiceImplTest :
         DeliveryFeeRuleModel(freeFloorLimit = 10, surchargeCents = 0)
       order.deliveryFeeCents shouldBe 200
     }
+    test("floor and distance tiers stack (R-MON-02 + R-OPS-03 叠加计费)") {
+      // 7 楼命中默认 7-9 档 +500;地址距门店约 4.4km 命中 3-5km 档 +300
+      stubCreateOrderCommon(address(floor = 7, longitude = 113.97, latitude = 22.53))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(
+          freeFloorLimit = 4,
+          surchargeCents = 200,
+          distanceTiers =
+            listOf(
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = 3.0, feeCents = 0L),
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = 5.0, feeCents = 300L),
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = null, feeCents = 600L),
+            ),
+          storeLongitude = 113.93,
+          storeLatitude = 22.53,
+        )
+
+      val order = service.createOrder(createRequest())
+
+      // 快照口径(R-MON-02):楼层 + 距离合计落 delivery_fee_cents
+      order.deliveryFeeCents shouldBe 800L
+      order.payAmountCents shouldBe product.price + 800L
+    }
+
+    test("distance tier not charged when store or address coordinates missing") {
+      stubCreateOrderCommon(address(floor = 7, longitude = null, latitude = null))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(
+          freeFloorLimit = 4,
+          surchargeCents = 200,
+          distanceTiers =
+            listOf(
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = null, feeCents = 600L),
+            ),
+          storeLongitude = 113.93,
+          storeLatitude = 22.53,
+        )
+
+      val order = service.createOrder(createRequest())
+
+      order.deliveryFeeCents shouldBe 500L
+    }
+
+    test("createOrder rejected below minimum order amount (R-OPS-03 起送门槛)") {
+      // 商品成交小计 1000 分(¥10),门槛 1500 分(¥15)→ 拦截并提示差额
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200, minimumOrderCents = 1500L)
+
+      val exception = shouldThrow<BadRequestException> { service.createOrder(createRequest()) }
+      exception.message shouldBe "商品金额未达起送金额 ¥15.00，还差 ¥5.00"
+    }
+
+    test("createOrder allowed when product amount equals minimum (等于门槛放行)") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200, minimumOrderCents = 1000L)
+
+      val order = service.createOrder(createRequest())
+      order.deliveryFeeCents shouldBe 0L
+    }
+
+    test("createOrder allowed when product amount above minimum (高于门槛放行)") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200, minimumOrderCents = 500L)
+
+      val order = service.createOrder(createRequest())
+      order.status shouldBe OrderModelStatus.PENDING_PAYMENT
+    }
+
+    test("self collect proxy order exempt from minimum order (自提豁免)") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200, minimumOrderCents = 1500L)
+
+      val order =
+        service.createDeliveryOrder(
+          1L,
+          CreateOrderRequest(
+            userId = 0L,
+            items = listOf(OrderItemRequest(productId = 1L, quantity = 1)),
+            addressId = 1L,
+            isSelfCollect = true,
+          ),
+        )
+
+      order.deliveryFeeCents shouldBe 0L
+    }
+
     test("createOrderEntersPendingPayment") {
       stubCreateOrderCommon(address(floor = 4))
       every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns

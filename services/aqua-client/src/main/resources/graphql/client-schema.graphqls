@@ -299,8 +299,12 @@ type OrderPreviewVo {
   totalDiscountCents: Long!
   # 商品应付(分,封顶 ≥ 0)
   payableProductCents: Long!
-  # 配送费(分,订单域计算)
+  # 配送费(分,订单域计算:楼层分档 + 距离阶梯叠加,R-MON-02/R-OPS-03)
   deliveryFeeCents: Long!
+  # 起送门槛(分,0=不启用;R-OPS-03/G96,低于门槛前端禁提交,服务端 createOrder 二次拦截为最终防线)
+  minimumOrderCents: Long!
+  # 商品金额(成交小计)是否未达起送门槛(未启用恒 false)
+  belowMinimum: Boolean!
   # 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,见 14-misc.md §G06)
   depositCents: Long!
   # 实付合计(分)= 商品应付 + 配送费
