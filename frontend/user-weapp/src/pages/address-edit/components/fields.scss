@@ -1,23 +1,37 @@
 @import "../../../styles/theme.scss";
 
-// ---- 地址编辑页表单字段共用样式(Contact/Detail/Floor 字段共用) ----
-.input-hint {
+// ---- 地址编辑页表单字段共用样式(address-edit.html) ----
+
+// 内联文本域(去掉 .weui-textarea 自带内边距,贴 cell 排版)
+.detail-textarea {
+  min-height: 128px;
+  padding: 16px 0 0;
+  background: transparent;
+}
+
+// 单元格下方辅助文案
+.field-hint {
+  padding-top: 12px;
   font-size: 24px;
-  color: var(--text-weak);
-  margin-top: 8px;
-  display: block;
   line-height: 1.5;
-  font-style: italic;
-  text-align: right;
+  color: var(--weui-FG-2);
 }
 
-/* 错误状态动画 */
-.error-text {
-  color: var(--error);
-  animation: shake 0.3s ease-in-out;
+// 表单 tips 行微调(楼层说明等)
+.field-tip {
+  padding-bottom: 8px;
 }
 
-@keyframes shake {
+// 校验错误红字(address-edit.html 状态二:单元格下方红字)
+.field-error {
+  padding: 12px 32px 0;
+  font-size: 24px;
+  line-height: 1.5;
+  color: var(--weui-RED);
+  animation: field-shake 0.3s ease-in-out;
+}
+
+@keyframes field-shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }

@@ -4,13 +4,18 @@ import { View, Text } from '@tarojs/components'
 interface ContactItemProps {
   label: string
   value: string
+  /** 值是否为可点链接形态(客服电话,--weui-LINK 蓝) */
+  link?: boolean
 }
 
-const ContactItem: React.FC<ContactItemProps> = ({ label, value }) => {
+/** 联系我们行(about.html .weui-cell:左标签 + 右值,链接值用 --weui-LINK) */
+const ContactItem: React.FC<ContactItemProps> = ({ label, value, link = false }) => {
   return (
-    <View className='flex justify-between items-center py-6 border-b border-border'>
-      <Text className='contact-label'>{label}</Text>
-      <Text className='contact-value'>{value}</Text>
+    <View className='weui-cell'>
+      <View className='weui-cell__bd'>{label}</View>
+      <View className={`weui-cell__ft contact-value ${link ? 'contact-value-link' : ''}`}>
+        <Text>{value}</Text>
+      </View>
     </View>
   )
 }

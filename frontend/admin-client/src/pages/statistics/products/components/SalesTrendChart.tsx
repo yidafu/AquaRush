@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { BRAND_PRIMARY } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
 
 const { RangePicker } = DatePicker;
@@ -80,7 +80,7 @@ const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
       />
       <Legend />
       <Line yAxisId="left" type="monotone" dataKey="sales" name="销量" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ fill: BRAND_PRIMARY, r: 3 }} />
-      <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke="#52c41a" strokeWidth={2} dot={{ fill: '#52c41a', r: 3 }} />
+      <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke={COLOR_SUCCESS} strokeWidth={2} dot={{ fill: COLOR_SUCCESS, r: 3 }} />
     </LineChart>
   </ChartCard>
 );

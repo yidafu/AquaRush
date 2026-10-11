@@ -1,8 +1,6 @@
 import React from 'react'
-import { Text, Button } from '@tarojs/components'
-import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { View } from '@tarojs/components'
 
-import "taro-ui/dist/style/components/modal.scss"
 import './DeleteAddressModal.scss'
 
 interface DeleteAddressModalProps {
@@ -12,23 +10,36 @@ interface DeleteAddressModalProps {
 }
 
 /**
- * 删除地址确认弹窗(AtModal,含 taro-ui modal 品牌化覆盖)
+ * 删除地址确认弹窗(address-list.html .weui-mask + .weui-dialog,
+ * 危险操作按钮用 .weui-dialog__btn_warn)
  */
 const DeleteAddressModal: React.FC<DeleteAddressModalProps> = ({ visible, onCancel, onConfirm }) => {
+  if (!visible) return null
+
   return (
-    <AtModal
-      isOpened={visible}
-      onClose={onCancel}
-    >
-      <AtModalHeader>确认删除</AtModalHeader>
-      <AtModalContent>
-        <Text>确定要删除这个地址吗？删除后无法恢复。</Text>
-      </AtModalContent>
-      <AtModalAction>
-        <Button onClick={onCancel}>取消</Button>
-        <Button onClick={onConfirm}>删除</Button>
-      </AtModalAction>
-    </AtModal>
+    <>
+      <View className='weui-mask' onClick={onCancel} />
+      <View className='weui-dialog'>
+        <View className='weui-dialog__hd'>
+          <View className='weui-dialog__title'>确认删除</View>
+        </View>
+        <View className='weui-dialog__bd'>确定要删除这个地址吗？删除后无法恢复。</View>
+        <View className='weui-dialog__ft'>
+          <View
+            className='weui-dialog__btn weui-dialog__btn_default'
+            onClick={onCancel}
+          >
+            取消
+          </View>
+          <View
+            className='weui-dialog__btn weui-dialog__btn_warn'
+            onClick={onConfirm}
+          >
+            删除
+          </View>
+        </View>
+      </View>
+    </>
   )
 }
 

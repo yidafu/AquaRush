@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import {
   DailyCollectionStatus,
   Money,
   centsToYuan,
+  formatCentsToCurrency,
   normalizeCents,
   yuanToCents,
 } from '@aquarush/common';
@@ -28,6 +29,18 @@ import { useTheme } from '@/hooks/use-theme';
 import { getTodayCollection, submitDailyCollection } from '@/services/dailyCollection';
 import { todayDateString } from '@/utils/date';
 
+/** 差异比对行(原型:标签列 + 右对齐「系统 / 填报 · 差异」值)。 */
+function DiffRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <View style={styles.diffRow}>
+      <ThemedText type="small" themeColor="textSecondary" style={styles.diffLabel}>
+        {label}
+      </ThemedText>
+      <View style={styles.diffValue}>{children}</View>
+    </View>
+  );
+}
+
 export default function DailyCollectionScreen() {
   const theme = useTheme();
   const [cashAmount, setCashAmount] = useState('');
@@ -42,6 +55,12 @@ export default function DailyCollectionScreen() {
   const [pendingWaterTicketDiff, setPendingWaterTicketDiff] = useState(0);
   const [pendingQrCodeDiff, setPendingQrCodeDiff] = useState(0);
   const [notes, setNotes] = useState('');
+
+  // 今日已提交禁用态(原型 daily-collection 状态三:提交成功后按钮禁用,等待管理员确认;G28 驳回回草稿可重提)
+  const submitted =
+    orderStats?.status === DailyCollectionStatus.SUBMITTED ||
+    orderStats?.status === DailyCollectionStatus.CONFIRMED ||
+    orderStats?.status === DailyCollectionStatus.DISPUTED;
 
   const loadTodayRecord = useCallback(async () => {
     try {
@@ -110,6 +129,8 @@ export default function DailyCollectionScreen() {
   );
 
   const handleSubmit = useCallback(async () => {
+    if (submitted) return; // 今日已提交,禁用态防重复提交
+
     const cash = parseFloat(cashAmount) || 0;
     const qr = parseFloat(qrCodeAmount) || 0;
     const tickets = parseInt(waterTicketCount, 10) || 0;
@@ -139,15 +160,16 @@ export default function DailyCollectionScreen() {
     }
 
     await doSubmit('');
-  }, [cashAmount, waterTicketCount, qrCodeAmount, orderStats, doSubmit]);
+  }, [cashAmount, waterTicketCount, qrCodeAmount, orderStats, submitted, doSubmit]);
 
   const handleConfirm = useCallback(() => {
+    if (submitted) return;
     if (!notes.trim()) {
       toast.warning('请输入情况说明');
       return;
     }
     doSubmit(notes.trim()).catch(() => {});
-  }, [notes, doSubmit]);
+  }, [notes, doSubmit, submitted]);
 
   const handleCancelConfirm = useCallback(() => {
     setShowConfirmModal(false);
@@ -160,6 +182,37 @@ export default function DailyCollectionScreen() {
   const totalCents =
     yuanToCents(parseFloat(cashAmount) || 0) + yuanToCents(parseFloat(qrCodeAmount) || 0);
   const status = orderStats?.status;
+
+  // 差异比对(原型 daily-collection「差异比对」卡常显):系统预计算 vs 实际填报,超容差高亮
+  const cashDiffCents = orderStats
+    ? yuanToCents(parseFloat(cashAmount) || 0) -
+      (normalizeCents(orderStats.calculatedCashAmountCents) ?? 0)
+    : 0;
+  const waterTicketDiff = orderStats
+    ? (parseInt(waterTicketCount, 10) || 0) - (orderStats.calculatedWaterTicketCount ?? 0)
+    : 0;
+  const qrCodeDiffCents = orderStats
+    ? yuanToCents(parseFloat(qrCodeAmount) || 0) -
+      (normalizeCents(orderStats.calculatedQrCodeAmountCents) ?? 0)
+    : 0;
+  // 与提交校验同口径:现金/扫码超 ±100 分或水票 ≠ 0 张即为超出容差
+  const overTolerance =
+    Math.abs(cashDiffCents) > TOLERANCE_CENTS ||
+    waterTicketDiff !== 0 ||
+    Math.abs(qrCodeDiffCents) > TOLERANCE_CENTS;
+
+  const diffTone = overTolerance ? 'danger' : 'success';
+  const cashDiffText =
+    cashDiffCents === 0
+      ? '一致'
+      : `${cashDiffCents > 0 ? '+' : ''}${formatCentsToCurrency(cashDiffCents)}` +
+        (overTolerance ? '' : ' · 容差内');
+  const qrCodeDiffText =
+    qrCodeDiffCents === 0
+      ? '一致'
+      : `${qrCodeDiffCents > 0 ? '+' : ''}${formatCentsToCurrency(qrCodeDiffCents)}` +
+        (overTolerance ? '' : ' · 容差内');
+  const waterTicketDiffText = waterTicketDiff === 0 ? '一致' : `${waterTicketDiff > 0 ? '+' : ''}${waterTicketDiff} 张`;
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>
@@ -222,21 +275,65 @@ export default function DailyCollectionScreen() {
             value={`${orderStats?.calculatedWaterTicketCount ?? 0} 张`}
           />
 
-          {/* 收款录入表单(现金/水票/扫码 + 合计) */}
+          {/* 收款录入表单(现金/水票/扫码 + 合计);已提交后只读回显 */}
           <CollectionInputFields
             cashAmount={cashAmount}
             waterTicketCount={waterTicketCount}
             qrCodeAmount={qrCodeAmount}
             totalCents={totalCents}
+            disabled={submitted}
             onCashAmountChange={setCashAmount}
             onWaterTicketCountChange={setWaterTicketCount}
             onQrCodeAmountChange={setQrCodeAmount}
           />
         </Card>
 
+        {/* 差异比对卡(常显):系统预计算 vs 实际填报并列,超容差项 error 高亮 */}
+        {orderStats ? (
+          <Card
+            title="差异比对"
+            right={
+              <StatusBadge
+                label={overTolerance ? '超出容差' : '容差内'}
+                tone={overTolerance ? 'error' : 'success'}
+              />
+            }>
+            <DiffRow label="现金（系统 / 填报）">
+              <ThemedText type="small">
+                {`${formatCentsToCurrency(normalizeCents(orderStats.calculatedCashAmountCents) ?? 0)}` +
+                  ` / ${formatCentsToCurrency(yuanToCents(parseFloat(cashAmount) || 0))} · `}
+                <ThemedText type="small" themeColor={cashDiffCents === 0 ? 'success' : diffTone}>
+                  {cashDiffText}
+                </ThemedText>
+              </ThemedText>
+            </DiffRow>
+            <DiffRow label="扫码（系统 / 填报）">
+              <ThemedText type="small">
+                {`${formatCentsToCurrency(normalizeCents(orderStats.calculatedQrCodeAmountCents) ?? 0)}` +
+                  ` / ${formatCentsToCurrency(yuanToCents(parseFloat(qrCodeAmount) || 0))} · `}
+                <ThemedText type="small" themeColor={qrCodeDiffCents === 0 ? 'success' : diffTone}>
+                  {qrCodeDiffText}
+                </ThemedText>
+              </ThemedText>
+            </DiffRow>
+            <DiffRow label="水票（系统 / 填报）">
+              <ThemedText type="small">
+                {`${orderStats.calculatedWaterTicketCount ?? 0} 张 / ${parseInt(waterTicketCount, 10) || 0} 张 · `}
+                <ThemedText type="small" themeColor={waterTicketDiff === 0 ? 'success' : diffTone}>
+                  {waterTicketDiffText}
+                </ThemedText>
+              </ThemedText>
+            </DiffRow>
+            <ThemedText type="caption" themeColor="textSecondary" style={styles.diffNote}>
+              容差 ±1 元（±100 分），水票按张数精确比对
+            </ThemedText>
+          </Card>
+        ) : null}
+
         <Button
-          title={submitting ? '提交中...' : '提交收款'}
+          title={submitted ? '今日已提交' : submitting ? '提交中...' : '提交收款'}
           loading={submitting}
+          disabled={submitted}
           size="lg"
           onPress={handleSubmit}
         />
@@ -282,5 +379,21 @@ const styles = StyleSheet.create({
   },
   orderInfoTitle: {
     marginBottom: Spacing.two,
+  },
+  diffRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.two,
+    marginBottom: Spacing.one,
+  },
+  diffLabel: {
+    flexShrink: 0,
+  },
+  diffValue: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  diffNote: {
+    marginTop: Spacing.two,
   },
 });

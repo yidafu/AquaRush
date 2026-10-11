@@ -9,7 +9,7 @@ import ProductService from '../../services/ProductService'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
-import { addToCart, syncCartTabBadge } from '../../utils/cart'
+import { addToCart } from '../../utils/cart'
 import { normalizeCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
@@ -261,7 +261,6 @@ const ProductDetail: React.FC = () => {
     })
 
     // 实时同步购物车 tabBar 角标
-    syncCartTabBadge()
 
     showToastMessage('已加入购物车', 'success')
   }, [state.product, showToastMessage])

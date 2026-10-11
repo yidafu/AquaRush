@@ -12,20 +12,25 @@ interface ProductCardProps {
 }
 
 /**
- * 商品网格卡(2 列):图片 + 缺货遮罩 + 名称(2 行) + 规格 +
- * 促销价展示(R-MKT-02 单价链)+ 已售数量
+ * 商品网格卡(product-list.html .mp-prod,2 列):
+ * 封面 1:1 + 缺货遮罩 + 名称(2 行) + 规格 +
+ * 促销价展示(R-MKT-02 单价链,.weui-price--md + 划线目录价)+ 已售数量
  */
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
   const { price, tag } = getDisplayPrice(product)
   const outOfStock = product.stock <= 0
+  const hasDiscount = tag !== '' && price !== product.priceCents
+  const [intPart, decPart = '00'] = displayCents(price).split('.')
 
   return (
     <View
-      key={product.id}
-      className='product-card'
+      className='mp-prod product-card'
+      trackTarget='product-list-item'
+      trackElementType='card'
+      trackElementText={product.name}
       onClick={onClick}
     >
-      <View className='product-img-wrap'>
+      <View className='mp-prod__cover product-cover'>
         <Image
           src={product.coverImageUrl}
           mode='aspectFill'
@@ -38,17 +43,28 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           </View>
         )}
       </View>
-      <View className='product-info'>
-        <Text className='product-name' numberOfLines={2}>{product.name}</Text>
-        <Text className='product-spec' numberOfLines={1}>{product.subtitle || product.specification}</Text>
-        <View className='product-bottom'>
-          <View className='product-price-wrap'>
-            <Text className='product-price'>{displayCents(price)}</Text>
-            {tag && <Text className='product-price-tag'>{tag}</Text>}
+      <View className='mp-prod__body'>
+        <View className='mp-prod__name'>{product.name}</View>
+        <View className='mp-prod__desc'>{product.subtitle || product.specification}</View>
+        <View className='mp-prod__foot'>
+          <View className='product-price-col'>
+            <View className='product-price-row'>
+              <View className='weui-price weui-price--md'>
+                <Text className='weui-price__symbol'>¥</Text>
+                <Text className='weui-price__int'>{intPart}</Text>
+                <Text className='weui-price__dec'>.{decPart}</Text>
+              </View>
+              {hasDiscount && (
+                <Text className='weui-price--origin'>¥{displayCents(product.priceCents)}</Text>
+              )}
+            </View>
+            <View className='product-tag-row'>
+              {tag !== '' && <Text className='weui-tag weui-tag--brand'>{tag}</Text>}
+              {product.salesVolume > 0 && (
+                <Text className='product-sales'>已售 {product.salesVolume}</Text>
+              )}
+            </View>
           </View>
-          {product.salesVolume > 0 && (
-            <Text className='product-sales'>已售{product.salesVolume}</Text>
-          )}
         </View>
       </View>
     </View>

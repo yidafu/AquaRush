@@ -1,39 +1,5 @@
-@import "../../../styles/theme.scss";
-
-.order-tabs {
-  display: flex;
-  gap: 4px;
-  margin: var(--spacing-md) var(--spacing-lg);
-  padding: 4px;
-  background: var(--bg-card); // 分段胶囊容器:白底圆角(§5)
-  border-radius: var(--radius-btn);
-  box-shadow: var(--shadow-card);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-
-  .order-tab-item {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 56px;
-    border-radius: var(--radius-btn);
-    transition: all 0.2s ease;
-
-    .order-tab-text {
-      font-size: 26px;
-      color: var(--text-sub);
-      transition: color 0.2s ease;
-    }
-
-    &.order-tab-item-active {
-      background: var(--brand-primary-light); // 选中:主色 tint 底 + 主色字(§5)
-
-      .order-tab-text {
-        color: var(--brand-primary);
-        font-weight: 600;
-      }
-    }
-  }
+// 订单状态 Tab:WeUI .weui-tabs 骨架由 weui.scss 提供,这里让 5 个 tab 均分一行
+.order-tabs .weui-tabs__item {
+  flex: 1 1 0;
+  text-align: center;
 }

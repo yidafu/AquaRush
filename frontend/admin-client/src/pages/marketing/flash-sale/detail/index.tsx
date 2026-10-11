@@ -9,6 +9,7 @@ import type { FlashSaleActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { FLASH_SALE_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
+import { COLOR_ERROR } from '../../../../config/theme';
 
 const DISPLAY_STATUS_LABELS: Record<string, string> = {
   UPCOMING: '未开始',
@@ -55,7 +56,7 @@ const FlashSaleDetailPage: React.FC = () => {
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     setPage((pagination.current ?? 1) - 1);
-    setSize(pagination.pageSize ?? 10);
+    setSize(pagination.pageSize ?? 20);
   };
 
   return (
@@ -78,7 +79,7 @@ const FlashSaleDetailPage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label="目录价">{displayCents(config.catalogPriceCents)}</Descriptions.Item>
               <Descriptions.Item label="特价">
-                <span style={{ color: '#f5222d' }}>{displayCents(config.salePriceCents)}</span>
+                <span style={{ color: COLOR_ERROR }}>{displayCents(config.salePriceCents)}</span>
               </Descriptions.Item>
               <Descriptions.Item label="状态">
                 <Tag color={DISPLAY_STATUS_COLORS[config.currentStatus] ?? 'default'}>

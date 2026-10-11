@@ -1,15 +1,9 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtCard, AtIcon, AtButton } from 'taro-ui'
 import { Money, OrderStatus, normalizeCents } from '@aquarush/common'
 import StatusTag from '../../../components/StatusTag'
 import OrderItemRow from '../../../components/OrderItemRow'
 import type { OrderItem } from './constants'
-
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/tag.scss"
 import './OrderCardItem.scss'
 
 interface OrderCardItemProps {
@@ -21,10 +15,11 @@ interface OrderCardItemProps {
 }
 
 /**
- * 订单列表卡片(F-ORD-004 多商品:首件 + 「等N件」):
- * 状态头 + 首件商品(命中营销价划线目录价,AC-ORD-002-09 —— R-MKT-01/02) +
- * 收货地址 + 营销优惠标签行(AC-ORD-002-10 —— R-MKT-07/08) +
- * 底部实付金额 + 按状态操作按钮(送达即完成,无确认收货 —— PRD R-ORD-11 2026-10 简化)
+ * 订单列表卡 —— WeUI .weui-cells 组卡(设计稿 02-order/order-list.html 骨架):
+ * 头 cell(订单号 + 下单时间 + 状态 .weui-tag--*)→ 商品 cell(.weui-media-box 行)→
+ * 营销优惠标签 cell(AC-ORD-002-10 —— R-MKT-07/08)→ 下单时间 + 实付 cell(.weui-price)→
+ * 地址 + 操作 cell(.weui-btn_xs 按状态出按钮;送达即完成,无确认收货 —— PRD R-ORD-11)。
+ * 点卡进详情;操作按钮 stopPropagation 防误跳转。
  */
 const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, onReorder, onClick }) => {
 
@@ -59,139 +54,144 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
     if (tags.length === 0) return null
 
     return (
-      <View className='order-discount-tags'>
-        {tags.map(tag => (
-          <Text key={tag} className='discount-tag'>{tag}</Text>
-        ))}
+      <View className='weui-cell'>
+        <View className='weui-cell__bd order-discount-tags'>
+          {tags.map(tag => (
+            <Text key={tag} className='weui-tag weui-tag--orange'>{tag}</Text>
+          ))}
+        </View>
       </View>
     )
   }
 
+  const stop = (e: { stopPropagation: () => void }) => e.stopPropagation()
+
   return (
-    <AtCard key={order.id} className='order-card' onClick={() => onClick(order)}>
-      <View className='order-header'>
-        <View className='order-info'>
-          <Text className='order-no'>订单号：{order.orderNo}</Text>
-          <StatusTag status={order.status} size='small' />
-        </View>
-        <Text className='order-time'>{order.createTime}</Text>
-      </View>
-
-      {order.product && (
-        <View className='order-items'>
-          <OrderItemRow
-            image={order.product.image}
-            name={order.product.name}
-            spec={order.product.specification}
-            priceCents={normalizeCents(order.unitPriceCents ?? order.product.priceCents)}
-            originalPriceCents={order.hasMarketingPrice ? normalizeCents(order.product.priceCents) : null}
-            quantity={order.quantity}
-            badge={order.items.length > 1 ? `等${order.items.length}件` : undefined}
-          />
-        </View>
-      )}
-
-      {order.address && (
-        <View className='order-address'>
-          <AtIcon value='map-pin' size='14' color='var(--text-sub)' />
-          <Text className='address-text'>
-            {order.address.receiverName} {order.address.phone}
-            {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
-          </Text>
-        </View>
-      )}
-
-      {/* 营销优惠标签(AC-ORD-002-10:满减/首单立减/优惠券/水票,有优惠时展示) */}
-      {renderDiscountTags()}
-
-      <View className='order-footer'>
-        <View className='order-amount'>
-          {discount > 0 && (
-            <Text className='amount-discount'>已优惠 <Money cents={discount} /></Text>
-          )}
-          <Text className='amount-label'>实付：</Text>
-          <Text className='amount-value'><Money cents={order.payAmountCents} /></Text>
+    <View className='order-card'>
+      <View className='weui-cells' onClick={() => onClick(order)}>
+        {/* 头 cell:订单号 + 下单时间 + 状态标签 */}
+        <View className='weui-cell'>
+          <View className='weui-cell__bd'>
+            <Text className='order-no'>{order.orderNo}</Text>
+            <Text className='order-time'>{order.createTime}</Text>
+          </View>
+          <View className='weui-cell__ft'>
+            <StatusTag status={order.status} size='small' />
+          </View>
         </View>
 
-        <View className='order-actions'>
-          {order.status === OrderStatus.PENDING_PAYMENT && (
-            <>
-              <AtButton
-                trackTarget="order-cancel"
-                trackElementType="button"
-                trackElementText="取消订单"
-                trackProps={{ orderId: order.id }}
-                onClick={() => onCancel(order)}
-                type='secondary'
-                size='small'
-                className='action-button'
-              >
+        {/* 商品 cell(F-ORD-004 多商品:首件 + 「等N件」) */}
+        {order.product && (
+          <View className='weui-cell order-product-cell'>
+            <OrderItemRow
+              image={order.product.image}
+              name={order.product.name}
+              spec={order.product.specification}
+              priceCents={normalizeCents(order.unitPriceCents ?? order.product.priceCents)}
+              originalPriceCents={order.hasMarketingPrice ? normalizeCents(order.product.priceCents) : null}
+              quantity={order.quantity}
+              badge={order.items.length > 1 ? `等${order.items.length}件` : undefined}
+            />
+          </View>
+        )}
+
+        {/* 营销优惠标签(AC-ORD-002-10:满减/首单立减/优惠券/水票,有优惠时展示) */}
+        {renderDiscountTags()}
+
+        {/* 下单时间 + 实付 cell */}
+        <View className='weui-cell'>
+          <View className='weui-cell__bd'>
+            <Text className='order-time'>{order.createTime}</Text>
+          </View>
+          <View className='weui-cell__ft order-pay'>
+            {discount > 0 && (
+              <Text className='pay-discount'>已优惠 <Money cents={discount} /></Text>
+            )}
+            <Text className='pay-label'>实付</Text>
+            <Text className='weui-price weui-price--md'>
+              <Money cents={order.payAmountCents} />
+            </Text>
+          </View>
+        </View>
+
+        {/* 地址 + 操作 cell(按钮按状态渲染) */}
+        <View className='weui-cell'>
+          <View className='weui-cell__bd'>
+            {order.address && (
+              <Text className='order-address'>
+                {order.address.receiverName} {order.address.phone}
+                {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
+              </Text>
+            )}
+          </View>
+          <View className='weui-cell__ft order-actions'>
+            {order.status === OrderStatus.PENDING_PAYMENT && (
+              <>
+                <View
+                  className='weui-btn weui-btn_plain-default weui-btn_xs'
+                  trackTarget='order-cancel'
+                  trackElementType='button'
+                  trackElementText='取消订单'
+                  trackProps={{ orderId: order.id }}
+                  onClick={(e) => { stop(e); onCancel(order) }}
+                >
                   取消订单
-              </AtButton>
-              <AtButton
-                trackTarget="order-pay"
-                trackElementType="button"
-                trackElementText="立即支付"
-                trackProps={{ orderId: order.id }}
-                onClick={() => onPay(order)}
-                type='primary'
-                size='small'
-                className='action-button'
-              >
+                </View>
+                <View
+                  className='weui-btn weui-btn_primary weui-btn_xs'
+                  trackTarget='order-pay'
+                  trackElementType='button'
+                  trackElementText='立即支付'
+                  trackProps={{ orderId: order.id }}
+                  onClick={(e) => { stop(e); onPay(order) }}
+                >
                   立即支付
-              </AtButton>
-            </>
-          )}
+                </View>
+              </>
+            )}
 
-          {(order.status === OrderStatus.PENDING_DISPATCH || order.status === OrderStatus.PENDING_DELIVERY) && (
-            <>
-              <AtButton
-                type='secondary'
-                size='small'
-                onClick={() => onClick(order)}
-                className='action-button'
+            {(order.status === OrderStatus.PENDING_DISPATCH || order.status === OrderStatus.PENDING_DELIVERY) && (
+              <>
+                <View
+                  className='weui-btn weui-btn_plain-default weui-btn_xs'
+                  onClick={(e) => { stop(e); onClick(order) }}
+                >
+                  查看详情
+                </View>
+                <View
+                  className='weui-btn weui-btn_plain-default weui-btn_xs'
+                  onClick={(e) => { stop(e); onCancel(order) }}
+                >
+                  取消订单
+                </View>
+              </>
+            )}
+
+            {order.status === OrderStatus.DELIVERING && (
+              <View
+                className='weui-btn weui-btn_plain-default weui-btn_xs'
+                onClick={(e) => { stop(e); onClick(order) }}
               >
                 查看详情
-              </AtButton>
-              <AtButton
-                type='secondary'
-                size='small'
-                onClick={() => onCancel(order)}
-                className='action-button'
+              </View>
+            )}
+
+            {order.status === OrderStatus.COMPLETED && (
+              <View
+                className='weui-btn weui-btn_plain-primary weui-btn_xs'
+                trackTarget='order-reorder'
+                trackElementType='button'
+                trackElementText='再次购买'
+                trackProps={{ orderId: order.id }}
+                onClick={(e) => { stop(e); onReorder(order) }}
               >
-                取消订单
-              </AtButton>
-            </>
-          )}
-
-          {order.status === OrderStatus.DELIVERING && (
-            <AtButton
-              type='secondary'
-              size='small'
-              onClick={() => onClick(order)}
-              className='action-button'
-            >
-              查看详情
-            </AtButton>
-          )}
-
-          {order.status === OrderStatus.COMPLETED && (
-            <AtButton
-              trackTarget="order-reorder"
-              trackElementType="button"
-              trackElementText="再次购买"
-              trackProps={{ orderId: order.id }}
-              onClick={() => onReorder(order)}
-              type='secondary'
-              size='small'
-              className='action-button'
-            >
-              再次购买
-            </AtButton>
-          )}
+                再次购买
+              </View>
+            )}
+          </View>
         </View>
       </View>
-    </AtCard>
+    </View>
   )
 }
 

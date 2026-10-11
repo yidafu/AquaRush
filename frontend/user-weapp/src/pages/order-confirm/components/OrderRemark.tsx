@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Textarea } from '@tarojs/components'
+import { View, Textarea } from '@tarojs/components'
 import './OrderRemark.scss'
 
 interface OrderRemarkProps {
@@ -7,26 +7,28 @@ interface OrderRemarkProps {
   onRemarkChange: (remark: string) => void
 }
 
+/**
+ * 订单备注 —— WeUI .weui-textarea + .weui-textarea__counter
+ * (设计稿 02-order/order-confirm.html「订单备注」,≤200 字)
+ */
 const OrderRemark: React.FC<OrderRemarkProps> = ({ remark, onRemarkChange }) => {
   const handleInputChange = (e: any) => {
     onRemarkChange(e.detail.value)
   }
 
   return (
-    <View className='section remark-section'>
-      {/* 单行头部:标签 + 字数计数(不再占独立行,压缩纵向空间) */}
-      <View className='remark-header'>
-        <Text className='remark-label'>订单备注</Text>
-        <Text className='remark-count'>{remark.length}/200</Text>
-      </View>
-      <View className='remark-wrapper'>
+    <View className='remark-section'>
+      <View className='weui-cells__title'>订单备注</View>
+      <View className='weui-cells remark-cells'>
         <Textarea
-          placeholder='请输入订单备注（选填）'
+          placeholder='选填，如放置点、送水时段偏好等（≤200 字）'
+          placeholderClass='ph'
           value={remark}
           onInput={handleInputChange}
           maxlength={200}
-          className='remark-input'
+          className='weui-textarea remark-input'
         />
+        <View className='weui-textarea__counter'>{remark.length}/200</View>
       </View>
     </View>
   )

@@ -5,12 +5,13 @@ import { Money } from '@aquarush/common'
 import './index.scss'
 
 /**
- * 商品行(订单/购物车/收藏/确认订单通用):
- * 图片 + 名称 + 规格 + 成交价(命中营销价时划线目录价,AC-ORD-003-09 —— R-MKT-01/02) + 数量
+ * 商品行(订单/购物车/收藏/确认订单通用)—— WeUI 2.x 视觉(.weui-media-box 行:
+ * 96 缩略图 + 名称 + 规格 + .weui-price 成交价(命中营销价划线目录价,AC-ORD-003-09 ——
+ * R-MKT-01/02)+ ×N,设计稿 02-order/order-detail.html 商品清单口径)。
  *
  * 收敛来源:order-detail OrderItemsCard / order-list OrderCardItem / order-confirm ProductList /
- * cart / favorites 五处近重复实现(类名相同,SCSS 漂移)。外层布局(卡片容器/等N件徽标等)
- * 由调用方保留,badge 可传徽标内容(渲染在图片右上)。
+ * cart / favorites 五处近重复实现。外层布局(卡片容器/等N件徽标等)
+ * 由调用方保留,badge 可传徽标内容(渲染在图片左上角)。
  */
 interface OrderItemRowProps {
   image: string
@@ -35,24 +36,30 @@ const OrderItemRow: React.FC<OrderItemRowProps> = ({
   badge
 }) => {
   return (
-    <View className='order-item'>
-      {badge && <Text className='item-badge'>{badge}</Text>}
-      <Image
-        src={image || '/assets/default-product.png'}
-        mode='aspectFill'
-        className='item-image'
-      />
-      <View className='item-info'>
-        <Text className='item-name' numberOfLines={1}>{name || '商品名称'}</Text>
-        {spec && <Text className='item-spec' numberOfLines={1}>规格：{spec}</Text>}
+    <View className='order-item weui-media-box'>
+      {badge && <Text className='item-badge weui-tag weui-tag--assign'>{badge}</Text>}
+      <View className='weui-media-box__hd'>
+        <Image
+          src={image || '/assets/default-product.png'}
+          mode='aspectFill'
+          className='weui-media-box__thumb weui-media-box__thumb--sm item-image'
+        />
+      </View>
+      <View className='weui-media-box__bd'>
+        <Text className='weui-media-box__title'>{name || '商品名称'}</Text>
+        {spec && <Text className='weui-media-box__desc'>规格:{spec}</Text>}
         <View className='item-bottom'>
           <View className='item-price-row'>
-            <Text className='item-price'><Money cents={priceCents ?? 0} /></Text>
+            <Text className='weui-price weui-price--md'>
+              <Money cents={priceCents ?? 0} />
+            </Text>
             {originalPriceCents != null && (
-              <Text className='item-original-price'><Money cents={originalPriceCents} /></Text>
+              <Text className='weui-price--origin'>
+                <Money cents={originalPriceCents} />
+              </Text>
             )}
           </View>
-          <Text className='item-quantity'>x{quantity ?? 0}</Text>
+          <Text className='item-quantity'>× {quantity ?? 0}</Text>
         </View>
       </View>
     </View>

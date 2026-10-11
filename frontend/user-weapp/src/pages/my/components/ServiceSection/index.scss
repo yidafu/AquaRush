@@ -1,91 +1,17 @@
 @import "../../../../styles/theme.scss";
 
-/* 营销入口卡 + 服务卡(§8.3/§8.4:列表行,行高 44) */
-.service-card {
-  margin: var(--spacing-md) var(--spacing-lg);
-  padding-top: var(--spacing-lg);
-  padding-bottom: var(--spacing-sm);
-}
-
-.service-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  min-height: 88px; /* 行高 44 物理 px(小程序刻度 88rpx) */
-  padding: var(--spacing-sm) 0;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:active {
-    .service-icon {
-      transform: scale(0.95);
-      opacity: 0.85;
-    }
-  }
-}
-
-.service-icon {
+// 「常用服务」weui-cells 行:品牌蓝图标 + 标题 + 箭头(my.html)
+.service-cell-icon {
   position: relative;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--brand-primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
+  color: var(--weui-BRAND);
 }
 
-/* 消息未读角标:主色底白字,>99 显示 99+(§8.4,F-NTF-002) */
-.service-badge {
+// 消息未读角标(语义红,F-NTF-002;>99 显示 99+)
+.service-cell-badge {
   position: absolute;
-  top: -6px;
-  right: -8px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: 16px;
-  background: var(--brand-primary);
-  border: 3px solid var(--bg-card);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .service-badge-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1;
-  }
-}
-
-.service-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.service-title {
-  font-size: 28px;
-  font-weight: 500;
-  color: var(--text-main);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.service-desc {
-  font-size: 22px;
-  color: var(--text-sub);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  top: -10px;
+  left: 28px;
 }

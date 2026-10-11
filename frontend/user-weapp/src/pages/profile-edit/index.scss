@@ -1,42 +1,30 @@
 @import '../../styles/theme.scss';
 
+// ============================================================
+// 编辑资料(profile-edit.html:WeUI 分组表单 cells + tips + 轻提示)
+// ============================================================
+
 .profile-edit-page {
   min-height: 100vh;
-  background-color: var(--bg);
+  background-color: var(--weui-BG-0);
+  box-sizing: border-box;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50vh;
-  color: var(--text-sub);
+.profile-loading {
+  padding-top: 40vh;
 }
 
-// 表单容器
-.form-container {
-  margin-top: 8px;
+// 表单补充说明
+.profile-tip {
+  padding-bottom: 48px;
 }
 
-// Toast 样式
-.at-toast {
-  .at-toast__body {
-    background-color: rgba(0, 0, 0, 0.8);
-    color: var(--bg-card);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 28px;
-    max-width: 80%;
-  }
-}
-
-// 响应式设计
-@media (min-width: 768px) {
-  .profile-edit-page {
-    max-width: 500px;
-    margin: 0 auto;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+// 轻提示(.weui-toast_text 深色胶囊)
+.profile-toast {
+  .weui-toast__text {
+    color: #fff;
+    word-break: break-all;
   }
 }

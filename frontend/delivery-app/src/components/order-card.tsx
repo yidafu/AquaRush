@@ -5,10 +5,9 @@ import { Money, formatDateTime } from '@aquarush/common';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { OrderInfoRow } from '@/components/order-info-row';
 import { StatusBadge } from '@/components/status-badge';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 
 export interface OrderCardData {
   id: string;
@@ -52,6 +51,13 @@ interface OrderCardProps {
   onStartDelivery?: (orderId: string) => void;
 }
 
+/**
+ * 订单卡密度化布局(对照原型 tasks.html 任务卡):
+ * 头部 = 等宽字体订单号 + StatusBadge;
+ * 主体 = 收货地址块(详细地址加粗醒目 + 联系人次行)+ 商品摘要一行 + meta 行(下单时间 · 金额);
+ * 底部 = 按状态的右侧主操作钮(沿用既有 action 逻辑)。
+ * 被 任务/历史/管理 三处列表复用,props 保持兼容。
+ */
 export function OrderCard({ order, type = 'history', onAccept, onStartDelivery }: OrderCardProps) {
   const router = useRouter();
 
@@ -59,45 +65,69 @@ export function OrderCard({ order, type = 'history', onAccept, onStartDelivery }
     router.push(`/order/${order.orderNo}`);
   }, [router, order.orderNo]);
 
+  const contactName = order.address?.receiverName || order.user?.nickname || '未知';
+  // 号码可见性由服务端控制(F-ORD-032,前端不自行脱敏)
+  const contactPhone = order.address?.phone || order.user?.phone || '';
+  const detailAddress = order.address?.detailAddress || '未知';
+
+  const itemsSummary =
+    order.items && order.items.length > 0
+      ? (order.items[0]?.product?.name || '未知') +
+        (order.items[0]?.quantity ? ` ×${order.items[0].quantity}` : '') +
+        (order.items.length > 1 ? ` 等${order.items.length}件` : '')
+      : '未知';
+
+  const metaParts: string[] = [];
+  if (order.createdAt) metaParts.push(`下单 ${formatDateTime(order.createdAt)}`);
+  if (type === 'history' && order.completedAt) {
+    metaParts.push(`完成 ${formatDateTime(order.completedAt)}`);
+  }
+  if (order.deliveryWorker?.name) metaParts.push(`配送员 ${order.deliveryWorker.name}`);
+
   return (
     <Pressable onPress={handleClick} style={({ pressed }) => pressed && styles.pressed}>
       <Card>
+        {/* 头部:等宽订单号 + 状态标签 */}
         <View style={styles.header}>
-          <ThemedText type="smallBold">{order.orderNo}</ThemedText>
+          <ThemedText type="code" themeColor="textSecondary" style={styles.orderNo}>
+            No. {order.orderNo}
+          </ThemedText>
           <View style={styles.headerRight}>
-            {type === 'history' && order.status ? <StatusBadge status={order.status} /> : null}
+            {order.status ? <StatusBadge status={order.status} /> : null}
             {order.isSelfCollect ? <StatusBadge label="自收" tone="accent" /> : null}
           </View>
         </View>
 
-        <OrderInfoRow label="客户" value={order.address?.receiverName || order.user?.nickname || '未知'} />
-        <OrderInfoRow label="电话" value={order.address?.phone || order.user?.phone || '未知'} />
-        <OrderInfoRow label="地址" value={order.address?.detailAddress || '未知'} />
-        <OrderInfoRow
-          label="商品"
-          value={
-            (order.items && order.items.length > 0
-              ? (order.items[0]?.product?.name || '未知') + (order.items.length > 1 ? ' 等' + order.items.length + '件' : '')
-              : '未知')
-          }
-        />
-        <OrderInfoRow label="下单时间" value={formatDateTime(order.createdAt)} />
-        {order.deliveryWorker?.name ? (
-          <OrderInfoRow label="配送员" value={order.deliveryWorker.name} />
-        ) : null}
-        {type === 'history' && order.completedAt ? (
-          <OrderInfoRow label="完成时间" value={formatDateTime(order.completedAt)} />
+        {/* 收货地址块:详细地址醒目,联系人/电话次行(脱敏逻辑由服务端下发) */}
+        <View style={styles.addressBlock}>
+          <ThemedText type="default" style={styles.address} numberOfLines={2}>
+            {'📍 '}
+            {detailAddress}
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+            {contactName}
+            {contactPhone ? ` · ${contactPhone}` : ''}
+          </ThemedText>
+        </View>
+
+        {/* 商品摘要 + 金额一行 */}
+        <View style={styles.summaryRow}>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.summary} numberOfLines={1}>
+            {itemsSummary}
+          </ThemedText>
+          <ThemedText type="smallBold" themeColor="primary">
+            <Money cents={order.amountCents} />
+          </ThemedText>
+        </View>
+
+        {/* meta 行:下单时间 · 完成时间 · 配送员 */}
+        {metaParts.length > 0 ? (
+          <ThemedText type="caption" themeColor="textTertiary" style={styles.meta} numberOfLines={1}>
+            {metaParts.join(' · ')}
+          </ThemedText>
         ) : null}
 
-        <OrderInfoRow
-          label="金额"
-          value={
-            <ThemedText type="smallBold" themeColor="primary">
-              <Money cents={order.amountCents} />
-            </ThemedText>
-          }
-        />
-
+        {/* 按状态的右侧主操作钮(行为不变) */}
         {type !== 'history' ? (
           <View style={styles.actions}>
             {type === 'pending' && onAccept ? (
@@ -126,10 +156,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.two,
   },
+  orderNo: {
+    fontFamily: Fonts.mono,
+    flexShrink: 1,
+  },
   headerRight: {
     flexDirection: 'row',
     gap: Spacing.two,
     alignItems: 'center',
+  },
+  addressBlock: {
+    gap: Spacing.half,
+    marginBottom: Spacing.two,
+  },
+  address: {
+    fontWeight: '600',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  summary: {
+    flexShrink: 1,
+  },
+  meta: {
+    marginTop: Spacing.one,
   },
   actions: {
     flexDirection: 'row',

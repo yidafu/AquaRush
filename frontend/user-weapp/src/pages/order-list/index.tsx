@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtToast } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh, useReachBottom } from '@tarojs/taro'
 import { ORDER_TABS, OrderStatus, normalizeCents, usePagedList } from '@aquarush/common'
 import { userActionTracker } from '../../utils/tracking'
@@ -10,22 +9,19 @@ import OrderService from '../../services/OrderService'
 import OrderTabs from './components/OrderTabs'
 import OrderCardItem from './components/OrderCardItem'
 import OrderEmptyState from './components/OrderEmptyState'
+import { ORDER_TAB_KEYS, PENDING_ORDER_TAB_STORAGE_KEY } from './components/constants'
 import type { OrderItem, OrderProduct } from './components/constants'
 
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
 
 const PAGE_SIZE = 10
 
 /**
- * 订单列表页(F-ORD-004 多商品下单)
+ * 订单列表页(F-ORD-002,设计稿 02-order/order-list.html WeUI 视觉)
  * 分页状态机/刷新/加载更多由 @aquarush/common 的 usePagedList 共享,Tab 定义来自
  * common ORDER_TABS(全部/待付款/待配送/配送中/已完成);页面保留 Tab 路由定位、
- * 行映射与事件处理(支付/取消/再次购买)。
+ * 跨页 storage 接力定位('pendingOrderTab',switchTab 无法带参)、行映射与
+ * 事件处理(支付/取消/再次购买)。
  */
 const OrderListPage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<number>(0)
@@ -42,6 +38,13 @@ const OrderListPage: React.FC = () => {
   const hideToast = useCallback(() => {
     setShowToast(false)
   }, [])
+
+  // WeUI toast 视觉容器:保留原 AtToast 的 3s 自动关闭行为
+  useEffect(() => {
+    if (!showToast) return
+    const timer = setTimeout(hideToast, 3000)
+    return () => clearTimeout(timer)
+  }, [showToast, toastText, toastType, hideToast])
 
   /**
    * 商品 id 归一化(PrimaryId 传输为字符串)
@@ -116,7 +119,7 @@ const OrderListPage: React.FC = () => {
     initialParams: { statuses: ORDER_TABS[0].statuses }
   })
 
-  // 初始化:从「我的」页订单宫格进入时定位对应 Tab(全部/待付款/待配送/配送中)
+  // 初始化:从「我的」页订单宫格进入时定位对应 Tab(全部/待付款/待配送/配送中/已完成)
   useReady(() => {
     const instance = Taro.getCurrentInstance()
     const tabParam = instance.router?.params?.tab
@@ -124,16 +127,28 @@ const OrderListPage: React.FC = () => {
       all: 0,
       pending_payment: 1,
       pending_delivery: 2,
-      delivering: 3
+      delivering: 3,
+      completed: 4
     }
     const initialTab = typeof tabParam === 'string' && tabParam in TAB_INDEX_MAP ? TAB_INDEX_MAP[tabParam] : 0
     setCurrentTab(initialTab)
     void setParams({ statuses: ORDER_TABS[initialTab].statuses })
   })
 
-  // 页面显示时刷新第一页数据(支付完成/取消后返回即时同步)
+  // 页面显示时刷新第一页数据(支付完成/取消后返回即时同步);
+  // 跨页 tab 接力:「我的」宫格 switchTab 前写 pendingOrderTab,此处读后即清并切到对应 Tab
   useDidShow(() => {
     userActionTracker.trackPageView()
+    const pendingTab = Taro.getStorageSync(PENDING_ORDER_TAB_STORAGE_KEY)
+    if (pendingTab) {
+      Taro.removeStorageSync(PENDING_ORDER_TAB_STORAGE_KEY)
+      const tabIndex = ORDER_TAB_KEYS.indexOf(String(pendingTab))
+      if (tabIndex >= 0) {
+        setCurrentTab(tabIndex)
+        void setParams({ statuses: ORDER_TABS[tabIndex].statuses })
+        return
+      }
+    }
     void refresh()
   })
 
@@ -263,7 +278,7 @@ const OrderListPage: React.FC = () => {
       <View className='order-content'>
         {loading && orders.length === 0 ? (
           <View className='loading-container'>
-            <Text>加载中...</Text>
+            <Text className='loading-text'>加载中...</Text>
           </View>
         ) : orders.length === 0 ? (
           <OrderEmptyState
@@ -284,28 +299,36 @@ const OrderListPage: React.FC = () => {
               />
             ))}
 
+            {/* 加载更多(WeUI .weui-loadmore:加载中 spinner / 上拉提示 / 双短线收尾) */}
             {loadingMore && (
-              <View className='loading-more'>
-                <Text>加载中...</Text>
+              <View className='weui-loadmore weui-loadmore_loading'>
+                <View className='spinner' />
+              </View>
+            )}
+
+            {!loadingMore && hasMore && orders.length > 0 && (
+              <View className='weui-loadmore'>
+                <Text>上拉加载更多</Text>
               </View>
             )}
 
             {!hasMore && orders.length > 0 && (
-              <View className='no-more'>
+              <View className='weui-loadmore'>
+                <View className='weui-loadmore__line' />
                 <Text>没有更多订单了</Text>
+                <View className='weui-loadmore__line' />
               </View>
             )}
           </View>
         )}
       </View>
 
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={hideToast}
-      />
+      {/* Toast 提示(WeUI .weui-toast 视觉容器,状态逻辑与原 AtToast 一致) */}
+      {showToast && (
+        <View className='weui-toast weui-toast_text'>
+          <Text className='weui-toast__text'>{toastText}</Text>
+        </View>
+      )}
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

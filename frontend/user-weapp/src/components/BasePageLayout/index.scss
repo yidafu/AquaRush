@@ -1,7 +1,7 @@
-// Main layout container
+// Main layout container(WeUI 度量:页面底 --weui-BG-0,主文字/说明走 weui 排版 token)
 .base-page-layout {
   min-height: 100vh;
-  background-color: var(--bg);
+  background-color: var(--weui-BG-0);
   position: relative;
 }
 
@@ -14,33 +14,36 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  padding: 60px 48px;
-  background-color: var(--bg);
+  padding: 120px 64px;
+  background-color: var(--weui-BG-0);
 
   .login-icon {
-    font-size: 120px;
-    margin-bottom: 32px;
-    opacity: 0.3;
+    width: 168px;
+    height: 168px;
+    border-radius: 50%;
+    background: var(--weui-BRAND-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    margin-bottom: 48px;
   }
 
   .login-title {
-    font-size: 36px;
+    font-size: var(--weui-fs-cell);
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--weui-FG-0);
     margin-bottom: 16px;
   }
 
   .login-subtitle {
-    font-size: 28px;
-    color: var(--text-sub);
-    margin-bottom: 48px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    margin-bottom: 64px;
   }
 
   .login-button {
-    width: 280px;
-    height: 80px;
-    font-size: 28px;
-    border-radius: 40px;
+    width: 320px;
   }
 }
 
@@ -51,11 +54,11 @@
   justify-content: center;
   min-height: 60vh;
   padding: 0 32px;
-  background-color: var(--bg);
+  background-color: var(--weui-BG-0);
 
   .loading-text {
-    color: var(--text-sub);
-    font-size: 28px;
+    color: var(--weui-FG-1);
+    font-size: var(--weui-fs-tips);
   }
 }
 
@@ -66,154 +69,36 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  padding: 80px 48px;
-  background-color: var(--bg);
+  padding: 128px 64px;
+  background-color: var(--weui-BG-0);
 
   .error-icon {
-    font-size: 120px;
-    margin-bottom: 32px;
-    opacity: 0.5;
+    width: 168px;
+    height: 168px;
+    border-radius: 50%;
+    background: var(--weui-RED-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    margin-bottom: 48px;
   }
 
   .error-title {
-    font-size: 36px;
+    font-size: var(--weui-fs-cell);
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--weui-FG-0);
     margin-bottom: 16px;
   }
 
   .error-message {
-    font-size: 28px;
-    color: var(--text-sub);
-    margin-bottom: 48px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    margin-bottom: 64px;
     text-align: center;
-    max-width: 500px;
   }
 
   .error-retry-button {
-    width: 240px;
-    height: 72px;
-    font-size: 28px;
-  }
-}
-
-// Empty state styles
-.empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 80px 48px;
-  background-color: var(--bg);
-
-  .empty-icon {
-    width: 160px;
-    height: 160px;
-    background: linear-gradient(135deg, #ffe6e6 0%, #fff0f0 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 32px;
-    font-size: 80px;
-    opacity: 0.6;
-  }
-
-  .empty-title {
-    font-size: 32px;
-    font-weight: 500;
-    color: var(--text-main);
-    margin-bottom: 12px;
-  }
-
-  .empty-subtitle {
-    font-size: 28px;
-    color: var(--text-sub);
-    margin-bottom: 48px;
-    text-align: center;
-  }
-
-  .empty-action-button {
-    width: 240px;
-    height: 72px;
-    font-size: 28px;
-  }
-}
-
-// Responsive adjustments
-@media (max-width: 375px) {
-  .login-prompt {
-    padding: 48px 32px;
-
-    .login-icon {
-      font-size: 100px;
-    }
-
-    .login-title {
-      font-size: 32px;
-    }
-
-    .login-subtitle {
-      font-size: 26px;
-    }
-
-    .login-button {
-      width: 240px;
-      height: 72px;
-      font-size: 26px;
-    }
-  }
-
-  .loading-container {
-    .loading-text {
-      font-size: 26px;
-    }
-  }
-
-  .error-container {
-    padding: 60px 32px;
-
-    .error-icon {
-      font-size: 100px;
-    }
-
-    .error-title {
-      font-size: 32px;
-    }
-
-    .error-message {
-      font-size: 26px;
-    }
-
-    .error-retry-button {
-      width: 200px;
-      height: 64px;
-      font-size: 26px;
-    }
-  }
-
-  .empty-container {
-    padding: 60px 32px;
-
-    .empty-icon {
-      width: 140px;
-      height: 140px;
-      font-size: 70px;
-    }
-
-    .empty-title {
-      font-size: 28px;
-    }
-
-    .empty-subtitle {
-      font-size: 26px;
-    }
-
-    .empty-action-button {
-      width: 200px;
-      height: 64px;
-      font-size: 26px;
-    }
+    width: 320px;
   }
 }

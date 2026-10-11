@@ -66,7 +66,7 @@ const NewcomerDetailPage: React.FC = () => {
 
   const handleTableChange = (pagination: TablePaginationConfig) => {
     setPage((pagination.current ?? 1) - 1);
-    setSize(pagination.pageSize ?? 10);
+    setSize(pagination.pageSize ?? 20);
   };
 
   const isReduce = config?.activityType === 'FIRST_ORDER_REDUCE';

@@ -1,49 +1,21 @@
-@import "../../../styles/theme.scss";
-
-.bottom-actions {
+// 底部操作栏:WeUI .mp-footbar 骨架由 weui.scss 提供(position:fixed + 安全区页面自理),
+// 这里只补固定定位与多按钮压缩
+.order-footbar {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
-  background: var(--bg-card);
-  padding: 16px;
-  display: flex;
-  gap: 12px;
-  z-index: 1000;
-}
+  bottom: 0;
+  z-index: 100;
+  padding-bottom: calc(16px + constant(safe-area-inset-bottom));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 
-.action-button {
-  flex: 1;
-  height: 64px;
-  font-size: 32px;
-  font-weight: 500;
-
-  &.primary {
-    background: var(--action); // 去支付/催单 = 消费者最高优先级 CTA(强调橙 #FF5436)
-    color: white;
-    border: none;
-    box-shadow: var(--shadow-btn);
-
-    &:active {
-      background: #E64A30;
-      opacity: 0.9;
-    }
+  .weui-btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0 24px;
   }
 
-  &.full-width {
-    width: 100%;
-  }
-}
-
-/* 响应式调整 */
-@media (max-width: 480px) {
-  .bottom-actions {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .action-button {
-    width: 100%;
-    font-size: 28px;
+  .footbar-flex1 {
+    flex: 1 1 0;
   }
 }

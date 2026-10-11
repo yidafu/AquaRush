@@ -51,6 +51,7 @@ class Http {
    * GET 请求
    */
   get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    // 响应拦截器已解包为 data.data(业务数据),此处仅类型收敛,运行时值即 T
     return this.instance.get(url, config) as unknown as Promise<T>;
   }
 

@@ -23,7 +23,8 @@ export default defineAppConfig({
     'pages/coupon-list/index',
     'pages/ticket-shop/index',
     'pages/ticket-list/index',
-    'pages/barrel-mine/index'
+    'pages/barrel-mine/index',
+    'pages/assets/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -35,20 +36,14 @@ export default defineAppConfig({
   tabBar: {
     color: '#999999',
     selectedColor: '#3A9BD9',
-    backgroundColor: '#ffffff',
-    borderStyle: 'white',
+    backgroundColor: '#F7F7F7',
+    borderStyle: 'black',
     list: [
       {
         pagePath: 'pages/home/index',
         text: '首页',
         iconPath: './assets/home.png',
         selectedIconPath: './assets/home-active.png'
-      },
-      {
-        pagePath: 'pages/cart/index',
-        text: '购物车',
-        iconPath: './assets/shopping-bag.png',
-        selectedIconPath: './assets/shopping-bag-active.png'
       },
       {
         pagePath: 'pages/order-list/index',

@@ -1,304 +1,49 @@
+@import "../../styles/theme.scss";
+
+// ============================================================
+// 收货地址列表(address-list.html:WeUI 搜索 + cells 地址卡 +
+// 选择模式 brand notice + .mp-footbar 底部新增栏)
+// 地址卡视觉由共享 AddressCard 组件承担(WeUI 2.x 度量)
+// ============================================================
+
 .address-list-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding-bottom: 160px; // 为底部「新增收货地址」操作栏预留空间
+  background-color: var(--weui-BG-0);
+  // 为底部「新增收货地址」操作栏预留空间
+  padding-bottom: 160px;
+  box-sizing: border-box;
+}
+
+// 选择模式提示
+.select-notice {
+  .select-notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .address-list {
-  padding: 0 16px;
-  animation: fadeInUp 0.6s ease-out;
+  // AddressCard 自带留白,这里只做组间距
+  padding-bottom: 16px;
 }
 
-/* 底部新增收货地址主按钮(F-ADR-001 组件清单 4) */
+/* 底部新增收货地址主按钮(address-list.html .mp-footbar hair-t) */
 .add-address-bar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
-  background: var(--theme-background);
-  padding: 16px 24px;
+  z-index: 100;
   padding-bottom: calc(16px + env(safe-area-inset-bottom)); // iOS 安全区域
-  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
 }
 
-.add-address-button {
-  height: 80px;
-  font-size: 30px;
-  font-weight: 600;
-  border-radius: var(--radius-btn);
-
-  &::after {
-    border: none;
+// 轻提示(.weui-toast_text 深色胶囊)
+.address-toast {
+  .weui-toast__text {
+    color: #fff;
+    word-break: break-all;
   }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-  color: var(--theme-text-tertiary);
-  font-size: 35px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.empty-text {
-  font-size: 39px;
-  color: var(--theme-text-secondary);
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.empty-desc {
-  font-size: 30px;
-  color: var(--theme-text-tertiary);
-  text-align: center;
-  line-height: 1.6;
-  max-width: 280px;
-}
-
-.address-card {
-  margin-bottom: 16px;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px var(--theme-shadow-medium);
-  transition: all 0.3s ease;
-  animation: slideInUp 0.4s ease-out;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb), 0.12);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.address-content {
-  position: relative;
-  padding: 20px;
-  background: var(--theme-background);
-}
-
-.default-badge {
-  background: var(--brand-primary-light); // 默认标签:主色 tint 底 + 主色字(§2.2)
-  color: var(--brand-primary);
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.address-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-  padding-right: 100px; // 为默认标签留空间
-}
-
-.receiver-name {
-  font-size: 39px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  letter-spacing: 0.3px;
-}
-
-.receiver-phone {
-  font-size: 30px;
-  color: var(--theme-primary);
-  background: var(--theme-primary-light);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.address-detail {
-  font-size: 33px;
-  color: var(--theme-text-secondary);
-  line-height: 1.6;
-  margin-bottom: 12px;
-  padding-right: 16px;
-  background: var(--theme-primary-light);
-  padding: 12px;
-  border-radius: 8px;
-  border-left: 3px solid var(--theme-primary);
-}
-
-.address-coords {
-  font-size: 26px;
-  color: var(--theme-text-tertiary);
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background: var(--theme-background);
-  border-radius: 6px;
-  border: 1px solid var(--theme-border);
-  font-family: 'Monaco', 'Menlo', monospace;
-  opacity: 0.8;
-}
-
-.address-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.select-button {
-  width: 130px;
-  height: 40px;
-  font-size: 30px;
-  font-weight: 600;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb), 0.3);
-  transition: all 0.3s ease;
-
-  &:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 6px rgba(var(--theme-primary-rgb), 0.4);
-  }
-}
-
-.action-buttons {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.default-button,
-.edit-button,
-.delete-button {
-  // width: 85px;
-  // height: 36px;
-  font-size: 26px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0;
-  border-radius: 18px;
-  transition: all 0.3s ease;
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.default-button {
-  background: var(--theme-primary-light);
-  color: var(--theme-primary);
-  border: 1px solid var(--theme-primary);
-
-  &:active {
-    background: var(--theme-primary);
-    color: var(--theme-background);
-    box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb), 0.2);
-  }
-}
-
-.edit-button {
-  background: var(--theme-primary-light);
-  color: var(--theme-primary);
-  border: 1px solid var(--theme-primary);
-
-  &:active {
-    background: var(--theme-primary);
-    color: var(--theme-background);
-    box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb), 0.2);
-  }
-}
-
-.delete-button {
-  background: rgba(255, 77, 79, 0.08); // 删除按钮:error 红 tint(§2.1 红线,禁用强调橙)
-  color: var(--theme-error);
-  border: 1px solid var(--theme-error);
-
-  &:active {
-    background: rgba(255, 77, 79, 0.15);
-    box-shadow: 0 2px 8px var(--theme-error);
-  }
-}
-
-
-/* 动画效果 */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Taro UI 组件样式覆盖 */
-
-.at-card__content {
-  padding: 0;
-}
-
-.at-button {
-  border-radius: 18px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.at-button--primary {
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
-  border: none;
-}
-
-.at-button--secondary {
-  background: var(--theme-primary-light);
-  border: 1px solid var(--theme-primary);
-  color: var(--theme-primary);
-}
-
-.at-icon {
-  transition: all 0.2s ease;
-}
-
-.at-toast {
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
 }

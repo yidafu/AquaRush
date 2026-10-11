@@ -10,14 +10,14 @@ interface OrderEmptyStateProps {
 }
 
 /**
- * 订单列表空态:空图 + 文案 + 「去逛逛」按钮(仅全部 Tab;渲染统一走共享 EmptyState)
+ * 订单列表空态:WeUI .weui-empty(品牌 tint 圆 + 文案)+ 「去逛逛」按钮
+ * (仅全部 Tab;渲染统一走共享 EmptyState)
  */
 const OrderEmptyState: React.FC<OrderEmptyStateProps> = ({ isAllTab, tabTitle, onGoShopping }) => {
   return (
     <EmptyState
-      image='/assets/empty-order.png'
       title='暂无订单'
-      description={isAllTab ? '您还没有任何订单哦' : `暂无${tabTitle}订单`}
+      description={isAllTab ? '下单后可在此查看订单与配送进度' : `暂无${tabTitle}订单`}
       actionText={isAllTab ? '去逛逛' : undefined}
       onAction={isAllTab ? onGoShopping : undefined}
     />

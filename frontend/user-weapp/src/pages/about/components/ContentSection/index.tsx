@@ -1,15 +1,16 @@
 import React from 'react'
-import { View, Text } from '@tarojs/components'
+import { View } from '@tarojs/components'
 
 interface ContentSectionProps {
   title: string
   children: React.ReactNode
 }
 
+/** 分区标题(about.html .weui-cells__title)+ 分区内容插槽 */
 const ContentSection: React.FC<ContentSectionProps> = ({ title, children }) => {
   return (
-    <View className='mb-12'>
-      <Text className='text-3xl font-bold text-primary mb-6 block relative pl-6'>{title}</Text>
+    <View className='about-section'>
+      <View className='weui-cells__title'>{title}</View>
       {children}
     </View>
   )

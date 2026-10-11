@@ -1,50 +1,36 @@
-@import "../../styles/theme.scss";
-
+// 订单详情页(WeUI 2.x:页面底 --weui-BG-0,区块骨架 .weui-cells 由 weui.scss 提供)
 .order-detail-page {
   min-height: 100vh;
-  background-color: var(--bg);
-  padding-bottom: 80px;
+  background-color: var(--weui-BG-0);
+  // 底部固定 .mp-footbar 预留(栏高 96 + 内边距 + 安全区)
+  padding-bottom: 200px;
+  box-sizing: border-box;
 }
 
-.loading-container,
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  gap: 24px;
+
+  .loading-text {
+    color: var(--weui-FG-1);
+    font-size: var(--weui-fs-tips);
+  }
+}
+
 .error-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 50vh;
-  gap: 20px;
-}
+  gap: 24px;
 
-/* Taro UI 组件样式覆盖 */
-.at-card__content {
-  padding: 24px;
-}
-
-.at-card__header {
-  padding: 24px 24px 0;
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-/* 订单状态标签样式覆盖 */
-.at-tag {
-  padding: 8px 16px;
-  font-size: 28px;
-  height: auto;
-  line-height: 1.4;
-  border-radius: 16px;
-  font-weight: 500;
-}
-
-/* 响应式调整 */
-@media (max-width: 480px) {
-  .at-card__header {
-    font-size: 28px;
-  }
-
-  .at-tag {
-    font-size: 24px;
+  .error-text {
+    color: var(--weui-FG-1);
+    font-size: var(--weui-fs-cell);
   }
 }

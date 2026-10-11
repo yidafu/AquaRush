@@ -11,6 +11,7 @@ import ContactItem from './components/ContactItem'
 // 导入常量(店铺信息未配置时兜底展示)
 import {
   BRAND_INFO,
+  APP_INFO,
   WATER_SOURCE_INFO,
   BRAND_FEATURES} from './constants'
 import {
@@ -20,6 +21,10 @@ import StoreProfileService from '../../services/StoreProfileService'
 import type { StoreProfileVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
+/**
+ * 关于我们(about.html:品牌渐变 hero + weui-cells 分区:
+ * 品牌承诺 media-box / 水源地介绍 / 联系我们 cells / 版权页脚)
+ */
 const About: React.FC = () => {
   usePageViewTracking()
 
@@ -58,96 +63,117 @@ const About: React.FC = () => {
 
   const contactInfo = [
     {
-      label: '服务热线',
-      value: hotline
+      label: '客服电话',
+      value: hotline,
+      link: true
     },
     {
       label: '客服时间',
-      value: serviceHours
+      value: serviceHours,
+      link: false
     },
     {
       label: '品牌合作',
-      value: CONTACT_INFO.PARTNER_EMAIL
+      value: CONTACT_INFO.PARTNER_EMAIL,
+      link: false
     },
     {
       label: '水源地地址',
-      value: WATER_SOURCE_INFO.LOCATION
+      value: WATER_SOURCE_INFO.LOCATION,
+      link: false
     }
   ]
 
   return (
     <View className='about-page'>
-      <View className='header'>
-        <View className='logo-container'>
-          <View className='logo'>
-            {storeProfile?.logoUrl ? (
-              <Image src={storeProfile.logoUrl} className='logo-image' mode='aspectFit' />
-            ) : (
-              <View className='logo-icon'>{BRAND_INFO.LOGO_EMOJI}</View>
-            )}
-            <Text className='logo-text'>{shopName}</Text>
-          </View>
-          <Text className='logo-subtitle'>{BRAND_INFO.SUBTITLE}</Text>
+      {/* 品牌渐变 hero(about.html:居中 logo + 品牌名 + slogan + 版本) */}
+      <View className='theme-gradient about-hero'>
+        <View className='about-hero-logo'>
+          {storeProfile?.logoUrl ? (
+            <Image src={storeProfile.logoUrl} className='about-hero-logo-img' mode='aspectFit' />
+          ) : (
+            <Text className='about-hero-logo-emoji'>{BRAND_INFO.LOGO_EMOJI}</Text>
+          )}
         </View>
+        <Text className='about-hero-name'>{shopName}</Text>
+        <Text className='about-hero-subtitle'>{BRAND_INFO.SUBTITLE}</Text>
+        <Text className='about-hero-version'>版本号 v{APP_INFO.VERSION}</Text>
       </View>
 
-      <View className='content'>
-        <ContentSection title='店铺简介'>
-          <Text className='section-text'>
-            {shopIntro || '好喝山泉始于2020年，是一家专注于天然山泉水的品牌企业。我们坚持从海拔1000米以上的原始森林深处取水，每一滴水都经过大自然层层过滤，富含多种矿物质和微量元素。'}
-          </Text>
-        </ContentSection>
+      {/* 店铺简介 */}
+      <ContentSection title='店铺简介'>
+        <View className='weui-cells'>
+          <View className='weui-cell weui-cell_vertical'>
+            <View className='weui-cell__bd about-paragraph'>
+              {shopIntro || BRAND_INFO.DESCRIPTION}
+            </View>
+          </View>
+        </View>
+      </ContentSection>
 
-        <ContentSection title='品牌承诺'>
-          <View className='feature-list'>
-            {features.map((feature, index) => (
-              <FeatureItem
-                key={index}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
-            ))}
+      {/* 品牌承诺(weui media-box 行) */}
+      <ContentSection title='品牌承诺'>
+        <View className='weui-cells'>
+          {features.map((feature, index) => (
+            <FeatureItem
+              key={index}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
+          ))}
+        </View>
+      </ContentSection>
+
+      {/* 水源地介绍 */}
+      <ContentSection title='水源地介绍'>
+        <View className='weui-cells'>
+          <View className='weui-cell weui-cell_vertical'>
+            <View className='weui-cell__bd about-paragraph'>
+              我们的水源地位于{WATER_SOURCE_INFO.LOCATION}，这里四季分明，雨量充沛，森林覆盖率高达{WATER_SOURCE_INFO.FOREST_COVERAGE}。{WATER_SOURCE_INFO.DESCRIPTION}
+            </View>
+          </View>
+        </View>
+      </ContentSection>
+
+      {/* 联系我们(weui cells 行,电话用链接蓝) */}
+      <ContentSection title='联系我们'>
+        <View className='weui-cells'>
+          {contactInfo.map((contact, index) => (
+            <ContactItem
+              key={index}
+              label={contact.label}
+              value={contact.value}
+              link={contact.link}
+            />
+          ))}
+        </View>
+      </ContentSection>
+
+      {storeProfile?.aboutUs && (
+        <ContentSection title='关于我们'>
+          <View className='weui-cells'>
+            <View className='weui-cell weui-cell_vertical'>
+              <View className='weui-cell__bd about-paragraph'>{storeProfile.aboutUs}</View>
+            </View>
           </View>
         </ContentSection>
+      )}
 
-        <ContentSection title='水源地介绍'>
-          <Text className='section-text'>
-            我们的水源地位于{WATER_SOURCE_INFO.LOCATION}，这里四季分明，雨量充沛，森林覆盖率高达{WATER_SOURCE_INFO.FOREST_COVERAGE}。山泉水在地下深层岩石中经过数十年的天然过滤和矿化，形成了独特的甘甜口感和丰富的营养成分。
-          </Text>
-          <Text className='section-text'>
-            水源地周边30公里范围内无工业污染，我们建立了严格的生态保护措施，确保水源的纯净与可持续性。每一滴水都承载着大自然的馈赠和大山的生命力。
-          </Text>
-        </ContentSection>
-
-        <ContentSection title='联系我们'>
-          <View className='contact-list'>
-            {contactInfo.map((contact, index) => (
-              <ContactItem
-                key={index}
-                label={contact.label}
-                value={contact.value}
-              />
-            ))}
+      {/* 品牌荣誉 */}
+      <ContentSection title='品牌荣誉'>
+        <View className='weui-cells'>
+          <View className='weui-cell weui-cell_vertical'>
+            <View className='weui-cell__bd about-paragraph'>
+              好喝山泉凭借卓越的品质和诚信的经营理念，先后获得"中国名牌产品"、"绿色食品认证"、"国际饮用水品质金奖"等多项荣誉。我们始终坚持品质至上，用心服务每一位消费者。
+            </View>
           </View>
-        </ContentSection>
+        </View>
+      </ContentSection>
 
-        {storeProfile?.aboutUs && (
-          <ContentSection title='关于我们'>
-            <Text className='section-text'>{storeProfile.aboutUs}</Text>
-          </ContentSection>
-        )}
-
-        <ContentSection title='品牌荣誉'>
-          <Text className='section-text'>
-            好喝山泉凭借卓越的品质和诚信的经营理念，先后获得"中国名牌产品"、"绿色食品认证"、"国际饮用水品质金奖"等多项荣誉。我们始终坚持品质至上，用心服务每一位消费者。
-          </Text>
-        </ContentSection>
-      </View>
-
-      <View className='footer'>
-        <Text className='copyright'>© 2024 好喝山泉. 保留所有权利</Text>
-        <Text className='version'>Version 1.0.0</Text>
+      {/* 版权页脚(about.html 居中弱灰) */}
+      <View className='about-footer'>
+        <Text className='about-footer-copyright'>{APP_INFO.COPYRIGHT}</Text>
       </View>
     </View>
   )

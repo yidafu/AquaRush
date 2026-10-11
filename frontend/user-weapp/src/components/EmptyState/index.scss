@@ -1,38 +1,21 @@
-// 空态统一样式(收敛各页 empty-container/empty-image/empty-text/empty-desc 重复 SCSS)
-.empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 32px;
-  gap: 12px;
+// EmptyState:WeUI 空态(.weui-empty 体系由 weui.scss 提供),仅补充插图/文案排版
+.weui-empty__icon .empty-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
 
-  .empty-image {
-    width: 200px;
-    height: 200px;
-    margin-bottom: 8px;
-  }
-
-  .empty-icon {
-    font-size: 64px;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-
-  .empty-text {
-    font-size: 30px;
-    font-weight: 600;
-    color: var(--text-main);
-    text-align: center;
+.weui-empty__text {
+  .empty-title {
+    display: block;
+    color: var(--weui-FG-0);
+    font-size: var(--weui-fs-cell);
   }
 
   .empty-desc {
-    font-size: 26px;
-    color: var(--text-sub);
-    text-align: center;
-  }
-
-  .empty-action {
-    margin-top: 16px;
+    display: block;
+    margin-top: 8px;
+    color: var(--weui-FG-1);
+    font-size: var(--weui-fs-tips);
   }
 }

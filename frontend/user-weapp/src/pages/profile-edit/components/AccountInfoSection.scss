@@ -1,61 +1,13 @@
 @import "../../../styles/theme.scss";
 
-.form-section {
-  background-color: var(--bg-card);
-  padding: 20px 20px 10px;
-  margin-bottom: 1px;
-
-  .section-title {
-    display: block;
-    font-size: 32px;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 16px;
-  }
+// 账户信息只读分组 cells(profile-edit.html;视觉容器类来自 weui.scss)
+.profile-cells {
+  margin-left: 16px;
+  margin-right: 16px;
+  border-radius: var(--weui-radius);
 }
 
-// 只读信息区域
-.readonly-section {
-  .readonly-field {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    .field-label {
-      font-size: 26px;
-      color: var(--text-sub);
-    }
-
-    .field-value {
-      font-size: 26px;
-      color: var(--text-main);
-      font-weight: 500;
-    }
-  }
-}
-
-.at-divider {
-  background-color: var(--bg);
-  color: transparent;
-  height: 8px;
-  margin: 0;
-  border: none;
-}
-
-// 响应式设计
-@media (max-width: 375px) {
-  .form-section {
-    padding: 16px 16px 8px;
-
-    .section-title {
-      font-size: 26px;
-      margin-bottom: 12px;
-    }
-  }
+// 只读值弱灰(profile-edit.html:手机号只读为灰字 --weui-FG-2)
+.profile-readonly-value {
+  color: var(--weui-FG-2);
 }

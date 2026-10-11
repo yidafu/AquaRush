@@ -24,14 +24,23 @@ const AVAILABLE_TAB_KEY = 'AVAILABLE'
 
 const TABS: TicketTab[] = [
   { key: AVAILABLE_TAB_KEY, label: '可用' },
-  { key: UserTicketStatus.USED, label: '已用' },
+  { key: UserTicketStatus.USED, label: '已核销' },
   { key: UserTicketStatus.RETURNED, label: '已退回' },
   { key: UserTicketStatus.EXPIRED, label: '已过期' }
 ]
 
+// 票状态 → weui-tag 修饰(可用绿 / 已核销灰 / 已退回橙 / 已过期红)
+const statusTagClass = (ticket: UserTicketVo): string => {
+  if (ticket.status === UserTicketStatus.USED) return 'weui-tag--done'
+  if (ticket.status === UserTicketStatus.EXPIRED) return 'weui-tag--cancel'
+  if (ticket.status === UserTicketStatus.RETURNED) return 'weui-tag--orange'
+  return 'weui-tag--green'
+}
+
 /**
- * 我的水票(F-MKT-007)
- * 展示已购水票,按状态 Tab 过滤;可用张数 = 未用 + 已退回。
+ * 我的水票(F-MKT-007,ticket-mine.html:汇总 statgrid + tabs + 票夹卡)
+ * 展示已购水票,按状态 Tab(.weui-tabs)过滤;可用张数 = 未用 + 已退回;
+ * 汇总行 .mp-statgrid(可用/总张数/已核销);票号长按复制(.weui-cell 行)。
  */
 const TicketListPage: React.FC = () => {
   usePageViewTracking()
@@ -85,6 +94,7 @@ const TicketListPage: React.FC = () => {
     ticket.status === UserTicketStatus.UNUSED || ticket.status === UserTicketStatus.RETURNED
 
   const availableCount = tickets.filter(isAvailable).length
+  const usedCount = tickets.filter(t => t.status === UserTicketStatus.USED).length
 
   const filtered = activeTab === AVAILABLE_TAB_KEY
     ? tickets.filter(isAvailable)
@@ -98,25 +108,41 @@ const TicketListPage: React.FC = () => {
       onRetry={loadTickets}
       className='ticket-list-page'
     >
-      {/* 头部:可用张数 + 水票商城入口 */}
-      <View className='ticket-list-header'>
-        <View className='ticket-available'>
-          <Text className='ticket-available-label'>可用水票</Text>
-          <Text className='ticket-available-count'>{availableCount}</Text>
-          <Text className='ticket-available-unit'>张</Text>
+      {/* 汇总(ticket-mine.html .mp-statgrid:可用张数/总张数/已核销) */}
+      <View className='weui-cells mt2 statgrid-wrap'>
+        <View className='mp-statgrid'>
+          <View className='mp-statgrid__item'>
+            <View className='mp-statgrid__num'>{availableCount}<Text className='unit'>张</Text></View>
+            <View className='mp-statgrid__lbl'>可用张数</View>
+          </View>
+          <View className='mp-statgrid__item'>
+            <View className='mp-statgrid__num'>{tickets.length}<Text className='unit'>张</Text></View>
+            <View className='mp-statgrid__lbl'>总张数</View>
+          </View>
+          <View className='mp-statgrid__item'>
+            <View className='mp-statgrid__num'>{usedCount}<Text className='unit'>张</Text></View>
+            <View className='mp-statgrid__lbl'>已核销</View>
+          </View>
         </View>
+      </View>
+
+      {/* 头部:水票商城入口 */}
+      <View className='ticket-list-header'>
         <Text className='ticket-shop-link' onClick={goTicketShop}>水票商城 ›</Text>
       </View>
 
-      {/* 状态 Tab */}
-      <View className='ticket-tabs'>
+      {/* 状态 Tab(coupon-mine.html .weui-tabs 下划线式) */}
+      <View className='weui-tabs ticket-tabs'>
         {TABS.map(tab => (
           <View
             key={tab.key}
-            className={`ticket-tab ${activeTab === tab.key ? 'ticket-tab-active' : ''}`}
+            className={`weui-tabs__item ${activeTab === tab.key ? 'on' : ''}`}
+            trackTarget='ticket-list-tab'
+            trackElementType='tab'
+            trackElementText={tab.label}
             onClick={() => setActiveTab(tab.key)}
           >
-            <Text className='ticket-tab-text'>{tab.label}</Text>
+            <Text>{tab.label}</Text>
           </View>
         ))}
       </View>
@@ -130,30 +156,34 @@ const TicketListPage: React.FC = () => {
           onAction={goTicketShop}
         />
       ) : (
-        /* 水票列表 */
+        /* 票夹卡(ticket-mine.html:白底圆角卡,票名 + 状态标签 + 规格/有效期/票号) */
         <View className='ticket-list'>
           {filtered.map(ticket => (
             <View key={ticket.id} className='ticket-item'>
-              <View className='ticket-item-left'>
+              <View className='ticket-item-head'>
                 <View className='ticket-item-name-row'>
                   <Text className='ticket-item-name'>{ticket.ticketTypeName}</Text>
                   {ticket.isGift && (
-                    <Text className='ticket-item-gift'>赠</Text>
+                    <Text className='weui-tag weui-tag--brand'>赠</Text>
                   )}
                 </View>
-                {ticket.specification && (
-                  <Text className='ticket-item-spec'>限{ticket.specification}规格</Text>
-                )}
-                <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
-                {/* 水票唯一递增票号(长按复制) */}
-                <Text
-                  className='ticket-item-no'
-                  onLongPress={() => copyTicketNo(ticket.ticketNo)}
-                >
-                  票号 {ticket.ticketNo}
+                <Text className={`weui-tag weui-tag--md ${statusTagClass(ticket)}`}>
+                  {getTicketStatusLabel(ticket.status)}
                 </Text>
               </View>
-              <Text className='ticket-item-status'>{getTicketStatusLabel(ticket.status)}</Text>
+              {ticket.specification && (
+                <Text className='ticket-item-spec'>规格限定:{ticket.specification}</Text>
+              )}
+              <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
+              {/* 水票唯一递增票号(长按复制,ticket-mine.html 票号行) */}
+              <View
+                className='ticket-item-no-row hair-t'
+                onLongPress={() => copyTicketNo(ticket.ticketNo)}
+              >
+                <Text className='ticket-item-no-label'>票号</Text>
+                <Text className='ticket-item-no'>{ticket.ticketNo}</Text>
+                <Text className='ticket-item-no-copy'>长按复制</Text>
+              </View>
             </View>
           ))}
         </View>

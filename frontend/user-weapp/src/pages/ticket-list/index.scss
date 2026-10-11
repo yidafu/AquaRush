@@ -1,146 +1,117 @@
 @import '@/styles/theme.scss';
 
+// ============================================================
+// 我的水票(ticket-mine.html:汇总 .mp-statgrid + .weui-tabs 分段 +
+// 票夹卡白底圆角卡;票号行等宽字体 + 长按复制)
+// ============================================================
+
 .ticket-list-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding: 32px;
+  background-color: var(--weui-BG-0);
   box-sizing: border-box;
 }
 
+// 汇总卡(白底 .mp-statgrid)
+.statgrid-wrap {
+  margin-left: 16px;
+  margin-right: 16px;
+  border-radius: var(--weui-radius);
+}
+
+// 水票商城入口行(右对齐链接)
 .ticket-list-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 32px 8px 24px;
-}
-
-.ticket-available {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.ticket-available-label {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
-
-.ticket-available-count {
-  font-size: 56px;
-  font-weight: 800;
-  color: var(--theme-primary);
-  line-height: 1;
-}
-
-.ticket-available-unit {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+  justify-content: flex-end;
+  padding: 16px 32px 0;
 }
 
 .ticket-shop-link {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+  font-size: 26px;
+  color: var(--weui-LINK);
 }
 
+// 状态 Tab(白底下划线式)
 .ticket-tabs {
-  display: flex;
-  background: var(--theme-background);
-  border-radius: 20px;
-  padding: 8px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  margin-top: 16px;
 }
 
-.ticket-tab {
-  flex: 1;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-}
-
-.ticket-tab-active {
-  background: var(--theme-primary-light);
-}
-
-.ticket-tab-text {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
-}
-
-.ticket-tab-active .ticket-tab-text {
-  color: var(--theme-primary);
-  font-weight: 600;
-}
-
+// ---- 票夹卡列表 ----
 .ticket-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
+  padding: 16px 16px 0;
 }
 
 .ticket-item {
+  background: var(--weui-BG-2);
+  border-radius: var(--weui-radius);
+  padding: 32px 32px 0;
+  box-sizing: border-box;
+}
+
+// 卡头:票名(+赠标签)+ 状态标签
+.ticket-item-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--theme-background);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  gap: 16px;
+
+  .ticket-item-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    .ticket-item-name {
+      font-size: 34px;
+      font-weight: 600;
+      color: var(--weui-FG-0);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
 
-.ticket-item-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+// 规格 / 有效期说明行
+.ticket-item-spec,
+.ticket-item-expire {
+  display: block;
+  margin-top: 12px;
+  font-size: 26px;
+  line-height: 1.5;
+  color: var(--weui-FG-1);
 }
 
-.ticket-item-name-row {
+// 票号行(等宽字体,长按复制)
+.ticket-item-no-row {
+  margin-top: 24px;
+  padding: 24px 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-}
+  gap: 16px;
 
-.ticket-item-name {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
+  .ticket-item-no-label {
+    flex: 0 0 auto;
+    font-size: 24px;
+    color: var(--weui-FG-1);
+  }
 
-.ticket-item-gift {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--bg-card);
-  background: var(--brand-primary); // 赠票标记:品牌蓝,不用强调橙(§2.1 红线)
-  border-radius: 8px;
-  padding: 4px 10px;
-}
+  .ticket-item-no {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 26px;
+    font-family: Menlo, Monaco, monospace;
+    color: var(--weui-FG-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.ticket-item-spec {
-  font-size: 22px;
-  color: var(--theme-text-secondary);
-}
-
-.ticket-item-expire {
-  font-size: 22px;
-  color: var(--theme-text-tertiary);
-}
-
-.ticket-item-status {
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--theme-text-secondary);
-  margin-left: 32px;
-  flex-shrink: 0;
-}
-
-/* 水票唯一递增票号(长按复制,F-MKT-007) */
-.ticket-item-no {
-  font-size: 20px;
-  font-family: monospace;
-  color: var(--theme-text-tertiary);
-  user-select: none;
+  .ticket-item-no-copy {
+    flex: 0 0 auto;
+    font-size: 24px;
+    color: var(--weui-BRAND);
+  }
 }

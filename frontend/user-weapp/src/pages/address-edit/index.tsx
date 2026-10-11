@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View } from '@tarojs/components'
-import { AtForm, AtToast, AtMessage } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
 import AddressService from '../../services/AddressService'
@@ -20,11 +19,6 @@ import FloorField from './components/FloorField'
 import MapPreviewSection from './components/MapPreviewSection'
 import SubmitSection from './components/SubmitSection'
 
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/form.scss"
-import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/message.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 const AddressEdit: React.FC = () => {
@@ -389,8 +383,8 @@ const AddressEdit: React.FC = () => {
 
   return (
     <View className='address-edit-page'>
-      <AtForm className='address-form'>
-        {/* 收货人 + 手机号 */}
+      {/* 收货人 + 手机号 + 所在地区 + 详细地址(address-edit.html 第一组 cells) */}
+      <View className='weui-cells mt2'>
         <ContactFields
           receiverName={formData.receiverName}
           phone={formData.phone}
@@ -417,44 +411,42 @@ const AddressEdit: React.FC = () => {
           error={errors.detailAddress}
           onChange={(value) => handleInputChange('detailAddress', value)}
         />
+      </View>
 
-        {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
+      {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
+      <View className='weui-cells mt3'>
         <FloorField
           value={formData.floor !== undefined ? String(formData.floor) : ''}
           error={errors.floor}
           onChange={handleFloorChange}
         />
+      </View>
 
-        {/* 地址地图预览 */}
-        <MapPreviewSection
-          detailAddress={formData.detailAddress}
-          province={formData.province}
-          city={formData.city}
-          district={formData.district}
-          latitude={formData.latitude}
-          longitude={formData.longitude}
-          onLocationChange={handleMapLocationChange}
-        />
-
-        {/* 设为默认地址 + 保存按钮 */}
-        <SubmitSection
-          isDefault={formData.isDefault}
-          loading={loading}
-          onDefaultChange={(checked) => handleInputChange('isDefault', checked)}
-          onSubmit={handleSubmit}
-        />
-      </AtForm>
-
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={hideToast}
+      {/* 地址地图预览(地图选点) */}
+      <MapPreviewSection
+        detailAddress={formData.detailAddress}
+        province={formData.province}
+        city={formData.city}
+        district={formData.district}
+        latitude={formData.latitude}
+        longitude={formData.longitude}
+        onLocationChange={handleMapLocationChange}
       />
 
-      {/* 全局消息 */}
-      <AtMessage />
+      {/* 设为默认地址 + 保存按钮 */}
+      <SubmitSection
+        isDefault={formData.isDefault}
+        loading={loading}
+        onDefaultChange={(checked) => handleInputChange('isDefault', checked)}
+        onSubmit={handleSubmit}
+      />
+
+      {/* Toast 提示(.weui-toast_text 深色轻提示;toastType 保留原状态语义) */}
+      {showToast && (
+        <View className={`address-toast address-toast--${toastType} weui-toast weui-toast_text`} onClick={hideToast}>
+          <Text className='weui-toast__text'>{toastText}</Text>
+        </View>
+      )}
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

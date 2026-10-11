@@ -1,47 +1,30 @@
-@import "../../../styles/theme.scss";
-
-.timeline-card {
-  margin: 20px 24px;
-}
-
-.at-timeline {
-  padding: 0;
-}
-
-.at-timeline__item {
-  padding-bottom: 16px;
-
-  &:last-child {
-    padding-bottom: 0;
+// 订单跟踪时间轴:WeUI cells 骨架由 weui.scss 提供,仅补事件行排版
+.timeline-card .timeline-item {
+  .timeline-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
   }
-}
 
-.at-timeline__item-content {
-  margin-left: 24px;
-}
+  .timeline-title {
+    font-size: var(--weui-fs-cell);
+    font-weight: 500;
+    color: var(--weui-FG-0);
+  }
 
-.at-timeline__item-title {
-  font-size: 28px;
-  font-weight: 500;
-  color: var(--text-main);
-  margin-bottom: 4px;
-}
+  .timeline-time {
+    flex: 0 0 auto;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-2);
+    font-variant-numeric: tabular-nums;
+  }
 
-.at-timeline__item-subtitle {
-  font-size: 24px;
-  color: var(--text-sub);
-  line-height: 1.4;
-}
-
-.at-timeline__item-time {
-  font-size: 24px;
-  color: var(--text-weak);
-  margin-bottom: 4px;
-}
-
-/* 响应式调整 */
-@media (max-width: 480px) {
-  .timeline-card {
-    margin: 16px 20px;
+  .timeline-content {
+    display: block;
+    margin-top: 8px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    line-height: 1.5;
   }
 }

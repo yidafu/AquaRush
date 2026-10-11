@@ -1,10 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton, AtIcon } from 'taro-ui'
 import { Address } from '../../types/address'
 
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 interface AddressCardProps {
@@ -17,6 +14,11 @@ interface AddressCardProps {
   onDelete?: (addressId: string) => void
 }
 
+/**
+ * 收货地址卡(CRUD 版:选择/编辑/删除)—— WeUI 2.x 度量
+ * (17px 主文字 / 发丝线 / 间距 32,色值一律 var(--weui-*));
+ * 只读收货/配送地址卡是另一变体(AddressSummaryCard),不合并。
+ */
 const AddressCard: React.FC<AddressCardProps> = ({
   address,
   isSelectMode = false,
@@ -52,55 +54,41 @@ const AddressCard: React.FC<AddressCardProps> = ({
 
   return (
     <View className='address-card'>
-      <View className='flex justify-between flex-grow flow-row'>
-        <View className='flex flex-row '>
-          {address.isDefault && (
-            <View className='flex items-center mr-1 default-badge'>
-              <Text>默认</Text>
-            </View>
-          )}
-          <Text className='text-base font-bold theme-text-primary'>{address.receiverName}</Text>
+      <View className='address-head'>
+        <View className='address-name-row'>
+          {address.isDefault && <Text className='weui-tag weui-tag--assign'>默认</Text>}
+          <Text className='address-name'>{address.receiverName}</Text>
         </View>
-
-        <Text className='theme-text-secondary'>{address.phone}</Text>
-
+        <Text className='address-phone'>{address.phone}</Text>
       </View>
 
-      <View className='py-2 border-b-2 border-gray-300 border-solid'>
-        <Text className='text-sm theme-text-tertiary'>
-          {address.province} {address.city} {address.district} {address.detailAddress}
-          {address.floor ? ` ${address.floor}楼` : ''}
-        </Text>
-      </View>
+      <Text className='address-detail'>
+        {address.province} {address.city} {address.district} {address.detailAddress}
+        {address.floor ? ` ${address.floor}楼` : ''}
+      </Text>
+
       {!hideActions && (
-        <View className='flex flex-row justify-between mt-2'>
-          <View className='flex items-center justify-center' onClick={handleSetDefault}>
-            <Text className='text-base'>
-              默认地址
-            </Text>
+        <View className='address-actions'>
+          <View className='address-action' onClick={handleSetDefault}>
+            默认地址
           </View>
-          <View className='flex flex-row'>
-            <View className='flex items-center mr-4' onClick={handleEditAddress}>
-              <AtIcon value='edit' size='16' className='mr-2' />
-              <Text className='text-base theme-text-secondary'>编辑</Text>
-            </View>
-            <View className='flex items-center' onClick={handleDeleteClick}>
-              <AtIcon value='trash' size='16' className='mr-2' color='var(--theme-error)' />
-              <Text className='text-base theme-error'>删除</Text>
-            </View>
+          <View className='address-action' onClick={handleEditAddress}>
+            编辑
+          </View>
+          <View className='address-action address-action--danger' onClick={handleDeleteClick}>
+            删除
           </View>
         </View>
       )}
+
       {isSelectMode && (
-        <View className='card-actions'>
-          <AtButton
-            type='primary'
-            size='normal'
+        <View className='address-select'>
+          <View
+            className='weui-btn weui-btn_primary weui-btn_mini'
             onClick={handleSelectAddress}
-            className='select-button'
           >
             选择此地址
-          </AtButton>
+          </View>
         </View>
       )}
     </View>

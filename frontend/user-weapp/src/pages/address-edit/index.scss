@@ -1,45 +1,20 @@
 @import "../../styles/theme.scss";
 
+// ============================================================
+// 新增/编辑收货地址(address-edit.html:WeUI 分组表单 cells +
+// 地图选点 + 默认地址开关 + .weui-btn_area 保存)
+// ============================================================
+
 .address-edit-page {
   min-height: 100vh;
-  background-color: var(--bg);
-  padding-bottom: 100px;
-  animation: fadeIn 0.4s ease-out;
+  background-color: var(--weui-BG-0);
+  box-sizing: border-box;
 }
 
-.address-form {
-  background: var(--bg-card);
-  margin: 20px 16px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  animation: slideInUp 0.5s ease-out;
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+// 错误轻提示(weui-toast_text 深色胶囊)
+.address-toast {
+  .weui-toast__text {
+    color: #fff;
+    word-break: break-all;
   }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Taro UI 组件样式覆盖 */
-.at-message {
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-card);
 }

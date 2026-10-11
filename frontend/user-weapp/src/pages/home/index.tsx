@@ -1,34 +1,46 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
-import { AtButton } from 'taro-ui'
+import { View, Text, Image } from '@tarojs/components'
 import Taro, {
   useDidShow,
   usePullDownRefresh,
   useShareAppMessage
 } from '@tarojs/taro'
 import HomeService, { HomeProduct, HomeData } from '../../services/HomeService'
-import { syncCartTabBadge } from '../../utils/cart'
+import { addToCart } from '../../utils/cart'
+import { getDisplayPrice } from '../../utils/productPrice'
+import { displayCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
+import CustomIcon from '@/components/CustomIcon'
 
 // 子组件
 import HomeNoticeBar from './components/HomeNoticeBar'
 import AddressBar from './components/AddressBar'
 import CarouselSection from './components/CarouselSection'
-import DeliveryTimeCard from './components/DeliveryTimeCard'
-import HomeProductCard from './components/HomeProductCard'
 
-import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
 
 /**
- * 首页(user-weapp §1 首屏详设)
- * 首屏(100vh 内)只解决 3 件事:进入 → 看到 → 点击购买,路径最短。
- * 布局:顶部地址栏 → 品牌水站 Banner → 活动轮播(有配置时) →
- *      配送时效卡 → 最常买(横滑) → 更多商品(≤3)
- * 数据:单次 GraphQL 请求聚合(规则 #10,HomeService.loadHomeData)
- * 渲染:区块与商品卡由 components/ 子组件完成。
+ * 首页(spec/design/user-weapp/01-product/home.html)
+ * 布局:渐变 hero(定位行 + 白底搜索框)→ 运营轮播 → 通告栏 →
+ *      快捷入口四宫格(立即订水/我的订单/领券中心/我的水票)→
+ *      「推荐产品」两列商品网格 → Loadmore
+ * 数据:单次 GraphQL 请求聚合(规则 #10,HomeService.loadHomeData),
+ *      最常买/更多商品合并为推荐产品网格(取前 6)。
+ * 时效选择能力在 order-confirm 页,首页不再有时效卡(R-PRO-01 首屏 ≤3 信息)。
  */
+
+/** 快捷入口四宫格(order-list 为 tabBar 页,须 switchTab) */
+const QUICK_ENTRIES = [
+  { icon: '/assets/icons/order/shopping-bag', label: '立即订水', type: 'product' },
+  { icon: '/assets/icons/order/all', label: '我的订单', type: 'order' },
+  { icon: '/assets/icons/service/coupon', label: '领券中心', type: 'coupon' },
+  { icon: '/assets/icons/service/ticket', label: '我的水票', type: 'ticket' }
+] as const
+
+/** 库存偏低阈值:≤10 桶展示「仅剩 N 桶」橙标(home.html 商品卡规格) */
+const LOW_STOCK_THRESHOLD = 10
+
 const HomePage: React.FC = () => {
   usePageViewTracking()
 
@@ -39,16 +51,16 @@ const HomePage: React.FC = () => {
   const [banners, setBanners] = useState<HomeData['banners']>([])
   const [notices, setNotices] = useState<HomeData['notices']>([])
   const [defaultAddress, setDefaultAddress] = useState<HomeData['defaultAddress']>(null)
-  const [businessHours, setBusinessHours] = useState<string>('07:00-22:00')
 
   /**
    * 加载首页数据(单次 GraphQL 请求,规则 #10)
+   * 推荐产品取 hotSize+moreSize=6 条(两列网格 4~6 张卡)
    */
   const loadHomeData = useCallback(async () => {
     try {
       setLoading(true)
       setError(undefined)
-      const result = await HomeService.loadHomeData(4, 3)
+      const result = await HomeService.loadHomeData(4, 2)
       if (result.success && result.data) {
         const d = result.data
         setHotProducts(d.hotProducts)
@@ -56,7 +68,6 @@ const HomePage: React.FC = () => {
         setBanners(d.banners)
         setNotices(d.notices)
         setDefaultAddress(d.defaultAddress)
-        setBusinessHours(d.businessHours)
       } else {
         throw new Error(result.error?.message || '加载失败')
       }
@@ -72,7 +83,6 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     // tabBar 角标同步(不触发数据请求)
-    syncCartTabBadge()
   }, [])
 
   // 页面显示时加载首页数据(首次显示 + 每次回前台刷新;运营配置停用/到期即时生效,R-OPS-01)
@@ -91,54 +101,80 @@ const HomePage: React.FC = () => {
     path: '/pages/home/index'
   }))
 
+  /** 推荐产品网格数据:最常买 + 更多商品合并,取前 6 */
+  const products = [...hotProducts, ...moreProducts].slice(0, 6)
+
   const addressText = useCallback(() => {
     if (!defaultAddress) return '请选择收货地址'
     return `${defaultAddress.city}${defaultAddress.district}${defaultAddress.detailAddress}`
   }, [defaultAddress])
 
   const handleAddressClick = useCallback(() => {
+    // 埋点:首页定位行(地址切换入口)
+    userActionTracker.track('CLICK', 'home-address-entry', {
+      elementType: 'cell',
+      elementText: '切换地址'
+    })
     Taro.navigateTo({ url: '/pages/address-list/index' })
   }, [])
 
   const handleSearchClick = useCallback(() => {
-    // 埋点:首页搜索入口(SEARCH)
+    // 埋点:首页搜索入口(SEARCH);product-list 未支持 keyword 入参,先跳列表页
     userActionTracker.track('SEARCH', 'home-search-entry', {
       elementType: 'icon',
       elementText: '搜索'
     })
-    Taro.showToast({ title: '搜索功能开发中', icon: 'none' })
+    Taro.navigateTo({ url: '/pages/product-list/index' })
   }, [])
 
   const handleProductClick = useCallback((product: HomeProduct) => {
+    userActionTracker.track('CLICK', 'home-product-card', {
+      elementType: 'card',
+      elementText: product.name,
+      properties: { productId: product.id }
+    })
     Taro.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` })
   }, [])
 
   /**
-   * 更多商品「更多」入口 → 全部商品列表页(排序/搜索/分页)
+   * 加购圆钮(.mp-prod__cart):本地购物车累积(同商品合并数量),
+   * 加购后轻提示;埋点与外层卡片点击分开上报(嵌套节点不配 track-* props)
    */
-  const handleMoreClick = useCallback(() => {
-    userActionTracker.track('CLICK', 'home-more-entry', {
-      elementType: 'link',
-      elementText: '更多',
-      properties: { target: '/pages/product-list/index' }
+  const handleAddToCart = useCallback((product: HomeProduct) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      priceCents: getDisplayPrice(product).price,
+      quantity: 1,
+      image: product.coverImageUrl,
+      specification: product.subtitle || product.specification
     })
-    Taro.navigateTo({ url: '/pages/product-list/index' })
-  }, [])
-
-  /**
-   * 立即订水(最常买 CTA,强调橙 #FF5436):
-   * 跳商品详情走最短购买路径(详情页 立即购买 → 确认订单)
-   */
-  const handleQuickOrder = useCallback((product: HomeProduct) => {
-    userActionTracker.track('CLICK', 'home-quick-order', {
+    userActionTracker.track('CLICK', 'home-add-cart', {
       elementType: 'button',
-      elementText: '立即订水',
+      elementText: '加入购物车',
       properties: { productId: product.id }
     })
-    handleProductClick(product)
-  }, [handleProductClick])
+    Taro.showToast({ title: '已加入购物车', icon: 'success' })
+  }, [])
+
+  /** 快捷入口四宫格(order-list 是 tabBar 页,必须 switchTab) */
+  const handleQuickEntry = useCallback((type: string) => {
+    if (type === 'product') {
+      Taro.navigateTo({ url: '/pages/product-list/index' })
+    } else if (type === 'order') {
+      Taro.switchTab({ url: '/pages/order-list/index' })
+    } else if (type === 'coupon') {
+      Taro.navigateTo({ url: '/pages/coupon-center/index' })
+    } else if (type === 'ticket') {
+      Taro.navigateTo({ url: '/pages/ticket-list/index' })
+    }
+  }, [])
 
   const handleBannerClick = useCallback((linkType: string, linkTarget: string) => {
+    userActionTracker.track('CLICK', 'home-banner', {
+      elementType: 'banner',
+      properties: { linkType, linkTarget }
+    })
     if (linkType === 'PRODUCT') {
       Taro.navigateTo({ url: `/pages/product-detail/index?id=${linkTarget}` })
     } else if (linkTarget) {
@@ -147,12 +183,65 @@ const HomePage: React.FC = () => {
   }, [])
 
   const handleNoticeClick = useCallback((id: string) => {
+    userActionTracker.track('CLICK', 'home-notice', {
+      elementType: 'notice',
+      properties: { noticeId: id }
+    })
     Taro.navigateTo({ url: `/pages/notice-detail/index?id=${id}` })
   }, [])
 
+  /** 价格展示(R-MKT-02):有成交优惠时优惠价红 + 目录价划线 */
+  const renderPrice = (product: HomeProduct) => {
+    const { price, tag } = getDisplayPrice(product)
+    const [intPart, decPart = '00'] = displayCents(price).split('.')
+    const showOrigin = tag !== ''
+    const lowStock = product.stock <= LOW_STOCK_THRESHOLD
+
+    return (
+      <View className='prod-price-col'>
+        <View className='prod-price-row'>
+          <View className='weui-price weui-price--md'>
+            <Text className='weui-price__symbol'>¥</Text>
+            <Text className='weui-price__int'>{intPart}</Text>
+            <Text className='weui-price__dec'>.{decPart}</Text>
+          </View>
+          {showOrigin && (
+            <Text className='weui-price--origin'>¥{displayCents(product.priceCents)}</Text>
+          )}
+        </View>
+        {(tag !== '' || lowStock) && (
+          <View className='prod-tag-row'>
+            {tag !== '' && <Text className='weui-tag weui-tag--brand'>{tag}</Text>}
+            {lowStock && <Text className='weui-tag weui-tag--orange'>仅剩 {product.stock} 桶</Text>}
+          </View>
+        )}
+      </View>
+    )
+  }
+
   return (
     <View className='home-page'>
-      {/* 顶部公告栏(浅蓝 tint 底,仅生效公告时显示,F-OPS-002) */}
+      {/* ① 渐变 hero:定位行 + 白底搜索框(home.html .hero) */}
+      <View className='home-hero'>
+        <AddressBar
+          addressText={addressText()}
+          onAddressClick={handleAddressClick}
+        />
+        <View
+          className='weui-searchbar__box on-brand home-search'
+          onClick={handleSearchClick}
+        >
+          <View className='search-glyph' />
+          <Text className='home-search__ph'>搜索「怡宝」「农夫山泉」</Text>
+        </View>
+      </View>
+
+      {/* ② 运营轮播(容器对齐 .banner 16px 圆角;无生效条目隐藏) */}
+      <View className='mp-pad'>
+        <CarouselSection banners={banners} onBannerClick={handleBannerClick} />
+      </View>
+
+      {/* ③ 通告栏(.weui-notice 橙 tint,仅生效公告时显示,F-OPS-002) */}
       {notices.length > 0 && (
         <HomeNoticeBar
           title={notices[0].title}
@@ -160,81 +249,108 @@ const HomePage: React.FC = () => {
         />
       )}
 
-      {/* ① 顶部地址栏(44px 白底固定顶部) */}
-      <AddressBar
-        addressText={addressText()}
-        onAddressClick={handleAddressClick}
-        onSearchClick={handleSearchClick}
-      />
-
-      {/* ② 品牌水站 Banner(清水蓝渐变,信任条) */}
-      <View className='brand-banner theme-gradient'>
-        <View className='brand-banner-text'>
-          <Text className='brand-banner-title'>最快 28 分钟送达</Text>
-          <Text className='brand-banner-subtitle'>正品保障 · 实拍认证 · 假一赔十</Text>
+      {/* ④ 快捷入口四宫格(.weui-cells 包裹 + .weui-grids 官方四宫格) */}
+      <View className='weui-cells home-grids-cells'>
+        <View className='weui-grids'>
+          {QUICK_ENTRIES.map((entry) => (
+            <View
+              key={entry.type}
+              className='weui-grid'
+              trackTarget={`home-grid-${entry.type}`}
+              trackElementType='grid'
+              trackElementText={entry.label}
+              onClick={() => handleQuickEntry(entry.type)}
+            >
+              <View className='weui-grid__icon'>
+                <CustomIcon value={entry.icon} size={30} />
+              </View>
+              <Text className='weui-grid__label'>{entry.label}</Text>
+            </View>
+          ))}
         </View>
       </View>
 
-      {/* ③ 活动轮播(卡片化,无生效条目隐藏) */}
-      <CarouselSection banners={banners} onBannerClick={handleBannerClick} />
-
-      {/* ④ 配送时效卡(浅蓝左侧色条) */}
-      <DeliveryTimeCard businessHours={businessHours} />
-
-      {/* ⑤ 最常买 · 快捷购买区(横滑卡片) */}
-      <View className='section-block'>
-        <View className='section-header'>
-          <Text className='section-title'>🔥 最常买</Text>
+      {/* ⑤ 「推荐产品」两列商品网格(.mp-grid2 + .mp-prod) */}
+      <View className='weui-cells__title'>推荐产品</View>
+      {loading ? (
+        <View className='weui-loadmore weui-loadmore_loading'>
+          <View className='spinner' />
+          <Text>加载中...</Text>
         </View>
-        {loading ? (
-          <View className='loading-box'>
-            <Text className='loading-text'>加载中...</Text>
+      ) : error ? (
+        <View className='weui-empty'>
+          <View className='weui-empty__icon'>
+            <CustomIcon value='/assets/icons/order/shopping-bag' size={64} />
           </View>
-        ) : error ? (
-          <View className='error-box'>
-            <Text className='error-text'>{error}</Text>
-            <AtButton size='small' type='primary' onClick={loadHomeData} className='retry-btn'>重试</AtButton>
+          <View className='weui-empty__text'>{error}</View>
+          <View
+            className='weui-btn weui-btn_plain-primary weui-btn_mini'
+            trackTarget='home-retry'
+            trackElementType='button'
+            trackElementText='重试'
+            onClick={loadHomeData}
+          >
+            重试
           </View>
-        ) : hotProducts.length === 0 ? (
-          <View className='empty-box'>
-            <Text className='empty-text'>暂无商品</Text>
+        </View>
+      ) : products.length === 0 ? (
+        <View className='weui-empty'>
+          <View className='weui-empty__icon'>
+            <CustomIcon value='/assets/icons/order/shopping-bag' size={64} />
           </View>
-        ) : (
-          <ScrollView scrollX className='hot-scroll' showScrollbar={false}>
-            <View className='hot-list'>
-              {hotProducts.map((p) => (
-                <HomeProductCard
-                  key={p.id}
-                  product={p}
-                  action
-                  onClick={() => handleProductClick(p)}
-                  onQuickOrder={() => handleQuickOrder(p)}
-                />
-              ))}
+          <View className='weui-empty__text'>
+            <Text>{'暂无产品\n门店补货中，稍后再来看看'}</Text>
+          </View>
+        </View>
+      ) : (
+        <View className='mp-grid2'>
+          {products.map((p) => (
+            <View key={p.id} className='mp-prod' onClick={() => handleProductClick(p)}>
+              <View className='mp-prod__cover'>
+                {p.coverImageUrl ? (
+                  <Image
+                    src={p.coverImageUrl}
+                    mode='aspectFill'
+                    className='prod-cover-img'
+                    lazyLoad
+                  />
+                ) : (
+                  <View className='prod-cover-placeholder'>
+                    <Text>{p.name.slice(0, 1)}</Text>
+                  </View>
+                )}
+              </View>
+              <View className='mp-prod__body'>
+                <View className='mp-prod__name'>
+                  <Text>{p.name}</Text>
+                </View>
+                <View className='mp-prod__desc'>
+                  <Text>{p.subtitle || p.specification}</Text>
+                </View>
+                <View className='mp-prod__foot'>
+                  {renderPrice(p)}
+                  <View
+                    className='mp-prod__cart'
+                    onClick={(e: any) => {
+                      e.stopPropagation?.()
+                      handleAddToCart(p)
+                    }}
+                  >
+                    <Text>＋</Text>
+                  </View>
+                </View>
+              </View>
             </View>
-          </ScrollView>
-        )}
-      </View>
+          ))}
+        </View>
+      )}
 
-      {/* ⑥ 更多商品(仅 2-3 个 SKU,不做长信息流;「更多」入口 → 全部商品列表页) */}
-      {(hotProducts.length > 0 || moreProducts.length > 0) && (
-        <View className='section-block'>
-          <View className='section-header'>
-            <Text className='section-title'>📦 更多商品</Text>
-            <Text className='section-extra' onClick={handleMoreClick}>更多 ›</Text>
-          </View>
-          {moreProducts.length > 0 && (
-            <View className='more-list'>
-              {moreProducts.map((p) => (
-                <HomeProductCard
-                  key={p.id}
-                  product={p}
-                  onClick={() => handleProductClick(p)}
-                  onQuickOrder={() => handleQuickOrder(p)}
-                />
-              ))}
-            </View>
-          )}
+      {/* ⑥ Loadmore 双短线(有商品时) */}
+      {!loading && !error && products.length > 0 && (
+        <View className='weui-loadmore'>
+          <View className='weui-loadmore__line' />
+          <Text>没有更多产品了</Text>
+          <View className='weui-loadmore__line' />
         </View>
       )}
 

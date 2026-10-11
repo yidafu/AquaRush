@@ -1,10 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtCard } from 'taro-ui'
 import type { ReviewVo } from '@aquarush/common'
 import StarRating from '../../../components/StarRating'
-
-import "taro-ui/dist/style/components/card.scss"
 import './OrderReviewCard.scss'
 
 interface OrderReviewCardProps {
@@ -12,25 +9,28 @@ interface OrderReviewCardProps {
 }
 
 /**
- * 我的评价卡(F-ORD-007):已完成且已评价订单展示星级/评论内容/评价时间(含匿名标识)
+ * 我的评价卡(F-ORD-007)—— WeUI .weui-cells 组(设计稿 02-order/order-review.html
+ * 已评价回显:星级(品牌蓝)/标签/评论内容/评价时间,含匿名标识)
  */
 const OrderReviewCard: React.FC<OrderReviewCardProps> = ({ review }) => {
   return (
-    <AtCard
-      title='我的评价'
-      className='review-card shadow-default'
-    >
-      <View className='review-content'>
-        <StarRating rating={review.rating} />
-        {review.comment && (
-          <Text className='review-comment'>{review.comment}</Text>
-        )}
-        <Text className='review-time'>
-          {review.createdAt}
-          {review.isAnonymous ? ' · 匿名评价' : ''}
-        </Text>
+    <View className='review-card'>
+      <View className='weui-cells__title title-row'>
+        <Text>我的评价</Text>
+        {review.isAnonymous && <Text className='weui-tag weui-tag--outline'>匿名</Text>}
       </View>
-    </AtCard>
+      <View className='weui-cells'>
+        <View className='weui-cell weui-cell_vertical'>
+          <View className='review-head'>
+            <StarRating rating={review.rating} />
+            <Text className='review-time'>{review.createdAt}</Text>
+          </View>
+          {review.comment && (
+            <Text className='review-comment'>{review.comment}</Text>
+          )}
+        </View>
+      </View>
+    </View>
   )
 }
 

@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import type { DailyReconciliation } from '../../../types/daily-collection';
 import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './constants';
+import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
 
 export interface ReconciliationTableProps {
   dataSource: DailyReconciliation[];
@@ -76,7 +77,7 @@ const ReconciliationTable: React.FC<ReconciliationTableProps> = ({
       key: 'discrepancyAmountCents',
       render: (cents: number | string) => {
         const value = Number(cents);
-        const color = Math.abs(value) <= 100 ? '#52c41a' : '#ff4d4f';
+        const color = Math.abs(value) <= 100 ? COLOR_SUCCESS : COLOR_ERROR;
         return <span style={{ color }}>{displayCents(value)}</span>;
       },
     },

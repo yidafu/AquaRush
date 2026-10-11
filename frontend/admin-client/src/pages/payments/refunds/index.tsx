@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message, Typography } from 'antd';
+import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
 import { REFUND_REQUESTS_PAGE_QUERY, REFUND_REQUESTS_PAGE } from '../../../graphql/queries/refund.graphql';
 import { PROCESS_REFUND_MUTATION } from '../../../graphql/mutations/refund.graphql';
@@ -8,7 +8,6 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 
-const { Title } = Typography;
 
 // 退款状态展示(R-PAY-02:待审核/已通过/已拒绝/已完成/失败)
 const STATUS_MAP: Record<string, { text: string; color: string }> = {
@@ -157,10 +156,10 @@ const RefundManagementPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <Title level={3} style={{ marginBottom: 24 }}>
+    <div>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>
         退款管理
-      </Title>
+      </h1>
       <Card>
         <Space style={{ marginBottom: 16 }}>
           <Select

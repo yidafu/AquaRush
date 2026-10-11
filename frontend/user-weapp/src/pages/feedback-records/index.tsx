@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
-import { AtLoadMore } from 'taro-ui'
 import FeedbackService from '../../services/FeedbackService'
 import { authService } from '../../utils/auth'
 import {
@@ -16,15 +15,15 @@ import StatusTag from '../../components/StatusTag'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
-import "taro-ui/dist/style/components/load-more.scss"
 import './index.scss'
 
 const PAGE_SIZE = 10
 
 /**
- * 我的-反馈记录(F-USR-005 处理结果回传)
- * 展示本人提交的反馈(仅本人数据,后端强制 userId=登录用户),含处理状态与处理结果;
- * 分页加载 + 下拉刷新;后台处理流转后本页即时可见。
+ * 我的-反馈记录(F-USR-005 处理结果回传,feedback-records.html)
+ * 每条反馈一个 .weui-panel(类型 tag + 状态 StatusTag + 内容 clamp2 +
+ * 缩略图 --sm + 提交时间 + 处理结果内嵌块);分页加载 + 下拉刷新;
+ * 后台处理流转后本页即时可见。
  */
 const FeedbackRecordsPage: React.FC = () => {
   usePageViewTracking()
@@ -109,54 +108,67 @@ const FeedbackRecordsPage: React.FC = () => {
       onEmptyAction={handleGoFeedback}
       className='feedback-records-page'
     >
-      {/* 记录列表 */}
-      <View className='feedback-records-header'>
-        <Text className='feedback-records-count'>共 {totalElements} 条反馈</Text>
-      </View>
+      {/* 统计行 */}
+      <View className='weui-cells__title'>共 {totalElements} 条反馈</View>
 
+      {/* 记录列表(.weui-panel 块) */}
       <View className='feedback-records-list'>
         {records.map(record => (
-          <View key={record.id} className='feedback-record-item'>
-            <View className='feedback-record-header'>
-              <Text className='feedback-record-type'>{getFeedbackTypeLabel(record.feedbackType)}</Text>
-              <StatusTag
-                tone={getStatusTone(FEEDBACK_STATUS_TONE, record.status)}
-                text={getFeedbackStatusLabel(record.status)}
-                size='small'
-              />
-            </View>
-
-            <Text className='feedback-record-content'>{record.content}</Text>
-
-            {record.images && record.images.length > 0 && (
-              <View className='feedback-record-images'>
-                {record.images.map((url, index) => (
-                  <Image key={index} className='feedback-record-image' src={url} mode='aspectFill' />
-                ))}
-              </View>
-            )}
-
-            <View className='feedback-record-footer'>
-              <Text className='feedback-record-time'>{formatDateTime(record.createdAt)}</Text>
-              {record.handleResult && (
-                <View className='feedback-record-handle'>
-                  <Text className='feedback-record-handle-label'>处理结果:</Text>
-                  <Text className='feedback-record-handle-text'>{record.handleResult}</Text>
+          <View key={record.id} className='weui-panel'>
+            <View className='weui-panel__bd'>
+              <View className='weui-media-box feedback-record'>
+                <View className='feedback-record-header'>
+                  <Text className='weui-tag'>{getFeedbackTypeLabel(record.feedbackType)}</Text>
+                  <StatusTag
+                    tone={getStatusTone(FEEDBACK_STATUS_TONE, record.status)}
+                    text={getFeedbackStatusLabel(record.status)}
+                    size='small'
+                  />
                 </View>
-              )}
-              {record.handledByName && (
-                <Text className='feedback-record-handled-by'>
-                  {record.handledAt ? `${formatDateTime(record.handledAt)} · ` : ''}{record.handledByName} 处理
-                </Text>
-              )}
+
+                <Text className='feedback-record-content'>{record.content}</Text>
+
+                {record.images && record.images.length > 0 && (
+                  <View className='feedback-record-images'>
+                    {record.images.map((url, index) => (
+                      <Image
+                        key={index}
+                        className='weui-media-box__thumb weui-media-box__thumb--sm feedback-record-image'
+                        src={url}
+                        mode='aspectFill'
+                        lazyLoad
+                      />
+                    ))}
+                  </View>
+                )}
+
+                <Text className='feedback-record-time'>提交时间:{formatDateTime(record.createdAt)}</Text>
+
+                {record.handleResult && (
+                  <View className='feedback-record-handle'>
+                    <View className='weui-cells__title feedback-record-handle-title'>处理结果</View>
+                    <Text className='feedback-record-handle-text'>{record.handleResult}</Text>
+                    {record.handledByName && (
+                      <Text className='feedback-record-handled-by'>
+                        {record.handledAt ? `${formatDateTime(record.handledAt)} · ` : ''}{record.handledByName} 处理
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
           </View>
         ))}
       </View>
 
-      {/* 加载更多 / 没有更多 */}
-      {loadingMore && <AtLoadMore status='loading' loadingText='加载更多...' />}
-      {!hasMore && records.length > 0 && <AtLoadMore status='noMore' noMoreText='没有更多了' />}
+      {/* 加载更多 / 没有更多(.weui-loadmore 双短线) */}
+      {(loadingMore || (!hasMore && records.length > 0)) && (
+        <View className='weui-loadmore'>
+          <View className='weui-loadmore__line' />
+          <Text>{loadingMore ? '上拉加载更多' : '没有更多了'}</Text>
+          <View className='weui-loadmore__line' />
+        </View>
+      )}
     </BasePageLayout>
   )
 }

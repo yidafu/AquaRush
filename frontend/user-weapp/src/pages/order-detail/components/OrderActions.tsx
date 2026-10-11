@@ -1,9 +1,7 @@
 import React from 'react'
-import { View } from '@tarojs/components'
-import { AtButton } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
+import { Money } from '@aquarush/common'
 import type { OrderDetail, ReviewCheckState } from './constants'
-
-import "taro-ui/dist/style/components/button.scss"
 import './OrderActions.scss'
 
 interface OrderActionsProps {
@@ -19,9 +17,10 @@ interface OrderActionsProps {
 }
 
 /**
- * 底部操作栏(按订单状态渲染对应按钮组,保留全部 track* 埋点):
+ * 底部操作栏 —— WeUI .mp-footbar(信息列 实付 + .weui-price--lg + 按状态按钮组,
+ * 设计稿 02-order/order-detail.html;保留全部 track* 埋点):
  * 待付款 = 取消 + 立即支付;配送中 = 催单 + 查看配送;
- * 已完成 = 评价/再次购买/继续购物(送达即完成,无确认收货 —— PRD R-ORD-11 2026-10 简化);
+ * 已完成 = 评价/再次购买/继续购物(送达即完成,无确认收货 —— PRD R-ORD-11 简化);
  * 待配送/已取消 = 再次购买
  */
 const OrderActions: React.FC<OrderActionsProps> = ({
@@ -36,107 +35,91 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   onContinueShopping
 }) => {
   return (
-    <View className='bottom-actions shadow-action'>
+    <View className='mp-footbar hair-t order-footbar'>
+      <View className='mp-footbar__info'>
+        <View className='mp-footbar__lbl'>实付</View>
+        <Text className='weui-price weui-price--lg'>
+          <Money cents={order.finalAmount} />
+        </Text>
+      </View>
+
       {order.status === 'pending_payment' && (
         <>
-          <AtButton
-            trackTarget="order-cancel"
-            trackElementType="button"
-            trackElementText="取消订单"
+          <View
+            className='weui-btn weui-btn_plain-default'
+            trackTarget='order-cancel'
+            trackElementType='button'
+            trackElementText='取消订单'
             trackProps={{ orderId: order.id }}
             onClick={onCancel}
-            type='secondary'
-            size='normal'
-            className='action-button'
           >
             取消订单
-          </AtButton>
-          <AtButton
-            trackTarget="order-pay"
-            trackElementType="button"
-            trackElementText="立即支付"
+          </View>
+          <View
+            className='weui-btn weui-btn_primary'
+            trackTarget='order-pay'
+            trackElementType='button'
+            trackElementText='立即支付'
             trackProps={{ orderId: order.id }}
             onClick={onPayment}
-            type='primary'
-            size='normal'
-            className='action-button primary'
           >
             立即支付
-          </AtButton>
+          </View>
         </>
       )}
 
       {order.status === 'delivering' && (
         <>
-          <AtButton
-            trackTarget="order-urge"
-            trackElementType="button"
-            trackElementText="催单"
+          <View
+            className='weui-btn weui-btn_plain-default'
+            trackTarget='order-urge'
+            trackElementType='button'
+            trackElementText='催单'
             trackProps={{ orderId: order.id }}
             onClick={onUrge}
-            type='secondary'
-            size='normal'
-            className='action-button'
           >
             催单
-          </AtButton>
-          <AtButton
-            type='secondary'
-            size='normal'
-            onClick={onTrack}
-            className='action-button'
-          >
+          </View>
+          <View className='weui-btn weui-btn_primary' onClick={onTrack}>
             查看配送
-          </AtButton>
+          </View>
         </>
       )}
 
       {order.status === 'completed' && (
         <>
-          <AtButton
-            trackTarget="order-review"
-            trackElementType="button"
+          <View
+            className='weui-btn weui-btn_primary'
+            trackTarget='order-review'
+            trackElementType='button'
             trackElementText={reviewInfo?.hasReviewed ? '查看评价' : '评价'}
             trackProps={{ orderId: order.id }}
             onClick={onReview}
-            type='secondary'
-            size='normal'
-            className='action-button'
           >
             {reviewInfo?.hasReviewed ? '查看评价' : '评价'}
-          </AtButton>
-          <AtButton
-            trackTarget="order-reorder"
-            trackElementType="button"
-            trackElementText="再次购买"
+          </View>
+          <View
+            className='weui-btn weui-btn_plain-default'
+            trackTarget='order-reorder'
+            trackElementType='button'
+            trackElementText='再次购买'
             trackProps={{ orderId: order.id }}
             onClick={onReorder}
-            type='secondary'
-            size='normal'
-            className='action-button'
           >
             再次购买
-          </AtButton>
-          <AtButton
-            type='secondary'
-            size='normal'
-            onClick={onContinueShopping}
-            className='action-button'
-          >
+          </View>
+          <View className='weui-btn weui-btn_plain-default' onClick={onContinueShopping}>
             继续购物
-          </AtButton>
+          </View>
         </>
       )}
 
       {(order.status === 'pending_delivery' || order.status === 'cancelled') && (
-        <AtButton
-          type='secondary'
-          size='normal'
+        <View className='weui-btn weui-btn_plain-primary footbar-flex1'
           onClick={onReorder}
-          className='action-button full-width'
         >
           再次购买
-        </AtButton>
+        </View>
       )}
     </View>
   )

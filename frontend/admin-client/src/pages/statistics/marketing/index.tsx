@@ -77,9 +77,9 @@ const MarketingStatisticsPage: React.FC = () => {
   });
 
   return (
-    <div style={{ padding: 24 }}>
+    <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>营销统计</h1>
+        <h1 className="page-title">营销统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}

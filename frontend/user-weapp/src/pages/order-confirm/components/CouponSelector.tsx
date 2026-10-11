@@ -3,7 +3,7 @@ import { View, Text } from '@tarojs/components'
 import {
   CouponOptionVo,
   UserCouponVo,
-  displayCents,
+  Money,
   getCouponDiscountText,
   getCouponThresholdText,
   normalizeCents
@@ -22,9 +22,10 @@ interface CouponSelectorProps {
 }
 
 /**
- * 优惠券选择(F-MKT-003,F-ORD-023)
- * 单选式选择;最优券默认勾选由父级(引擎 isBest)决定,用户可改选或取消(不用券);
- * 门槛不足/不可用的券置灰不可选,并展示提示文案;无可用券时整个区块不渲染。
+ * 优惠券选择(F-MKT-003,F-ORD-023)—— WeUI .weui-cells 单选行(.weui-radio 圆点)
+ * (设计稿 02-order/order-confirm.html 优惠券半屏的行结构,本页保持内联列表交互不变):
+ * 最优券默认勾选由父级(引擎 isBest)决定,用户可改选或取消(不用券);
+ * 门槛不足/不可用的券置灰不可选(.weui-price--gray),并展示提示文案;无可用券时整个区块不渲染。
  */
 const CouponSelector: React.FC<CouponSelectorProps> = ({
   coupons,
@@ -43,22 +44,16 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
   })
 
   return (
-    <View className='section coupon-selector-section'>
-      <View className='section-label-row'>
-        <Text className='section-label'>优惠券</Text>
-      </View>
-      <View className='coupon-options'>
+    <View className='coupon-selector-section'>
+      <View className='weui-cells__title'>优惠券</View>
+      <View className='weui-cells'>
         {/* 不用券 */}
-        <View
-          className={`coupon-option ${selectedCouponId === null ? 'coupon-option-selected' : ''}`}
-          onClick={() => onSelect(null)}
-        >
-          <View className='coupon-option-info'>
-            <Text className='coupon-option-name'>不用券</Text>
-            <Text className='coupon-option-hint'>不使用优惠券</Text>
+        <View className='weui-cell' onClick={() => onSelect(null)}>
+          <View className='weui-cell__hd'>
+            <View className={`weui-radio${selectedCouponId === null ? ' on' : ''}`} />
           </View>
-          <View className='coupon-option-radio'>
-            {selectedCouponId === null && <View className='coupon-option-radio-dot' />}
+          <View className='weui-cell__bd'>
+            <Text className='coupon-name'>不使用优惠券</Text>
           </View>
         </View>
 
@@ -71,31 +66,33 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
           return (
             <View
               key={coupon.id}
-              className={`coupon-option ${selected ? 'coupon-option-selected' : ''} ${usable ? '' : 'coupon-option-disabled'}`}
+              className={`weui-cell${usable ? '' : ' coupon-option-disabled'}`}
               onClick={() => {
                 if (usable) onSelect(coupon.id)
               }}
             >
-              <View className='coupon-option-info'>
-                <View className='coupon-option-name-row'>
-                  <Text className='coupon-option-name'>{coupon.name}</Text>
-                  {option?.isBest && <Text className='coupon-option-best'>最优</Text>}
+              <View className='weui-cell__hd'>
+                <View className={`weui-radio${selected ? ' on' : ''}`} />
+              </View>
+              <View className='weui-cell__bd'>
+                <View className='coupon-name-row'>
+                  <Text className='coupon-name'>{coupon.name}</Text>
+                  {option?.isBest && <Text className='coupon-best'>最优</Text>}
                 </View>
-                <Text className='coupon-option-desc'>
+                <Text className='coupon-desc'>
                   {getCouponDiscountText(coupon)} · {getCouponThresholdText(coupon.thresholdCents)}
                 </Text>
                 {!usable && (
-                  <Text className='coupon-option-hint'>门槛不足/不可用</Text>
+                  <Text className='coupon-hint'>门槛不足/不可用</Text>
                 )}
               </View>
-              <View className='coupon-option-right'>
-                {discountCents != null && (
-                  <Text className='coupon-option-discount'>-{displayCents(discountCents)}</Text>
-                )}
-                <View className='coupon-option-radio'>
-                  {selected && <View className='coupon-option-radio-dot' />}
+              {discountCents != null && (
+                <View className='weui-cell__ft'>
+                  <Text className={`weui-price weui-price--md${usable ? '' : ' weui-price--gray'}`}>
+                    -<Money cents={discountCents} showSymbol={false} />
+                  </Text>
                 </View>
-              </View>
+              )}
             </View>
           )
         })}

@@ -1,51 +1,65 @@
 @import "../../../styles/theme.scss";
 
+// 搜索栏(sticky 顶部,白底;address-list.html)
 .search-section {
-  padding: 16px;
-  background: var(--theme-background);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px var(--theme-shadow-light);
+  background: var(--weui-BG-2);
 }
 
-.import-section {
-  text-align: center;
-  animation: fadeInDown 0.5s ease-out;
-  display: flex;
-  align-items: center;
-}
+.address-search-box {
+  .address-search-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border: 3px solid var(--weui-FG-2);
+    border-radius: 50%;
+    position: relative;
 
-.import-button {
-  font-size: 30px;
-  font-weight: 500;
-  padding: 24px;
-  background: var(--theme-background);
-  border: 1px solid var(--theme-primary);
-  color: var(--theme-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 24px 24px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px var(--theme-shadow-light);
-  transition: all 0.3s ease;
+    &::after {
+      content: "";
+      position: absolute;
+      right: -8px;
+      bottom: -6px;
+      width: 12px;
+      height: 3px;
+      background: var(--weui-FG-2);
+      border-radius: 2px;
+      transform: rotate(45deg);
+    }
+  }
 
-  &:active {
-    background: var(--theme-primary-light);
-    transform: scale(0.98);
-    box-shadow: 0 1px 4px rgba(var(--theme-primary-rgb), 0.2);
+  .address-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 48px;
+    line-height: 48px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-0);
+  }
+
+  .address-search-clear {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--weui-FG-2);
   }
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+// 统计 + 导入行(address-list.html .mp-pad-16 row between)
+.import-row {
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .address-count {
+    font-size: 24px;
+    color: var(--weui-FG-2);
   }
 }

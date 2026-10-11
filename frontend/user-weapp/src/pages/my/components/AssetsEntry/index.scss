@@ -1,0 +1,16 @@
+@import "../../../../styles/theme.scss";
+
+// 「我的资产」聚合入口(my.html:单 weui-cell,图标品牌蓝 + 摘要行)
+.assets-entry__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--weui-BRAND);
+}
+
+.assets-entry__summary {
+  margin-top: 6px;
+  font-size: var(--weui-fs-tips);
+  line-height: 1.4;
+  color: var(--weui-FG-1);
+}

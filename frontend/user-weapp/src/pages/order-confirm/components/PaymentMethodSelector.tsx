@@ -15,6 +15,10 @@ interface PaymentMethodSelectorProps {
   onMethodChange: (method: string) => void
 }
 
+/**
+ * 支付方式选择 —— WeUI .weui-cells 单选行(.weui-radio + 推荐 .weui-tag--brand,
+ * 设计稿 02-order/order-confirm.html「支付方式」)
+ */
 const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   selectedMethod,
   onMethodChange
@@ -29,32 +33,30 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   ]
 
   return (
-    <View className='section payment-section'>
-      <View className='section-label-row'>
-        <Text className='section-label'>支付方式</Text>
-      </View>
-      <View className='payment-method-wrapper'>
+    <View className='payment-section'>
+      <View className='weui-cells__title'>支付方式</View>
+      <View className='weui-cells'>
         {paymentMethods.map(method => {
           const disabled = !!method.disabled
           const selected = selectedMethod === method.id
           return (
             <View
               key={method.id}
-              className={`payment-method${selected && !disabled ? ' payment-method-selected' : ''}${disabled ? ' payment-method-disabled' : ''}`}
+              className={`weui-cell${disabled ? ' payment-method-disabled' : ''}`}
               onClick={() => {
                 if (!disabled) onMethodChange(method.id)
               }}
             >
-              <View className='payment-info'>
+              <View className='weui-cell__bd'>
                 <View className='payment-name-row'>
-                  <Text className='payment-name'>{method.name}</Text>
-                  {!disabled && <Text className='payment-tag payment-tag-recommend'>推荐</Text>}
-                  {disabled && <Text className='payment-tag payment-tag-soon'>即将上线</Text>}
+                  <Text>{method.name}</Text>
+                  {!disabled && <Text className='weui-tag weui-tag--brand'>推荐</Text>}
+                  {disabled && <Text className='weui-tag'>即将上线</Text>}
                 </View>
                 <Text className='payment-desc'>{method.description}</Text>
               </View>
-              <View className='payment-radio'>
-                {selected && !disabled && <View className='payment-radio-dot' />}
+              <View className='weui-cell__ft'>
+                <View className={`weui-radio${selected && !disabled ? ' on' : ''}`} />
               </View>
             </View>
           )

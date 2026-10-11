@@ -1,265 +1,115 @@
 @import '@/styles/theme.scss';
 
+// ============================================================
+// 水桶账户(F-PRO-010)—— WeUI 化:mp-statgrid 押金/欠桶汇总、
+// weui-cell 规格桶账与退押表单、weui-price 金额、weui-loadmore 分页提示;
+// 业务为押金模型(R-MON-03),旧买桶页(barrel-shop)已随 G06 回退删除
+// ============================================================
+
 .barrel-mine-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding: 0 32px 48px;
+  background-color: var(--weui-BG-0);
   box-sizing: border-box;
+  padding-bottom: 32px;
 }
 
-/* 押金合计 / 欠桶合计(顶部汇总卡) */
-.barrel-mine-summary {
-  display: flex;
-  align-items: center;
-  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
-  border-radius: 20px;
-  padding: 40px 0;
-  margin-bottom: 32px;
-}
-
-.barrel-mine-summary-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.barrel-mine-summary-value {
-  font-size: 48px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.barrel-mine-summary-label {
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.barrel-mine-summary-divider {
-  width: 1px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.barrel-mine-card {
-  background: var(--theme-background);
-  border-radius: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  padding: 28px 32px;
-  margin-bottom: 32px;
-}
-
-.barrel-mine-card-header {
+// 分区标题行(左侧标题 + 右侧操作/计数)
+.barrel-mine-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 16px;
+  padding: 32px 32px 16px;
 }
 
-.barrel-mine-card-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
+.barrel-mine-title {
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-1);
+  line-height: 1.4;
 }
 
-.barrel-mine-card-count {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+.barrel-mine-count {
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-2);
 }
 
-.barrel-mine-refund-btn {
-  background: var(--theme-primary-light);
-  border-radius: 32px;
-  padding: 12px 32px;
+.barrel-mine-link {
+  font-size: var(--weui-fs-tips);
+  color: var(--brand-primary);
 }
 
-.barrel-mine-refund-btn-text {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--theme-primary);
-}
-
-/* 按规格桶账 */
-.barrel-mine-spec {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--theme-border-light);
-}
-
-.barrel-mine-spec:last-child {
-  border-bottom: none;
-}
-
-.barrel-mine-spec-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
+// 规格桶账行 / 表单辅助说明
 .barrel-mine-spec-name {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-}
-
-.barrel-mine-spec-deposit {
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--theme-primary);
-}
-
-.barrel-mine-spec-sub {
-  display: flex;
-  gap: 32px;
-  margin-top: 10px;
+  font-size: var(--weui-fs-cell);
+  color: var(--weui-FG-0);
 }
 
 .barrel-mine-spec-meta {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-spec-empty {
-  display: block;
-  padding: 24px 0;
-  font-size: 26px;
-  color: var(--theme-text-tertiary);
-  text-align: center;
-}
-
-/* 退押申请表单 */
-.barrel-mine-form-close {
-  font-size: 26px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-form-item {
-  margin-bottom: 24px;
-}
-
-.barrel-mine-form-label {
-  display: block;
-  font-size: 26px;
-  color: var(--theme-text-primary);
-  margin-bottom: 12px;
-}
-
-.barrel-mine-form-picker,
-.barrel-mine-form-input {
-  background: var(--theme-background-secondary);
-  border-radius: 12px;
-  padding: 20px 24px;
-  font-size: 28px;
-  color: var(--theme-text-primary);
-}
-
-.barrel-mine-form-input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.barrel-mine-form-textarea {
-  width: 100%;
-  min-height: 140px;
-  box-sizing: border-box;
-  background: var(--theme-background-secondary);
-  border-radius: 12px;
-  padding: 20px 24px;
-  font-size: 28px;
-  color: var(--theme-text-primary);
-}
-
-.barrel-mine-form-help {
-  display: block;
-  margin-top: 10px;
-  font-size: 22px;
-  color: var(--theme-text-secondary);
-}
-
-.barrel-mine-submit-btn {
-  background: var(--theme-primary);
-  border-radius: 44px;
-  padding: 22px 0;
-  text-align: center;
   margin-top: 8px;
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-2);
 }
 
-.barrel-mine-submit-btn--disabled {
-  opacity: 0.6;
+// 退押表单
+.barrel-mine-field .weui-input {
+  width: 100%;
 }
 
-.barrel-mine-submit-text {
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 600;
+.barrel-mine-field .ph {
+  color: var(--weui-FG-2);
 }
 
-/* 押金记录 / 退押申请记录 */
-.barrel-mine-record {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--theme-border-light);
+.barrel-mine-picker {
+  width: 100%;
+  font-size: var(--weui-fs-cell);
+  color: var(--weui-FG-0);
 }
 
-.barrel-mine-record:last-child {
-  border-bottom: none;
+.barrel-mine-remark {
+  min-height: 120px;
+  margin-top: 16px;
 }
 
+// 押金记录 / 退押申请记录行
 .barrel-mine-record-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
 .barrel-mine-record-spec {
-  font-size: 28px;
+  font-size: var(--weui-fs-cell);
   font-weight: 600;
-  color: var(--theme-text-primary);
+  color: var(--weui-FG-0);
 }
 
-.barrel-mine-record-amount {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--theme-primary);
-}
-
-.barrel-mine-record-sub {
+.barrel-mine-record-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   margin-top: 12px;
 }
 
-.barrel-mine-record-meta,
-.barrel-mine-record-time {
-  font-size: 24px;
-  color: var(--theme-text-secondary);
+.barrel-mine-record-meta-text {
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-1);
 }
 
 .barrel-mine-record-time {
-  display: block;
   margin-top: 8px;
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-2);
 }
 
 .barrel-mine-record-remark {
-  display: block;
   margin-top: 8px;
-  font-size: 22px;
-  color: var(--theme-text-secondary);
+  font-size: var(--weui-fs-tips);
+  color: var(--weui-FG-1);
 }
 
 .barrel-mine-record-reject {
-  display: block;
   margin-top: 8px;
-  font-size: 24px;
-  color: var(--theme-error);
-}
-
-.barrel-mine-load-more {
-  display: block;
-  padding: 20px 0 4px;
-  font-size: 24px;
-  color: var(--theme-text-tertiary);
-  text-align: center;
+  font-size: var(--weui-fs-tips);
+  color: var(--price);
 }

@@ -1,111 +1,94 @@
-// 公告详情页(F-OPS-002 用户端)
+@import "../../styles/theme.scss";
+
+// ============================================================
+// 公告详情(F-OPS-002 用户端)—— WeUI 文章排版:
+// 公告列表 .weui-cells + 全文卡(类型 tag / 标题 34px / 正文 34px·1.6 行距)
+// ============================================================
+
 .notice-detail-page {
   min-height: 100vh;
-  padding: 32px;
   box-sizing: border-box;
-  background: var(--bg);
+  background: var(--weui-BG-0);
 }
 
-.loading-container,
-.empty-container {
-  padding: 120px 0;
-  text-align: center;
-  color: var(--text-weak);
-  font-size: 26px;
+.notice-loading {
+  padding-top: 40vh;
 }
 
-.notice-detail-body {
-  display: flex;
-  flex-direction: column;
-}
-
-// 公告列表
+// 公告列表(白底圆角 cells)
 .notice-list {
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  padding: 8px 24px;
-  margin-bottom: 24px;
-}
+  margin-left: 16px;
+  margin-right: 16px;
+  border-radius: var(--weui-radius);
 
-.notice-list-item {
-  display: flex;
-  align-items: center;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--border);
+  .notice-list-item-bd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 
-  &:last-child {
-    border-bottom: none;
+    .notice-pin {
+      flex: 0 0 auto;
+    }
+
+    .notice-list-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: var(--weui-fs-cell);
+      color: var(--weui-FG-0);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
-  .notice-pin-tag {
-    flex-shrink: 0;
-    font-size: 18px;
-    color: var(--status-pending-pay-text); // 置顶标记:warning 橙 tint(§2.2)
-    background: var(--status-pending-pay-bg);
-    border: 1px solid rgba(250, 173, 20, 0.30);
-    border-radius: var(--radius-sm);
-    padding: 2px 8px;
-    margin-right: 12px;
-  }
-
-  .notice-list-title {
-    flex: 1;
-    font-size: 26px;
-    color: var(--text-main);
-    overflow: hidden;
+  // 选中项:标题品牌蓝加粗(原选中态语义保留)
+  .notice-list-item-active {
+    .notice-list-title {
+      color: var(--weui-BRAND);
+      font-weight: 600;
+    }
   }
 }
 
-.notice-list-item-active {
-  .notice-list-title {
-    color: var(--brand-primary);
-    font-weight: 600;
-  }
-}
-
-// 公告全文
+// 公告全文卡(白底圆角,文章排版)
 .notice-content-card {
-  background: var(--bg-card);
-  border-radius: 16px;
-  padding: 32px;
+  margin: 24px 16px 0;
+  padding: 40px 32px;
+  background: var(--weui-BG-2);
+  border-radius: var(--weui-radius);
 
-  .notice-type-tag {
-    display: inline-block;
-    font-size: 18px;
-    color: var(--brand-primary);
-    background: var(--brand-primary-light);
-    border-radius: 8px;
-    padding: 4px 12px;
-    margin-bottom: 16px;
+  .notice-content-head {
+    margin-bottom: 24px;
   }
 
   .notice-content-title {
     display: block;
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 600;
-    color: var(--text-main);
+    color: var(--weui-FG-0);
     line-height: 1.4;
   }
 
   .notice-publish-time {
     display: block;
-    margin-top: 12px;
-    font-size: 22px;
-    color: var(--text-weak);
+    margin-top: 16px;
+    font-size: 24px;
+    color: var(--weui-FG-2);
   }
 
   .notice-content-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 24px 0;
+    height: 0;
+    margin: 32px 0;
   }
 
+  // 正文 17px ×2 = 34px,1.6 行距(WeUI 文章排版)
   .notice-content-text {
     display: block;
-    font-size: 28px;
-    color: var(--text-main);
-    line-height: 1.8;
+    font-size: 34px;
+    color: var(--weui-FG-0);
+    line-height: 1.6;
     white-space: pre-wrap;
+    word-break: break-all;
   }
 }

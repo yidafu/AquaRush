@@ -1,35 +1,20 @@
 import React from 'react'
-import { AtCard, AtTimeline } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
 import type { OrderTimeline } from './constants'
-
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/timeline.scss"
 import './OrderTimelineCard.scss'
 
 interface OrderTimelineCardProps {
   timeline: OrderTimeline[]
 }
 
-const getTimelineColor = (color?: string): 'blue' | 'green' | 'red' | 'yellow' => {
-  if (!color) return 'blue'
-
-  const colorMap: Record<string, 'blue' | 'green' | 'red' | 'yellow'> = {
-    'var(--brand-primary)': 'blue',
-    'var(--success)': 'green',
-    'var(--action)': 'red',
-    'var(--warning)': 'yellow',
-    // Legacy color mappings for backward compatibility
-    '#667eea': 'blue',
-    '#19be6b': 'green',
-    '#ff6b35': 'red',
-    '#ffc107': 'yellow'
-  }
-
-  return colorMap[color] || 'blue'
+const toLines = (content?: string): string[] => {
+  if (!content) return []
+  return Array.isArray(content) ? content : [content]
 }
 
 /**
- * 订单跟踪时间轴卡(AtTimeline,状态色映射见 getTimelineColor)
+ * 订单跟踪时间轴卡 —— 保持现有「事件列表」展示形式,换 WeUI 皮肤
+ * (.weui-cells 纵向行:标题 + 时间,说明行;数据结构/状态色语义不变)。
  */
 const OrderTimelineCard: React.FC<OrderTimelineCardProps> = ({ timeline }) => {
   if (!Array.isArray(timeline) || timeline.length === 0) {
@@ -37,19 +22,28 @@ const OrderTimelineCard: React.FC<OrderTimelineCardProps> = ({ timeline }) => {
   }
 
   return (
-    <AtCard
-      title='订单跟踪'
-      className='timeline-card shadow-default'
-    >
-      <AtTimeline
-        items={timeline.map(item => ({
-          title: item.title || '状态更新',
-          content: Array.isArray(item.content) ? item.content : [item.content || ''],
-          icon: item.icon || 'clock',
-          color: getTimelineColor(item.color)
-        }))}
-      />
-    </AtCard>
+    <View className='timeline-card'>
+      <View className='weui-cells__title'>订单跟踪</View>
+      <View className='weui-cells'>
+        {timeline.map((item, index) => {
+          const lines = toLines(item.content)
+          return (
+            <View
+              key={`${item.time}-${index}`}
+              className='weui-cell weui-cell_vertical timeline-item'
+            >
+              <View className='timeline-head'>
+                <Text className='timeline-title'>{item.title || '状态更新'}</Text>
+                <Text className='timeline-time'>{item.time}</Text>
+              </View>
+              {lines.map((line, lineIndex) => (
+                <Text key={lineIndex} className='timeline-content'>{line}</Text>
+              ))}
+            </View>
+          )
+        })}
+      </View>
+    </View>
   )
 }
 

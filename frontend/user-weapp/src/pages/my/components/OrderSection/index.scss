@@ -1,69 +1,21 @@
 @import "../../../../styles/theme.scss";
 
-/* 订单入口卡(§8.2:「我的订单」+ 查看全部 + 4 宫格) */
-.order-card {
-  margin: var(--spacing-md) var(--spacing-lg);
+// 「我的订单」五列宫格(my.html:.weui-panel 内 grid-template-columns 5 列)
+.order-grids {
+  grid-template-columns: repeat(5, 1fr);
 }
 
-.order-grid {
-  display: flex;
-  justify-content: space-between;
+.order-panel-link {
+  color: var(--weui-LINK);
 }
 
-.order-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-
-  &:active {
-    .order-icon {
-      transform: scale(0.95);
-      opacity: 0.85;
-    }
-  }
-}
-
-/* 图标 tint 圆底(§8.2:主色 10% tint 圆 + 图标) */
-.order-icon {
+// 角标挂图标右上角(.weui-badge 底色语义红由 weui.scss 提供)
+.order-grid-icon {
   position: relative;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--brand-primary-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
 }
 
-/* 数字角标:主色底白字,>99 显示 99+(§8.2) */
-.order-badge {
+.order-grid-badge {
   position: absolute;
-  top: -6px;
-  right: -8px;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 8px;
-  border-radius: 17px;
-  background: var(--brand-primary);
-  border: 3px solid var(--bg-card);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .order-badge-text {
-    font-size: 20px;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1;
-  }
-}
-
-.order-label {
-  font-size: 26px;
-  color: var(--text-main);
+  top: -12px;
+  left: 28px;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Tabs, Modal, message, Typography } from 'antd';
+import { Card, Tabs, Modal, message } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   DEPOSIT_PRICES_PAGE_QUERY,
@@ -33,8 +33,6 @@ import {
 } from './components';
 import type { DepositPriceFormValues, RejectRefundFormValues } from './components';
 import { yuanToCents } from '@aquarush/common';
-
-const { Title } = Typography;
 
 interface PageData<T> {
   page: { content: T[]; totalElements: number; totalPages: number };
@@ -196,10 +194,10 @@ const BarrelManagementPage: React.FC = () => {
   );
 
   return (
-    <div style={{ padding: 24 }}>
-      <Title level={3} style={{ marginBottom: 24 }}>
+    <div>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>
         押金管理
-      </Title>
+      </h1>
       <Card>
         <Tabs
           activeKey={activeTab}

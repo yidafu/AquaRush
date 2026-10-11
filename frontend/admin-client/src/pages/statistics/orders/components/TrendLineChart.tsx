@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
 import type { TrendChartPoint } from '../data';
 import ChartCard from '@/components/ChartCard';
 
@@ -38,7 +38,7 @@ const TrendLineChart: React.FC<TrendLineChartProps> = ({ data, loading }) => (
       <Legend />
       <Line yAxisId="left" type="monotone" dataKey="orders" name="订单数" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ fill: BRAND_PRIMARY, r: 3 }} />
       <Line yAxisId="left" type="monotone" dataKey="products" name="送水桶数" stroke={COLOR_WARNING} strokeWidth={2} dot={{ fill: COLOR_WARNING, r: 3 }} />
-      <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke="#52c41a" strokeWidth={2} dot={{ fill: '#52c41a', r: 3 }} />
+      <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke={COLOR_SUCCESS} strokeWidth={2} dot={{ fill: COLOR_SUCCESS, r: 3 }} />
     </LineChart>
   </ChartCard>
 );

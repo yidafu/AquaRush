@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import type { DailyCollectionRecord } from '../../../types/daily-collection';
 import { statusColorMap, statusTextMap } from './constants';
+import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
 
 export interface CollectionTableProps {
   dataSource: DailyCollectionRecord[];
@@ -96,7 +97,7 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
       key: 'differenceAmountCents',
       render: (cents: number | string) => {
         const value = Number(cents);
-        const color = Math.abs(value) <= 100 ? '#52c41a' : '#ff4d4f';
+        const color = Math.abs(value) <= 100 ? COLOR_SUCCESS : COLOR_ERROR;
         return <span style={{ color }}>{displayCents(value)}</span>;
       },
     },
@@ -120,7 +121,7 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
       key: 'rejectInfo',
       render: (_, record) =>
         record.rejectedAt ? (
-          <span style={{ color: '#ff4d4f', fontSize: 12 }}>
+          <span style={{ color: COLOR_ERROR, fontSize: 12 }}>
             驳回: {record.rejectReason || '-'}
             <br />
             时间: {record.rejectedAt}

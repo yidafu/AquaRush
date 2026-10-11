@@ -1,23 +1,4 @@
-@import "../../../styles/theme.scss";
-
-.tracking-info {
-  margin: 32px;
-  padding: 24px;
-  background-color: var(--brand-primary);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .tracking-status {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .tracking-text {
-      font-size: 28px;
-      color: white;
-      font-weight: 500;
-    }
-  }
+// 实时跟踪提示条:WeUI .weui-notice 骨架由 weui.scss 提供,仅补与地图的间距
+.tracking-notice {
+  margin: 24px 24px 0;
 }

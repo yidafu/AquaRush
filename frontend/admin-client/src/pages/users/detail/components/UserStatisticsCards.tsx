@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col } from 'antd';
 import { ShoppingOutlined, DollarOutlined } from '@ant-design/icons';
 import StatisticsCard from '../../../../components/StatisticsCard';
-import { BRAND_PRIMARY } from '../../../../config/theme';
+import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../../config/theme';
 
 export interface UserStatisticsCardsProps {
   totalOrders: number;
@@ -35,7 +35,7 @@ const UserStatisticsCards: React.FC<UserStatisticsCardsProps> = ({
         value={totalAmountInYuan}
         icon={<DollarOutlined />}
         precision={2}
-        valueStyle={{ color: '#f5222d' }}
+        valueStyle={{ color: COLOR_ERROR }}
         suffix="元"
       />
     </Col>
@@ -44,7 +44,7 @@ const UserStatisticsCards: React.FC<UserStatisticsCardsProps> = ({
         title="已完成订单"
         value={completedOrders}
         icon={<ShoppingOutlined />}
-        valueStyle={{ color: '#52c41a' }}
+        valueStyle={{ color: COLOR_SUCCESS }}
       />
     </Col>
     <Col span={6}>
@@ -54,7 +54,7 @@ const UserStatisticsCards: React.FC<UserStatisticsCardsProps> = ({
         icon={<DollarOutlined />}
         precision={2}
         suffix="元"
-        valueStyle={{ color: '#f5222d' }}
+        valueStyle={{ color: COLOR_ERROR }}
       />
     </Col>
   </Row>

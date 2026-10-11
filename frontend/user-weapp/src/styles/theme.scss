@@ -23,6 +23,11 @@
   --coupon-primary: #FF5436;            // 优惠券券卡/领券按钮/券选择器/券图标（用户指定品牌色）
   --coupon-primary-light: rgba(255, 84, 54, 0.10); // 优惠券浅橙 tint 底
 
+  // ---- 金额红（微信电商惯例金额红,与 --coupon-primary 平级）----
+  // 仅用于金额文字（价格/划线价/优惠金额等）,禁用于按钮/图标
+  --price: #FA5151;
+  --price-light: #FF7A7E;
+
   // ---- 语义色（§2.1）----
   --success: #52C41A;
   --warning: #FAAD14;
@@ -88,7 +93,7 @@
   --theme-text-secondary: #8C8C8C;
   --theme-text-tertiary: #B8B8B8;
   --theme-background: #FFFFFF;
-  --theme-background-page: #F5F7FA;
+  --theme-background-page: #EDEDED;     // weapp 页面底改微信官方灰（设计系统 §2.3:weapp 页面底 #EDEDED,WeUI 体系）
   --theme-background-secondary: #F5F7FA;
   --theme-border: rgba(0, 0, 0, 0.06);
   --theme-border-light: rgba(0, 0, 0, 0.04);

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtButton, AtToast } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import {
   DeliverySlotVo,
@@ -24,16 +23,9 @@ import AddressSummaryCard from '../../components/AddressSummaryCard'
 import OrderActions from './components/OrderActions'
 import type { OrderDetail, ReviewCheckState } from './components/constants'
 
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/tag.scss"
-import "taro-ui/dist/style/components/timeline.scss"
-import "taro-ui/dist/style/components/progress.scss"
 import './index.scss'
 
-/** 时间轴图标语义键 → taro-ui AtIcon value(common 视图为平台无关语义) */
+/** 时间轴图标语义键 → 图标值(common 视图为平台无关语义;WeUI 版时间轴不再渲染图标,仅保留映射兼容) */
 const TIMELINE_ICON: Record<OrderDetailView['timeline'][number]['icon'], string> = {
   'order-created': 'bookmark',
   paid: 'credit-card',
@@ -44,16 +36,16 @@ const TIMELINE_ICON: Record<OrderDetailView['timeline'][number]['icon'], string>
 
 /** 时间轴 tone → 页面 CSS 变量色 */
 const TIMELINE_COLOR: Record<string, string> = {
-  info: 'var(--brand-primary)',
+  info: 'var(--weui-BRAND)',
   accent: 'var(--action)',
   success: 'var(--success)'
 }
 
 /**
- * 订单详情页(F-ORD-003)
+ * 订单详情页(F-ORD-003,设计稿 02-order/order-detail.html WeUI 视觉)
  * 加载编排/订单快照归一化/费用明细行/状态派生由 @aquarush/common 的 useOrderDetail 共享
- * (weapp 与 delivery-app 同源);本页保留 weapp 展示模型适配(小写状态键、AtIcon 图标、
- * CSS 变量色)与事件处理,渲染全部由 components/ 子组件完成。
+ * (weapp 与 delivery-app 同源);本页保留 weapp 展示模型适配与事件处理,
+ * 渲染全部由 components/ 子组件完成。
  * 已完成订单额外加载评价信息(F-ORD-007);配送时段配置(F-SYS-002)并行加载不阻塞详情。
  */
 const OrderDetailPage: React.FC = () => {
@@ -198,6 +190,13 @@ const OrderDetailPage: React.FC = () => {
   const hideToast = useCallback(() => {
     setShowToast(false)
   }, [])
+
+  // WeUI toast 视觉容器:保留原 AtToast 的 3s 自动关闭行为
+  useEffect(() => {
+    if (!showToast) return
+    const timer = setTimeout(hideToast, 3000)
+    return () => clearTimeout(timer)
+  }, [showToast, toastText, toastType, hideToast])
 
   const loadDeliverySlots = useCallback(async () => {
     try {
@@ -423,7 +422,7 @@ const OrderDetailPage: React.FC = () => {
     return (
       <View className='order-detail-page'>
         <View className='loading-container'>
-          <Text>加载中...</Text>
+          <Text className='loading-text'>加载中...</Text>
         </View>
       </View>
     )
@@ -433,14 +432,10 @@ const OrderDetailPage: React.FC = () => {
     return (
       <View className='order-detail-page'>
         <View className='error-container'>
-          <Text>订单不存在</Text>
-          <AtButton
-            type='primary'
-            size='small'
-            onClick={() => Taro.navigateBack()}
-          >
+          <Text className='error-text'>订单不存在</Text>
+          <View className='weui-btn weui-btn_plain-primary weui-btn_mini' onClick={() => Taro.navigateBack()}>
             返回
-          </AtButton>
+          </View>
         </View>
       </View>
     )
@@ -470,17 +465,6 @@ const OrderDetailPage: React.FC = () => {
       {/* 订单时间轴 */}
       <OrderTimelineCard timeline={order.timeline} />
 
-      {/* 商品信息 + 费用明细 */}
-      <OrderItemsCard items={order.items} costRows={costRows} />
-
-      {/* 订单评价(F-ORD-007):已评价展示内容 */}
-      {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
-        <OrderReviewCard review={reviewInfo.review} />
-      )}
-
-      {/* 订单信息 */}
-      <OrderInfoCard order={order} deliverySlots={deliverySlots} />
-
       {/* 收货地址 */}
       <AddressSummaryCard
         receiverName={order.address.receiverName}
@@ -491,7 +475,22 @@ const OrderDetailPage: React.FC = () => {
         detailAddress={order.address.detailAddress}
       />
 
-      {/* 底部操作按钮 */}
+      {/* 商品信息 + 费用明细 */}
+      <OrderItemsCard items={order.items} costRows={costRows} />
+
+      {/* 订单评价(F-ORD-007):已评价展示内容 */}
+      {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
+        <OrderReviewCard review={reviewInfo.review} />
+      )}
+
+      {/* 订单信息 */}
+      <OrderInfoCard
+        order={order}
+        deliverySlots={deliverySlots}
+        onCopyOrderNo={handleCopyOrderNo}
+      />
+
+      {/* 底部操作按钮(.mp-footbar) */}
       <OrderActions
         order={order}
         reviewInfo={reviewInfo}
@@ -504,13 +503,12 @@ const OrderDetailPage: React.FC = () => {
         onContinueShopping={handleContinueShopping}
       />
 
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={hideToast}
-      />
+      {/* Toast 提示(WeUI .weui-toast 视觉容器,状态逻辑与原 AtToast 一致) */}
+      {showToast && (
+        <View className='weui-toast weui-toast_text'>
+          <Text className='weui-toast__text'>{toastText}</Text>
+        </View>
+      )}
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

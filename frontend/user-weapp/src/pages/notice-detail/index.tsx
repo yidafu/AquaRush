@@ -15,8 +15,10 @@ const NOTICE_TYPE_LABELS: Record<string, string> = {
 }
 
 /**
- * 公告详情页(F-OPS-002 用户端)
- * 展示公告列表(置顶优先/发布时间倒序) + 选中公告全文;id 来自路由参数,缺省选第 1 条。
+ * 公告详情页(F-OPS-002 用户端,WeUI 文章排版)
+ * 展示公告列表(.weui-cells,置顶优先/发布时间倒序) + 选中公告全文
+ * (.weui-panel 文章卡:类型 tag / 标题 34px / 时间 / 正文 34px·1.6 行距);
+ * id 来自路由参数,缺省选第 1 条。
  */
 const NoticeDetailPage: React.FC = () => {
   usePageViewTracking()
@@ -65,42 +67,58 @@ const NoticeDetailPage: React.FC = () => {
   return (
     <View className='notice-detail-page'>
       {loading ? (
-        <View className='loading-container'>
+        <View className='weui-loadmore weui-loadmore_loading notice-loading'>
+          <View className='spinner' />
           <Text>加载中...</Text>
         </View>
       ) : notices.length === 0 ? (
-        <View className='empty-container'>
-          <Text>暂无公告</Text>
+        <View className='weui-empty'>
+          <View className='weui-empty__icon'>
+            <Text>📢</Text>
+          </View>
+          <View className='weui-empty__text'>暂无公告</View>
         </View>
       ) : (
         <View className='notice-detail-body'>
           {/* 公告列表(置顶优先/发布时间倒序由服务端排序) */}
-          <View className='notice-list'>
+          <View className='weui-cells mt2 notice-list'>
             {notices.map((notice) => (
               <View
                 key={notice.id}
-                className={`notice-list-item ${notice.id === selected?.id ? 'notice-list-item-active' : ''}`}
+                className={`weui-cell notice-list-item ${notice.id === selected?.id ? 'notice-list-item-active' : ''}`}
+                trackTarget='notice-select'
+                trackElementType='cell'
+                trackElementText={notice.title}
                 onClick={() => setSelectedId(notice.id)}
               >
-                {notice.pinned && <StatusTag tone='warning' text='置顶' size='small' />}
-                <Text className='notice-list-title' numberOfLines={1}>
-                  {notice.title}
-                </Text>
+                <View className='weui-cell__bd notice-list-item-bd'>
+                  {notice.pinned && (
+                    <View className='notice-pin'>
+                      <StatusTag tone='warning' text='置顶' size='small' />
+                    </View>
+                  )}
+                  <Text className='notice-list-title'>{notice.title}</Text>
+                </View>
+                <View className='weui-cell__ft weui-cell__ft_in-access' />
               </View>
             ))}
           </View>
 
-          {/* 选中公告全文 */}
+          {/* 选中公告全文(WeUI 文章排版) */}
           {selected && (
             <View className='notice-content-card'>
-              <Text className='notice-type-tag'>{NOTICE_TYPE_LABELS[selected.type] || selected.type}</Text>
+              <View className='notice-content-head'>
+                <Text className='weui-tag weui-tag--brand'>
+                  {NOTICE_TYPE_LABELS[selected.type] || selected.type}
+                </Text>
+              </View>
               <Text className='notice-content-title'>{selected.title}</Text>
               {selected.publishedAt && (
                 <Text className='notice-publish-time'>
                   {selected.publishedAt.slice(0, 10)}
                 </Text>
               )}
-              <View className='notice-content-divider' />
+              <View className='notice-content-divider hair-b' />
               <Text className='notice-content-text'>{selected.content}</Text>
             </View>
           )}

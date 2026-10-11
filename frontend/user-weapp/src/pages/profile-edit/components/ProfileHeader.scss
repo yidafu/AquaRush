@@ -1,24 +1,17 @@
 @import "../../../styles/theme.scss";
 
-// 页面头部
+// 页面顶部操作条(取消 + 保存;导航栏标题由页面 config 提供)
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background-color: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-
-  .header-left,
-  .header-right {
-    flex: 1;
-    min-width: 60px;
-  }
+  padding: 16px 32px;
+  background-color: var(--weui-BG-0);
 
   .header-left {
     .cancel-btn {
-      font-size: 26px;
-      color: var(--text-sub);
+      font-size: 28px;
+      color: var(--weui-FG-1);
 
       &:active {
         opacity: 0.6;
@@ -26,58 +19,9 @@
     }
   }
 
-  .header-center {
-    flex: 2;
-    text-align: center;
-
-    .page-title {
-      font-size: 32px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-  }
-
   .header-right {
-    text-align: right;
-
-    .save-btn {
-      font-size: 26px;
-      color: var(--text-sub);
-      font-weight: 500;
-
-      &.active {
-        color: var(--brand-primary);
-
-        &:active {
-          opacity: 0.6;
-        }
-      }
-
-      &.disabled {
-        color: var(--text-weak);
-        pointer-events: none;
-      }
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 375px) {
-  .page-header {
-    padding: 12px 16px;
-
-    .header-left,
-    .header-right {
-      min-width: 50px;
-    }
-
-    .header-center .page-title {
-      font-size: 28px;
-    }
-
-    .header-left .cancel-btn,
-    .header-right .save-btn {
-      font-size: 24px;
+    .weui-btn_mini {
+      min-width: 120px;
     }
   }
 }

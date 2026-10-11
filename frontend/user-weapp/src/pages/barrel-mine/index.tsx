@@ -59,8 +59,10 @@ const emptyForm: RefundForm = {
 
 /**
  * 水桶账户(F-PRO-010 水桶账户与退押)
- * 顶部押金合计/欠桶合计 → 按规格在租/欠桶列表 → 押金记录分页 → 退押申请入口与申请记录。
- * 文案统一「水桶账户/押金/退押」(R-MON-03 押金桶,不再是一次性买桶语义)。
+ * 业务:押金模型(R-MON-03 收取 → 在租 → 退还),顶部押金/欠桶汇总 →
+ * 按规格桶账 → 押金记录 → 退押申请入口与申请记录;文案统一「水桶账户/押金/退押」。
+ * 视觉:WeUI cells 体系 —— mp-statgrid 汇总、weui-cell 桶账与表单、
+ * weui-price 金额、weui-btn_primary 操作,状态标签走 StatusTag(weui-tag 体系)。
  */
 const BarrelMinePage: React.FC = () => {
   usePageViewTracking()
@@ -247,6 +249,18 @@ const BarrelMinePage: React.FC = () => {
   const money = (cents: number | string | null | undefined): string =>
     displayCents(normalizeCents(cents) ?? 0)
 
+  /** 金额统一 .weui-price 展示(设计稿口径,不用旧红色裸文本) */
+  const renderPrice = (cents: number | string | null | undefined): React.ReactElement => {
+    const [int, dec = '00'] = money(cents).split('.')
+    return (
+      <View className='weui-price weui-price--md'>
+        <Text className='weui-price__symbol'>¥</Text>
+        <Text className='weui-price__int'>{int}</Text>
+        <Text className='weui-price__dec'>.{dec}</Text>
+      </View>
+    )
+  }
+
   return (
     <BasePageLayout
       requireAuth={true}
@@ -258,218 +272,254 @@ const BarrelMinePage: React.FC = () => {
       emptySubtitle='使用循环水桶配送后,押金与桶数会记录在这里'
       className='barrel-mine-page'
     >
-      {/* 押金合计 / 欠桶合计 */}
-      <View className='barrel-mine-summary'>
-        <View className='barrel-mine-summary-item'>
-          <Text className='barrel-mine-summary-value'>{money(depositHeldCents)}</Text>
-          <Text className='barrel-mine-summary-label'>押金合计(在租)</Text>
+      {/* 押金合计 / 欠桶合计(mp-statgrid 顶部汇总) */}
+      <View className='mp-statgrid'>
+        <View className='mp-statgrid__item'>
+          <View className='mp-statgrid__num'>
+            {money(depositHeldCents)}
+            <Text className='unit'>元</Text>
+          </View>
+          <View className='mp-statgrid__lbl'>押金合计(在租)</View>
         </View>
-        <View className='barrel-mine-summary-divider' />
-        <View className='barrel-mine-summary-item'>
-          <Text className='barrel-mine-summary-value'>{owedBucketCount}</Text>
-          <Text className='barrel-mine-summary-label'>欠桶合计(个)</Text>
+        <View className='mp-statgrid__item'>
+          <View className='mp-statgrid__num'>
+            {owedBucketCount}
+            <Text className='unit'>个</Text>
+          </View>
+          <View className='mp-statgrid__lbl'>欠桶合计</View>
         </View>
       </View>
 
       {/* 按规格桶账 */}
-      <View className='barrel-mine-card'>
-        <View className='barrel-mine-card-header'>
-          <Text className='barrel-mine-card-title'>按规格桶账</Text>
-          <View
-            trackTarget='barrel-open-refund'
-            trackElementType='button'
-            trackElementText='申请退押'
-            className='barrel-mine-refund-btn'
-            onClick={openForm}
-          >
-            <Text className='barrel-mine-refund-btn-text'>申请退押</Text>
-          </View>
+      <View className='barrel-mine-title-row'>
+        <Text className='barrel-mine-title'>按规格桶账</Text>
+        <View
+          trackTarget='barrel-open-refund'
+          trackElementType='button'
+          trackElementText='申请退押'
+          className='weui-btn weui-btn_mini weui-btn_primary'
+          onClick={openForm}
+        >
+          申请退押
         </View>
+      </View>
+      <View className='weui-cells'>
         {specs.map((spec) => (
-          <View key={spec.specification} className='barrel-mine-spec'>
-            <View className='barrel-mine-spec-main'>
-              <Text className='barrel-mine-spec-name'>{spec.specification}</Text>
-              <Text className='barrel-mine-spec-deposit'>{money(spec.depositHeldCents)}</Text>
+          <View key={spec.specification} className='weui-cell barrel-mine-spec'>
+            <View className='weui-cell__bd'>
+              <View className='barrel-mine-spec-name'>{spec.specification}</View>
+              <View className='barrel-mine-spec-meta'>
+                在租 {spec.heldBucketCount} 桶 · 欠桶 {spec.owedBucketCount} 个
+              </View>
             </View>
-            <View className='barrel-mine-spec-sub'>
-              <Text className='barrel-mine-spec-meta'>在租 {spec.heldBucketCount} 桶</Text>
-              <Text className='barrel-mine-spec-meta'>欠桶 {spec.owedBucketCount} 个</Text>
-            </View>
+            <View className='weui-cell__ft'>{renderPrice(spec.depositHeldCents)}</View>
           </View>
         ))}
-        {specs.length === 0 && (
-          <Text className='barrel-mine-spec-empty'>暂无在租水桶</Text>
-        )}
+        {specs.length === 0 && <View className='weui-loadmore'>暂无在租水桶</View>}
       </View>
 
       {/* 退押申请表单 */}
       {formVisible && (
-        <View className='barrel-mine-card'>
-          <View className='barrel-mine-card-header'>
-            <Text className='barrel-mine-card-title'>申请退押</Text>
-            <Text className='barrel-mine-form-close' onClick={closeForm}>
+        <>
+          <View className='barrel-mine-title-row'>
+            <Text className='barrel-mine-title'>申请退押</Text>
+            <Text className='barrel-mine-link' onClick={closeForm}>
               收起
             </Text>
           </View>
-
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>水桶规格</Text>
-            <Picker
-              mode='selector'
-              range={refundableSpecs.map((s) => s.specification)}
-              value={specPickerIndex}
-              onChange={(e) => updateForm('specification', refundableSpecs[Number(e.detail.value)]?.specification ?? '')}
-            >
-              <View className='barrel-mine-form-picker'>
-                <Text>{form.specification || '请选择规格'}</Text>
+          <View className='weui-cells'>
+            <View className='weui-cell barrel-mine-field'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label weui-label--req'>水桶规格</View>
               </View>
-            </Picker>
-            {selectedSpec && (
-              <Text className='barrel-mine-form-help'>可退 {selectedSpec.heldBucketCount} 桶(在租)</Text>
-            )}
-          </View>
+              <View className='weui-cell__bd'>
+                <Picker
+                  mode='selector'
+                  range={refundableSpecs.map((s) => s.specification)}
+                  value={specPickerIndex}
+                  onChange={(e) => updateForm('specification', refundableSpecs[Number(e.detail.value)]?.specification ?? '')}
+                >
+                  <View className='barrel-mine-picker'>{form.specification || '请选择规格'}</View>
+                </Picker>
+                {selectedSpec && (
+                  <View className='barrel-mine-spec-meta'>
+                    可退 {selectedSpec.heldBucketCount} 桶(在租)
+                  </View>
+                )}
+              </View>
+              <View className='weui-cell__ft weui-cell__ft_in-access' />
+            </View>
 
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>退押桶数</Text>
-            <Input
-              className='barrel-mine-form-input'
-              type='number'
-              value={form.bucketCount}
-              onInput={(e) => updateForm('bucketCount', e.detail.value)}
-              placeholder='请输入退回的桶数'
-            />
-          </View>
+            <View className='weui-cell barrel-mine-field'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label weui-label--req'>退押桶数</View>
+              </View>
+              <View className='weui-cell__bd'>
+                <Input
+                  className='weui-input'
+                  placeholderClass='ph'
+                  type='number'
+                  value={form.bucketCount}
+                  onInput={(e) => updateForm('bucketCount', e.detail.value)}
+                  placeholder='请输入退回的桶数'
+                />
+              </View>
+            </View>
 
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>回收联系人</Text>
-            <Input
-              className='barrel-mine-form-input'
-              value={form.receiverName}
-              onInput={(e) => updateForm('receiverName', e.detail.value)}
-              placeholder='请输入联系人姓名'
-            />
-          </View>
+            <View className='weui-cell barrel-mine-field'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label weui-label--req'>回收联系人</View>
+              </View>
+              <View className='weui-cell__bd'>
+                <Input
+                  className='weui-input'
+                  placeholderClass='ph'
+                  type='text'
+                  value={form.receiverName}
+                  onInput={(e) => updateForm('receiverName', e.detail.value)}
+                  placeholder='请输入联系人姓名'
+                />
+              </View>
+            </View>
 
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>联系电话</Text>
-            <Input
-              className='barrel-mine-form-input'
-              type='number'
-              maxlength={11}
-              value={form.receiverPhone}
-              onInput={(e) => updateForm('receiverPhone', e.detail.value)}
-              placeholder='请输入手机号'
-            />
-          </View>
+            <View className='weui-cell barrel-mine-field'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label weui-label--req'>联系电话</View>
+              </View>
+              <View className='weui-cell__bd'>
+                <Input
+                  className='weui-input'
+                  placeholderClass='ph'
+                  type='number'
+                  maxlength={11}
+                  value={form.receiverPhone}
+                  onInput={(e) => updateForm('receiverPhone', e.detail.value)}
+                  placeholder='请输入手机号'
+                />
+              </View>
+            </View>
 
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>回收地址</Text>
-            <Input
-              className='barrel-mine-form-input'
-              value={form.receiverDetail}
-              onInput={(e) => updateForm('receiverDetail', e.detail.value)}
-              placeholder='请输入空桶回收地址'
-            />
-          </View>
+            <View className='weui-cell barrel-mine-field'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label weui-label--req'>回收地址</View>
+              </View>
+              <View className='weui-cell__bd'>
+                <Input
+                  className='weui-input'
+                  placeholderClass='ph'
+                  type='text'
+                  value={form.receiverDetail}
+                  onInput={(e) => updateForm('receiverDetail', e.detail.value)}
+                  placeholder='请输入空桶回收地址'
+                />
+              </View>
+            </View>
 
-          <View className='barrel-mine-form-item'>
-            <Text className='barrel-mine-form-label'>备注(选填)</Text>
-            <Textarea
-              className='barrel-mine-form-textarea'
-              value={form.remark}
-              onInput={(e) => updateForm('remark', e.detail.value)}
-              maxlength={200}
-              showConfirmBar={false}
-              placeholder='补充说明,如方便回收的时间'
-            />
+            <View className='weui-cell weui-cell_vertical'>
+              <View className='weui-cell__hd'>
+                <View className='weui-label'>备注(选填)</View>
+              </View>
+              <View className='weui-cell__bd'>
+                <Textarea
+                  className='weui-textarea barrel-mine-remark'
+                  value={form.remark}
+                  onInput={(e) => updateForm('remark', e.detail.value)}
+                  maxlength={200}
+                  showConfirmBar={false}
+                  placeholder='补充说明,如方便回收的时间'
+                />
+              </View>
+            </View>
           </View>
-
-          <View
-            trackTarget='barrel-submit-refund'
-            trackElementType='button'
-            trackElementText='提交申请'
-            className={`barrel-mine-submit-btn ${submitting ? 'barrel-mine-submit-btn--disabled' : ''}`}
-            onClick={handleSubmit}
-          >
-            <Text className='barrel-mine-submit-text'>{submitting ? '提交中...' : '提交申请'}</Text>
+          <View className='weui-btn_area'>
+            <View
+              trackTarget='barrel-submit-refund'
+              trackElementType='button'
+              trackElementText='提交申请'
+              className={`weui-btn weui-btn_primary${submitting ? ' weui-btn_disabled' : ''}`}
+              onClick={handleSubmit}
+            >
+              {submitting ? '提交中...' : '提交申请'}
+            </View>
           </View>
-        </View>
+        </>
       )}
 
       {/* 押金记录 */}
-      <View className='barrel-mine-card'>
-        <View className='barrel-mine-card-header'>
-          <Text className='barrel-mine-card-title'>押金记录</Text>
-          <Text className='barrel-mine-card-count'>共 {recordTotal} 条</Text>
-        </View>
+      <View className='barrel-mine-title-row'>
+        <Text className='barrel-mine-title'>押金记录</Text>
+        <Text className='barrel-mine-count'>共 {recordTotal} 条</Text>
+      </View>
+      <View className='weui-cells'>
         {records.map((record) => (
-          <View key={record.id} className='barrel-mine-record'>
-            <View className='barrel-mine-record-main'>
-              <Text className='barrel-mine-record-spec'>{record.specification || '水桶押金'}</Text>
-              <Text className='barrel-mine-record-amount'>{money(record.depositAmountCents)}</Text>
+          <View key={record.id} className='weui-cell weui-cell_vertical'>
+            <View className='weui-cell__bd'>
+              <View className='barrel-mine-record-main'>
+                <Text className='barrel-mine-record-spec'>{record.specification || '水桶押金'}</Text>
+                {renderPrice(record.depositAmountCents)}
+              </View>
+              <View className='barrel-mine-record-meta'>
+                <Text className='barrel-mine-record-meta-text'>
+                  {record.bucketCount != null ? `${record.bucketCount} 桶` : ''}
+                  {record.unitDepositCents != null ? ` · 单桶押金 ${money(record.unitDepositCents)}` : ''}
+                </Text>
+                <StatusTag
+                  tone={DEPOSIT_STATUS_MAP[record.status]?.tone}
+                  text={DEPOSIT_STATUS_MAP[record.status]?.text ?? record.status}
+                  size='small'
+                />
+              </View>
+              <Text className='barrel-mine-record-time'>{formatDateTime(record.createdAt)}</Text>
+              {record.refundRemark && (
+                <Text className='barrel-mine-record-remark'>退还备注:{record.refundRemark}</Text>
+              )}
             </View>
-            <View className='barrel-mine-record-sub'>
-              <Text className='barrel-mine-record-meta'>
-                {record.bucketCount != null ? `${record.bucketCount} 桶` : ''}
-                {record.unitDepositCents != null ? ` · 单桶押金 ${money(record.unitDepositCents)}` : ''}
-              </Text>
-              <StatusTag
-                tone={DEPOSIT_STATUS_MAP[record.status]?.tone}
-                text={DEPOSIT_STATUS_MAP[record.status]?.text ?? record.status}
-                size='small'
-              />
-            </View>
-            <Text className='barrel-mine-record-time'>{formatDateTime(record.createdAt)}</Text>
-            {record.refundRemark && (
-              <Text className='barrel-mine-record-remark'>退还备注:{record.refundRemark}</Text>
-            )}
           </View>
         ))}
-        {records.length === 0 && <Text className='barrel-mine-spec-empty'>暂无押金记录</Text>}
-        {loadingMore && <Text className='barrel-mine-load-more'>加载中...</Text>}
-        {!recordHasMore && records.length > 0 && (
-          <Text className='barrel-mine-load-more'>没有更多了</Text>
-        )}
+        {records.length === 0 && <View className='weui-loadmore'>暂无押金记录</View>}
+        {loadingMore && <View className='weui-loadmore'>加载中...</View>}
+        {!recordHasMore && records.length > 0 && <View className='weui-loadmore'>没有更多了</View>}
       </View>
 
       {/* 退押申请记录 */}
-      <View className='barrel-mine-card'>
-        <View className='barrel-mine-card-header'>
-          <Text className='barrel-mine-card-title'>退押申请记录</Text>
-        </View>
+      <View className='barrel-mine-title-row'>
+        <Text className='barrel-mine-title'>退押申请记录</Text>
+      </View>
+      <View className='weui-cells'>
         {applications.map((app) => (
-          <View key={app.id} className='barrel-mine-record'>
-            <View className='barrel-mine-record-main'>
-              <Text className='barrel-mine-record-spec'>
-                {app.specification} × {app.bucketCount} 桶
-              </Text>
-              <StatusTag
-                tone={REFUND_STATUS_MAP[app.status]?.tone}
-                text={REFUND_STATUS_MAP[app.status]?.text ?? app.status}
-                size='small'
-              />
+          <View key={app.id} className='weui-cell weui-cell_vertical'>
+            <View className='weui-cell__bd'>
+              <View className='barrel-mine-record-main'>
+                <Text className='barrel-mine-record-spec'>
+                  {app.specification} × {app.bucketCount} 桶
+                </Text>
+                <StatusTag
+                  tone={REFUND_STATUS_MAP[app.status]?.tone}
+                  text={REFUND_STATUS_MAP[app.status]?.text ?? app.status}
+                  size='small'
+                />
+              </View>
+              <View className='barrel-mine-record-meta'>
+                <Text className='barrel-mine-record-meta-text'>退押金额 {money(app.depositCents)}</Text>
+                <Text className='barrel-mine-record-meta-text'>{formatDateTime(app.createdAt)}</Text>
+              </View>
+              {app.recoveredAt && (
+                <Text className='barrel-mine-record-time'>空桶回收:{formatDateTime(app.recoveredAt)}</Text>
+              )}
+              {app.refundedAt && (
+                <Text className='barrel-mine-record-time'>押金退还:{formatDateTime(app.refundedAt)}</Text>
+              )}
+              {app.status === 'REJECTED' && (
+                <Text className='barrel-mine-record-reject'>驳回原因:{app.rejectReason || '无'}</Text>
+              )}
             </View>
-            <View className='barrel-mine-record-sub'>
-              <Text className='barrel-mine-record-meta'>退押金额 {money(app.depositCents)}</Text>
-              <Text className='barrel-mine-record-meta'>{formatDateTime(app.createdAt)}</Text>
-            </View>
-            {app.recoveredAt && (
-              <Text className='barrel-mine-record-time'>空桶回收:{formatDateTime(app.recoveredAt)}</Text>
-            )}
-            {app.refundedAt && (
-              <Text className='barrel-mine-record-time'>押金退还:{formatDateTime(app.refundedAt)}</Text>
-            )}
-            {app.status === 'REJECTED' && (
-              <Text className='barrel-mine-record-reject'>
-                驳回原因:{app.rejectReason || '无'}
-              </Text>
-            )}
           </View>
         ))}
-        {applications.length === 0 && (
-          <Text className='barrel-mine-spec-empty'>暂无退押申请</Text>
-        )}
+        {applications.length === 0 && <View className='weui-loadmore'>暂无退押申请</View>}
       </View>
+
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
     </BasePageLayout>
   )
 }

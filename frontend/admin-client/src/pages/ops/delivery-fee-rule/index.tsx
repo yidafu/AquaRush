@@ -3,6 +3,7 @@ import { Card, Form, InputNumber, Button, Modal, Alert, Space, Descriptions, Row
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { formatDateTime, centsToYuan, yuanToCents } from '@aquarush/common';
 import { useDeliveryFeeRule, useSaveDeliveryFeeRule } from '../../../services/ops-graphql';
+import { COLOR_ERROR } from '../../../config/theme';
 
 interface FeeTierFormValue {
   fromFloor: number;
@@ -186,7 +187,7 @@ const DeliveryFeeRule: React.FC = () => {
                   </Col>
                   <Col span={4} style={{ textAlign: 'right' }}>
                     {fields.length > 1 ? (
-                      <MinusCircleOutlined onClick={() => remove(field.name)} style={{ color: '#ff4d4f' }} />
+                      <MinusCircleOutlined onClick={() => remove(field.name)} style={{ color: COLOR_ERROR }} />
                     ) : null}
                   </Col>
                   {index === fields.length - 1 ? (

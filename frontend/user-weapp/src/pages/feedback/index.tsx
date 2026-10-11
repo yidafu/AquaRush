@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Textarea, Input, Button, Image } from '@tarojs/components'
+import { View, Text, Textarea, Input, Image } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 
@@ -38,6 +38,11 @@ interface FeedbackForm {
   contactInfo: string
 }
 
+/**
+ * 意见反馈(feedback.html:WeUI 表单 —— 类型 .weui-tag--md 芯片、
+ * 内容 .weui-textarea/__counter、图片 .weui-uploader、联系方式 cells、
+ * 提交 .weui-btn_area;页脚热线 + 反馈记录链接)
+ */
 const Feedback: React.FC = () => {
   usePageViewTracking()
 
@@ -167,97 +172,120 @@ const Feedback: React.FC = () => {
 
   return (
     <View className='feedback-page'>
-      <View className='header'>
-        <Text className='title'>意见反馈</Text>
-        <Text className='subtitle'>您的意见对我们很重要</Text>
+      <View className='mp-pad-16 feedback-intro'>
+        <Text className='feedback-intro-text'>您的意见对我们很重要</Text>
       </View>
 
-      <View className='form-container'>
-        <View className='form-item'>
-          <Text className='label'>反馈类型 *</Text>
-          <View className='type-selector'>
+      {/* 反馈类型(feedback.html .weui-tag--md 芯片,选中 --brand) */}
+      <View className='weui-cells__title'>反馈类型</View>
+      <View className='weui-cells'>
+        <View className='weui-cell weui-cell_vertical'>
+          <View className='feedback-types'>
             {feedbackTypes.map((type) => (
               <View
                 key={type.value}
-                className={`type-option ${form.type === type.value ? 'selected' : ''}`}
+                className={`weui-tag weui-tag--md feedback-type ${form.type === type.value ? 'weui-tag--brand' : ''}`}
+                trackTarget='feedback-type'
+                trackElementType='tag'
+                trackElementText={type.label}
                 onClick={() => handleTypeSelect(type.value)}
               >
-                <Text className='type-text'>{type.label}</Text>
+                <Text>{type.label}</Text>
               </View>
             ))}
           </View>
         </View>
+      </View>
 
-        <View className='form-item'>
-          <Text className='label'>反馈内容 *</Text>
+      {/* 反馈内容(.weui-textarea + __counter) */}
+      <View className='weui-cells__title'>反馈内容</View>
+      <View className='weui-cells'>
+        <View className='weui-cell weui-cell_vertical'>
           <Textarea
-            className='textarea'
+            className='weui-textarea feedback-textarea'
+            placeholderClass='ph'
             placeholder='请详细描述您遇到的问题或建议，至少输入10个字'
             value={form.content}
             onInput={(e) => handleInputChange('content', e.detail.value)}
             maxlength={500}
             showConfirmBar={false}
           />
-          <Text className='char-count'>{form.content.length}/500</Text>
+          <View className='weui-textarea__counter'>
+            反馈内容至少输入10个字　{form.content.length}/500
+          </View>
         </View>
+      </View>
 
-        <View className='form-item'>
-          <Text className='label'>上传图片 (选填)</Text>
-          <Text className='helper-text'>最多上传3张图片，有助于我们更好地了解问题</Text>
-          <View className='image-upload'>
+      {/* 图片(≤3 张,.weui-uploader) */}
+      <View className='weui-cells__title'>图片（≤3 张）</View>
+      <View className='weui-cells'>
+        <View className='weui-cell weui-cell_vertical'>
+          <View className='weui-uploader'>
             {form.images.map((image, index) => (
-              <View key={index} className='image-item'>
-                <Image className='image' src={image} mode='aspectFill' />
+              <View key={index} className='weui-uploader__file feedback-file'>
+                <Image className='feedback-file-img' src={image} mode='aspectFill' />
                 <View
-                  className='delete-btn'
+                  className='feedback-file-del'
                   onClick={() => handleRemoveImage(index)}
                 >
-                  <Text className='delete-icon'>×</Text>
+                  <Text>×</Text>
                 </View>
               </View>
             ))}
             {form.images.length < 3 && (
-              <View className='upload-btn' onClick={handleChooseImage}>
-                <Text className='upload-icon'>+</Text>
-                <Text className='upload-text'>添加图片</Text>
-              </View>
+              <View
+                className='weui-uploader__input'
+                trackTarget='feedback-upload'
+                trackElementType='button'
+                trackElementText='添加图片'
+                onClick={handleChooseImage}
+              />
             )}
           </View>
         </View>
+      </View>
+      <View className='weui-cells__tips'>最多上传 3 张,支持相册 / 拍照,可删除。</View>
 
-        <View className='form-item'>
-          <Text className='label'>联系方式 (选填)</Text>
-          <Input
-            className='contact-input'
-            placeholder='手机号或微信号，便于我们联系您'
-            value={form.contactInfo}
-            onInput={(e) => handleInputChange('contactInfo', e.detail.value)}
-            maxlength={100}
-          />
-        </View>
-
-        <View className='submit-section'>
-          <Button
-            trackTarget="feedback-submit"
-            trackAction="FORM_SUBMIT"
-            trackElementType="button"
-            trackElementText="提交反馈"
-            trackDisabled={submitting}
-            onClick={handleSubmit}
-            className='submit-btn'
-            loading={submitting}
-            disabled={submitting}
-          >
-            {submitting ? '提交中...' : '提交反馈'}
-          </Button>
+      {/* 联系方式(选填) */}
+      <View className='weui-cells mt3'>
+        <View className='weui-cell'>
+          <View className='weui-cell__hd'>
+            <View className='weui-label'>联系方式</View>
+          </View>
+          <View className='weui-cell__bd'>
+            <Input
+              className='weui-input'
+              placeholderClass='ph'
+              placeholder='手机号 / 微信，便于我们联系您'
+              value={form.contactInfo}
+              onInput={(e) => handleInputChange('contactInfo', e.detail.value)}
+              maxlength={100}
+            />
+          </View>
         </View>
       </View>
 
-      <View className='footer'>
-        <Text className='footer-text'>我们会在1-2个工作日内处理您的反馈</Text>
-        <Text className='footer-text'>如有紧急问题，请拨打客服热线：{storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
+      {/* 提交(.weui-btn_area,提交中禁用防重复) */}
+      <View className='weui-btn_area'>
+        <View
+          trackTarget="feedback-submit"
+          trackAction="FORM_SUBMIT"
+          trackElementType="button"
+          trackElementText="提交反馈"
+          trackDisabled={submitting}
+          onClick={handleSubmit}
+          className={`weui-btn weui-btn_primary flex1 ${submitting ? 'weui-btn_disabled' : ''}`}
+        >
+          {submitting ? '提交中...' : '提交反馈'}
+        </View>
+      </View>
+
+      {/* 页脚说明 + 反馈记录链接(feedback.html) */}
+      <View className='weui-cells__tips feedback-footer-tip'>我们会在1-2个工作日内处理您的反馈</View>
+      <View className='feedback-footer'>
+        <Text className='feedback-footer-text'>客服热线 {storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
         <Text
-          className='footer-link'
+          className='feedback-footer-link'
           trackTarget="feedback-records-link"
           trackAction="CLICK"
           trackElementType="link"
@@ -267,6 +295,7 @@ const Feedback: React.FC = () => {
           我的反馈记录 ›
         </Text>
       </View>
+      <View className='safe-bottom' />
     </View>
   )
 }

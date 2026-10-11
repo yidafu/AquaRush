@@ -1,30 +1,28 @@
-.address-summary-card {
-  .address-content {
+// 只读地址卡:WeUI cells 骨架由 weui.scss 提供,仅补姓名/电话/地址排版
+.address-summary .weui-cell {
+  .address-head {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: baseline;
+    gap: 16px;
+  }
 
-    .address-header {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
+  .receiver-name {
+    font-size: var(--weui-fs-cell);
+    font-weight: 600;
+    color: var(--weui-FG-0);
+  }
 
-      .receiver-name {
-        font-size: 30px;
-        font-weight: 600;
-        color: var(--text-main);
-      }
+  .receiver-phone {
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    font-variant-numeric: tabular-nums;
+  }
 
-      .receiver-phone {
-        font-size: 26px;
-        color: var(--text-sub);
-      }
-    }
-
-    .address-detail {
-      font-size: 26px;
-      color: var(--text-sub);
-      line-height: 1.5;
-    }
+  .address-detail {
+    display: block;
+    margin-top: 16px;
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-FG-1);
+    line-height: 1.5;
   }
 }
