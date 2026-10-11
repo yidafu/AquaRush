@@ -96,7 +96,7 @@ subtotal(现金) = Σ 未被票/赠覆盖的 item：成交单价×数量        
 4. 押金判定（§9）+ 配送费快照（§11）+ 地址/时段快照；
 5. 生成赠品行（gift_activity 命中，0 价）；订单落库 + order_operations(CREATED)；
 6. 提交后：发 ORDER_CREATED 事件（订阅消息「下单成功」、送水工端广播「新订单可抢单」——仅 PENDING_DISPATCH 单）、业务日志。
-7. 周期订购生成单 client_request_id=`sub-{id}-{period}`（同期次仅一单）；企业批量子单逐单独立执行（任一子单失败该子单回滚，其余成功——【开放决策】建议部分成功 + 结果回显）。**两者均已 [暂缓]**（2026-10-10 决策，§12/§13，不排期）。
+7. 周期订购生成单 client_request_id=`sub-{id}-{period}`（同期次仅一单，G77 后台侧已实现 2026-10-11，§12）；企业批量子单逐单独立执行（任一子单失败该子单回滚，其余成功——【开放决策】建议部分成功 + 结果回显）。**企业批量子单 [暂缓]**（2026-10-10 决策，§13，不排期）。
 8. 起送门槛拦截（R-OPS-03，规划中 G96）：非自提单商品金额（未扣优惠）< `minimum_order_cents` → 抛 BUSINESS_RULE「未达起送金额」整体拒绝（不进入扣库存步骤）。
 
 ## 3. 库存联动（R-PRO-01）
@@ -264,19 +264,28 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
   确认订单页读规则+地址楼层展示运费/「免配送费」；会员免配送费权益【开放决策→建议权益优先】(G80)
 ```
 
-## 12. 周期订购（R-ORD-13，**[暂缓]** 2026-10-10 决策——保留设计不排期，勿重复立项）
+## 12. 周期订购（R-ORD-13，G77 **后台侧已实现** 2026-10-11 恢复开发并变更方向——入口仅管理后台，用户端不开发）
 
 ```
-计划: subscriptions(ACTIVE) + items + next_run_date
-调度（admin 服务, 每日）: 分页扫描 status=ACTIVE AND next_run_date<=today（禁全表）
-  对每个计划（期次 n=executed_periods+1）:
-    AUTO_ORDER: 校验商品在售/库存、地址有效、范围可达
-      → 全通过: 生成订单 client_request_id="sub-{id}-{n}"（幂等，同期次仅一单）
-                → PENDING_PAYMENT + 推送「自动下单成功·待支付」（走 R-ORD-04 超时链路，不阻塞下一期）
-      → 失败(缺货/地址不可达/欠信用): 不静默——转提醒「下单失败，请手动处理」（R-NTF-06）
-    REMIND_ONLY: 推送「即将配送」提醒
-    executed_periods=n，next_run_date=下期日期；达 max_periods/end_date → TERMINATED
-用户操作: 暂停（PAUSED 期间不生成）/恢复/终止（已生成订单保留）
+计划: subscriptions(ACTIVE|PAUSED|TERMINATED) + subscription_items + next_run_date/worker_id/last_error
+入口: 后台 createSubscription（绑定用户+收货地址+可选绑定送水工）；用户端本期不开发
+调度（SubscriptionScheduler, admin 服务, 每日 05:30 Asia/Shanghai, cron 可配 aqua.subscription.scan-cron）:
+  keyset 分页扫描 status=ACTIVE AND next_run_date<=today（禁全表）
+  逐计划执行（期次 n=executed_periods+1），单条失败不阻断批次:
+    生成订单走代客下单链路: 校验商品在售/库存、地址有效、范围可达
+      → 全通过: client_request_id="sub-{id}-{n}"（(user_id, client_request_id) 唯一索引兜底，同期次仅一单）
+                → payment=CASH、直接进待派单（价格按当期营销链路重算）
+                → executed_periods=n；next_run_date=下期——推进时若下期日已过去则跳过错过的期次、
+                  从当天重算（不补送）；达 max_periods/越过 end_date → TERMINATED
+                → 发 SUBSCRIPTION_ORDER_CREATED 领域事件（outbox）→ 平台层 NotificationEventHandler
+                    → NOTIFICATION_SEND: 计划绑定送水工 → 定向站内消息 + WS/系统通知栏推送；
+                      未绑定 → 广播推送全部在线送水工（不落库）
+                    → 开关 delivery_push_subscription_enabled(默认开)；不向用户发周期提醒
+      → 失败(缺货/地址不可达等): 不静默——写 subscriptions.last_error（后台列表可见），
+                不推进 next_run_date，次日重试
+用户操作: 暂停（PAUSED 期间不生成；恢复时 next_run_date 已过则重算下一生效日，错过的不补）
+          / 终止（TERMINATED 不可恢复，已生成订单保留）
+生成订单解耦: 走既有取消/超时链路（R-ORD-03/04），不阻塞下一期
 ```
 
 ## 13. 企业客户月结（R-ORD-14，资金类，**[暂缓]** 2026-10-10 决策——保留设计不排期，勿重复立项）
@@ -380,7 +389,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
 清理: 每日按 notification_retention_days(默认90) 游标分批删除
 提醒类（F-NTF-007，调度分页扫描禁全表）:
   补水提醒: 用户近 N 次订单平均间隔（默认 30 天）判定 + 频率上限（同人 7 天 1 条）
-            + 幂等键=用户+场景+期次；已购周期订购者降频【开放决策】
+            + 幂等键=用户+场景+期次；不向用户发周期提醒（2026-10-11 新方向，周期订单生成后仅提醒送水工，§12）
   周期提醒 / 券到期(默认 3 天窗口) / 水票余量 / 积分到期 / 配送超时(默认120分钟)
 接单超时预警（F-NTF-008/R-NTF-07，规划中 G94 排期待定）:
   OrderAcceptTimeoutScanner 调度（admin）分页扫描「待派单/待配送」:
@@ -413,7 +422,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
   checkDeliveryArea 查询未落 schema——范围校验实际未生效,按裁决改代码接线（B3,PRD G07 已登记）
 片区维护: 表 delivery_areas 行内省市区单组（多行=多区域,is_enabled 启停）;
   名称唯一/省市区多选子表/绑定送水工（就近派单推荐集）为目标形态（G07/G78,01 §2.2）
-周期订购（[暂缓] G77）: 生成订单前同校验，失败转提醒
+周期订购（G77 后台侧已实现）: 生成订单前同校验，失败记 subscriptions.last_error、次日重试不推进
 ```
 
 ## 21. 调度任务总表（全部部署于 aqua-admin，分页/游标，禁全表）
@@ -427,7 +436,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
 | LogPartitionMaintainer | 每日 03:00 + 启动 | — | 预建当前月/+1/+2 分区（幂等） |
 | LogAutoBackup | 每日 03:30 + 启动 | log.cleanup_enabled / retention_days(90) | 超期分区自动备份（advisory lock 防重，单分区失败继续） |
 | NotificationCleanup | 每日 | retention_days(90) | 过期消息游标清理 |
-| SubscriptionScheduler | 每日 | — | 周期订购到期生成订单/提醒（**[暂缓]** G77，不实现） |
+| SubscriptionScheduler | 每日 05:30 | aqua.subscription.scan-cron(默认 `0 30 5 * * *`) | 周期计划扫描 → 幂等生成 CASH 订单进待派单 → 发 SUBSCRIPTION_ORDER_CREATED 提醒送水工；失败记 last_error 次日重试（G77 后台侧已实现，§12） |
 | EnterpriseBillScheduler | 每日 | — | 账期到期生成月结账单（**[暂缓]** G83，不实现） |
 | DeliveryTimeoutScanner | 周期扫描 | delivery.timeout_minutes(120) | 配送超时事件+定向推送（幂等键=订单号+场景+开始配送时间） |
 | OrderAcceptTimeoutScanner | 周期扫描 | order_accept_timeout_minutes(30) / delivery_start_timeout_minutes(60) | 接单超时预警（F-NTF-008/G94 规划中）：待派单/待配送超阈值 → ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT 推送全体管理员（幂等键=订单号+事件类型） |
@@ -447,6 +456,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
 | PAYMENT_TIMEOUT / PAYMENT_REFUNDED | payment-events | PaymentTimeoutHandler（超时取消链路）、通知网关「支付结果」；PAYMENT_REFUNDED 为预留（暂无专属处理器） |
 | PAYMENT_EXPIRY_CHECK | payment-expiry-events（**仅 admin 订阅**） | `PaymentExpiryCheckConsumer` → handlePaymentTimeout（R-ORD-04 主触发，`next_run_at` 到期投递） |
 | DELIVERY_ASSIGNED / DELIVERY_STARTED / DELIVERY_COMPLETED / DELIVERY_TIMEOUT | delivery-events | 通知网关（被派单/开始配送/送达确认/超时定向推送）、DeliveryAssignmentHandler、DeliveryTimeoutHandler |
+| SUBSCRIPTION_ORDER_CREATED | delivery-events（缺省路由分支） | `SubscriptionOrderNotificationHandler`（平台层 `notification/gateway/NotificationEventHandler.kt`，G77 后台侧已实现）→ 发 NOTIFICATION_SEND：绑定送水工定向站内+WS/系统通知栏、未绑定广播（不落库）；开关 delivery_push_subscription_enabled（默认开），见 §12/F-NTF-003 |
 | ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT | delivery-events | **规划中**（F-NTF-008/R-NTF-07，G94 排期待定，代码未落）：接单超时预警——路由随 DELIVERY_TIMEOUT 惯例，通知网关落库 + WS 推送全体管理员（幂等键=订单号+事件类型，见 §18） |
 | USER_REGISTERED / USER_UPDATED / COUPON_EXPIRING | user-events | COUPON_EXPIRING → 通知网关（券到期提醒）；USER_* 现状预留（消费端仅记 warn，按需挂处理器） |
 | ADDRESS_UPDATED / PRODUCT_UPDATED | delivery-events（缺省路由分支） | UpdateOrderSearchContentHandler / UpdateOrderSearchContentForProductHandler（订单搜索内容刷新） |

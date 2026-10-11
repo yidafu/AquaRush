@@ -13,12 +13,12 @@
   <header class="stage-head">
     <div>
       <h1>管理后台 · 订单管理 / 周期订购计划管理</h1>
-      <p class="sub">功能编号 F-ORD-026 [暂缓 2026-10-10 决策]（周期订购 — 后台侧）｜ 订单域 ｜ 对应用户端 subscriptions</p>
+      <p class="sub">功能编号 F-ORD-026 [已实现 · 后台侧]（周期订购 — 后台侧,2026-10-11 恢复开发并变更方向）｜ 订单域 ｜ 用户端入口本期不开发</p>
     </div>
     <div class="chips">
       <span class="chip">F-ORD-026</span>
-      <span class="chip chip-defer">暂缓</span>
-      <span class="chip chip-goal">缺口 G77</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-goal">缺口 G77 · 用户端入口待定</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -66,8 +66,9 @@
                 <div class="page-title">
                   <div>
                     <h2>周期订购</h2>
-                    <div class="desc">后台可查看与管理用户周期订购计划 <span class="tag tag-goal"></span></div>
+                    <div class="desc">管理员创建与管理用户周期订购计划（新建/暂停/恢复/终止、可选绑定送水工、生成失败展示 lastError）<span class="tag tag-ok">已实现</span></div>
                   </div>
+                  <span class="btn sm">新建计划</span>
                 </div>
 
                 <div class="filter-card">
@@ -127,7 +128,7 @@
 
                 <div class="notice mt3">
                   <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-                  <span>到期按计划生成「待支付」订单（幂等键 = 计划 id + 期次）；暂停期间不生成；自动下单失败不静默（推送「周期订单待支付」提醒）。</span>
+                  <span>到期每日 05:30 调度自动生成「待派单」订单（支付 CASH，幂等键 = 计划 id + 期次）；生成成功提醒送水工（绑定定向 / 未绑定广播，开关 delivery_push_subscription_enabled）；暂停期间不生成；生成失败记录 last_error 次日重试，不静默。</span>
                 </div>
 
               </div>
@@ -186,7 +187,7 @@
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/><path d="M9 15l2 2 4-4"/></svg>
                     </div>
                     <div class="e-title">暂无周期订购计划</div>
-                    <div class="e-desc">用户在小程序设置周期订购后，计划将在此展示</div>
+                    <div class="e-desc">管理员创建周期计划后，计划将在此展示</div>
                   </div>
                 </div>
               </div>
@@ -200,10 +201,10 @@
     <div class="notes">
       <div class="note-card">
         <h3>页面说明</h3>
-        <p><strong>所属端：</strong>管理后台（目标形态）</p>
-        <p><strong>入口：</strong>后台周期订购计划页（subscriptions）</p>
+        <p><strong>所属端：</strong>管理后台（已实现，2026-10-11 恢复开发并变更方向）</p>
+        <p><strong>入口：</strong>菜单「订单管理 → 周期订购计划」（路由 <code>/subscriptions</code>，权限码 SUBSCRIPTION_READ / SUBSCRIPTION_WRITE）</p>
         <p><strong>跳转：</strong>计划详情（用户 / 商品 / 周期 / 下次配送）</p>
-        <p><strong>对应用户端：</strong>用户端 subscriptions（F-ORD-026）</p>
+        <p><strong>对应用户端：</strong>用户端入口本期不开发（继续暂缓；F-ORD-026 后台侧已实现）</p>
       </div>
 
       <div class="note-card">
@@ -211,15 +212,16 @@
         <ol>
           <li>筛选 / 分页</li>
           <li>计划表格：用户 + 商品摘要 + 周期规则 + 下次配送时间 + 状态 + 操作</li>
-          <li>状态标签：生效中 / 已暂停 / 已终止</li>
+          <li>状态标签：生效中 / 已暂停 / 已终止；生成失败计划展示 lastError（不静默）</li>
         </ol>
       </div>
 
       <div class="note-card">
         <h3>关键交互</h3>
         <ol>
+          <li>新建计划：绑定用户 + 收货地址 + 可选绑定送水工（商品/周期/时段/生效与终止条件）</li>
           <li>筛选 / 分页查看周期订购计划</li>
-          <li>查看用户计划（商品 / 周期 / 下次配送 / 状态）</li>
+          <li>查看用户计划（商品 / 周期 / 下次配送 / 状态 / lastError）</li>
           <li>暂停 / 恢复 / 终止（终止后不可恢复，需新建）</li>
         </ol>
       </div>
@@ -227,16 +229,16 @@
       <div class="note-card">
         <h3>状态与规则</h3>
         <p><strong>空态：</strong>「暂无周期订购计划」；<strong>加载态：</strong>loading；<strong>禁用态：</strong>已终止计划不提供恢复入口。</p>
-        <p>到期按计划生成「待支付」订单（幂等键 = 计划 id + 期次）；暂停期间不生成；自动下单失败不静默。</p>
+        <p>到期每日 05:30 调度自动生成「待派单」订单（支付 CASH，幂等键 = 计划 id + 期次）；生成成功提醒送水工（绑定定向 / 未绑定广播）；暂停期间不生成；生成失败记录 last_error、次日重试不推进，单条失败不阻断批次。</p>
         <p>地址以生成时快照（后续地址簿变更不影响已生成订单，R-MON-02 快照原则）；生成订单与支付超时 / 取消解耦。</p>
       </div>
 
       <div class="note-card todo-note">
         <h3>设计要点 / 禁忌</h3>
-        <p>本页为 <span class="tag tag-goal"></span>，缺口 <strong>G77</strong> <strong>暂缓</strong>（2026-10-10 产品决策：保留编号与设计、不进当期排期，勿重复立项）。</p>
+        <p>本页 <span class="tag tag-ok">已实现</span>（2026-10-11 恢复开发并变更方向：入口仅管理后台、到期自动生成订单、提醒送水工而非用户）；缺口 <strong>G77</strong> 残余为<strong>用户端入口未开发</strong>。</p>
         <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝；生效中用成功绿、已暂停用 warning、已终止用中性灰。</p>
-        <p>列表可筛选分页；后台可查看与管理周期订购计划，但不得静默失败。</p>
-        <p>开放问题：「自动下单 vs 仅提醒」默认值。</p>
+        <p>列表可筛选分页；后台可新建/查看/暂停/恢复/终止周期订购计划，但不得静默失败（lastError 必须可见）。</p>
+        <p><del>开放问题：「自动下单 vs 仅提醒」默认值</del>（2026-10-11 新方向取消：恒为自动下单，不做「仅提醒」模式）。</p>
       </div>
     </div>
 

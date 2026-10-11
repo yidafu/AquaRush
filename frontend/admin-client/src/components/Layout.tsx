@@ -47,6 +47,7 @@ import {
   SafetyOutlined,
   BellOutlined,
   DatabaseOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -90,6 +91,8 @@ const buildMenuItems = (isSuperAdmin: boolean): MenuProps['items'] => [
         ],
       },
       { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
+      // 周期订购计划(F-ORD-026/G77 后台入口;菜单对全部管理员可见,权限由后端强制)
+      { key: '/subscriptions', icon: <CalendarOutlined />, label: '周期订购计划' },
       {
         key: 'addresses',
         icon: <EnvironmentOutlined />,
@@ -217,6 +220,7 @@ const ROUTE_CRUMBS: Record<string, RouteCrumb> = {
   '/products/:id/edit': { group: GROUP_BIZ, parent: '商品管理', title: '编辑商品' },
   '/orders': { group: GROUP_BIZ, title: '订单管理' },
   '/orders/:id': { group: GROUP_BIZ, parent: '订单管理', title: '订单详情' },
+  '/subscriptions': { group: GROUP_BIZ, parent: '订单管理', title: '周期订购计划' },
   '/addresses': { group: GROUP_BIZ, parent: '地址与配送', title: '地址管理' },
   '/trajectories': { group: GROUP_BIZ, parent: '地址与配送', title: '配送轨迹' },
   '/daily-collection': { group: GROUP_BIZ, title: '收银对账' },

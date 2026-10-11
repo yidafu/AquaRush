@@ -419,6 +419,12 @@ class OrderMutationServiceImpl(
         ?: throw NotFoundException("收货地址不存在: ${input.addressId}")
     val userId = address.userId
 
+    // 服务端下单幂等(R-ORD-06):周期订购代客下单按 clientRequestId 去重(G77/R-ORD-13,
+    // 同期次仅一单);(user_id, client_request_id) 唯一索引为并发重复执行的最终防线
+    input.clientRequestId?.let { requestId ->
+      orderRepository.findByUserIdAndClientRequestId(userId, requestId)?.let { return it }
+    }
+
     val isSelfCollect = input.isSelfCollect ?: false
     // 代客下单:默认禁用自动营销优惠(满减/券),水票核销不适用(R-MKT-07 边界场景)
     val pricingRequest =
@@ -462,6 +468,9 @@ class OrderMutationServiceImpl(
         pricing = preview,
         // 代客下单现场收款(现金/水票):直接进入「待分配」(R-PAY-03)
         initialStatus = OrderModelStatus.PENDING_DISPATCH,
+        // 幂等键与配送时段(周期订购代客下单随单落库,G77/R-ORD-13;常规代客下单为 null)
+        clientRequestId = input.clientRequestId,
+        deliveryTimeSlot = input.deliveryTimeSlot,
       )
 
     // 随单建押金账并即时确认实收(代客下单确认即置 HELD,design03 §9)

@@ -99,7 +99,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `urgeOrder(orderId)` | authenticated | 催单：仅本人配送中订单；服务端 5 分钟防抖；发 ORDER_URGING 事件双端推送（F-ORD-008） |
 | `createReview(input{orderId,deliveryWorkerId,rating,comment,isAnonymous})` | authenticated | 一单一评（原设计名 reviewOrder）：1-5 星、comment ≤1000 字（R-EVL-01 的 500 字上限现状放宽至 1000）；提交前以 `orderReviewCheck(orderId)` 查可评状态（hasReviewed/canReview） |
 | `reorder(orderId)` | authenticated | 再来一单：校验在售/库存、剔除失效并提示、地址快照回填或默认地址、价格当前重算——返回待下单数据（本地缓存），不直接建单（R-ORD-12；G76 排期，schema 现状未落） |
-| `subscriptions(page,size)` / `createSubscription(input)` / `pauseSubscription(id)` / `resumeSubscription(id)` / `terminateSubscription(id)` | authenticated | 周期订购计划管理（R-ORD-13；G77 **[暂缓]** 2026-10-10 决策，schema 现状未落、不排期） |
+| `subscriptions` / `subscription` / `createSubscription` 等周期订购 API | — | **用户端本期不提供**(2026-10-11 新方向:入口仅管理后台,F-ORD-026 后台侧已实现);API 归 admin schema,签名见 §5.2 |
 | `deliverySlots` | authenticated | 配送时段配置下发（读 F-SYS-002：立即配送恒启用 + 上午/下午/晚上按启停与时间窗；未配置回退种子默认） |
 | `checkDeliveryArea(addressId)` | authenticated | 范围校验（片区省市区匹配）；**异常降级放行**（R-ADR-02）。缺陷 #3：底层 `isAddressInDeliveryArea` 现状恒放行、查询未落 schema——按裁决改代码接线（B3，PRD G07） |
 | `deliveryTracking(orderId)` | authenticated | 配送跟踪：订单状态门控（非配送中拦截「订单尚未开始配送」）；返回送水工姓名/电话/概略位置（latest location）、ETA；**不下发完整轨迹序列**（隐私，仅概略；F-ADR-010 目标形态，schema 现状未落） |
@@ -190,7 +190,8 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `reconciliationTasks(input{taskType,status,dateFrom,dateTo,page,size})` / `reconciliationTask(taskId)` / `reconciliationReports(taskId,reportType)` / `reconciliationDiscrepancies(input{taskId,status,page,size})` | RECONCILIATION_READ | 微信资金对账任务/报表/差异查询（B 类补录,现状签名;流程见 03 §16） |
 | `executeReconciliation(input{taskType,reconciliationDate})` / `resolveDiscrepancy(input{discrepancyId,resolutionNotes})` | RECONCILIATION_EXECUTE / RECONCILIATION_REVIEW | 发起支付/退款/结算对账（T-1/T-1/T-2 错峰,hasRunningTask 防并发）与差异处置留痕。**目标演进**（R-PAY-04,G93——billType/billDate 入参与 `PAYMENT_RECONCILIATION_*` 权限码为规划形态）见 [07-payment-reconciliation.md](07-payment-reconciliation.md) §8 |
 | `transfers(input)` | ORDER_READ | 转单记录查看（留痕；随 G84 排期，schema 现状未落） |
-| `subscriptions(input)` | ORDER_READ | 周期订购计划查看/管理（G77 **[暂缓]** 2026-10-10 决策，schema 现状未落、不排期） |
+| `subscriptions(input{page,size,search,status,nextRunFrom,nextRunTo})` / `subscription(subscriptionId)` | SUBSCRIPTION_READ | 周期订购计划列表/详情（F-ORD-026 后台侧已实现 2026-10-11，R-ORD-13；`SubscriptionVo` 含 user/address/items/workerName/lastError/nextRunDate/status 等；schema：`modules/subscription.graphqls`） |
+| `createSubscription(input)` / `pauseSubscription(subscriptionId)` / `resumeSubscription(subscriptionId)` / `terminateSubscription(subscriptionId)` | SUBSCRIPTION_WRITE | 创建计划（绑定用户+收货地址+可选 workerId，items/cycleType/weekdays/monthDay/timeSlot/startDate/endDate/maxPeriods）与暂停/恢复/终止（终止不可恢复）；到期由 SubscriptionScheduler 自动生成 CASH 订单进待派单并提醒送水工（03 §12） |
 
 ### 5.3 用户与账号域
 

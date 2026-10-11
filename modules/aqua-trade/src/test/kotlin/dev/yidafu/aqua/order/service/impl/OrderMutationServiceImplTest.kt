@@ -758,4 +758,52 @@ class OrderMutationServiceImplTest :
       order.deliveryTimeSlot shouldBe null
       verify(exactly = 1) { orderItemRepository.saveAll(any<List<OrderItemModel>>()) }
     }
+
+    // ============ 周期订购代客下单幂等(G77/R-ORD-13) ============
+
+    test("delivery order with same clientRequestId returns existing order (sub period idempotency)") {
+      // 同一用户同一 clientRequestId 已存在 → 直接返回,不重复扣库存/落库
+      // (代客下单 userId 取收货地址所属客户 200L,幂等键按该客户查)
+      val existing = OrderModel(id = 777L, userId = 200L, status = OrderModelStatus.PENDING_DISPATCH)
+      every { addressQueryApiService.findById(1L) } returns address(userId = 200L)
+      every { orderRepository.findByUserIdAndClientRequestId(200L, "sub-9-3") } returns existing
+
+      val result =
+        service.createDeliveryOrder(
+          1L,
+          CreateOrderRequest(
+            userId = 0L,
+            items = listOf(OrderItemRequest(1L, 1)),
+            addressId = 1L,
+            clientRequestId = "sub-9-3",
+          ),
+        )
+
+      result.id shouldBe 777L
+      verify(exactly = 0) { productService.decreaseStock(any(), any()) }
+      verify(exactly = 0) { orderRepository.save(any()) }
+    }
+
+    test("delivery order persists clientRequestId and deliveryTimeSlot snapshot") {
+      stubCreateOrderCommon(address(floor = 4, userId = 200L))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+      // 幂等查询未命中(relaxed mock 会返回非空实例,显式置空走完整创建链路)
+      every { orderRepository.findByUserIdAndClientRequestId(200L, "sub-9-1") } returns null
+
+      val order =
+        service.createDeliveryOrder(
+          1L,
+          CreateOrderRequest(
+            userId = 0L,
+            items = listOf(OrderItemRequest(1L, 1)),
+            addressId = 1L,
+            clientRequestId = "sub-9-1",
+            deliveryTimeSlot = DeliveryTimeSlot.MORNING,
+          ),
+        )
+
+      order.clientRequestId shouldBe "sub-9-1"
+      order.deliveryTimeSlot shouldBe DeliveryTimeSlot.MORNING
+    }
   })
