@@ -29,13 +29,18 @@ const TABS: TicketTab[] = [
   { key: UserTicketStatus.EXPIRED, label: '已过期' }
 ]
 
-// 票状态 → weui-tag 修饰(可用绿 / 已核销灰 / 已退回橙 / 已过期红)
+// 票状态 → weui-tag 修饰(可用绿 / 待激活橙 G97 / 已核销灰 / 已退回橙 / 已过期红)
 const statusTagClass = (ticket: UserTicketVo): string => {
+  if (ticket.pendingActivation) return 'weui-tag--orange'
   if (ticket.status === UserTicketStatus.USED) return 'weui-tag--done'
   if (ticket.status === UserTicketStatus.EXPIRED) return 'weui-tag--cancel'
   if (ticket.status === UserTicketStatus.RETURNED) return 'weui-tag--orange'
   return 'weui-tag--green'
 }
+
+// 待激活票状态文案(G97:复购条件未满足,完成复购自动激活)
+const statusLabel = (ticket: UserTicketVo): string =>
+  ticket.pendingActivation ? '待激活' : getTicketStatusLabel(ticket.status)
 
 /**
  * 我的水票(F-MKT-007,ticket-mine.html:汇总 statgrid + tabs + 票夹卡)
@@ -93,7 +98,8 @@ const TicketListPage: React.FC = () => {
   const isAvailable = (ticket: UserTicketVo): boolean =>
     ticket.status === UserTicketStatus.UNUSED || ticket.status === UserTicketStatus.RETURNED
 
-  const availableCount = tickets.filter(isAvailable).length
+  // 可用张数 = 未用 + 已退回 且非待激活(待激活票不可核销,与确认订单页可用数口径一致 G97)
+  const availableCount = tickets.filter(t => isAvailable(t) && !t.pendingActivation).length
   const usedCount = tickets.filter(t => t.status === UserTicketStatus.USED).length
 
   const filtered = activeTab === AVAILABLE_TAB_KEY
@@ -159,7 +165,10 @@ const TicketListPage: React.FC = () => {
         /* 票夹卡(ticket-mine.html:白底圆角卡,票名 + 状态标签 + 规格/有效期/票号) */
         <View className='ticket-list'>
           {filtered.map(ticket => (
-            <View key={ticket.id} className='ticket-item'>
+            <View
+              key={ticket.id}
+              className={`ticket-item ${ticket.pendingActivation ? 'ticket-item--pending' : ''}`}
+            >
               <View className='ticket-item-head'>
                 <View className='ticket-item-name-row'>
                   <Text className='ticket-item-name'>{ticket.ticketTypeName}</Text>
@@ -168,11 +177,17 @@ const TicketListPage: React.FC = () => {
                   )}
                 </View>
                 <Text className={`weui-tag weui-tag--md ${statusTagClass(ticket)}`}>
-                  {getTicketStatusLabel(ticket.status)}
+                  {statusLabel(ticket)}
                 </Text>
               </View>
               {ticket.specification && (
                 <Text className='ticket-item-spec'>规格限定:{ticket.specification}</Text>
+              )}
+              {/* G97 待激活提示:置灰警示,完成复购自动激活(ticket-mine.html) */}
+              {ticket.pendingActivation && (ticket.activationOrderCount ?? 0) > 0 && (
+                <Text className='ticket-item-pending-hint'>
+                  需复购 {ticket.activationOrderCount} 单后可核销,完成复购自动激活
+                </Text>
               )}
               <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
               {/* 水票唯一递增票号(长按复制,ticket-mine.html 票号行) */}

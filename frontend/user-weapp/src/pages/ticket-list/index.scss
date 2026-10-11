@@ -43,6 +43,19 @@
   padding: 16px 16px 0;
 }
 
+// G97 待激活票置灰(ticket-mine.html opacity:.75)
+.ticket-item--pending {
+  opacity: 0.75;
+}
+
+.ticket-item-pending-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 26px;
+  line-height: 1.5;
+  color: var(--weui-ORANGE);
+}
+
 .ticket-item {
   background: var(--weui-BG-2);
   border-radius: var(--weui-radius);
