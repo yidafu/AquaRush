@@ -233,14 +233,35 @@ completeDelivery（仅本人 DELIVERING 单，单事务）:
 退回: 订单取消/退款 → 已核销未过期票 RETURNED（回票夹可复用）；过期作废 EXPIRED
 退款: 未核销且未过期按张退（TICKET_REFUND 计入退款统计）；已核销/已过期不可退
 目标增强【G91】: 送达侧扫码核销（或下单侧预扣+送达确认），使核销与服务交付对齐
-运营策略【G97，规划中排期待定】（票种级开关，默认不启用，R-MKT-08 修订）:
-  引流票: is_lead_generation 标记（拉新票种标签，不改变核销语义）
-  复购激活: activation_order_count=N 时核销前置校验
-            （当前已完成订单数 − ticket_purchases.completed_orders_at_purchase 基线 ≥ N）
-            不满足 → 拒核销提示「完成复购后可用」；判定口径/上限计法随实现细化【开放决策】
-  单次核销上限: max_redeem_per_order=N → createOrder 入口
-            ticketRedeemCount 截断 + 服务端校验 ≤ N（防一次性清票）
+运营策略【G97，已实现 2026-10】（票种级开关，默认不启用，R-MKT-08 修订）:
+  引流票: is_lead_generation 标记 → 购票门禁:仅无已完成订单新用户可购(口径同 R-MKT-10)
+            (purchaseTickets 服务层 hasCompletedOrders 校验,违规拒绝;核销语义不变)
+  复购激活: activation_order_count=N(0/空=关) → 购票单落基线 completed_orders_at_purchase
+            (启用票种购票时刻的已完成订单数;未启用/启用前存量单为 NULL 不参与判定)
+            核销前置:当前已完成订单数 − 基线 ≥ N → 自动可用;
+            不满足 → 「待激活」派生态(查询侧 findPendingActivationIds 判定,不入库)
+            候选池剔除 + 显式请求超已激活池且存在待激活 → 拒「水票待激活:需完成复购后方可核销」
+  单次核销上限: max_redeem_per_order=N(0/空=不限) → 计法=单笔订单 × 票种 ≤ N
+            TicketRule 按票种截断(组内先过期先用,组合后重排 FIFO),
+            请求超截断池且上限确为瓶颈 → 拒「超出单次核销上限」;普通存量不足保持静默截断
+            preview.availableTicketCount = 截断后池大小(确认页勾选上限随之收敛)
 ```
+
+**G97 实现记录与偏差清单（2026-10）**:
+1. **激活判定口径(开放问题裁决)**:基线=启用票种**购票单创建时刻**的已完成订单数（`ticket_purchases.completed_orders_at_purchase`,V348）,
+   激活条件=当前完成单数−基线≥N;**条件满足自动可用,无手动激活动作**;「待激活」为查询侧派生展示态
+   （`UserTicketVo.pendingActivation`,服务端 `TicketQueryApiService.findPendingActivationIds` 一次判定）,
+   **不新增持久化状态**——user_tickets 仍四态,`redeemAtomically` 原子条件与防重核销不变。
+2. **上限计法(开放问题裁决)**:「单张票单笔订单最多核销 N 张」定为**单笔订单 × 票种**维度（非单票维度）;
+   实现=构池按票种截断 + 超限拒绝;`availableTicketCount` 同步按截断后池下发。
+3. **门禁优先级**:待激活 > 单次上限 > 普通存量不足(截断)——三者均以 `min(请求张数, 下单桶数)` 为有效请求比较;
+   正常 UI 流(勾选数 ≤ preview 可用数)不会触发拒绝,拒绝仅兜底直连 API 与并发边界。
+4. **引流票「拉新首购」判定(裁决)**:= R-MKT-10 新用户口径（无已完成订单）,**作用于购票环节**(非核销环节),
+   核销语义与普通票一致;与 R-MKT-007 首单链路正交。
+5. **配置变更口径**:策略仅对**启用后新购**的购票单生效(基线仅在启用时落值),遵循 R-MKT-08「票种/套餐配置变更不影响已购票」;
+   票种侧停用激活(N→NULL)即时生效于已落基线的存量票(策略开关按票种当前值,基线按购票时快照)。
+6. **效果区未实现残留(裁决)**:拉新首购转化/激活率/上限触发次数三指标——转化缺漏斗口径(无曝光/访问埋点)、
+   触发缺事件埋点,成本不可控,**本期不实现**,记残留待口径齐备后补（_spec/10-marketing.md 页面 11）。
 
 ## 11. 配送费（R-MON-02 / F-OPS-005）
 

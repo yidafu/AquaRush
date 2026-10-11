@@ -37,7 +37,7 @@
 | 我的 | `my` | 头像昵称（编辑弹层）、订单角标（myOrderStatistics 单请求，>99 显 99+）、资产入口（收藏/地址/水桶账户/会员/积分/水票/优惠券）、消息中心角标、客服拨号、反馈、关于 |
 | 消息中心 | `message-center` | 双行筛选（类型×已读）；点击先标已读再跳转；全部已读 |
 | 水桶账户 | `barrel-mine`（新增） | 按规格在租/欠桶/押金合计 + 押金记录 + 申请退桶退押（文案统一押金桶口径） |
-| 水票 | `ticket-shop` / `ticket-list` | 购票（1~10）/票包（票号/状态/有效期） |
+| 水票 | `ticket-shop` / `ticket-list` | 购票（1~10）/票包（票号/状态/有效期）；G97 运营策略：商城「拉新专享」角标与复购激活明示、票夹待激活置灰 |
 | 优惠券 | `coupon-center` / `coupon-list` | 领券/券包（状态筛选） |
 | 会员/积分 | `member-center` / `points`（新增） | 等级成长进度与权益/积分明细与兑换；**储值/充值页 `recharge` 不设**（用户储值 2026-10-09 决策不做，G79 收敛为套餐卡 `package-plans`） |
 | 反馈 | `feedback` / `feedback-records` | 类型胶囊/10-500 字/图≤3；记录页回传处理结果 |
@@ -91,7 +91,7 @@
 | 收银对账 | `daily-collection`（每日收款记录 Tab + 对账记录 Tab）/ `payroll`（工资结算） | RECONCILIATION_* |
 | 用户管理 | `users/customers`（列表+分组列）/ `users/:id`（信息卡+统计卡+7 Tab）/ `users/accounts`（账号列表，用户类型下拉）/ `users/accounts/:id`（统一账号详情：管理员 8 Tab / 送水工 6 Tab） | USER_* / ADMIN_USER_* / DELIVERY_WORKER_* |
 | 客户分组 | `customer-groups`（成员覆盖式管理+价格策略入口） | MKT_* |
-| 营销管理 | `coupons` / `promotion-full-reduce` / `flash-sale` / `buy-gift` / `newcomer` / `water-tickets`（+`:id` 票种统计；票种表单含运营策略区【引流票/复购激活/单次核销上限，G97 规划中】）/ `member-levels` / `package-plans` / `points-rules`（新增页随 F-MKT-010~012） | MKT_READ / MKT_WRITE |
+| 营销管理 | `coupons` / `promotion-full-reduce` / `flash-sale` / `buy-gift` / `newcomer` / `water-tickets`（+`:id` 票种统计；票种表单含运营策略区【引流票/复购激活+需复购单数/单次核销上限，G97 已实现 2026-10】）/ `member-levels` / `package-plans` / `points-rules`（新增页随 F-MKT-010~012） | MKT_READ / MKT_WRITE |
 | 地址管理 | `addresses`（筛选分页/编辑/导入弹窗）/ `addresses/map`（热力图+片区维度视图） | ADDRESS_* |
 | 配送管理 | `trajectories`（实时位置+回放）/ `areas`（配送片区） | DELIVERY_WORKER_READ / OPS_CONFIG_* |
 | 运营配置 | `banners` / `notices` / `feedbacks` / `store-profile`（含门店经纬度【R-OPS-03 距离计算输入，G96 规划中】）/ `delivery-fee-rule`（楼层分档已落地；表单扩展起送门槛+距离阶梯档位表【R-OPS-03 规划中 G96】） | OPS_CONFIG_* / FEEDBACK_* |

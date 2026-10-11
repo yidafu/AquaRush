@@ -90,7 +90,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | 名称 | 权限 | 说明 |
 | --- | --- | --- |
 | `orderPreview(input)` | authenticated | 确认订单页**单请求**预览：按 R-MKT 链路服务端计价，返回逐行成交价/划线价、优惠明细（满减/立减/会员折扣/券）、可选券列表、可用水票、押金、配送费（楼层分档 + 距离阶梯加价【R-OPS-03 规划中,G96】）、赠品行、应付合计，并返回起送门槛信息（`minimumOrderCents`/`belowMinimum`，未达时前端禁提交+提示——R-OPS-03 规划中，服务端 createOrder 二次拦截为最终防线）（F-ORD-001） |
-| `createOrder(input)` | authenticated | 提交下单。input：items[{productId,quantity}]×1~20、addressId、deliveryTime（时段枚举，缺省 IMMEDIATE）、remark、preferredCouponId?（0=不用券，缺省引擎自动选最优）、ticketRedeemCount?、clientRequestId（幂等）；服务端全量重算并校验金额（含**起送门槛拦截**——商品金额 < `minimum_order_cents` 抛 BUSINESS_RULE「未达起送金额」，自提单豁免，R-OPS-03 规划中；水票单次核销上限校验随 G97）、扣库存、核销券/票、收押金、落快照；创建 `PENDING_PAYMENT`（月结单另见 §4.3，**[暂缓]**） |
+| `createOrder(input)` | authenticated | 提交下单。input：items[{productId,quantity}]×1~20、addressId、deliveryTime（时段枚举，缺省 IMMEDIATE）、remark、preferredCouponId?（0=不用券，缺省引擎自动选最优）、ticketRedeemCount?、clientRequestId（幂等）；服务端全量重算并校验金额（含**起送门槛拦截**——商品金额 < `minimum_order_cents` 抛 BUSINESS_RULE「未达起送金额」，自提单豁免，R-OPS-03 规划中；水票单次核销上限校验 G97 已实现——TicketRule 按票种截断 + 超限拒绝）、扣库存、核销券/票、收押金、落快照；创建 `PENDING_PAYMENT`（月结单另见 §4.3，**[暂缓]**） |
 | `myOrders(statuses,page,size)` | authenticated | 订单列表：`statuses: [OrderStatus!]` 数组筛选（缺省=全部），前端 Tab 映射为状态数组——全部/待付款/待配送(PENDING_DISPATCH+PENDING_DELIVERY)/配送中/已完成（10/页）；「已取消/已退款」在全部以标签呈现 |
 | `order(id)` | authenticated | 详情：步骤条/地址卡/商品卡（划线价）/费用明细/时间线（order_operations）/按状态操作集 |
 | `myOrderStatistics` | authenticated | 我的页角标单请求：total/pendingPayment/pendingDispatch/pendingDelivery/delivering/completed/cancelled/refunded（待配送口径=两项之和） |
@@ -232,7 +232,7 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `promotionActivities(input)` / `promotionActivity(id)` / `createPromotionActivity/updatePromotionActivity/disablePromotionActivity` | MKT_READ / MKT_WRITE | 满减/折扣（多档位；原设计名 promotions 系列按实现改名） |
 | `flashSaleActivities(input)` / `flashSaleActivity(id)` / `createFlashSaleActivity/updateFlashSaleActivity/disableFlashSaleActivity` | MKT_READ / MKT_WRITE | 限时特价（同商品时间窗重叠拦截；原设计名 flashSales 系列） |
 | `memberLevels` / `upsertMemberLevel` | MKT_READ / MKT_WRITE | 会员等级与权益（门槛递增唯一；schema 现状未落，G80 排期 A 类） |
-| `ticketTypes(input)` / `ticketType(id)` / `createTicketType/updateTicketType/disableTicketType` / `ticketTypeStats(ticketTypeId,input)` | MKT_READ / MKT_WRITE | 票种管理 + 票种统计（销售/核销/退回/过期/当前可用；原设计名 ticketTypeStatistics）；票种表单预留**运营策略**字段（`isLeadGeneration`/`activationOrderCount`/`maxRedeemPerOrder`，R-MKT-08 修订、G97 排期待定，schema 现状未落） |
+| `ticketTypes(input)` / `ticketType(id)` / `createTicketType/updateTicketType/disableTicketType` / `ticketTypeStats(ticketTypeId,input)` | MKT_READ / MKT_WRITE | 票种管理 + 票种统计（销售/核销/退回/过期/当前可用；原设计名 ticketTypeStatistics）；票种表单含**运营策略**字段（`isLeadGeneration`/`activationOrderCount`/`maxRedeemPerOrder`，R-MKT-08 修订，**G97 已落 schema 2026-10**——VO 与 Create/Update input 均含三字段，`@min/@max` 指令约束 + 服务层归一校验） |
 | `giftActivities(input)` / `giftActivity(id)` / `createGiftActivity/updateGiftActivity/disableGiftActivity` | MKT_READ / MKT_WRITE | 买赠/满赠 |
 | `firstOrderActivities(input)` / `firstOrderActivity(id)` / `createFirstOrderActivity/updateFirstOrderActivity/disableFirstOrderActivity` | MKT_READ / MKT_WRITE | 首单立减/新人价（原设计名 newcomerActivities/upsertNewcomerActivity，按实现改名） |
 | `userCoupons(userId,status)` / `userTickets(userId,status)` | MKT_READ | 按用户查券包/票包（B 类补录） |
