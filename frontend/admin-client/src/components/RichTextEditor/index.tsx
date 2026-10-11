@@ -1,6 +1,65 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// 局部色值 #666 / #999 / #d9d9d9 为原有灰阶文字与边框色,共享 token 无对应值,保持原样;
+// 字数预警色依赖 currentLength state,保留 style={{ color }} 动态注入
+const styles = stylex.create({
+  header: {
+    marginBottom: '8px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  hint: {
+    fontSize: '14px',
+    color: '#666',
+  },
+  count: {
+    fontSize: '12px',
+  },
+  frame: {
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: '#d9d9d9',
+    borderRadius: '6px',
+    overflow: 'hidden',
+  },
+  editor: {
+    fontSize: '14px',
+  },
+  countBlock: {
+    marginTop: '8px',
+    fontSize: '12px',
+  },
+  simpleHeader: {
+    marginBottom: '4px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  simpleHint: {
+    fontSize: '13px',
+    color: '#666',
+  },
+  simpleFrame: {
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: '#d9d9d9',
+    borderRadius: '4px',
+    overflow: 'hidden',
+  },
+  simpleEditor: {
+    height: '180px',
+    fontSize: '14px',
+  },
+  simpleCountBlock: {
+    marginTop: '4px',
+    fontSize: '12px',
+  },
+});
 
 interface RichTextEditorProps {
   value?: string;
@@ -77,23 +136,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   ];
 
   return (
-    <div className="rich-text-editor">
-      <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '14px', color: '#666' }}>
+    <div>
+      <div {...stylex.props(styles.header)}>
+        <span {...stylex.props(styles.hint)}>
           支持富文本编辑，可以设置标题、字体、颜色、列表、链接、图片等
         </span>
         {showCount && maxLength && (
-          <span style={{ fontSize: '12px', color: currentLength > maxLength * 0.9 ? '#ff4d4f' : '#999' }}>
+          <span
+            {...stylex.props(styles.count)}
+            style={{ color: currentLength > maxLength * 0.9 ? tokens.error : '#999' }}
+          >
             {currentLength} / {maxLength}
           </span>
         )}
       </div>
 
-      <div style={{
-        border: '1px solid #d9d9d9',
-        borderRadius: '6px',
-        overflow: 'hidden'
-      }}>
+      <div {...stylex.props(styles.frame)}>
         <ReactQuill
           ref={quillRef}
           theme="snow"
@@ -102,19 +160,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           modules={modules}
           formats={formats}
           placeholder={placeholder}
-          style={{
-            height,
-            fontSize: '14px'
-          }}
+          {...stylex.props(styles.editor)}
+          style={{ height }}
         />
       </div>
 
       {maxLength && (
-        <div style={{
-          marginTop: 8,
-          fontSize: '12px',
-          color: currentLength > maxLength * 0.9 ? '#ff4d4f' : '#999'
-        }}>
+        <div
+          {...stylex.props(styles.countBlock)}
+          style={{ color: currentLength > maxLength * 0.9 ? tokens.error : '#999' }}
+        >
           {currentLength} / {maxLength} 字符
           {currentLength > maxLength * 0.9 && '（接近字数限制）'}
         </div>
@@ -179,23 +234,22 @@ export const SimpleRichTextEditor: React.FC<RichTextEditorProps> = ({
   ];
 
   return (
-    <div className="simple-rich-text-editor">
-      <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '13px', color: '#666' }}>
+    <div>
+      <div {...stylex.props(styles.simpleHeader)}>
+        <span {...stylex.props(styles.simpleHint)}>
           支持基础格式：标题、加粗、斜体、颜色、列表和链接
         </span>
         {showCount && maxLength && (
-          <span style={{ fontSize: '12px', color: currentLength > maxLength * 0.9 ? '#ff4d4f' : '#999' }}>
+          <span
+            {...stylex.props(styles.count)}
+            style={{ color: currentLength > maxLength * 0.9 ? tokens.error : '#999' }}
+          >
             {currentLength} / {maxLength}
           </span>
         )}
       </div>
 
-      <div style={{
-        border: '1px solid #d9d9d9',
-        borderRadius: '4px',
-        overflow: 'hidden'
-      }}>
+      <div {...stylex.props(styles.simpleFrame)}>
         <ReactQuill
           ref={quillRef}
           theme="snow"
@@ -204,19 +258,15 @@ export const SimpleRichTextEditor: React.FC<RichTextEditorProps> = ({
           modules={modules}
           formats={formats}
           placeholder={placeholder}
-          style={{
-            height: 180,
-            fontSize: '14px'
-          }}
+          {...stylex.props(styles.simpleEditor)}
         />
       </div>
 
       {maxLength && (
-        <div style={{
-          marginTop: 4,
-          fontSize: '12px',
-          color: currentLength > maxLength * 0.9 ? '#ff4d4f' : '#999'
-        }}>
+        <div
+          {...stylex.props(styles.simpleCountBlock)}
+          style={{ color: currentLength > maxLength * 0.9 ? tokens.error : '#999' }}
+        >
           {currentLength} / {maxLength} 字符
           {currentLength > maxLength * 0.9 && '（接近字数限制）'}
         </div>

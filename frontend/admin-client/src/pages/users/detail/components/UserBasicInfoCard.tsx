@@ -12,6 +12,16 @@ import type { UserVo, UserRole } from '@aquarush/common';
 import { UserRole as UserRoleEnum } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
 import { STATUS_MAPPINGS } from '../../components/types';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '24px',
+  },
+  avatar: {
+    marginBottom: '16px',
+  },
+});
 
 const ROLE_LABELS: Record<UserRole, string> = {
   [UserRoleEnum.NONE]: '未分配',
@@ -31,14 +41,14 @@ const UserBasicInfoCard: React.FC<UserBasicInfoCardProps> = ({ user, lastOrderTi
   const statusConfig = STATUS_MAPPINGS[user.status as keyof typeof STATUS_MAPPINGS];
 
   return (
-    <Card style={{ marginBottom: '24px' }}>
+    <Card {...stylex.props(styles.card)}>
       <Row gutter={24}>
         <Col span={4}>
           <Avatar
             size={120}
             src={user.avatarUrl}
             icon={<UserOutlined />}
-            style={{ marginBottom: '16px' }}
+            {...stylex.props(styles.avatar)}
           />
         </Col>
         <Col span={20}>

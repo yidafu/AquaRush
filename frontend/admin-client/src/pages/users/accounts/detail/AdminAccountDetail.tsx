@@ -21,6 +21,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { avatarFromName } from '@aquarush/common/utils';
+import * as stylex from '@stylexjs/stylex';
 import { ROLE_MAPPINGS } from '../../components/types';
 import type { AccountDetailActions, DeliveryRecord } from './types';
 import DeliveryStatsCards from './DeliveryStatsCards';
@@ -30,6 +31,28 @@ import DailyCollectionSection from './sections/DailyCollectionSection';
 import WorkerReviewSection from './sections/WorkerReviewSection';
 
 const { Paragraph, Text } = Typography;
+
+const styles = stylex.create({
+  backWrap: {
+    marginBottom: '12px',
+  },
+  basicCard: {
+    marginBottom: '24px',
+  },
+  avatar: {
+    marginBottom: '16px',
+  },
+  onlineLine: {
+    fontSize: '12px',
+    marginBottom: '0px',
+  },
+  onlineTag: {
+    marginLeft: '4px',
+  },
+  permRow: {
+    marginTop: '16px',
+  },
+});
 
 export type AdminActionKind = 'edit' | 'resetPassword' | 'toggleStatus' | 'delete';
 
@@ -97,19 +120,19 @@ const AdminAccountDetail: React.FC<AdminAccountDetailProps> = ({
 
   return (
     <div>
-      <div style={{ marginBottom: '12px' }}>
+      <div {...stylex.props(styles.backWrap)}>
         <Button onClick={onBack}>← 返回账号列表</Button>
       </div>
 
       {/* 基本信息(纵向排列在页面顶部,不在 tabs 内) */}
-      <Card style={{ marginBottom: 24 }}>
+      <Card {...stylex.props(styles.basicCard)}>
         <Row gutter={24}>
           <Col span={4}>
             <Avatar
               size={120}
               src={record.avatarUrl || avatarFromName(record.username || record.name || '账号')}
               icon={<UserOutlined />}
-              style={{ marginBottom: '16px' }}
+              {...stylex.props(styles.avatar)}
             />
           </Col>
           <Col span={20}>
@@ -149,15 +172,15 @@ const AdminAccountDetail: React.FC<AdminAccountDetailProps> = ({
                 </Descriptions.Item>
               )}
             </Descriptions>
-            <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
+            <Paragraph type="secondary" {...stylex.props(styles.onlineLine)}>
               在线状态:
-              <Tag color={record.onlineStatus === 'ONLINE' ? 'success' : 'default'} style={{ marginLeft: 4 }}>
+              <Tag color={record.onlineStatus === 'ONLINE' ? 'success' : 'default'} {...stylex.props(styles.onlineTag)}>
                 {record.onlineStatus === 'ONLINE' ? '在线' : '离线'}
               </Tag>
             </Paragraph>
           </Col>
         </Row>
-        <Row style={{ marginTop: 16 }}>
+        <Row {...stylex.props(styles.permRow)}>
           <Col span={24}>{renderPermissionInfo()}</Col>
         </Row>
       </Card>

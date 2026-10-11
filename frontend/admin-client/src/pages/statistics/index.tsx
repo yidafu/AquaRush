@@ -23,6 +23,32 @@ import {
   OrderTrendBarChart,
   RevenueTrendLineChart,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  errorAlert: {
+    marginTop: '24px',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chartsRow: {
+    marginTop: '24px',
+  },
+});
 
 const RevenueStatistics: React.FC = () => {
   const [granularity, setGranularity] = useState<Granularity>('DAY');
@@ -80,7 +106,7 @@ const RevenueStatistics: React.FC = () => {
     return (
       <div>
         <Alert
-          style={{ marginTop: 24 }}
+          {...stylex.props(styles.errorAlert)}
           type="error"
           showIcon
           message="数据加载失败"
@@ -164,8 +190,8 @@ const RevenueStatistics: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title">营收统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>营收统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -193,7 +219,7 @@ const RevenueStatistics: React.FC = () => {
         refundRate={refundRate}
       />
 
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.chartsRow)}>
         <OrderTrendBarChart
           data={chartData.map((point) => ({ date: point.date, orders: point.orders }))}
           loading={loading}

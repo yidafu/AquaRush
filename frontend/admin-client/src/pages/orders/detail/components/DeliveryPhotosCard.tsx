@@ -4,6 +4,23 @@ import { CarOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useMutation } from '@apollo/client';
 import { REVIEW_DELIVERY_PHOTO_MUTATION } from '../../../../graphql/mutations/order.graphql';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+  photo: {
+    objectFit: 'cover',
+    borderRadius: '8px',
+  },
+  reviewDesc: {
+    marginTop: '12px',
+  },
+  actions: {
+    marginTop: '12px',
+  },
+});
 
 // 核验状态展示配置(G23/F-ORD-021)
 const REVIEW_STATUS_MAP: Record<string, { text: string; color: string }> = {
@@ -70,7 +87,7 @@ const DeliveryPhotosCard: React.FC = () => {
           <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       <Space size="middle" wrap>
         {order.deliveryPhotos.map((photo, index) => (
@@ -80,14 +97,14 @@ const DeliveryPhotosCard: React.FC = () => {
             alt={`交付照片 ${index + 1}`}
             width={120}
             height={120}
-            style={{ objectFit: 'cover', borderRadius: '8px' }}
+            {...stylex.props(styles.photo)}
           />
         ))}
       </Space>
 
       {/* 核验留痕信息 */}
       {order.deliveryPhotoReviewedAt && (
-        <Descriptions size="small" column={{ xs: 1, sm: 3 }} style={{ marginTop: 12 }}>
+        <Descriptions size="small" column={{ xs: 1, sm: 3 }} {...stylex.props(styles.reviewDesc)}>
           <Descriptions.Item label="核验时间">{formatDateTime(order.deliveryPhotoReviewedAt)}</Descriptions.Item>
           <Descriptions.Item label="核验人ID">{order.deliveryPhotoReviewedBy || '-'}</Descriptions.Item>
           <Descriptions.Item label="核验备注">{order.deliveryPhotoReviewRemark || '-'}</Descriptions.Item>
@@ -95,7 +112,7 @@ const DeliveryPhotosCard: React.FC = () => {
       )}
 
       {/* 核验操作(G23:通过/驳回,可重复核验纠错) */}
-      <Space style={{ marginTop: 12 }}>
+      <Space {...stylex.props(styles.actions)}>
         <Button
           type="primary"
           icon={<CheckOutlined />}

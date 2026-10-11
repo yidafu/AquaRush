@@ -1,14 +1,18 @@
 /**
- * 管理端品牌色常量(admin-client docs/ui-spec.md §1)
- * 图表/内联样式使用,与 main.tsx ConfigProvider theme.token 保持一致。
+ * 管理端品牌色常量 —— 值已收敛到 @aquarush/common/theme 的 COLORS
+ * (单一事实来源:spec/design/ui-design-system.md V1.1 / tokens.stylex.ts,
+ * 守卫测试:common tokens.test.ts)。
+ * 本文件保留原导出名,存量引用零改动。
  * 管理端禁止消费者强调橙 #FF5436;危险操作用 error 红 #FF4D4F。
  */
-export const BRAND_PRIMARY = '#3A9BD9';
-export const BRAND_PRIMARY_LIGHT = 'rgba(58, 155, 217, 0.10)';
-export const BRAND_GRADIENT_START = '#4DB6E5';
-export const BRAND_GRADIENT_END = '#3A9BD9';
-export const COLOR_SUCCESS = '#52C41A';
-export const COLOR_WARNING = '#FAAD14';
-export const COLOR_ERROR = '#FF4D4F';
-export const TEXT_MAIN = '#1A1A1A';
-export const TEXT_SECONDARY = '#8C8C8C';
+import { COLORS } from '@aquarush/common/theme'
+
+export const BRAND_PRIMARY = COLORS.brand;
+export const BRAND_PRIMARY_LIGHT = COLORS.brandTint;
+export const BRAND_GRADIENT_START = COLORS.brandLight;
+export const BRAND_GRADIENT_END = COLORS.brand;
+export const COLOR_SUCCESS = COLORS.success;
+export const COLOR_WARNING = COLORS.warning;
+export const COLOR_ERROR = COLORS.error;
+export const TEXT_MAIN = COLORS.text;
+export const TEXT_SECONDARY = COLORS.textSub;

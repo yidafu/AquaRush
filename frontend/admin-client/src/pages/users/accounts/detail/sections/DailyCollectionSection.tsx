@@ -5,8 +5,15 @@ import { GET_DAILY_COLLECTIONS } from '../../../../../graphql/queries/daily-coll
 import type { DailyCollectionRecord, DailyCollectionStatus } from '../../../../../types/daily-collection';
 import { displayCents } from '@aquarush/common';
 import dayjs from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { pagination } from '@/utils/table';
 import { COLOR_ERROR, COLOR_SUCCESS } from '../../../../../config/theme';
+
+const styles = stylex.create({
+  row: {
+    marginBottom: '16px',
+  },
+});
 
 interface DailyCollectionSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -138,7 +145,7 @@ const DailyCollectionSection: React.FC<DailyCollectionSectionProps> = ({ deliver
 
   return (
     <Card title="每日收款">
-      <Row gutter={16} style={{ marginBottom: 16 }} align="middle">
+      <Row {...stylex.props(styles.row)} gutter={16} align="middle">
         <Col>
           <DatePicker
             placeholder="按收款日期筛选"

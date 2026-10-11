@@ -2,6 +2,13 @@ import React from 'react';
 import { Card, Descriptions, Space } from 'antd';
 import { DollarOutlined } from '@ant-design/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+});
 
 const PaymentInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -16,7 +23,7 @@ const PaymentInfoCard: React.FC = () => {
           支付信息
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
         <Descriptions.Item label="支付方式">{order.paymentMethod || '-'}</Descriptions.Item>

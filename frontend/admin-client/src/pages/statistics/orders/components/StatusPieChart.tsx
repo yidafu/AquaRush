@@ -9,6 +9,19 @@ import {
 } from 'recharts';
 import { ORDER_STATUS_MAP } from '../data';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    height: '100%',
+  },
+  footer: {
+    textAlign: 'center',
+    // #999:共享 token 无此色(本页辅助文字灰),按规则保留字面量
+    color: '#999',
+    fontSize: '13px',
+  },
+});
 
 export interface StatusPieChartProps {
   data: { name: string; status: string; value: number; color: string }[];
@@ -23,8 +36,8 @@ const StatusPieChart: React.FC<StatusPieChartProps> = ({ data, totalOrders, load
       title="订单状态分布"
       loading={loading}
       height={280}
-      style={{ height: '100%' }}
-      footer={<div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>合计: {totalOrders} 单</div>}
+      {...stylex.props(styles.chartCard)}
+      footer={<div {...stylex.props(styles.footer)}>合计: {totalOrders} 单</div>}
     >
       <PieChart>
         <Pie

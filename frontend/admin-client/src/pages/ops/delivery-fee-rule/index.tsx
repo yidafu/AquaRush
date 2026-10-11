@@ -3,7 +3,38 @@ import { Card, Form, InputNumber, Button, Modal, Alert, Space, Descriptions, Row
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { formatDateTime, centsToYuan, yuanToCents } from '@aquarush/common';
 import { useDeliveryFeeRule, useSaveDeliveryFeeRule } from '../../../services/ops-graphql';
-import { COLOR_ERROR } from '../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  desc: {
+    marginBottom: '24px',
+  },
+  form: {
+    maxWidth: '720px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  tierRow: {
+    marginBottom: '8px',
+  },
+  noMarginBottom: {
+    marginBottom: '0px',
+  },
+  rightAlign: {
+    textAlign: 'right',
+  },
+  removeIcon: {
+    color: tokens.error,
+  },
+  hint: {
+    fontSize: '12px',
+  },
+});
 
 interface FeeTierFormValue {
   fromFloor: number;
@@ -87,19 +118,19 @@ const DeliveryFeeRule: React.FC = () => {
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 24 }}
+        {...stylex.props(styles.alert)}
         message="配送费按收货楼层分档计费:免费楼层及以下免运费,超过免费楼层按所在档位加收(档位升序、区间不重叠、末档不封顶)。配置变更即时生效,已生成订单不受影响;每次修改留审计日志。"
       />
       {isDefault && (
         <Alert
           type="warning"
           showIcon
-          style={{ marginBottom: 24 }}
+          {...stylex.props(styles.alert)}
           message="当前为默认规则(未配置):免费4楼,5-6楼+2元 / 7-9楼+5元 / 10楼及以上+8元"
         />
       )}
       {rule?.updatedAt && (
-        <Descriptions size="small" style={{ marginBottom: 24 }} column={2}>
+        <Descriptions size="small" {...stylex.props(styles.desc)} column={2}>
           <Descriptions.Item label="当前免费楼层">{rule.freeFloorLimit} 楼</Descriptions.Item>
           <Descriptions.Item label="兜底单档加价">
             {(centsToYuan(rule.surchargeCents)).toFixed(2)} 元(仅档位为空时生效)
@@ -114,7 +145,7 @@ const DeliveryFeeRule: React.FC = () => {
           </Descriptions.Item>
         </Descriptions>
       )}
-      <Form form={form} layout="vertical" style={{ maxWidth: 720 }} preserve={false}>
+      <Form form={form} layout="vertical" {...stylex.props(styles.form)} preserve={false}>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -123,7 +154,7 @@ const DeliveryFeeRule: React.FC = () => {
               rules={[{ required: true, message: '请输入免费楼层' }]}
               extra="楼层 ≤ 该值免运费,如 4 表示 4 楼及以下免费"
             >
-              <InputNumber min={0} max={100} precision={0} style={{ width: '100%' }} placeholder="如 4" />
+              <InputNumber min={0} max={100} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 4" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -139,7 +170,7 @@ const DeliveryFeeRule: React.FC = () => {
               ]}
               extra="仅当档位为空时参与计价的兼容字段"
             >
-              <InputNumber min={0} max={999} precision={2} style={{ width: '100%' }} placeholder="如 2" />
+              <InputNumber min={0} max={999} precision={2} {...stylex.props(styles.fullWidth)} placeholder="如 2" />
             </Form.Item>
           </Col>
         </Row>
@@ -161,38 +192,38 @@ const DeliveryFeeRule: React.FC = () => {
           {(fields, { add, remove }, { errors }) => (
             <>
               {fields.map((field, index) => (
-                <Row key={field.key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
+                <Row key={field.key} gutter={8} align="middle" {...stylex.props(styles.tierRow)}>
                   <Col span={6}>
                     <Form.Item
                       name={[field.name, 'fromFloor']}
                       rules={[{ required: true, message: '起始楼层' }]}
-                      style={{ marginBottom: 0 }}
+                      {...stylex.props(styles.noMarginBottom)}
                     >
-                      <InputNumber min={1} precision={0} placeholder="起始楼层" style={{ width: '100%' }} addonAfter="楼" />
+                      <InputNumber min={1} precision={0} placeholder="起始楼层" {...stylex.props(styles.fullWidth)} addonAfter="楼" />
                     </Form.Item>
                   </Col>
                   <Col span={6}>
-                    <Form.Item name={[field.name, 'toFloor']} style={{ marginBottom: 0 }}>
-                      <InputNumber min={1} precision={0} placeholder="留空=不封顶" style={{ width: '100%' }} addonAfter="楼" />
+                    <Form.Item name={[field.name, 'toFloor']} {...stylex.props(styles.noMarginBottom)}>
+                      <InputNumber min={1} precision={0} placeholder="留空=不封顶" {...stylex.props(styles.fullWidth)} addonAfter="楼" />
                     </Form.Item>
                   </Col>
                   <Col span={8}>
                     <Form.Item
                       name={[field.name, 'feeYuan']}
                       rules={[{ required: true, message: '档位加价' }]}
-                      style={{ marginBottom: 0 }}
+                      {...stylex.props(styles.noMarginBottom)}
                     >
-                      <InputNumber min={0} max={999} precision={2} placeholder="加价金额" style={{ width: '100%' }} addonAfter="元" />
+                      <InputNumber min={0} max={999} precision={2} placeholder="加价金额" {...stylex.props(styles.fullWidth)} addonAfter="元" />
                     </Form.Item>
                   </Col>
-                  <Col span={4} style={{ textAlign: 'right' }}>
+                  <Col span={4} {...stylex.props(styles.rightAlign)}>
                     {fields.length > 1 ? (
-                      <MinusCircleOutlined onClick={() => remove(field.name)} style={{ color: COLOR_ERROR }} />
+                      <MinusCircleOutlined onClick={() => remove(field.name)} {...stylex.props(styles.removeIcon)} />
                     ) : null}
                   </Col>
                   {index === fields.length - 1 ? (
                     <Col span={24}>
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      <Typography.Text type="secondary" {...stylex.props(styles.hint)}>
                         末档结束楼层必须留空(不封顶);起始楼层须严格升序且大于免费楼层,区间不可重叠
                       </Typography.Text>
                     </Col>

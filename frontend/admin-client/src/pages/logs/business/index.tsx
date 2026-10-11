@@ -1,11 +1,26 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Pagination } from 'antd';
+import * as stylex from '@stylexjs/stylex';
 import type { BusinessLogVo } from '@aquarush/common';
 import { useBusinessLogs } from '../../../services/log-graphql';
 import BusinessLogTimeline, { OPERATION_CONFIG, DOMAIN_OPERATIONS } from '../../../components/BusinessLogTimeline';
 import { BusinessLogFilters, BusinessLogTable, BusinessLogDetailModal } from './components';
 import type { BizLogFilters } from './components/constants';
 import { pagination } from '@/utils/table';
+
+// 原内联 padding: '24px' 迁 stylex(stylex 禁简写,拆 longhand)
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  timelinePagination: {
+    marginTop: '16px',
+    textAlign: 'right',
+  },
+});
 
 const BusinessLogs: React.FC = () => {
   const [filters, setFilters] = useState<BizLogFilters>({});
@@ -64,7 +79,7 @@ const BusinessLogs: React.FC = () => {
   }));
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <BusinessLogFilters
         filters={filters}
         operationOptions={operationOptions}
@@ -102,7 +117,7 @@ const BusinessLogs: React.FC = () => {
               pageSize: 10,
               onChange: (page) => setPageNum(page - 1),
             })}
-            style={{ marginTop: 16, textAlign: 'right' }}
+            {...stylex.props(styles.timelinePagination)}
           />
         </>
       )}

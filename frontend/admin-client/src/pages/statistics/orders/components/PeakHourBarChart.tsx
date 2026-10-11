@@ -11,6 +11,13 @@ import {
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    height: '100%',
+  },
+});
 
 export interface PeakHourBarChartProps {
   data: { hour: string; count: number }[];
@@ -32,7 +39,7 @@ const PeakHourBarChart: React.FC<PeakHourBarChartProps> = ({
       extra={peakHourExtra}
       loading={loading}
       height={280}
-      style={{ height: '100%' }}
+      {...stylex.props(styles.chartCard)}
     >
       <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />

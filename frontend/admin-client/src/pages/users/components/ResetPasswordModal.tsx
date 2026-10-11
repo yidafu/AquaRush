@@ -1,5 +1,14 @@
 import React, { useEffect } from 'react';
 import { Form, Input, Modal } from 'antd';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  hint: {
+    marginBottom: '12px',
+    // 局部色值:提示文案灰,token 无对应色
+    color: '#888888',
+  },
+});
 
 interface ResetPasswordModalProps {
   /** 目标账号展示名(标题文案用) */
@@ -49,7 +58,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       cancelText="取消"
       destroyOnClose
     >
-      <div style={{ marginBottom: 12, color: '#888' }}>
+      <div {...stylex.props(styles.hint)}>
         新密码留空则重置为默认密码 <b>123456</b>（初始密码，建议登录后修改）。
       </div>
       <Form form={form} layout="vertical">

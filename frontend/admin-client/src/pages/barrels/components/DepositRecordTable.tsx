@@ -2,9 +2,22 @@ import React from 'react';
 import { Space, Select, Button, Table, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { DepositRecord } from '../../../types/barrel';
 import { DEPOSIT_RECORD_STATUS_MAP } from './constants';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  filterRow: {
+    marginBottom: '16px',
+  },
+  statusSelect: {
+    width: '140px',
+  },
+  specSelect: {
+    width: '160px',
+  },
+});
 
 export interface DepositRecordTableProps {
   dataSource: DepositRecord[];
@@ -117,11 +130,11 @@ const DepositRecordTable: React.FC<DepositRecordTableProps> = ({
 
   return (
     <>
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space {...stylex.props(styles.filterRow)} wrap>
         <Select
           allowClear
           placeholder="状态筛选"
-          style={{ width: 140 }}
+          {...stylex.props(styles.statusSelect)}
           value={statusFilter}
           onChange={onStatusFilterChange}
           options={Object.entries(DEPOSIT_RECORD_STATUS_MAP).map(([value, info]) => ({
@@ -133,7 +146,7 @@ const DepositRecordTable: React.FC<DepositRecordTableProps> = ({
           allowClear
           showSearch
           placeholder="规格筛选"
-          style={{ width: 160 }}
+          {...stylex.props(styles.specSelect)}
           value={specification || undefined}
           onChange={(value) => onSpecificationChange(value ?? '')}
           options={Array.from(new Set(dataSource.map((r) => r.specification).filter(Boolean))).map(

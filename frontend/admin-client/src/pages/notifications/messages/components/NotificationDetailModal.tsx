@@ -1,8 +1,19 @@
 import React from 'react';
 import { Modal, Descriptions, Tag, Button, Popconfirm, Space } from 'antd';
 import dayjs from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import type { NotificationRecord } from './constants';
 import { TYPE_LABELS, RECEIVER_LABELS, CHANNEL_STATUS_LABELS } from './constants';
+
+const styles = stylex.create({
+  placeholder: {
+    textAlign: 'center',
+    paddingTop: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
+  },
+});
 
 export interface NotificationDetailModalProps {
   record: NotificationRecord | null;
@@ -51,7 +62,7 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
       width={560}
     >
       {loading && !record ? (
-        <div style={{ textAlign: 'center', padding: 24 }}>加载中...</div>
+        <div {...stylex.props(styles.placeholder)}>加载中...</div>
       ) : record ? (
         <Descriptions column={1} size='middle'>
           <Descriptions.Item label='标题'>{record.title}</Descriptions.Item>
@@ -95,7 +106,7 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
           </Descriptions.Item>
         </Descriptions>
       ) : (
-        <div style={{ textAlign: 'center', padding: 24 }}>未找到该消息</div>
+        <div {...stylex.props(styles.placeholder)}>未找到该消息</div>
       )}
     </Modal>
   );

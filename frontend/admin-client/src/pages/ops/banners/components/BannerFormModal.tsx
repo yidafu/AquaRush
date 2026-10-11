@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { SingleImageUpload } from '../../../../components/ImageUpload';
 import { BannerLinkType } from '@aquarush/common';
 import type { BannerVo } from '@aquarush/common';
@@ -9,6 +10,12 @@ import FormModal from '@/components/FormModal';
 import { useDetailBackfill } from '@/hooks/useDetailBackfill';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(LocalDateTime 以 ISO 字符串提交,空时间窗 = null = 长期)
 export interface BannerFormPayload {
@@ -152,10 +159,10 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           <Input placeholder={linkType === 'PRODUCT' ? '商品 ID' : '页面路径'} />
         </Form.Item>
         <Form.Item name="sortOrder" label="排序号" rules={[{ required: true, message: '请输入排序号' }]}>
-          <InputNumber min={1} style={{ width: '100%' }} placeholder="数值越小越靠前" />
+          <InputNumber min={1} {...stylex.props(styles.fullWidth)} placeholder="数值越小越靠前" />
         </Form.Item>
         <Form.Item name="timeWindow" label="时间窗(空 = 长期)">
-          <RangePicker showTime style={{ width: '100%' }} />
+          <RangePicker showTime {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item name="enabled" label="启用" valuePropName="checked">
           <Switch />

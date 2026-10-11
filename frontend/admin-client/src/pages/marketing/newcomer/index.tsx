@@ -3,6 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { FirstOrderActivityVo } from '@aquarush/common';
 import {
@@ -15,6 +16,12 @@ import FirstOrderFormModal, { type FirstOrderFormPayload } from './components/Fi
 import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  search: {
+    width: '220px',
+  },
+});
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
   FIRST_ORDER_REDUCE: '首单立减',
@@ -170,7 +177,7 @@ const Newcomer: React.FC = () => {
           <Input.Search
             placeholder="搜索活动名称"
             allowClear
-            style={{ width: 220 }}
+            {...stylex.props(styles.search)}
             onSearch={(value) => {
               setKeyword(value);
               load(0, size, value);

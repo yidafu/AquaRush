@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import { LogTableType } from '@aquarush/common';
 import type { DataMaintenanceOverviewVo, LogBackupRecordVo, LogPartitionVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { useBackupLogPartition, useDataMaintenanceOverview, useSaveSystemConfigs } from '../../../services/system-graphql';
 import {
   LogRetentionForm,
@@ -21,6 +22,15 @@ import { FIELD_KEYS, DEFAULTS, TABLE_TABS, type DataMaintenanceValues } from './
 
 // 数据维护页(F-SYS-006):日志保留策略 + 日志分区管理(按月分区,离线备份 = 转储冷表 + 导出文件)
 // 仅超级管理员可读写(SYSTEM_CONFIG_READ/WRITE,R-SYS-03);超期分区可手动备份,每日 03:30 自动备份(log_cleanup_enabled 关闭时跳过)。
+
+const styles = stylex.create({
+  card: {
+    marginTop: '16px',
+  },
+  alert: {
+    marginBottom: '16px',
+  },
+});
 
 const SystemDataMaintenanceConfig: React.FC = () => {
   const [form] = Form.useForm<DataMaintenanceValues>();
@@ -124,9 +134,9 @@ const SystemDataMaintenanceConfig: React.FC = () => {
         onSave={handleSave}
       />
 
-      <Card title="日志分区管理" style={{ marginTop: 16 }} loading={loading}>
+      <Card title="日志分区管理" {...stylex.props(styles.card)} loading={loading}>
         {activePartitions.length === 0 && (
-          <Alert type="warning" showIcon style={{ marginBottom: 16 }} message="未发现月度分区,日志表可能尚未按月分区,请确认已应用数据库迁移。" />
+          <Alert type="warning" showIcon {...stylex.props(styles.alert)} message="未发现月度分区,日志表可能尚未按月分区,请确认已应用数据库迁移。" />
         )}
         <Tabs
           activeKey={activeTable}
@@ -146,7 +156,7 @@ const SystemDataMaintenanceConfig: React.FC = () => {
         />
       </Card>
 
-      <Card title="离线备份记录" style={{ marginTop: 16 }} loading={loading}>
+      <Card title="离线备份记录" {...stylex.props(styles.card)} loading={loading}>
         <BackupRecordsTable
           records={recordList}
           pageNum={recordsPage?.pageInfo.pageNum ?? 0}

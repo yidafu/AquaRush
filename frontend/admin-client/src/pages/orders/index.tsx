@@ -10,6 +10,21 @@ import { OrderTable, BatchAssignModal } from './components';
 import type { OrdersQueryResult, OrderData } from './types';
 import { yuanToCents } from '@aquarush/common';
 import { pagination as createPagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  batchBar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    marginBottom: '16px',
+  },
+});
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();
@@ -140,12 +155,12 @@ const Orders: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <OrderFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      <div {...stylex.props(styles.batchBar)}>
         <Button
           type="primary"
           onClick={openBatchAssign}

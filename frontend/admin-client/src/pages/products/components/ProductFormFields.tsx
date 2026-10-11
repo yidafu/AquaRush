@@ -14,6 +14,19 @@ import { SettingOutlined } from '@ant-design/icons';
 import { SingleImageUpload, MultiImageUpload } from '../../../components/ImageUpload';
 import { SimpleRichTextEditor } from '../../../components/RichTextEditor';
 import { TagsEditor } from '../../../components/JsonEditor';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  manageLink: {
+    fontSize: '12px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  jsonArea: {
+    fontFamily: 'monospace',
+  },
+});
 
 const { TextArea } = Input;
 const { Panel } = Collapse;
@@ -36,7 +49,7 @@ const manageLabel = (text: string, onManageOptions?: () => void): React.ReactNod
   <Space size={4}>
     {text}
     <a
-      style={{ fontSize: 12 }}
+      {...stylex.props(styles.manageLink)}
       onClick={(e) => {
         e.preventDefault();
         onManageOptions?.();
@@ -157,7 +170,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               max={99999}
               precision={2}
               placeholder="0.00"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               addonAfter="元"
             />
           </Form.Item>
@@ -175,7 +188,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               max={99999}
               precision={2}
               placeholder="0.00"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               addonAfter="元"
             />
           </Form.Item>
@@ -190,7 +203,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               max={9999}
               precision={0}
               placeholder="0"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
             />
           </Form.Item>
         </Col>
@@ -213,7 +226,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               min={0}
               max={99999}
               placeholder="0"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               addonAfter="件"
             />
           </Form.Item>
@@ -230,7 +243,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               min={0}
               placeholder="0"
               disabled
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               addonAfter="件"
             />
           </Form.Item>
@@ -248,7 +261,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
               min={0}
               max={9999}
               placeholder="0"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
             />
           </Form.Item>
         </Col>
@@ -357,7 +370,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             <TextArea
               rows={3}
               placeholder='["https://example.com/image1.jpg", "https://example.com/image2.jpg"]'
-              style={{ fontFamily: 'monospace' }}
+              {...stylex.props(styles.jsonArea)}
             />
           </Form.Item>
         </Col>
@@ -370,7 +383,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             <TextArea
               rows={3}
               placeholder='["https://example.com/cert1.jpg", "https://example.com/cert2.jpg"]'
-              style={{ fontFamily: 'monospace' }}
+              {...stylex.props(styles.jsonArea)}
             />
           </Form.Item>
         </Col>

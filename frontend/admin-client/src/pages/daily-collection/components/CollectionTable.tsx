@@ -2,9 +2,23 @@ import React from 'react';
 import { Table, Tag, Button, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import type { DailyCollectionRecord } from '../../../types/daily-collection';
 import { statusColorMap, statusTextMap } from './constants';
-import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
+
+const styles = stylex.create({
+  diffOk: {
+    color: tokens.success,
+  },
+  diffBad: {
+    color: tokens.error,
+  },
+  rejectInfo: {
+    color: tokens.error,
+    fontSize: '12px',
+  },
+});
 
 export interface CollectionTableProps {
   dataSource: DailyCollectionRecord[];
@@ -97,8 +111,11 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
       key: 'differenceAmountCents',
       render: (cents: number | string) => {
         const value = Number(cents);
-        const color = Math.abs(value) <= 100 ? COLOR_SUCCESS : COLOR_ERROR;
-        return <span style={{ color }}>{displayCents(value)}</span>;
+        return (
+          <span {...stylex.props(Math.abs(value) <= 100 ? styles.diffOk : styles.diffBad)}>
+            {displayCents(value)}
+          </span>
+        );
       },
     },
     {
@@ -121,7 +138,7 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
       key: 'rejectInfo',
       render: (_, record) =>
         record.rejectedAt ? (
-          <span style={{ color: COLOR_ERROR, fontSize: 12 }}>
+          <span {...stylex.props(styles.rejectInfo)}>
             驳回: {record.rejectReason || '-'}
             <br />
             时间: {record.rejectedAt}

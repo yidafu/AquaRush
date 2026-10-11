@@ -5,6 +5,36 @@ import { ORDER_STATUS_TEXT } from '@aquarush/common';
 import type { OrderStatus } from '@aquarush/common';
 import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  field: {
+    marginBottom: '8px',
+  },
+  label: {
+    fontSize: '14px',
+    // 过滤项标签灰字 #666 为本组件局部色值,共享 token 无对应项
+    color: '#666',
+    marginBottom: '4px',
+    display: 'block',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  amountRow: {
+    display: 'flex',
+    columnGap: '8px',
+  },
+  amountInput: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+  },
+  searchPrefix: {
+    // 搜索图标占位灰 #bfbfbf 为 antd 默认占位色,共享 token 无对应项
+    color: '#bfbfbf',
+  },
+});
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -82,8 +112,8 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
     <FilterCard onReset={reset}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               关键词搜索
             </label>
             <Input
@@ -91,18 +121,18 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
               value={localFilters.search || ''}
               onChange={handleSearchChange}
               allowClear
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<SearchOutlined {...stylex.props(styles.searchPrefix)} />}
             />
           </div>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               订单状态
             </label>
             <Select
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               value={localFilters.status || 'ALL'}
               onChange={handleStatusChange}
               placeholder="选择状态"
@@ -118,12 +148,12 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               日期范围
             </label>
             <RangePicker
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               onChange={handleDateRangeChange}
               placeholder={['开始日期', '结束日期']}
             />
@@ -131,14 +161,14 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               金额范围（元）
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div {...stylex.props(styles.amountRow)}>
               <Input
                 type="number"
-                style={{ flex: 1 }}
+                {...stylex.props(styles.amountInput)}
                 placeholder="最低金额"
                 value={localFilters.minAmount || ''}
                 onChange={(e) => handleAmountRangeChange(0, e.target.value ? Number(e.target.value) * 100 : null)}
@@ -146,7 +176,7 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
               />
               <Input
                 type="number"
-                style={{ flex: 1 }}
+                {...stylex.props(styles.amountInput)}
                 placeholder="最高金额"
                 value={localFilters.maxAmount || ''}
                 onChange={(e) => handleAmountRangeChange(1, e.target.value ? Number(e.target.value) * 100 : null)}

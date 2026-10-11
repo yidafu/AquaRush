@@ -14,6 +14,13 @@ import {
 } from '../../../services/marketing-graphql';
 import TicketTypeFormModal, { type TicketTypeFormPayload } from './components/TicketTypeFormModal';
 import { pagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  search: {
+    width: '220px',
+  },
+});
 
 // 桶水票票种管理页(F-MKT-007):列表/新建/编辑/停用/详情统计图表(独立页面)
 const WaterTickets: React.FC = () => {
@@ -172,7 +179,7 @@ const WaterTickets: React.FC = () => {
           <Input.Search
             placeholder="搜索票种名称"
             allowClear
-            style={{ width: 220 }}
+            {...stylex.props(styles.search)}
             onSearch={(value) => {
               setPage(0);
               setKeyword(value);

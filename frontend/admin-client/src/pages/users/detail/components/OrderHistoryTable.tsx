@@ -4,7 +4,23 @@ import type { ColumnsType } from 'antd/es/table';
 import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  linkBtn: {
+    paddingTop: '0px',
+    paddingRight: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '0px',
+  },
+  meta: {
+    fontSize: tokens.fsNote,
+    // 局部色值:辅助信息灰,token 无对应色
+    color: '#999999',
+  },
+});
 
 const { Text } = Typography;
 
@@ -77,7 +93,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
         <Button
           type="link"
           size="small"
-          style={{ padding: 0 }}
+          {...stylex.props(styles.linkBtn)}
           onClick={(e) => {
             e.stopPropagation();
             onViewOrder(record.id);
@@ -97,7 +113,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
         return (
           <div>
             <div>{productNames.join('、') || '-'}</div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
+            <div {...stylex.props(styles.meta)}>
               数量: {quantity}
             </div>
           </div>
@@ -121,7 +137,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
       render: (detailAddress: string, record: OrderVo) => (
         <div>
           <div>{detailAddress}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
+          <div {...stylex.props(styles.meta)}>
             {record.address?.receiverName} - {record.address?.phone}
           </div>
         </div>
@@ -136,7 +152,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
         name ? (
           <div>
             <div>{name}</div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
+            <div {...stylex.props(styles.meta)}>
               {record.deliveryWorker?.phone}
             </div>
           </div>

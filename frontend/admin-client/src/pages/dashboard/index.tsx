@@ -11,6 +11,41 @@ import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import DailyRevenueChart from './components/DailyRevenueChart';
 import DailyOrderChart from './components/DailyOrderChart';
 import { DASHBOARD_PAGE_DATA_QUERY } from '../../graphql/queries/dashboard.graphql';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  errorAlert: {
+    marginTop: '24px',
+  },
+  controls: {
+    marginTop: '24px',
+  },
+  statsRow: {
+    marginTop: '24px',
+  },
+  revenueRow: {
+    marginTop: '24px',
+  },
+  orderRow: {
+    marginTop: '16px',
+  },
+});
 
 interface DashboardPageData {
   dailyStatistics: DailyStatisticVo[];
@@ -127,7 +162,7 @@ const Dashboard: React.FC = () => {
     return (
       <div>
         <Alert
-          style={{ marginTop: 24 }}
+          {...stylex.props(styles.errorAlert)}
           type="error"
           showIcon
           message="数据加载失败"
@@ -146,8 +181,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title">仪表盘</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>仪表盘</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -156,7 +191,7 @@ const Dashboard: React.FC = () => {
           lastUpdated={lastUpdated}
         />
       </div>
-      <Space style={{ marginTop: 24 }} wrap>
+      <Space {...stylex.props(styles.controls)} wrap>
         <Segmented
           options={[
             { label: '近7天', value: '7D' },
@@ -178,7 +213,7 @@ const Dashboard: React.FC = () => {
         />
       </Space>
 
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.statsRow)}>
         <Col xs={24} sm={12} lg={6}>
           <StatisticsCard
             title="今日订单"
@@ -228,13 +263,13 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginTop: 24 }}>
+      <Row gutter={16} {...stylex.props(styles.revenueRow)}>
         <Col span={24}>
           <DailyRevenueChart data={sliced} title={`${rangeLabel}营收趋势`} loading={loading} empty={isEmpty} />
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginTop: 16 }}>
+      <Row gutter={16} {...stylex.props(styles.orderRow)}>
         <Col span={24}>
           <DailyOrderChart data={sliced} title={`${rangeLabel}订单数`} loading={loading} empty={isEmpty} />
         </Col>

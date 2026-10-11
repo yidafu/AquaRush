@@ -3,6 +3,37 @@ import { Row, Col, Input, Select, InputNumber, Space, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// 说明:label 的 #666、搜索前缀图标 #bfbfbf 为局部灰阶,token 无对应值,保留字面量。
+const styles = stylex.create({
+  field: {
+    marginBottom: '8px',
+  },
+  label: {
+    fontSize: tokens.fsAux,
+    color: '#666',
+    marginBottom: '4px',
+    display: 'block',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  rangeRow: {
+    display: 'flex',
+    rowGap: '8px',
+    columnGap: '8px',
+  },
+  rangeInput: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+  },
+  prefixIcon: {
+    color: '#bfbfbf',
+  },
+});
 
 const { Option } = Select;
 
@@ -95,8 +126,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     <FilterCard onReset={reset} extra={extra}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               关键词搜索
             </label>
             <Input
@@ -104,18 +135,18 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               value={localFilters.keyword || ''}
               onChange={handleKeywordChange}
               allowClear
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<SearchOutlined {...stylex.props(styles.prefixIcon)} />}
             />
           </div>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               商品状态
             </label>
             <Select
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               value={localFilters.status || 'ALL'}
               onChange={handleStatusChange}
               placeholder="选择状态"
@@ -130,13 +161,13 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               价格范围（元）
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div {...stylex.props(styles.rangeRow)}>
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最低价"
                 value={localFilters.minPrice || null}
                 onChange={handleMinPriceChange}
@@ -144,7 +175,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 min={0}
               />
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最高价"
                 value={localFilters.maxPrice || null}
                 onChange={handleMaxPriceChange}
@@ -156,20 +187,20 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               销量范围
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div {...stylex.props(styles.rangeRow)}>
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最低销量"
                 value={localFilters.minSalesVolume || null}
                 onChange={handleMinSalesVolumeChange}
                 min={0}
               />
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最高销量"
                 value={localFilters.maxSalesVolume || null}
                 onChange={handleMaxSalesVolumeChange}
@@ -181,8 +212,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               标签
             </label>
             <Input
@@ -197,12 +228,12 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               排序方式
             </label>
             <Select
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               value={localFilters.sortBy || 'CREATED_AT_DESC'}
               onChange={handleSortByChange}
               placeholder="排序方式"
@@ -222,13 +253,13 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               库存范围
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div {...stylex.props(styles.rangeRow)}>
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最小库存"
                 value={localFilters.minStock || null}
                 onChange={(value) => {
@@ -237,7 +268,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 min={0}
               />
               <InputNumber
-                style={{ flex: 1 }}
+                {...stylex.props(styles.rangeInput)}
                 placeholder="最大库存"
                 value={localFilters.maxStock || null}
                 onChange={(value) => {
@@ -250,8 +281,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+          <div {...stylex.props(styles.field)}>
+            <label {...stylex.props(styles.label)}>
               快速操作
             </label>
             <Space>

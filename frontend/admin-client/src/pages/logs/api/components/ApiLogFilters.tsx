@@ -1,9 +1,22 @@
 import React from 'react';
 import { Card, Space, Select, Input, DatePicker, Button } from 'antd';
+import * as stylex from '@stylexjs/stylex';
 import type { ApiLogQueryParams } from '../../../../services/logs';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+
+const styles = stylex.create({
+  filterCard: {
+    marginBottom: '16px',
+  },
+  width120: {
+    width: '120px',
+  },
+  width100: {
+    width: '100px',
+  },
+});
 
 export interface ApiLogFiltersProps {
   filters: ApiLogQueryParams;
@@ -14,12 +27,12 @@ export interface ApiLogFiltersProps {
 
 /** API 日志筛选区(logs/api/index.tsx 拆分) */
 const ApiLogFilters: React.FC<ApiLogFiltersProps> = ({ filters, onChange, onSearch, onReset }) => (
-  <Card style={{ marginBottom: 16 }}>
+  <Card {...stylex.props(styles.filterCard)}>
     <Space wrap>
       <Select
         placeholder="请求类型"
         allowClear
-        style={{ width: 120 }}
+        {...stylex.props(styles.width120)}
         value={filters.requestType}
         onChange={(value) => onChange({ requestType: value })}
       >
@@ -29,7 +42,7 @@ const ApiLogFilters: React.FC<ApiLogFiltersProps> = ({ filters, onChange, onSear
       <Select
         placeholder="请求方法"
         allowClear
-        style={{ width: 100 }}
+        {...stylex.props(styles.width100)}
         value={filters.method}
         onChange={(value) => onChange({ method: value })}
       >
@@ -41,7 +54,7 @@ const ApiLogFilters: React.FC<ApiLogFiltersProps> = ({ filters, onChange, onSear
       <Input
         placeholder="用户ID"
         allowClear
-        style={{ width: 120 }}
+        {...stylex.props(styles.width120)}
         value={filters.userId}
         onChange={(e) => onChange({ userId: e.target.value ? Number(e.target.value) : undefined })}
       />

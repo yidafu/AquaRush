@@ -2,8 +2,23 @@ import React from 'react';
 import { Space, Input, Button, Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { BarrelLedgerRow } from '../../../types/barrel';
 import { pagination } from '@/utils/table';
+
+// 局部色值 #999 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  customerSub: {
+    fontSize: '12px',
+    color: '#999',
+  },
+  filterRow: {
+    marginBottom: '16px',
+  },
+  search: {
+    width: '240px',
+  },
+});
 
 export interface BarrelLedgerTableProps {
   dataSource: BarrelLedgerRow[];
@@ -38,7 +53,7 @@ const BarrelLedgerTable: React.FC<BarrelLedgerTableProps> = ({
         <span>
           {record.nickname || record.userId}
           <br />
-          <span style={{ fontSize: 12, color: '#999' }}>{record.phone || record.userId}</span>
+          <span {...stylex.props(styles.customerSub)}>{record.phone || record.userId}</span>
         </span>
       ),
     },
@@ -87,11 +102,11 @@ const BarrelLedgerTable: React.FC<BarrelLedgerTableProps> = ({
 
   return (
     <>
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space {...stylex.props(styles.filterRow)} wrap>
         <Input.Search
           allowClear
           placeholder="按客户昵称/手机号搜索"
-          style={{ width: 240 }}
+          {...stylex.props(styles.search)}
           onSearch={(value) => onKeywordChange(value.trim())}
         />
         <Space>

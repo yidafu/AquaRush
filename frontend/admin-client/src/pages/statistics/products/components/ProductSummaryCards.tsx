@@ -1,6 +1,13 @@
 import React from 'react';
 import { Row, Col } from 'antd';
 import StatisticsCard from '@/components/StatisticsCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  secondRow: {
+    marginTop: '16px',
+  },
+});
 
 export interface ProductSummaryCardsProps {
   loading: boolean;
@@ -40,7 +47,7 @@ const ProductSummaryCards: React.FC<ProductSummaryCardsProps> = ({
         <StatisticsCard title="总销量" value={totalSales} suffix="桶" loading={loading} />
       </Col>
     </Row>
-    <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+    <Row gutter={[16, 16]} {...stylex.props(styles.secondRow)}>
       <Col xs={24} sm={12} lg={6}>
         <StatisticsCard title="总收藏数" value={totalFavorites} loading={loading} />
       </Col>

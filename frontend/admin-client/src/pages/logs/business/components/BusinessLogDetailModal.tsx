@@ -1,11 +1,30 @@
 import React from 'react';
 import { Descriptions, Tag, Button } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import type { BusinessLogVo } from '@aquarush/common';
 import JsonViewer from '../../../../components/JsonViewer';
 import { getLogLevelInfo } from './constants';
 import DetailModal from '@/components/DetailModal';
 import { copyText } from '@/utils/clipboard';
+
+// 消息 / 堆栈的等宽预格式化块(原内联 style 迁移)
+const styles = stylex.create({
+  messagePre: {
+    maxHeight: '150px',
+    overflow: 'auto',
+    fontSize: '12px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+  stackPre: {
+    maxHeight: '200px',
+    overflow: 'auto',
+    fontSize: '12px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+});
 
 export interface BusinessLogDetailModalProps {
   log: BusinessLogVo | null;
@@ -38,7 +57,7 @@ const BusinessLogDetailModal: React.FC<BusinessLogDetailModalProps> = ({ log, op
             looksLikeJson(log.message) ? (
               <JsonViewer value={log.message} maxHeight={220} />
             ) : (
-              <pre style={{ maxHeight: 150, overflow: 'auto', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <pre {...stylex.props(styles.messagePre)}>
                 {log.message}
               </pre>
             )
@@ -49,7 +68,7 @@ const BusinessLogDetailModal: React.FC<BusinessLogDetailModalProps> = ({ log, op
         <Descriptions.Item label="堆栈跟踪" span={2}>
           {log.stackTrace ? (
             <div>
-              <pre style={{ maxHeight: 200, overflow: 'auto', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <pre {...stylex.props(styles.stackPre)}>
                 {log.stackTrace}
               </pre>
               <Button size="small" type="link" icon={<CopyOutlined />} onClick={() => copyText(log.stackTrace!)}>

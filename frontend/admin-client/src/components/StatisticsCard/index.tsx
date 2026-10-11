@@ -1,7 +1,15 @@
 import React from 'react';
 import { Card, Statistic } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import { COLOR_SUCCESS, COLOR_ERROR, TEXT_SECONDARY } from '../../config/theme';
+
+// 趋势色依赖 trend props,保留 style={{ color: getTrendColor() }} 动态注入
+const styles = stylex.create({
+  trendLine: {
+    fontSize: '14px',
+  },
+});
 
 interface StatisticsCardProps {
   title: string;
@@ -59,7 +67,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
         valueStyle={valueStyle ?? { color: getTrendColor() }}
       />
       {showTrendLine && (
-        <span style={{ color: getTrendColor(), fontSize: 14 }}>
+        <span {...stylex.props(styles.trendLine)} style={{ color: getTrendColor() }}>
           {trendValue === null || trendValue === undefined || !Number.isFinite(trendValue) ? (
             '—'
           ) : (

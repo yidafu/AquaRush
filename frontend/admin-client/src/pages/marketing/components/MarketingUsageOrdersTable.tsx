@@ -2,9 +2,18 @@ import React from 'react';
 import { Button, Space, Table, Tag } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
 import { OrderStatus, displayCents, formatDateTime } from '@aquarush/common';
 import type { OrderVo, OrderVoPage } from '@aquarush/common';
 import { pagination } from '@/utils/table';
+
+// 局部色值 #999 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  phone: {
+    color: '#999',
+    fontSize: '12px',
+  },
+});
 
 const getStatusColor = (status: OrderStatus) => {
   switch (status) {
@@ -89,10 +98,11 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
       render: (_, record) => {
         const user = record.user;
         if (!user) return '—';
+        // 原 size={4} + style gap:0;antd Space 的 gapStyle 是内联样式会盖过 stylex class,size={0} 等效表达 gap 0
         return (
-          <Space size={4} direction="vertical" style={{ gap: 0 }}>
+          <Space size={0} direction="vertical">
             <span>{user.nickname || '未命名'}</span>
-            <span style={{ color: '#999', fontSize: 12 }}>{user.phone || ''}</span>
+            <span {...stylex.props(styles.phone)}>{user.phone || ''}</span>
           </Space>
         );
       },

@@ -7,7 +7,34 @@ import {
 } from '../../../../../graphql/queries/user.graphql';
 import type { DeliveryWorkerStatisticsVo, ReviewVo } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  row: {
+    marginBottom: '16px',
+  },
+  distRow: {
+    display: 'flex',
+    alignItems: 'center',
+    rowGap: '8px',
+    columnGap: '8px',
+    marginBottom: '4px',
+  },
+  distStar: {
+    width: '36px',
+    flexShrink: 0,
+  },
+  distProgress: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+  },
+  distCount: {
+    width: '24px',
+    textAlign: 'right',
+  },
+});
 
 interface WorkerReviewSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -122,7 +149,7 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
   return (
     <Card title="评价记录">
       <Spin spinning={statsLoading}>
-        <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Row {...stylex.props(styles.row)} gutter={16}>
           <Col span={6}>
             <Statistic title="总评价数" value={totalReviews} />
           </Col>
@@ -131,10 +158,10 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
           </Col>
           <Col span={12}>
             {distribution.map((d) => (
-              <div key={d.star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ width: 36, flexShrink: 0 }}>{d.star} 星</span>
-                <Progress percent={d.percent} size="small" style={{ flex: 1 }} />
-                <span style={{ width: 24, textAlign: 'right' }}>{d.count}</span>
+              <div key={d.star} {...stylex.props(styles.distRow)}>
+                <span {...stylex.props(styles.distStar)}>{d.star} 星</span>
+                <Progress percent={d.percent} size="small" {...stylex.props(styles.distProgress)} />
+                <span {...stylex.props(styles.distCount)}>{d.count}</span>
               </div>
             ))}
           </Col>

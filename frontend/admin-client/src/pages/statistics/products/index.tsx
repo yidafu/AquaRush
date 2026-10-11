@@ -17,6 +17,30 @@ import {
   FavoriteRankingChart,
   StockWarningTable,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  rankingRow: {
+    marginTop: '24px',
+  },
+});
 
 const ProductStatisticsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -111,8 +135,8 @@ const ProductStatisticsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 className="page-title">商品统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>商品统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -141,7 +165,7 @@ const ProductStatisticsPage: React.FC = () => {
         onDateRangeChange={setDateRange}
       />
 
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.rankingRow)}>
         <SalesRankingChart data={salesChartData} loading={loading} />
         <FavoriteRankingChart data={favoriteChartData} loading={loading} />
       </Row>

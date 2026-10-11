@@ -2,6 +2,13 @@ import React from 'react';
 import { Card, Descriptions, Empty, Space } from 'antd';
 import { CarOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+});
 
 const DeliveryInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -16,7 +23,7 @@ const DeliveryInfoCard: React.FC = () => {
           配送信息
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       {order.deliveryWorker ? (
         <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">

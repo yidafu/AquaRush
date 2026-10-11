@@ -1,6 +1,15 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input } from 'antd';
+import * as stylex from '@stylexjs/stylex';
 import type { DailyCollectionRecord } from '../../../types/daily-collection';
+
+// 局部色值 #666 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  summary: {
+    marginBottom: '12px',
+    color: '#666',
+  },
+});
 
 export interface RejectCollectionModalProps {
   /** 驳回目标;null = 关闭 */
@@ -44,7 +53,7 @@ const RejectCollectionModal: React.FC<RejectCollectionModalProps> = ({
       okButtonProps={{ danger: true }}
     >
       {target && (
-        <div style={{ marginBottom: 12, color: '#666' }}>
+        <div {...stylex.props(styles.summary)}>
           配送员 {target.deliveryWorkerId} · {target.collectionDate}
           {target.notes ? ` · 差异说明: ${target.notes}` : ''}
         </div>

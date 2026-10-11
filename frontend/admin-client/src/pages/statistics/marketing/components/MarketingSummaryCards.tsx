@@ -3,6 +3,13 @@ import { Row, Col } from 'antd';
 import StatisticsCard from '@/components/StatisticsCard';
 import { centsToYuan } from '@aquarush/common';
 import type { MarketingStatisticsSummaryVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  summaryRow: {
+    marginTop: '16px',
+  },
+});
 
 interface MarketingSummaryCardsProps {
   summary?: MarketingStatisticsSummaryVo | null;
@@ -15,7 +22,7 @@ interface MarketingSummaryCardsProps {
  * 金额以分存储、展示转元两位小数(R-MON-01);赠品估算与水票抵扣不计入让利总额(口径见 PRD)。
  */
 const MarketingSummaryCards: React.FC<MarketingSummaryCardsProps> = ({ summary, loading }) => (
-  <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+  <Row gutter={[16, 16]} {...stylex.props(styles.summaryRow)}>
     <Col xs={24} sm={12} lg={4}>
       <StatisticsCard title="营销订单数" value={summary?.marketingOrderCount ?? 0} suffix="单" loading={loading} />
     </Col>

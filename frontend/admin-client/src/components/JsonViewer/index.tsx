@@ -8,6 +8,8 @@ import {
   MinusSquareOutlined,
   PlusSquareOutlined,
 } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 
 const { Text } = Typography;
 
@@ -42,15 +44,85 @@ interface JsonNodeProps {
   collapseMode: CollapseMode;
 }
 
-const COLORS = {
-  key: '#0b5cab',
-  string: '#22863a',
-  number: '#b35900',
-  boolean: '#6f42c1',
-  null: '#6f42c1',
-  punctuation: '#888888',
-  raw: '#333333',
-};
+// JSON 语法着色(键蓝 / 字符串绿 / 数字橙 / 布尔与 null 紫)——
+// 本组件局部色值,共享 token 无对应值,保持原样(报告 (a));
+// maxHeight / paddingLeft(depth) 依赖 props,保留 style={{ }} 动态注入
+const styles = stylex.create({
+  keyColor: {
+    color: '#0b5cab',
+  },
+  stringColor: {
+    color: '#22863a',
+  },
+  numberColor: {
+    color: '#b35900',
+  },
+  booleanColor: {
+    color: '#6f42c1',
+  },
+  nullColor: {
+    color: '#6f42c1',
+  },
+  punctuationColor: {
+    color: '#888888',
+  },
+  rawColor: {
+    color: '#333333',
+  },
+  nodeHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '4px',
+    rowGap: '4px',
+  },
+  toggleBtn: {
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    height: 'auto',
+    lineHeight: 'inherit',
+  },
+  toggleIcon: {
+    fontSize: '10px',
+  },
+  summaryText: {
+    fontSize: '12px',
+    color: '#888888',
+  },
+  flatIndent: {
+    paddingLeft: '0px',
+  },
+  toolbar: {
+    marginBottom: '4px',
+  },
+  viewerBox: {
+    overflow: 'auto',
+    backgroundColor: '#fafafa',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: '#f0f0f0',
+    borderRadius: '6px',
+    paddingTop: '8px',
+    paddingBottom: '8px',
+    paddingLeft: '12px',
+    paddingRight: '12px',
+    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+    fontSize: '12px',
+  },
+  rawPre: {
+    marginTop: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    marginRight: '0px',
+    overflow: 'auto',
+    fontSize: '12px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+    color: '#333333',
+  },
+});
 
 function isObjectLike(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -58,17 +130,17 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
 
 function renderPrimitive(value: unknown): React.ReactNode {
   if (value === null) {
-    return <Text style={{ color: COLORS.null }}>null</Text>;
+    return <Text {...stylex.props(styles.nullColor)}>null</Text>;
   }
   switch (typeof value) {
     case 'string':
-      return <Text style={{ color: COLORS.string }}>"{value}"</Text>;
+      return <Text {...stylex.props(styles.stringColor)}>"{value}"</Text>;
     case 'number':
-      return <Text style={{ color: COLORS.number }}>{String(value)}</Text>;
+      return <Text {...stylex.props(styles.numberColor)}>{String(value)}</Text>;
     case 'boolean':
-      return <Text style={{ color: COLORS.boolean }}>{String(value)}</Text>;
+      return <Text {...stylex.props(styles.booleanColor)}>{String(value)}</Text>;
     default:
-      return <Text style={{ color: COLORS.raw }}>{String(value)}</Text>;
+      return <Text {...stylex.props(styles.rawColor)}>{String(value)}</Text>;
   }
 }
 
@@ -97,7 +169,7 @@ const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth, defaultExpandLe
   if (!collapsible) {
     return (
       <div style={{ paddingLeft: depth * 16 }}>
-        {name !== undefined && <Text style={{ color: COLORS.key }}>{name}: </Text>}
+        {name !== undefined && <Text {...stylex.props(styles.keyColor)}>{name}: </Text>}
         {renderPrimitive(value)}
       </div>
     );
@@ -109,22 +181,28 @@ const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth, defaultExpandLe
 
   return (
     <div>
-      <div style={{ paddingLeft: depth * 16, display: 'flex', alignItems: 'center', gap: 4 }}>
-        {name !== undefined && <Text style={{ color: COLORS.key }}>{name}: </Text>}
+      <div {...stylex.props(styles.nodeHeader)} style={{ paddingLeft: depth * 16 }}>
+        {name !== undefined && <Text {...stylex.props(styles.keyColor)}>{name}: </Text>}
         <Button
           type="text"
           size="small"
-          style={{ padding: 0, height: 'auto', lineHeight: 'inherit' }}
-          icon={collapsed ? <RightOutlined style={{ fontSize: 10 }} /> : <DownOutlined style={{ fontSize: 10 }} />}
+          {...stylex.props(styles.toggleBtn)}
+          icon={
+            collapsed ? (
+              <RightOutlined {...stylex.props(styles.toggleIcon)} />
+            ) : (
+              <DownOutlined {...stylex.props(styles.toggleIcon)} />
+            )
+          }
           onClick={() => setCollapsed(!collapsed)}
         />
-        <Text style={{ color: COLORS.punctuation }}>{openBracket}</Text>
+        <Text {...stylex.props(styles.punctuationColor)}>{openBracket}</Text>
         {collapsed && (
           <>
-            <Text type="secondary" style={{ fontSize: 12, color: COLORS.punctuation }}>
+            <Text type="secondary" {...stylex.props(styles.summaryText)}>
               {summary}
             </Text>
-            <Text style={{ color: COLORS.punctuation }}>{closeBracket}</Text>
+            <Text {...stylex.props(styles.punctuationColor)}>{closeBracket}</Text>
           </>
         )}
       </div>
@@ -141,7 +219,7 @@ const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth, defaultExpandLe
             />
           ))}
           <div style={{ paddingLeft: depth * 16 }}>
-            <Text style={{ color: COLORS.punctuation }}>{closeBracket}</Text>
+            <Text {...stylex.props(styles.punctuationColor)}>{closeBracket}</Text>
           </div>
         </>
       )}
@@ -178,18 +256,7 @@ const JsonViewer: React.FC<JsonViewerProps> = ({
 
   if (!parsed.ok) {
     return (
-      <pre
-        style={{
-          margin: 0,
-          maxHeight,
-          overflow: 'auto',
-          fontSize: 12,
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-          color: COLORS.raw,
-        }}
-      >
+      <pre {...stylex.props(styles.rawPre)} style={{ maxHeight }}>
         {parsed.raw || '-'}
       </pre>
     );
@@ -210,7 +277,7 @@ const JsonViewer: React.FC<JsonViewerProps> = ({
 
   return (
     <div>
-      <Space style={{ marginBottom: 4 }} size={4}>
+      <Space {...stylex.props(styles.toolbar)} size={4}>
         {isCollapsible && (
           <>
             <Button
@@ -243,24 +310,13 @@ const JsonViewer: React.FC<JsonViewerProps> = ({
             type="text"
             icon={copied ? <CheckOutlined /> : <CopyOutlined />}
             onClick={handleCopy}
-            style={{ color: copied ? '#52c41a' : undefined }}
+            style={{ color: copied ? tokens.success : undefined }}
           >
             {copied ? '已复制' : '复制'}
           </Button>
         )}
       </Space>
-      <div
-        style={{
-          maxHeight,
-          overflow: 'auto',
-          background: '#fafafa',
-          border: '1px solid #f0f0f0',
-          borderRadius: 6,
-          padding: '8px 12px',
-          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-          fontSize: 12,
-        }}
-      >
+      <div {...stylex.props(styles.viewerBox)} style={{ maxHeight }}>
         {isCollapsible ? (
           <JsonNode
             key={modeTick}
@@ -270,7 +326,7 @@ const JsonViewer: React.FC<JsonViewerProps> = ({
             collapseMode={collapseMode}
           />
         ) : (
-          <div style={{ paddingLeft: 0 }}>{renderPrimitive(parsed.data)}</div>
+          <div {...stylex.props(styles.flatIndent)}>{renderPrimitive(parsed.data)}</div>
         )}
       </div>
     </div>

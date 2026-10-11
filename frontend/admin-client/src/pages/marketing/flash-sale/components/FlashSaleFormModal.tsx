@@ -1,11 +1,18 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import type { FlashSaleActivityVo } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
 export interface FlashSaleFormPayload {
@@ -111,10 +118,10 @@ const FlashSaleFormModal: React.FC<Props> = ({ open, record, submitting, onCance
             },
           ]}
         >
-          <InputNumber min={0.01} max={99999} precision={2} placeholder="如 15" style={{ width: '100%' }} />
+          <InputNumber min={0.01} max={99999} precision={2} placeholder="如 15" {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item name="timeWindow" label="活动时间" rules={[{ required: true, message: '请选择活动时间' }]}>
-          <RangePicker showTime style={{ width: '100%' }} />
+          <RangePicker showTime {...stylex.props(styles.fullWidth)} />
         </Form.Item>
       </Form>
     </Modal>

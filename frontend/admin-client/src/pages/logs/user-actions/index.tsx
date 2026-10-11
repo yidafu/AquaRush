@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Select, Input, DatePicker, Space, Tag, Button, Modal, Descriptions } from 'antd';
+import * as stylex from '@stylexjs/stylex';
 import { queryUserActionLogs } from '../../../services/logs';
 import type { UserActionLogItem, UserActionLogQueryParams } from '../../../services/logs';
 import JsonViewer from '../../../components/JsonViewer';
@@ -7,6 +8,29 @@ import { pagination as createPagination } from '@/utils/table';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  filterCard: {
+    marginBottom: '16px',
+  },
+  width140: {
+    width: '140px',
+  },
+  width120: {
+    width: '120px',
+  },
+  userAgent: {
+    maxHeight: '80px',
+    overflow: 'auto',
+    fontSize: '12px',
+  },
+});
 
 const ACTION_TYPE_OPTIONS = [
   { value: 'PAGE_VIEW', label: '页面浏览', color: 'blue' },
@@ -147,13 +171,13 @@ const UserActionLogs: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card style={{ marginBottom: 16 }}>
+    <div {...stylex.props(styles.page)}>
+      <Card {...stylex.props(styles.filterCard)}>
         <Space wrap>
           <Select
             placeholder="操作类型"
             allowClear
-            style={{ width: 140 }}
+            {...stylex.props(styles.width140)}
             value={filters.actionType}
             onChange={(value) => setFilters(prev => ({ ...prev, actionType: value }))}
           >
@@ -164,21 +188,21 @@ const UserActionLogs: React.FC = () => {
           <Input
             placeholder="用户ID"
             allowClear
-            style={{ width: 120 }}
+            {...stylex.props(styles.width120)}
             value={filters.userId}
             onChange={(e) => setFilters(prev => ({ ...prev, userId: e.target.value || undefined }))}
           />
           <Input
             placeholder="用户名"
             allowClear
-            style={{ width: 120 }}
+            {...stylex.props(styles.width120)}
             value={filters.username}
             onChange={(e) => setFilters(prev => ({ ...prev, username: e.target.value || undefined }))}
           />
           <Input
             placeholder="目标"
             allowClear
-            style={{ width: 140 }}
+            {...stylex.props(styles.width140)}
             value={filters.target}
             onChange={(e) => setFilters(prev => ({ ...prev, target: e.target.value || undefined }))}
           />
@@ -231,7 +255,7 @@ const UserActionLogs: React.FC = () => {
             <Descriptions.Item label="元素类型">{selectedLog.elementType || '-'}</Descriptions.Item>
             <Descriptions.Item label="元素文本">{selectedLog.elementText || '-'}</Descriptions.Item>
             <Descriptions.Item label="UserAgent" span={2}>
-              <div style={{ maxHeight: 80, overflow: 'auto', fontSize: 12 }}>
+              <div {...stylex.props(styles.userAgent)}>
                 {selectedLog.userAgent || '-'}
               </div>
             </Descriptions.Item>

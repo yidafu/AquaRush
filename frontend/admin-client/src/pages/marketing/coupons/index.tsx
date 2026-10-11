@@ -3,6 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
 import { displayCents, formatDateTime, COUPON_TYPE_LABELS } from '@aquarush/common';
 import type { CouponTemplateAdminVo, CouponType } from '@aquarush/common';
 import {
@@ -14,6 +15,12 @@ import {
 import CouponFormModal, { type CouponFormPayload } from './components/CouponFormModal';
 import IssueCouponModal from './components/IssueCouponModal';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  search: {
+    width: '220px',
+  },
+});
 
 // 优惠券管理页(F-MKT-003):列表/新建/编辑/停用/定向发放/详情(使用情况与相关订单)
 const Coupons: React.FC = () => {
@@ -170,7 +177,7 @@ const Coupons: React.FC = () => {
           <Input.Search
             placeholder="搜索券名称"
             allowClear
-            style={{ width: 220 }}
+            {...stylex.props(styles.search)}
             onSearch={(value) => {
               setKeyword(value);
               load(0, size, value);

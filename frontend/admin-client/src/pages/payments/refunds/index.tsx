@@ -7,7 +7,36 @@ import type { RefundRequest } from '../../../types/refund';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand,
+// 内联 marginBottom: 24 覆盖);
+// reviewSummary 的 #666 为弹窗局部色值,token 无对应值,保留字面量。
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '24px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  processedCell: {
+    fontSize: '12px',
+  },
+  filterSpace: {
+    marginBottom: '16px',
+  },
+  filterSelect: {
+    width: '160px',
+  },
+  reviewSummary: {
+    marginBottom: '12px',
+    color: '#666',
+  },
+});
 
 // 退款状态展示(R-PAY-02:待审核/已通过/已拒绝/已完成/失败)
 const STATUS_MAP: Record<string, { text: string; color: string }> = {
@@ -117,7 +146,7 @@ const RefundManagementPage: React.FC = () => {
       key: 'processed',
       render: (_, record) =>
         record.processedAt ? (
-          <span style={{ fontSize: 12 }}>
+          <span {...stylex.props(styles.processedCell)}>
             {new Date(record.processedAt).toLocaleString('zh-CN')}
             <br />
             处理人: {record.processedBy || '-'}
@@ -157,15 +186,15 @@ const RefundManagementPage: React.FC = () => {
 
   return (
     <div>
-      <h1 className="page-title" style={{ marginBottom: 24 }}>
+      <h1 {...stylex.props(styles.pageTitle)}>
         退款管理
       </h1>
       <Card>
-        <Space style={{ marginBottom: 16 }}>
+        <Space {...stylex.props(styles.filterSpace)}>
           <Select
             allowClear
             placeholder="状态筛选"
-            style={{ width: 160 }}
+            {...stylex.props(styles.filterSelect)}
             value={statusFilter}
             onChange={(v) => {
               setStatusFilter(v);
@@ -203,7 +232,7 @@ const RefundManagementPage: React.FC = () => {
         confirmLoading={processing}
       >
         {reviewTarget && (
-          <div style={{ marginBottom: 12, color: '#666' }}>
+          <div {...stylex.props(styles.reviewSummary)}>
             订单 {reviewTarget.orderId} · 金额 {displayCents(Number(reviewTarget.amountCents))}
             <br />
             原因: {reviewTarget.reason}

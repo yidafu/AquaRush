@@ -6,6 +6,19 @@ import { useNavigate } from 'react-router-dom';
 import { centsToYuan, MarketingBreakdownKind } from '@aquarush/common';
 import type { MarketingUsageBreakdownRowVo } from '@aquarush/common';
 import { BREAKDOWN_DETAIL_PREFIX, BREAKDOWN_TABS, type BreakdownTabConfig } from '../data';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginTop: '24px',
+  },
+  empty: {
+    paddingTop: '32px',
+    paddingRight: '0px',
+    paddingBottom: '32px',
+    paddingLeft: '0px',
+  },
+});
 
 interface MarketingUsageBreakdownTableProps {
   rows: ReadonlyArray<MarketingUsageBreakdownRowVo>;
@@ -118,7 +131,7 @@ const MarketingUsageBreakdownTable: React.FC<MarketingUsageBreakdownTableProps> 
   return (
     <Card
       title="营销方式使用明细"
-      style={{ marginTop: 24 }}
+      {...stylex.props(styles.card)}
       extra={
         <Segmented
           options={BREAKDOWN_TABS.map((t) => ({ label: t.label, value: t.kind }))}
@@ -129,7 +142,7 @@ const MarketingUsageBreakdownTable: React.FC<MarketingUsageBreakdownTableProps> 
     >
       <Spin spinning={loading}>
         {filtered.length === 0 ? (
-          <Empty description="所选范围该营销方式暂无使用记录" style={{ padding: '32px 0' }} />
+          <Empty description="所选范围该营销方式暂无使用记录" {...stylex.props(styles.empty)} />
         ) : (
           <Table<MarketingUsageBreakdownRowVo>
             rowKey={(row) => `${row.kind}-${row.refId}`}

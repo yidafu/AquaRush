@@ -5,10 +5,47 @@ import {
   CopyOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
+import * as stylex from "@stylexjs/stylex";
+import { tokens } from "@aquarush/common/theme/tokens.stylex";
 
 const { TextArea } = Input;
 const { Panel } = Collapse;
 const { Text } = Typography;
+
+// 局部色值 #fff2f0 / #ffccc7 为 antd 错误提示底与边框色,共享 token 无对应值,保持原样;
+// 校验失败边框色依赖 isValid state,保留 style={{ borderColor }} 动态注入
+const styles = stylex.create({
+  header: {
+    marginBottom: "12px",
+  },
+  titleRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  meta: {
+    fontSize: "12px",
+  },
+  collapse: {
+    marginBottom: "12px",
+  },
+  codeArea: {
+    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+    fontSize: "13px",
+  },
+  errorBox: {
+    marginTop: "8px",
+    paddingTop: "8px",
+    paddingBottom: "8px",
+    paddingLeft: "12px",
+    paddingRight: "12px",
+    backgroundColor: "#fff2f0",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "#ffccc7",
+    borderRadius: "6px",
+  },
+});
 
 interface JsonEditorProps {
   value?: any;
@@ -113,15 +150,9 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   };
 
   return (
-    <div className="json-editor">
-      <div style={{ marginBottom: 12 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+    <div>
+      <div {...stylex.props(styles.header)}>
+        <div {...stylex.props(styles.titleRow)}>
           <Text strong>{title}</Text>
           <Space>
             <Button
@@ -144,14 +175,14 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
           </Space>
         </div>
         {help && (
-          <Text type="secondary" style={{ fontSize: "12px" }}>
+          <Text type="secondary" {...stylex.props(styles.meta)}>
             {help}
           </Text>
         )}
       </div>
 
       {templates.length > 0 && (
-        <Collapse size="small" style={{ marginBottom: 12 }}>
+        <Collapse size="small" {...stylex.props(styles.collapse)}>
           <Panel header="快速模板" key="templates">
             <Space wrap>
               {templates.map((template, index) => (
@@ -173,24 +204,13 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         onChange={handleChange}
         placeholder={placeholder}
         rows={6}
-        style={{
-          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-          fontSize: "13px",
-          borderColor: isValid ? undefined : "#ff4d4f",
-        }}
+        {...stylex.props(styles.codeArea)}
+        style={{ borderColor: isValid ? undefined : tokens.error }}
       />
 
       {!isValid && (
-        <div
-          style={{
-            marginTop: 8,
-            padding: "8px 12px",
-            background: "#fff2f0",
-            border: "1px solid #ffccc7",
-            borderRadius: "6px",
-          }}
-        >
-          <Text type="danger" style={{ fontSize: "12px" }}>
+        <div {...stylex.props(styles.errorBox)}>
+          <Text type="danger" {...stylex.props(styles.meta)}>
             JSON格式错误: {errorMessage}
           </Text>
         </div>

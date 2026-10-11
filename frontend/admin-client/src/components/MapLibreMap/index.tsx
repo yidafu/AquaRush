@@ -8,7 +8,17 @@ import {
 } from 'maplibre-gl';
 import type { MapMouseEvent } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import * as stylex from '@stylexjs/stylex';
+import { props } from '@aquarush/common/stylex';
 import { TIANDITU_KEY, DEFAULT_MAP_CENTER, getTiandituStyle } from '../../lib/map/tianditu';
+
+// 容器静态样式迁 StyleX;height / 调用方 style 依赖 props,保留 style={{ }} 动态注入
+const styles = stylex.create({
+  container: {
+    position: 'relative',
+    width: '100%',
+  },
+});
 
 export interface MapLngLat {
   lng: number;
@@ -298,13 +308,8 @@ const MapLibreMap: React.FC<MapLibreMapProps> = ({
   return (
     <div
       ref={containerRef}
-      className={className}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height,
-        ...style,
-      }}
+      {...props(className, styles.container)}
+      style={{ height, ...style }}
     />
   );
 };

@@ -2,11 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { Card, Form, InputNumber, Switch, Button, Alert, Space, Modal, Typography, Divider, message } from 'antd';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 
 // 账号与安全策略配置页(F-SYS-004):密码强度/登录失败锁定/Token 有效期,保存即生效(登录校验类即时,Token 类重启生效)
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);生效接线(登录锁定/密码强度校验)为后续项,PRD 目标形态
 // 密钥类(微信 appsecret 等)不在此在线配置(R-SYS-02)
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  form: {
+    maxWidth: '640px',
+  },
+  inputNumber: {
+    width: '100%',
+  },
+});
 
 interface SecurityConfigValues {
   passwordMinLength?: number;
@@ -100,10 +113,10 @@ const SystemSecurityConfig: React.FC = () => {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 24 }}
+          {...stylex.props(styles.alert)}
           message="密码强度与登录锁定策略为后续生效接线项(PRD F-SYS-004 目标形态),Token 有效期修改后重启生效;每次修改留审计日志。"
         />
-        <Form form={form} layout="vertical" style={{ maxWidth: 640 }}>
+        <Form form={form} layout="vertical" {...stylex.props(styles.form)}>
           <Divider plain>密码策略</Divider>
           <Form.Item
             name="passwordMinLength"
@@ -111,7 +124,7 @@ const SystemSecurityConfig: React.FC = () => {
             extra="新创建/重置密码按此长度校验"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 6, max: 32, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={6} max={32} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={6} max={32} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item
             name="passwordRequireAlphanumeric"
@@ -129,14 +142,14 @@ const SystemSecurityConfig: React.FC = () => {
             extra="连续错误达该次数后账号锁定"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, max: 99, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} max={99} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} max={99} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item
             name="loginLockDurationMinutes"
             label="锁定时长(分钟)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
 
           <Divider plain>Token</Divider>
@@ -146,7 +159,7 @@ const SystemSecurityConfig: React.FC = () => {
             extra="修改后重启生效,到期后需重新登录"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, max: 720, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} max={720} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} max={720} precision={0} disabled={!canWrite} />
           </Form.Item>
 
           <Form.Item>

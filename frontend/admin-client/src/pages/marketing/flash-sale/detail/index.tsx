@@ -4,12 +4,22 @@ import type { TablePaginationConfig } from 'antd/es/table';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { FlashSaleActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { FLASH_SALE_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
-import { COLOR_ERROR } from '../../../../config/theme';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+  salePrice: {
+    color: tokens.error,
+  },
+});
 
 const DISPLAY_STATUS_LABELS: Record<string, string> = {
   UPCOMING: '未开始',
@@ -70,7 +80,7 @@ const FlashSaleDetailPage: React.FC = () => {
     >
       {error && <Alert type="error" showIcon message="加载失败" description={error.message} />}
       <Spin spinning={loading}>
-        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        <Space direction="vertical" size={16} {...stylex.props(styles.fullWidth)}>
           {config && (
             <Descriptions bordered size="small" column={3}>
               <Descriptions.Item label="活动名称">{config.name}</Descriptions.Item>
@@ -79,7 +89,7 @@ const FlashSaleDetailPage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label="目录价">{displayCents(config.catalogPriceCents)}</Descriptions.Item>
               <Descriptions.Item label="特价">
-                <span style={{ color: COLOR_ERROR }}>{displayCents(config.salePriceCents)}</span>
+                <span {...stylex.props(styles.salePrice)}>{displayCents(config.salePriceCents)}</span>
               </Descriptions.Item>
               <Descriptions.Item label="状态">
                 <Tag color={DISPLAY_STATUS_COLORS[config.currentStatus] ?? 'default'}>

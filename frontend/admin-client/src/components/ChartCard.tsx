@@ -1,6 +1,13 @@
 import React from 'react';
 import { Card, Spin, Empty } from 'antd';
 import { ResponsiveContainer } from 'recharts';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  empty: {
+    padding: '40px',
+  },
+});
 
 export interface ChartCardProps {
   title: React.ReactNode;
@@ -16,6 +23,8 @@ export interface ChartCardProps {
   size?: 'small' | 'default';
   /** 透传给 Card 的样式(如 marginTop/height:100%) */
   style?: React.CSSProperties;
+  /** 透传给 Card 的类名(stylex 样式类经此挂载) */
+  className?: string;
   /** 图表下方补充内容(在 Spin 内渲染,如「合计: N 单」) */
   footer?: React.ReactNode;
   children: React.ReactNode;
@@ -34,13 +43,14 @@ const ChartCard: React.FC<ChartCardProps> = ({
   emptyText = '暂无数据',
   size,
   style,
+  className,
   footer,
   children,
 }) => (
-  <Card title={title} extra={extra} size={size} style={style}>
+  <Card title={title} extra={extra} size={size} style={style} className={className}>
     <Spin spinning={loading}>
       {empty ? (
-        <Empty description={emptyText} style={{ padding: 40 }} />
+        <Empty description={emptyText} {...stylex.props(styles.empty)} />
       ) : (
         <>
           <ResponsiveContainer width="100%" height={height}>

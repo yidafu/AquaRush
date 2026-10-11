@@ -1,6 +1,16 @@
 import React from 'react';
 import { Row, Col } from 'antd';
 import StatisticsCard from '@/components/StatisticsCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  summaryRow: {
+    marginTop: '24px',
+  },
+  detailRow: {
+    marginTop: '16px',
+  },
+});
 
 export interface RevenueSummaryCardsProps {
   loading: boolean;
@@ -26,7 +36,7 @@ const RevenueSummaryCards: React.FC<RevenueSummaryCardsProps> = ({
   refundRate,
 }) => (
   <>
-    <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+    <Row gutter={[16, 16]} {...stylex.props(styles.summaryRow)}>
       <Col xs={24} sm={12} lg={8}>
         <StatisticsCard
           title="营收总额"
@@ -58,7 +68,7 @@ const RevenueSummaryCards: React.FC<RevenueSummaryCardsProps> = ({
 
     {/* 退款/净营收维度(PRD F-STA-002,G01 支付链路落地后补充):退款金额 = payment_refunds status=COMPLETED,
         净营收 = 营收 − 退款金额,与退款记录一致;退款率 = 退款金额 / 营收总额,营收为 0 时显示「—」 */}
-    <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+    <Row gutter={[16, 16]} {...stylex.props(styles.detailRow)}>
       <Col xs={24} sm={12} lg={8}>
         <StatisticsCard
           title="退款金额"

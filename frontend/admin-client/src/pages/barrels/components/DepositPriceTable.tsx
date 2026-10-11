@@ -2,9 +2,22 @@ import React from 'react';
 import { Space, Select, Input, Button, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { DepositPrice } from '../../../types/barrel';
 import { DEPOSIT_PRICE_STATUS_MAP } from './constants';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  filterRow: {
+    marginBottom: '16px',
+  },
+  statusSelect: {
+    width: '140px',
+  },
+  search: {
+    width: '200px',
+  },
+});
 
 export interface DepositPriceTableProps {
   dataSource: DepositPrice[];
@@ -83,11 +96,11 @@ const DepositPriceTable: React.FC<DepositPriceTableProps> = ({
 
   return (
     <>
-      <Space style={{ marginBottom: 16 }} wrap>
+      <Space {...stylex.props(styles.filterRow)} wrap>
         <Select
           allowClear
           placeholder="状态筛选"
-          style={{ width: 140 }}
+          {...stylex.props(styles.statusSelect)}
           value={statusFilter}
           onChange={onStatusFilterChange}
           options={Object.entries(DEPOSIT_PRICE_STATUS_MAP).map(([value, info]) => ({
@@ -98,7 +111,7 @@ const DepositPriceTable: React.FC<DepositPriceTableProps> = ({
         <Input.Search
           allowClear
           placeholder="按规格搜索"
-          style={{ width: 200 }}
+          {...stylex.props(styles.search)}
           onSearch={(value) => onKeywordChange(value.trim())}
         />
         <Button onClick={onRefresh}>刷新</Button>

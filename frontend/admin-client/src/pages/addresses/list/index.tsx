@@ -3,6 +3,7 @@ import { Card, Button, Space, Input, message } from 'antd';
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd/es/table';
 import { useQuery, useMutation } from '@apollo/client';
+import * as stylex from '@stylexjs/stylex';
 import { SEARCH_ALL_ADDRESSES_QUERY } from '../../../graphql/queries/address.graphql';
 import {
   CREATE_ADDRESS_MUTATION,
@@ -14,6 +15,21 @@ import { AddressTable } from '../components/AddressTable';
 import { AddressForm } from '../components/AddressForm';
 import { AddressImport } from '../components/AddressImport';
 import type { Address, AddressFormData, AddressInput } from '../components/types';
+
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  filterRow: {
+    marginBottom: '16px',
+  },
+  search: {
+    width: '260px',
+  },
+});
 
 const AddressListPage: React.FC = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -135,13 +151,13 @@ const AddressListPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <Card>
-        <Space style={{ marginBottom: 16 }}>
+        <Space {...stylex.props(styles.filterRow)}>
           <Input.Search
             placeholder="搜索收货人/手机号/详细地址"
             allowClear
-            style={{ width: 260 }}
+            {...stylex.props(styles.search)}
             onSearch={handleSearch}
           />
           <Button

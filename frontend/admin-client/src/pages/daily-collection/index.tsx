@@ -5,6 +5,8 @@ import { DAILY_COLLECTION_PAGE_DATA_QUERY } from '../../graphql/queries/daily-co
 import { CONFIRM_DAILY_COLLECTION, REJECT_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql';
 import type { DailyCollectionRecord, DailyReconciliation } from '../../types/daily-collection';
 import dayjs from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import {
   DailyCollectionStats,
   CollectionTable,
@@ -14,6 +16,29 @@ import {
 } from './components';
 
 const PAGE_SIZE = 10;
+
+// .page-title(index.css 自研类)内联进组件;原 margin: 0 拆 longhand,
+// 再叠加原内联 marginBottom 24px
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '24px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  titleTag: {
+    marginLeft: '12px',
+  },
+  full: {
+    width: '100%',
+  },
+  filterRow: {
+    marginBottom: '16px',
+  },
+});
 
 const DailyCollectionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('collections')
@@ -189,13 +214,13 @@ const DailyCollectionPage: React.FC = () => {
 
   return (
     <div>
-      <h2 className="page-title" style={{ marginBottom: 24 }}>
+      <h2 {...stylex.props(styles.pageTitle)}>
         收银对账管理
-        <Tag style={{ marginLeft: 12 }} color="blue">
+        <Tag {...stylex.props(styles.titleTag)} color="blue">
           {summary ? `${summary.collectionDate} 已提交日报 ${summary.totalSubmittedCount} 人` : '汇总加载中'}
         </Tag>
       </h2>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space direction="vertical" {...stylex.props(styles.full)} size="large">
         {/* 统计卡片 */}
         <DailyCollectionStats stats={todayStats} />
 
@@ -203,7 +228,7 @@ const DailyCollectionPage: React.FC = () => {
         <Card>
           <Tabs activeKey={activeTab} onChange={setActiveTab}>
             <Tabs.TabPane tab="每日收款记录" key="collections">
-              <Space style={{ marginBottom: 16 }}>
+              <Space {...stylex.props(styles.filterRow)}>
                 <DatePicker
                   placeholder="按收款日期筛选"
                   allowClear

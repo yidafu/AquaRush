@@ -2,8 +2,16 @@ import React from 'react';
 import { Select, DatePicker, Space } from 'antd';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 
 const { RangePicker } = DatePicker;
+
+// marginTop / marginBottom 依赖 props,保留 style={{ }} 动态注入
+const styles = stylex.create({
+  select: {
+    width: '120px',
+  },
+});
 
 /** 日期粒度(统计页共用;与 statistics/data.ts、statistics/orders/data.ts 的 Granularity 结构一致) */
 export type StatisticsGranularity = 'DAY' | 'WEEK' | 'MONTH';
@@ -48,7 +56,11 @@ const StatisticsFilters: React.FC<StatisticsFiltersProps> = ({
 }) => (
   <Space style={{ marginTop, marginBottom }} wrap>
     <span>日期粒度:</span>
-    <Select value={granularity} onChange={onGranularityChange} style={{ width: 120 }}>
+    <Select
+      value={granularity}
+      onChange={onGranularityChange}
+      {...stylex.props(styles.select)}
+    >
       <Select.Option value="DAY">按日</Select.Option>
       <Select.Option value="WEEK">按周</Select.Option>
       <Select.Option value="MONTH">按月</Select.Option>

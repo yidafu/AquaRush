@@ -3,9 +3,50 @@ import { Card, Image, Typography, Space, List, Tag } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useOrderDetail } from '../OrderDetailContext';
 import { displayCents } from '@aquarush/common';
-import { BRAND_PRIMARY, TEXT_SECONDARY } from '../../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+  itemRow: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '16px',
+    width: '100%',
+  },
+  cover: {
+    objectFit: 'cover',
+    borderRadius: '8px',
+  },
+  placeholder: {
+    width: '64px',
+    height: '64px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.bg,
+    borderRadius: '8px',
+  },
+  placeholderIcon: {
+    fontSize: '20px',
+    color: tokens.textSub,
+  },
+  main: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+  },
+  priceCol: {
+    textAlign: 'right',
+  },
+  price: {
+    color: tokens.brand,
+  },
+});
 
 /**
  * 商品信息卡(F-ORD-004 多商品下单:展示订单商品明细 items,随单快照)
@@ -25,7 +66,7 @@ const ProductInfoCard: React.FC = () => {
           商品信息{items.length > 1 ? '（共' + items.length + '种）' : ''}
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       {items.length === 0 ? (
         <Text type="secondary">暂无商品信息</Text>
@@ -34,31 +75,21 @@ const ProductInfoCard: React.FC = () => {
           dataSource={items}
           renderItem={(item) => (
             <List.Item>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
+              <div {...stylex.props(styles.itemRow)}>
                 {item.product?.coverImageUrl ? (
                   <Image
                     src={item.product.coverImageUrl}
                     alt={item.product.name}
                     width={64}
                     height={64}
-                    style={{ objectFit: 'cover', borderRadius: '8px' }}
+                    {...stylex.props(styles.cover)}
                   />
                 ) : (
-                  <div
-                    style={{
-                      width: 64,
-                      height: 64,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#F5F7FA',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    <ShoppingCartOutlined style={{ fontSize: 20, color: TEXT_SECONDARY }} />
+                  <div {...stylex.props(styles.placeholder)}>
+                    <ShoppingCartOutlined {...stylex.props(styles.placeholderIcon)} />
                   </div>
                 )}
-                <div style={{ flex: 1 }}>
+                <div {...stylex.props(styles.main)}>
                   <Space>
                     <Text strong>{item.product?.name || '商品'}</Text>
                     {item.product?.specification && (
@@ -69,9 +100,9 @@ const ProductInfoCard: React.FC = () => {
                     <Text type="secondary">商品ID: {item.productId}</Text>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
+                <div {...stylex.props(styles.priceCol)}>
                   <div>
-                    <Text strong style={{ color: BRAND_PRIMARY }}>
+                    <Text strong {...stylex.props(styles.price)}>
                       {displayCents(Number(item.unitPriceCents) || 0)}
                     </Text>
                     <Text type="secondary"> × {item.quantity}</Text>

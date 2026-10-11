@@ -11,6 +11,13 @@ import {
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+});
 
 export interface MarketingOrderPoint {
   date: string;
@@ -35,7 +42,7 @@ const MarketingOrderTrendChart: React.FC<MarketingOrderTrendChartProps> = ({ dat
       height={320}
       empty={!hasData}
       emptyText="所选范围暂无营销订单数据"
-      style={{ marginTop: 24 }}
+      {...stylex.props(styles.chartCard)}
     >
       <ComposedChart data={data} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />

@@ -10,6 +10,37 @@ import {
 } from '@aquarush/common';
 import type { FeedbackVo } from '@aquarush/common';
 import { getToneColor } from '../../../../constants/status';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  desc: {
+    marginBottom: '16px',
+  },
+  blockTitle: {
+    marginBottom: '8px',
+  },
+  contentBlock: {
+    whiteSpace: 'pre-wrap',
+    // 反馈内容底色 #fafafa 为本弹窗局部色值,共享 token 无对应项
+    backgroundColor: '#fafafa',
+    paddingTop: '12px',
+    paddingRight: '12px',
+    paddingBottom: '12px',
+    paddingLeft: '12px',
+    borderRadius: '6px',
+  },
+  gallery: {
+    marginBottom: '16px',
+  },
+  thumb: {
+    objectFit: 'cover',
+    borderRadius: '6px',
+  },
+  handledNote: {
+    display: 'block',
+    marginBottom: '12px',
+  },
+});
 
 const { TextArea } = Input;
 
@@ -65,7 +96,7 @@ const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCanc
     >
       {record && (
         <>
-          <Descriptions size="small" column={2} style={{ marginBottom: 16 }}>
+          <Descriptions size="small" column={2} {...stylex.props(styles.desc)}>
             <Descriptions.Item label="类型">
               <Tag color="blue">{FEEDBACK_TYPE_LABELS[record.feedbackType] ?? record.feedbackType}</Tag>
             </Descriptions.Item>
@@ -78,22 +109,22 @@ const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCanc
             <Descriptions.Item label="提交时间">{formatDateTime(record.createdAt)}</Descriptions.Item>
           </Descriptions>
 
-          <Typography.Paragraph strong style={{ marginBottom: 8 }}>
+          <Typography.Paragraph strong {...stylex.props(styles.blockTitle)}>
             反馈内容
           </Typography.Paragraph>
-          <Typography.Paragraph style={{ whiteSpace: 'pre-wrap', background: '#fafafa', padding: 12, borderRadius: 6 }}>
+          <Typography.Paragraph {...stylex.props(styles.contentBlock)}>
             {record.content}
           </Typography.Paragraph>
 
           {record.images && record.images.length > 0 && (
             <>
-              <Typography.Paragraph strong style={{ marginBottom: 8 }}>
+              <Typography.Paragraph strong {...stylex.props(styles.blockTitle)}>
                 反馈图片({record.images.length})
               </Typography.Paragraph>
               <Image.PreviewGroup>
-                <Space wrap style={{ marginBottom: 16 }}>
+                <Space wrap {...stylex.props(styles.gallery)}>
                   {record.images.map((url, index) => (
-                    <Image key={index} src={url} width={100} height={100} style={{ objectFit: 'cover', borderRadius: 6 }} />
+                    <Image key={index} src={url} width={100} height={100} {...stylex.props(styles.thumb)} />
                   ))}
                 </Space>
               </Image.PreviewGroup>
@@ -101,7 +132,7 @@ const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCanc
           )}
 
           {record.handledByName && (
-            <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+            <Typography.Text type="secondary" {...stylex.props(styles.handledNote)}>
               已于 {record.handledAt ? formatDateTime(record.handledAt) : '—'} 由 {record.handledByName} 处理
             </Typography.Text>
           )}

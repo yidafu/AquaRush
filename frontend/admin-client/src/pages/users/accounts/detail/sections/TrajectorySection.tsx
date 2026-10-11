@@ -30,6 +30,51 @@ import {
   GET_DELIVERY_WORKER_LATEST_LOCATION_QUERY,
 } from '../../../../../graphql/queries/trajectory.graphql';
 import { COLOR_ERROR, COLOR_SUCCESS } from '../../../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+const styles = stylex.create({
+  row: {
+    marginBottom: '16px',
+  },
+  smText: {
+    fontSize: tokens.fsNote,
+  },
+  smParagraph: {
+    fontSize: tokens.fsNote,
+    marginBottom: '0px',
+  },
+  mapCard: {
+    marginTop: '16px',
+    overflow: 'hidden',
+  },
+  empty: {
+    paddingTop: '48px',
+    paddingBottom: '48px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+  },
+  mapWrap: {
+    position: 'relative',
+    height: '420px',
+  },
+  legend: {
+    position: 'absolute',
+    bottom: '8px',
+    left: '8px',
+    // 局部色值:地图图例半透明黑底,token 无对应色
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    color: tokens.onBrand,
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    paddingLeft: '8px',
+    paddingRight: '8px',
+    borderRadius: '4px',
+    fontSize: tokens.fsNote,
+    zIndex: 1000,
+    pointerEvents: 'none',
+  },
+});
 
 const { RangePicker } = DatePicker;
 
@@ -130,7 +175,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
 
   return (
     <Card title="配送轨迹">
-      <Row gutter={16} style={{ marginBottom: 16 }} align="middle">
+      <Row {...stylex.props(styles.row)} gutter={16} align="middle">
         <Col>
           <Space>
             <Typography.Text strong>时间范围:</Typography.Text>
@@ -186,7 +231,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
                 <Statistic
                   title="时间范围"
                   valueRender={() => (
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    <Typography.Text {...stylex.props(styles.smText)} type="secondary">
                       {range[0]?.slice(0, 10)} ~ {range[1]?.slice(0, 10)}
                     </Typography.Text>
                   )}
@@ -194,7 +239,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
               </Col>
             </Row>
             {isDelivering ? (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              <Typography.Text {...stylex.props(styles.smText)} type="secondary">
                 <SyncOutlined spin /> 存在配送中订单,位置持续更新
               </Typography.Text>
             ) : null}
@@ -202,18 +247,18 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
         </Col>
         <Col span={8}>
           <Card size="small" title="说明">
-            <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
+            <Typography.Paragraph {...stylex.props(styles.smParagraph)} type="secondary">
               轨迹点来自配送中订单每 5s 上报(F-ADR-012),蓝色折线为选中时间范围内按订单关联的配送轨迹;无轨迹时展示空态。
             </Typography.Paragraph>
           </Card>
         </Col>
       </Row>
 
-      <Card size="small" style={{ marginTop: 16, overflow: 'hidden' }}>
+      <Card {...stylex.props(styles.mapCard)} size="small">
         {points.length === 0 && !latest ? (
-          <Empty description="该账号暂无配送轨迹" style={{ padding: '48px 0' }} />
+          <Empty {...stylex.props(styles.empty)} description="该账号暂无配送轨迹" />
         ) : (
-          <div style={{ position: 'relative', height: 420 }}>
+          <div {...stylex.props(styles.mapWrap)}>
             <MapLibreMap
               center={mapCenter}
               zoom={14}
@@ -221,20 +266,7 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
               markers={mapMarkers}
               lines={mapLines}
             />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 8,
-                left: 8,
-                background: 'rgba(0,0,0,0.6)',
-                color: '#fff',
-                padding: '4px 8px',
-                borderRadius: 4,
-                fontSize: 12,
-                zIndex: 1000,
-                pointerEvents: 'none',
-              }}
-            >
+            <div {...stylex.props(styles.legend)}>
               <EnvironmentOutlined /> {mapCenter.lat.toFixed(4)}, {mapCenter.lng.toFixed(4)} · 共 {points.length} 个轨迹点
             </div>
           </div>

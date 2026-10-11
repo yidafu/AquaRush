@@ -3,6 +3,19 @@ import { Card, Form, Input, Button, TimePicker, Alert, Space } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { SingleImageUpload } from '../../../components/ImageUpload';
 import { useStoreProfile, useSaveStoreProfile } from '../../../services/ops-graphql';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  form: {
+    maxWidth: '560px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 店铺信息配置页(F-OPS-004):单行配置表单,回显当前配置,保存后用户端关于页/反馈页动态读取
 const StoreProfile: React.FC = () => {
@@ -54,10 +67,10 @@ const StoreProfile: React.FC = () => {
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 24 }}
+        {...stylex.props(styles.alert)}
         message="保存后立即生效:用户端关于页/意见反馈页将动态读取以下信息;未配置时用户端按默认值展示。每次修改留审计日志。"
       />
-      <Form form={form} layout="vertical" style={{ maxWidth: 560 }} preserve={false}>
+      <Form form={form} layout="vertical" {...stylex.props(styles.form)} preserve={false}>
         <Form.Item
           name="shopName"
           label="店铺名称"
@@ -85,7 +98,7 @@ const StoreProfile: React.FC = () => {
           <Input placeholder="如 400-800-8888" />
         </Form.Item>
         <Form.Item name="businessHours" label="营业时间">
-          <TimePicker.RangePicker format="HH:mm" style={{ width: '100%' }} />
+          <TimePicker.RangePicker format="HH:mm" {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item
           name="shopIntro"

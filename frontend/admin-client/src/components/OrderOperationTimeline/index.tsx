@@ -11,8 +11,28 @@ import {
   SafetyOutlined,
 } from '@ant-design/icons';
 import JsonViewer from '../JsonViewer';
+import * as stylex from '@stylexjs/stylex';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  item: {
+    paddingBottom: '8px',
+  },
+  itemHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '8px',
+    rowGap: '8px',
+    marginBottom: '4px',
+  },
+  metaRow: {
+    marginTop: '4px',
+  },
+  time: {
+    fontSize: '12px',
+  },
+});
 
 // 操作类型到图标和颜色的映射
 const OPERATION_CONFIG: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
@@ -176,8 +196,8 @@ const OrderOperationTimeline: React.FC<OrderOperationTimelineProps> = ({ operati
             color: config.color,
             dot: config.icon,
             children: (
-              <div style={{ paddingBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <div {...stylex.props(styles.item)}>
+                <div {...stylex.props(styles.itemHeader)}>
                   <Text strong>{config.label}</Text>
                   {operatorTag && (
                     <Tag color={operatorTag.color}>{operatorTag.text}</Tag>
@@ -187,12 +207,12 @@ const OrderOperationTimeline: React.FC<OrderOperationTimelineProps> = ({ operati
                   <Text type="secondary">{operation.description}</Text>
                 )}
                 {extraDataObj && (
-                  <div style={{ marginTop: '4px' }}>
+                  <div {...stylex.props(styles.metaRow)}>
                     <JsonViewer value={extraDataObj} maxHeight={200} defaultExpandLevel={0} />
                   </div>
                 )}
-                <div style={{ marginTop: '4px' }}>
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                <div {...stylex.props(styles.metaRow)}>
+                  <Text type="secondary" {...stylex.props(styles.time)}>
                     {formatTime(operation.createdAt)}
                   </Text>
                 </div>

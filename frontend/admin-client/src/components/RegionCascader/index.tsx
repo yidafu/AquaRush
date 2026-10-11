@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Cascader, Spin } from 'antd';
 import { useApolloClient } from '@apollo/client';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import type { Region } from '../../graphql/queries/region.graphql';
 import { GET_REGIONS_QUERY, useRegions } from '../../graphql/queries/region.graphql';
+
+const styles = stylex.create({
+  error: {
+    color: tokens.error,
+  },
+  cascader: {
+    width: '100%',
+  },
+});
 
 export interface RegionCascaderValue {
   province: string;
@@ -172,7 +183,7 @@ export const RegionCascader: React.FC<RegionCascaderProps> = ({
 
   if (error) {
     console.error('Failed to load regions:', error);
-    return <span style={{ color: 'red' }}>加载地区数据失败</span>;
+    return <span {...stylex.props(styles.error)}>加载地区数据失败</span>;
   }
 
   return (
@@ -190,7 +201,7 @@ export const RegionCascader: React.FC<RegionCascaderProps> = ({
         value: 'value',
         children: 'children',
       }}
-      style={{ width: '100%' }}
+      {...stylex.props(styles.cascader)}
       expandTrigger="hover"
     />
   );

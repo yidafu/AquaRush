@@ -12,6 +12,16 @@ import {
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+  productSelect: {
+    width: '200px',
+  },
+});
 
 const { RangePicker } = DatePicker;
 
@@ -39,13 +49,13 @@ const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
     title="日销量趋势"
     loading={loading}
     height={350}
-    style={{ marginTop: 24 }}
+    {...stylex.props(styles.chartCard)}
     extra={
       <Space>
         <Select
           placeholder="选择商品（可选）"
           allowClear
-          style={{ width: 200 }}
+          {...stylex.props(styles.productSelect)}
           value={selectedProductId}
           onChange={onProductChange}
           options={productList.map((p) => ({

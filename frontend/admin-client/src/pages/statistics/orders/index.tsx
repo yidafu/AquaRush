@@ -25,6 +25,30 @@ import {
   ValueDistributionBarChart,
   PeakHourBarChart,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  chartsRow: {
+    marginTop: '24px',
+  },
+});
 
 const OrderStatisticsPage: React.FC = () => {
   const [granularity, setGranularity] = useState<Granularity>('DAY');
@@ -157,8 +181,8 @@ const OrderStatisticsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 className="page-title">订单统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>订单统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -185,7 +209,7 @@ const OrderStatisticsPage: React.FC = () => {
 
       <TrendLineChart data={chartData} loading={loading} />
 
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.chartsRow)}>
         <StatusPieChart data={statusPieData} totalOrders={totalOrders} loading={loading} />
         <ValueDistributionBarChart data={valueDistributionData} totalOrders={totalOrders} loading={loading} />
         <PeakHourBarChart data={peakHourData} maxHourCount={maxHourCount} peakHourExtra={peakHourExtra} loading={loading} />

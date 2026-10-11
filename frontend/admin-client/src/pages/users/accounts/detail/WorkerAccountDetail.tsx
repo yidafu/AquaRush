@@ -8,6 +8,27 @@ import OrderRecordsSection from './OrderRecordsSection';
 import TrajectorySection from './sections/TrajectorySection';
 import DailyCollectionSection from './sections/DailyCollectionSection';
 import WorkerReviewSection from './sections/WorkerReviewSection';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+const styles = stylex.create({
+  backBar: {
+    marginBottom: '12px',
+  },
+  infoCard: {
+    marginBottom: '24px',
+  },
+  avatar: {
+    marginBottom: '16px',
+  },
+  statusLine: {
+    fontSize: tokens.fsNote,
+    marginBottom: '0px',
+  },
+  statusTag: {
+    marginLeft: '4px',
+  },
+});
 
 const { Paragraph } = Typography;
 
@@ -24,19 +45,19 @@ interface WorkerAccountDetailProps {
 const WorkerAccountDetail: React.FC<WorkerAccountDetailProps> = ({ record, onBack }) => {
   return (
     <div>
-      <div style={{ marginBottom: '12px' }}>
+      <div {...stylex.props(styles.backBar)}>
         <Button onClick={onBack}>← 返回账号列表</Button>
       </div>
 
       {/* 基本信息(纵向排列在页面顶部,不在 tabs 内) */}
-      <Card style={{ marginBottom: 24 }}>
+      <Card {...stylex.props(styles.infoCard)}>
         <Row gutter={24}>
           <Col span={4}>
             <Avatar
               size={120}
               src={record.avatarUrl || avatarFromName(record.name || '送水员')}
               icon={<UserOutlined />}
-              style={{ marginBottom: '16px' }}
+              {...stylex.props(styles.avatar)}
             />
           </Col>
           <Col span={20}>
@@ -68,9 +89,9 @@ const WorkerAccountDetail: React.FC<WorkerAccountDetailProps> = ({ record, onBac
                 {record.currentLocation || '未更新'}
               </Descriptions.Item>
             </Descriptions>
-            <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 0 }}>
+            <Paragraph {...stylex.props(styles.statusLine)} type="secondary">
               在线状态:
-              <Tag color={record.onlineStatus === 'ONLINE' ? 'success' : 'default'} style={{ marginLeft: 4 }}>
+              <Tag color={record.onlineStatus === 'ONLINE' ? 'success' : 'default'} {...stylex.props(styles.statusTag)}>
                 {record.onlineStatus === 'ONLINE' ? '在线' : '离线'}
               </Tag>
             </Paragraph>

@@ -2,11 +2,24 @@ import React from 'react';
 import { Space, Select, Button, Table, Tag, Tooltip, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { DepositRefundApplication } from '../../../types/barrel';
 import { REFUND_APPLICATION_STATUS_MAP } from './constants';
 import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  timeline: {
+    fontSize: '12px',
+  },
+  filterRow: {
+    marginBottom: '16px',
+  },
+  statusSelect: {
+    width: '140px',
+  },
+});
 
 export interface DepositRefundTableProps {
   dataSource: DepositRefundApplication[];
@@ -113,7 +126,7 @@ const DepositRefundTable: React.FC<DepositRefundTableProps> = ({
       key: 'timeline',
       width: 170,
       render: (_, record) => (
-        <span style={{ fontSize: 12 }}>
+        <span {...stylex.props(styles.timeline)}>
           {record.recoveredAt ? `回收: ${new Date(record.recoveredAt).toLocaleString('zh-CN')}` : ''}
           {record.recoveredAt && record.refundedAt ? <br /> : ''}
           {record.refundedAt ? `退还: ${new Date(record.refundedAt).toLocaleString('zh-CN')}` : ''}
@@ -150,11 +163,11 @@ const DepositRefundTable: React.FC<DepositRefundTableProps> = ({
 
   return (
     <>
-      <Space style={{ marginBottom: 16 }}>
+      <Space {...stylex.props(styles.filterRow)}>
         <Select
           allowClear
           placeholder="状态筛选"
-          style={{ width: 140 }}
+          {...stylex.props(styles.statusSelect)}
           value={statusFilter}
           onChange={onStatusFilterChange}
           options={Object.entries(REFUND_APPLICATION_STATUS_MAP).map(([value, info]) => ({

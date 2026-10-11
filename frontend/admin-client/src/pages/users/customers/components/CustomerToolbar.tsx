@@ -5,6 +5,31 @@ import { STATUS_MAPPINGS } from '../../components/types';
 import type { UserStatus } from '@aquarush/common';
 import type { CustomerGroupOption } from './SetCustomerGroupModal';
 import { NO_GROUP_VALUE } from './SetCustomerGroupModal';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  toolbar: {
+    marginBottom: '16px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  heading: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+  },
+  search: {
+    width: '220px',
+  },
+  groupSelect: {
+    width: '200px',
+  },
+  statusSelect: {
+    width: '160px',
+  },
+});
 
 export interface CustomerToolbarProps {
   groupFilter: string | undefined;
@@ -26,19 +51,19 @@ const CustomerToolbar: React.FC<CustomerToolbarProps> = ({
   onSearch,
   onAdd,
 }) => (
-  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div {...stylex.props(styles.toolbar)}>
     <Space>
-      <h3 style={{ margin: 0 }}>用户列表</h3>
+      <h3 {...stylex.props(styles.heading)}>用户列表</h3>
       <Input.Search
         placeholder="搜索昵称/手机号"
         allowClear
-        style={{ width: 220 }}
+        {...stylex.props(styles.search)}
         onSearch={onSearch}
       />
       <Select
         allowClear
         placeholder="筛选客户分组"
-        style={{ width: 200 }}
+        {...stylex.props(styles.groupSelect)}
         value={groupFilter}
         onChange={onGroupFilterChange}
         showSearch
@@ -51,7 +76,7 @@ const CustomerToolbar: React.FC<CustomerToolbarProps> = ({
       <Select
         allowClear
         placeholder="筛选账户状态"
-        style={{ width: 160 }}
+        {...stylex.props(styles.statusSelect)}
         value={statusFilter}
         onChange={onStatusFilterChange}
         options={(

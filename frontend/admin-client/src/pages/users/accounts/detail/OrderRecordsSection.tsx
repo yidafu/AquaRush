@@ -5,7 +5,22 @@ import { DELIVERY_WORKER_ORDERS_QUERY } from '../../../../graphql/queries/user.g
 import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { pagination } from '@/utils/table';
+
+// 局部色值 #999 为辅助信息灰字(手机号/数量/收货人),共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  sub: {
+    fontSize: '12px',
+    color: '#999',
+  },
+  filterWrap: {
+    marginBottom: '16px',
+  },
+  statusSelect: {
+    width: '160px',
+  },
+});
 
 interface OrderRecordsSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -91,7 +106,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       render: (nickname: string, record: OrderVo) => (
         <div>
           <div>{nickname || '未知用户'}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
+          <div {...stylex.props(styles.sub)}>
             {record.user?.phone}
           </div>
         </div>
@@ -107,7 +122,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
         return (
           <div>
             <div>{productNames.join('、') || '-'}</div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
+            <div {...stylex.props(styles.sub)}>
               数量: {quantity}
             </div>
           </div>
@@ -131,7 +146,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       render: (detailAddress: string, record: OrderVo) => (
         <div>
           <div>{detailAddress}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
+          <div {...stylex.props(styles.sub)}>
             {record.address?.receiverName} - {record.address?.phone}
           </div>
         </div>
@@ -162,12 +177,12 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
 
   return (
     <Card title="配送记录">
-      <div style={{ marginBottom: 16 }}>
+      <div {...stylex.props(styles.filterWrap)}>
         <Select
           value={statusFilter}
           onChange={handleStatusChange}
           options={STATUS_FILTER_OPTIONS}
-          style={{ width: 160 }}
+          {...stylex.props(styles.statusSelect)}
         />
       </div>
       <Table

@@ -1,6 +1,19 @@
 import React from 'react';
 import { Card, Col, Spin, Space, Button, Select, Slider, Typography } from 'antd';
 import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  stack: {
+    width: '100%',
+  },
+  speedSelect: {
+    width: '100px',
+  },
+  hint: {
+    fontSize: '12px',
+  },
+});
 
 export interface ReplayControlsCardProps {
   pointsCount: number;
@@ -31,7 +44,7 @@ const ReplayControlsCard: React.FC<ReplayControlsCardProps> = ({
     <Card size="small" title="轨迹回放">
       <Spin spinning={loading}>
         {pointsCount > 0 ? (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction="vertical" {...stylex.props(styles.stack)}>
             <Space>
               <Button
                 size="small"
@@ -43,7 +56,7 @@ const ReplayControlsCard: React.FC<ReplayControlsCardProps> = ({
               </Button>
               <Select
                 size="small"
-                style={{ width: 100 }}
+                {...stylex.props(styles.speedSelect)}
                 value={replaySpeed}
                 onChange={onSpeedChange}
                 options={[
@@ -61,7 +74,7 @@ const ReplayControlsCard: React.FC<ReplayControlsCardProps> = ({
               onChange={onSeek}
               tooltip={{ formatter: (v) => timeText(v ?? 0) }}
             />
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            <Typography.Text type="secondary" {...stylex.props(styles.hint)}>
               {playIndex >= 0 ? timeText(playIndex) : '点击「播放」按时间顺序回放轨迹'}
             </Typography.Text>
           </Space>

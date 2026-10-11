@@ -15,6 +15,30 @@ import {
   LoginTrendChart,
   OrderUserDistributionCard,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  loginRow: {
+    marginTop: '16px',
+  },
+});
 
 const UserStatisticsPage: React.FC = () => {
   const { data, loading, error, refetch } = useQuery<UserStatisticsData>(GET_USER_STATISTICS);
@@ -63,8 +87,8 @@ const UserStatisticsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 className="page-title">用户统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>用户统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -107,7 +131,7 @@ const UserStatisticsPage: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.loginRow)}>
         <Col xs={24} sm={12} lg={6}>
           <StatisticsCard
             title="今日登录"

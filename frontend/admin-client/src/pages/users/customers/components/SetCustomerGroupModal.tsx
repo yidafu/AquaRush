@@ -1,5 +1,17 @@
 import React from 'react';
 import { Modal, Select } from 'antd';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  hint: {
+    marginBottom: '8px',
+    // 局部色值:提示文案灰,token 无对应色
+    color: '#888888',
+  },
+  select: {
+    width: '100%',
+  },
+});
 
 // 未分组选项占位值(提交时转换为 null)
 export const NO_GROUP_VALUE = '__NONE__';
@@ -47,11 +59,11 @@ const SetCustomerGroupModal: React.FC<SetCustomerGroupModalProps> = ({
     destroyOnClose
     okText="确定"
   >
-    <div style={{ marginBottom: 8, color: '#888' }}>
+    <div {...stylex.props(styles.hint)}>
       设置用户所属客户分组,选择「未分组」将用户移出当前分组(即时生效)。
     </div>
     <Select
-      style={{ width: '100%' }}
+      {...stylex.props(styles.select)}
       value={selectedGroup}
       onChange={onSelectedGroupChange}
       showSearch

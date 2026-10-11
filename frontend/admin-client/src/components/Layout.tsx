@@ -10,6 +10,8 @@ import {
   theme,
 } from 'antd';
 import type { MenuProps } from 'antd';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { usePageViewTracking } from '../hooks/usePageViewTracking';
 import { userActionTracker } from '../utils/tracking';
 import { avatarFromName } from '@aquarush/common/utils';
@@ -50,6 +52,60 @@ import {
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
+
+// Header 背景/描边与内层 Layout 底色依赖 antd theme token,保留 style={{ }} 动态注入
+const styles = stylex.create({
+  root: {
+    minHeight: '100vh',
+  },
+  brand: {
+    height: '64px',
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '10px',
+    rowGap: '10px',
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '16px',
+    paddingRight: '16px',
+    color: tokens.onBrand,
+  },
+  brandLogo: {
+    width: '26px',
+    height: '26px',
+  },
+  brandName: {
+    fontSize: '16px',
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
+  },
+  header: {
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  userBox: {
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '8px',
+    rowGap: '8px',
+  },
+  content: {
+    marginTop: '24px',
+    marginBottom: '24px',
+    marginLeft: '24px',
+    marginRight: '24px',
+    paddingTop: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
+  },
+});
 
 /* ===================== 侧边栏菜单三分组(spec/design/_spec/_CONTRACT.md 侧边栏菜单 / 原型 admin/*.html) =====================
  * 「经营 / 客户与营销 / 平台」三分组,仅收录 App.tsx 已实现的路由;
@@ -378,11 +434,11 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <AntLayout style={{ minHeight: '100vh' }}>
+    <AntLayout {...stylex.props(styles.root)}>
       <Sider theme="dark">
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', color: '#fff' }}>
-          <img src="/aqua-rush-mark.svg" alt="AquaRush" style={{ width: 26, height: 26 }} />
-          <span style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap' }}>AquaRush 运营后台</span>
+        <div {...stylex.props(styles.brand)}>
+          <img src="/aqua-rush-mark.svg" alt="AquaRush" {...stylex.props(styles.brandLogo)} />
+          <span {...stylex.props(styles.brandName)}>AquaRush 运营后台</span>
         </div>
         <Menu
           theme="dark"
@@ -396,20 +452,17 @@ const Layout: React.FC = () => {
       </Sider>
       <AntLayout style={{ background: token.colorBgLayout }}>
         <Header
+          {...stylex.props(styles.header)}
           style={{
             background: token.colorBgContainer,
             borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            padding: '0 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
           }}
         >
           {crumbs.length > 0 && (
             <Breadcrumb items={crumbs.map((title) => ({ title }))} />
           )}
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div {...stylex.props(styles.userBox)}>
               <Avatar
                 src={userInfo.avatar || avatarFromName(userInfo.username || userInfo.nickname || '管理员')}
                 icon={<UserOutlined />}
@@ -419,7 +472,7 @@ const Layout: React.FC = () => {
           </Dropdown>
         </Header>
         {/* 灰底画布(spec/design/ui-design-system.md §2.3 colorBgLayout),内容白卡由页面内 Card 呈现 */}
-        <Content style={{ margin: 24, padding: 24 }}>
+        <Content {...stylex.props(styles.content)}>
           <Outlet />
         </Content>
       </AntLayout>

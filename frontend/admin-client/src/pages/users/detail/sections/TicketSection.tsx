@@ -10,6 +10,22 @@ import {
   formatDateTime,
 } from '@aquarush/common';
 import { getToneColor } from '../../../../constants/status';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  titleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    rowGap: '12px',
+    columnGap: '12px',
+  },
+  select: {
+    width: '130px',
+  },
+  ticketNo: {
+    fontFamily: 'monospace',
+  },
+});
 
 interface TicketSectionProps {
   userId: string;
@@ -51,7 +67,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({ userId }) => {
       dataIndex: 'ticketNo',
       key: 'ticketNo',
       width: 200,
-      render: (v: string) => (v ? <span style={{ fontFamily: 'monospace' }}>{v}</span> : '—'),
+      render: (v: string) => (v ? <span {...stylex.props(styles.ticketNo)}>{v}</span> : '—'),
     },
     {
       title: '票种名称',
@@ -94,13 +110,13 @@ const TicketSection: React.FC<TicketSectionProps> = ({ userId }) => {
   return (
     <Card
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div {...stylex.props(styles.titleRow)}>
           <span>桶水票</span>
           <Select
             value={statusFilter}
             onChange={setStatusFilter}
             options={STATUS_OPTIONS}
-            style={{ width: 130 }}
+            {...stylex.props(styles.select)}
             size="small"
           />
         </div>

@@ -16,6 +16,32 @@ import {
   buildCompositionData,
   MarketingUsageBreakdownTable,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  filterBar: {
+    marginTop: '16px',
+  },
+  errorAlert: {
+    marginTop: '24px',
+  },
+});
 
 const { RangePicker } = DatePicker;
 
@@ -78,8 +104,8 @@ const MarketingStatisticsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 className="page-title">营销统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>营销统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -89,7 +115,7 @@ const MarketingStatisticsPage: React.FC = () => {
         />
       </div>
 
-      <Space style={{ marginTop: 16 }} wrap>
+      <Space {...stylex.props(styles.filterBar)} wrap>
         <span>时间范围:</span>
         <RangePicker
           value={dateRange}
@@ -105,7 +131,7 @@ const MarketingStatisticsPage: React.FC = () => {
 
       {error && (
         <Alert
-          style={{ marginTop: 24 }}
+          {...stylex.props(styles.errorAlert)}
           type="error"
           showIcon
           message="数据加载失败"

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { GiftActivityType, PromotionScope } from '@aquarush/common';
 import type { CustomerGroupVo, GiftActivityVo } from '@aquarush/common';
@@ -8,6 +9,12 @@ import ProductSelect from '../../../../components/ProductSelect';
 import { useCustomerGroups } from '../../../../services/marketing-graphql';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
 export interface GiftFormPayload {
@@ -161,7 +168,7 @@ const GiftActivityFormModal: React.FC<Props> = ({ open, record, submitting, onCa
               },
             ]}
           >
-            <InputNumber min={0.01} max={99999} precision={2} placeholder="如 100" style={{ width: '100%' }} />
+            <InputNumber min={0.01} max={99999} precision={2} placeholder="如 100" {...stylex.props(styles.fullWidth)} />
           </Form.Item>
         ) : (
           <Form.Item
@@ -177,7 +184,7 @@ const GiftActivityFormModal: React.FC<Props> = ({ open, record, submitting, onCa
               },
             ]}
           >
-            <InputNumber min={1} max={999} precision={0} placeholder="如 5" style={{ width: '100%' }} />
+            <InputNumber min={1} max={999} precision={0} placeholder="如 5" {...stylex.props(styles.fullWidth)} />
           </Form.Item>
         )}
         <Form.Item name="scope" label="适用范围" rules={[{ required: true, message: '请选择适用范围' }]}>
@@ -214,10 +221,10 @@ const GiftActivityFormModal: React.FC<Props> = ({ open, record, submitting, onCa
             },
           ]}
         >
-          <InputNumber min={1} max={999} precision={0} placeholder="如 1" style={{ width: '100%' }} />
+          <InputNumber min={1} max={999} precision={0} placeholder="如 1" {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item name="timeWindow" label="活动时间" rules={[{ required: true, message: '请选择活动时间' }]}>
-          <RangePicker showTime style={{ width: '100%' }} />
+          <RangePicker showTime {...stylex.props(styles.fullWidth)} />
         </Form.Item>
       </Form>
     </Modal>

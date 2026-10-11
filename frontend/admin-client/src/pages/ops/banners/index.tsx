@@ -13,6 +13,14 @@ import {
 } from '../../../services/ops-graphql';
 import BannerFormModal, { type BannerFormPayload } from './components/BannerFormModal';
 import { pagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  previewImg: {
+    objectFit: 'cover',
+    borderRadius: '6px',
+  },
+});
 
 // 轮播图管理页(F-OPS-001):列表/新建/编辑/删除/上移下移/启用停用
 const Banners: React.FC = () => {
@@ -101,7 +109,7 @@ const Banners: React.FC = () => {
       dataIndex: 'imageUrl',
       width: 140,
       render: (url: string) => (
-        <Image src={url} width={120} height={56} style={{ objectFit: 'cover', borderRadius: 6 }} />
+        <Image src={url} width={120} height={56} {...stylex.props(styles.previewImg)} />
       ),
     },
     { title: '标题', dataIndex: 'title', width: 160 },

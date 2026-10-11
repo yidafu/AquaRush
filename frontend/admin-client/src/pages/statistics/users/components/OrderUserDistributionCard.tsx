@@ -7,6 +7,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginTop: '24px',
+  },
+  caption: {
+    textAlign: 'center',
+    // #999:共享 token 无此色(图注辅助文字灰),按规则保留字面量
+    color: '#999',
+    fontSize: '13px',
+  },
+});
 
 export interface OrderTierSlice {
   name: string;
@@ -33,7 +46,7 @@ const OrderUserDistributionCard: React.FC<OrderUserDistributionCardProps> = ({
   totalUsers,
   loading,
 }) => (
-  <Card title="下单用户分布（近30天）" style={{ marginTop: 24 }}>
+  <Card title="下单用户分布（近30天）" {...stylex.props(styles.card)}>
     <Spin spinning={loading}>
       <Row gutter={[16, 16]} align="middle">
         <Col xs={24} lg={12}>
@@ -58,7 +71,7 @@ const OrderUserDistributionCard: React.FC<OrderUserDistributionCardProps> = ({
               />
             </PieChart>
           </ResponsiveContainer>
-          <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
+          <div {...stylex.props(styles.caption)}>
             按累计下单次数分层（近30天下单用户去重）
           </div>
         </Col>

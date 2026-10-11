@@ -1,6 +1,13 @@
 import React from 'react';
 import { Card, Col, Row, Statistic, Tag, Typography } from 'antd';
 import { SyncOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  hint: {
+    fontSize: '12px',
+  },
+});
 
 export interface TrajectoryStatsCardProps {
   pointsCount: number;
@@ -32,7 +39,7 @@ const TrajectoryStatsCard: React.FC<TrajectoryStatsCardProps> = ({
         </Col>
       </Row>
       {isDelivering ? (
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+        <Typography.Text type="secondary" {...stylex.props(styles.hint)}>
           <SyncOutlined spin /> 存在配送中订单,位置持续更新
         </Typography.Text>
       ) : null}

@@ -1,9 +1,16 @@
 import React, { useEffect } from 'react';
 import { Form, Input, InputNumber, Select } from 'antd';
 import { centsToYuan } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { DepositPrice } from '../../../types/barrel';
 import FormModal from '@/components/FormModal';
 import { DEPOSIT_PRICE_STATUS_MAP } from './constants';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 export interface DepositPriceFormValues {
   specification: string;
@@ -79,7 +86,7 @@ const DepositPriceFormModal: React.FC<DepositPriceFormModalProps> = ({
           label="押金(元)"
           rules={[{ required: true, message: '请输入押金金额' }]}
         >
-          <InputNumber min={0} max={99999} precision={2} style={{ width: '100%' }} placeholder="循环水桶押金,如 40" />
+          <InputNumber min={0} max={99999} precision={2} {...stylex.props(styles.fullWidth)} placeholder="循环水桶押金,如 40" />
         </Form.Item>
         <Form.Item name="status" label="状态">
           <Select
@@ -90,7 +97,7 @@ const DepositPriceFormModal: React.FC<DepositPriceFormModalProps> = ({
           />
         </Form.Item>
         <Form.Item name="sortOrder" label="排序权重(升序)">
-          <InputNumber min={0} max={9999} style={{ width: '100%' }} placeholder="默认 999" />
+          <InputNumber min={0} max={9999} {...stylex.props(styles.fullWidth)} placeholder="默认 999" />
         </Form.Item>
       </Form>
     </FormModal>

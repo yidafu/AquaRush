@@ -1,10 +1,23 @@
 import React from 'react';
 import { Card, Space, Select, Input, DatePicker, Button, Segmented } from 'antd';
+import * as stylex from '@stylexjs/stylex';
 import { DOMAIN_OPTIONS, LOG_LEVEL_OPTIONS } from './constants';
 import type { BizLogFilters } from './constants';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+
+const styles = stylex.create({
+  filterCard: {
+    marginBottom: '16px',
+  },
+  width120: {
+    width: '120px',
+  },
+  width150: {
+    width: '150px',
+  },
+});
 
 export interface BusinessLogFiltersProps {
   filters: BizLogFilters;
@@ -26,12 +39,12 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
   onReset,
   onViewChange,
 }) => (
-  <Card style={{ marginBottom: 16 }}>
+  <Card {...stylex.props(styles.filterCard)}>
     <Space wrap>
       <Select
         placeholder="业务域"
         allowClear
-        style={{ width: 120 }}
+        {...stylex.props(styles.width120)}
         value={filters.domain}
         onChange={(value) => {
           // 业务域变更后操作类型联动重置
@@ -45,7 +58,7 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
       <Select
         placeholder="操作类型"
         allowClear
-        style={{ width: 150 }}
+        {...stylex.props(styles.width150)}
         value={filters.operationType}
         onChange={(value) => onChange({ operationType: value })}
       >
@@ -56,7 +69,7 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
       <Select
         placeholder="日志级别"
         allowClear
-        style={{ width: 120 }}
+        {...stylex.props(styles.width120)}
         value={filters.level}
         onChange={(value) => onChange({ level: value })}
       >
@@ -67,7 +80,7 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
       <Input
         placeholder="用户ID"
         allowClear
-        style={{ width: 120 }}
+        {...stylex.props(styles.width120)}
         value={filters.userId}
         onChange={(e) => onChange({ userId: e.target.value ? Number(e.target.value) : undefined })}
       />

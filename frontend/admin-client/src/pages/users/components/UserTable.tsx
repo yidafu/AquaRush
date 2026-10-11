@@ -6,8 +6,15 @@ import { avatarFromName } from '@aquarush/common/utils';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
-import { BRAND_PRIMARY } from '../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  avatar: {
+    backgroundColor: tokens.brand,
+  },
+});
 
 interface UserTableProps extends TableActionProps {
   data: User[];
@@ -33,7 +40,7 @@ const UserTable: React.FC<UserTableProps> = ({
         <Avatar
           src={avatarUrl || avatarFromName(record.nickname || '用户')}
           size={40}
-          style={{ backgroundColor: BRAND_PRIMARY }}
+          {...stylex.props(styles.avatar)}
         >
           {record.nickname?.charAt(0)?.toUpperCase() || 'U'}
         </Avatar>

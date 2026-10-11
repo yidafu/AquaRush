@@ -3,6 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { PromotionActivityVo } from '@aquarush/common';
 import {
@@ -15,6 +16,12 @@ import PromotionFormModal, { type PromotionFormPayload } from './components/Prom
 import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  search: {
+    width: '220px',
+  },
+});
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
   FULL_REDUCE: '满减',
@@ -162,7 +169,7 @@ const Promotions: React.FC = () => {
           <Input.Search
             placeholder="搜索活动名称"
             allowClear
-            style={{ width: 220 }}
+            {...stylex.props(styles.search)}
             onSearch={(value) => {
               setKeyword(value);
               load(0, size, value);

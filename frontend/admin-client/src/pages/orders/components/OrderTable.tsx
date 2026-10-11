@@ -6,6 +6,15 @@ import { getOrderStatusConfig } from '../../../constants/order';
 import { toneToAntDColor } from '../../../constants/status';
 import AssignDeliveryButton from '../../../components/AssignDeliveryButton';
 import type { OrderData, DeliveryWorkerOption } from '../types';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  phone: {
+    fontSize: '12px',
+    // 辅助电话灰字 #999 为本表格局部色值,共享 token 无对应项
+    color: '#999',
+  },
+});
 
 export interface OrderTableProps {
   dataSource: OrderData[];
@@ -50,7 +59,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
       render: (_: unknown, record: OrderData) => (
         <Space direction="vertical" size={0}>
           <span>{record.user?.nickname || '-'}</span>
-          <span style={{ fontSize: '12px', color: '#999' }}>{record.user?.phone || '-'}</span>
+          <span {...stylex.props(styles.phone)}>{record.user?.phone || '-'}</span>
         </Space>
       ),
     },
@@ -91,7 +100,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
         record.deliveryWorker ? (
           <Space direction="vertical" size={0}>
             <span>{record.deliveryWorker.name || '-'}</span>
-            <span style={{ fontSize: '12px', color: '#999' }}>{record.deliveryWorker.phone || '-'}</span>
+            <span {...stylex.props(styles.phone)}>{record.deliveryWorker.phone || '-'}</span>
           </Space>
         ) : (
           '-'

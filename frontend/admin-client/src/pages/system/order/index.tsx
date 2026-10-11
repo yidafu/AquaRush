@@ -3,10 +3,33 @@ import { Card, Form, InputNumber, Switch, TimePicker, Button, Alert, Space, Divi
 import dayjs, { Dayjs } from 'dayjs';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 
 // 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单提醒,保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);已生成订单不受影响(快照原则,R-SYS-01)
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  form: {
+    maxWidth: '640px',
+  },
+  inputNumber: {
+    width: '100%',
+  },
+  slotRow: {
+    display: 'flex',
+    marginBottom: '16px',
+  },
+  slotLabel: {
+    width: '48px',
+  },
+  noFieldMargin: {
+    marginBottom: '0px',
+  },
+});
 
 interface SlotConfig {
   enabledKey: string;
@@ -131,10 +154,10 @@ const SystemOrderConfig: React.FC = () => {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 24 }}
+          {...stylex.props(styles.alert)}
           message="配置将影响新订单的履约流程,已生成订单不受影响;每次修改留审计日志。"
         />
-        <Form form={form} layout="vertical" style={{ maxWidth: 640 }}>
+        <Form form={form} layout="vertical" {...stylex.props(styles.form)}>
           <Divider plain>支付参数</Divider>
           <Form.Item
             name="paymentTimeoutMinutes"
@@ -142,7 +165,7 @@ const SystemOrderConfig: React.FC = () => {
             extra="支付超时后自动取消订单并恢复库存(R-ORD-04)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
 
           <Divider plain>配送时段</Divider>
@@ -151,24 +174,24 @@ const SystemOrderConfig: React.FC = () => {
             label="立即配送时限(分钟)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
 
           <Form.List name="slots">
             {() =>
               SLOTS.map((slot) => (
-                <Space key={slot.label} align="baseline" style={{ display: 'flex', marginBottom: 16 }} size="middle">
-                  <Typography.Text strong style={{ width: 48 }}>{slot.label}</Typography.Text>
+                <Space key={slot.label} align="baseline" {...stylex.props(styles.slotRow)} size="middle">
+                  <Typography.Text strong {...stylex.props(styles.slotLabel)}>{slot.label}</Typography.Text>
                   <Form.Item
                     name={[slot.label, 'enabled']}
                     valuePropName="checked"
-                    style={{ marginBottom: 0 }}
+                    {...stylex.props(styles.noFieldMargin)}
                   >
                     <Switch disabled={!canWrite} checkedChildren="启用" unCheckedChildren="停用" />
                   </Form.Item>
                   <Form.Item
                     name={[slot.label, 'range']}
-                    style={{ marginBottom: 0 }}
+                    {...stylex.props(styles.noFieldMargin)}
                     dependencies={[['slots', slot.label, 'enabled']]}
                     rules={[
                       () => ({
@@ -193,7 +216,7 @@ const SystemOrderConfig: React.FC = () => {
             label="派单超时提醒(分钟)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
-            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={1} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item>
             <Space>

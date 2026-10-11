@@ -24,6 +24,23 @@ import ReviewSection from './sections/ReviewSection';
 import FavoriteSection from './sections/FavoriteSection';
 import { UserBasicInfoCard, UserStatisticsCards, OrderHistoryTable } from './components';
 import type { UserDetailPageData } from './types';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  stateBox: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    textAlign: 'center',
+  },
+  page: {
+    minHeight: '100vh',
+  },
+  backBar: {
+    marginBottom: '12px',
+  },
+});
 
 /**
  * 用户详情页(users/:id,spec/prd/07-user.md §F-USR-022):
@@ -77,7 +94,7 @@ const UserDetailPage: React.FC = () => {
 
   if (userLoading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.stateBox)}>
         <Spin size="large" />
       </div>
     );
@@ -85,7 +102,7 @@ const UserDetailPage: React.FC = () => {
 
   if (userError || !user) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.stateBox)}>
         <h2>加载失败</h2>
         <p>无法获取用户信息</p>
         <Button type="primary" onClick={() => navigate('/users')}>
@@ -96,9 +113,9 @@ const UserDetailPage: React.FC = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div {...stylex.props(styles.page)}>
       {/* Header with back button */}
-      <div style={{ marginBottom: '12px' }}>
+      <div {...stylex.props(styles.backBar)}>
         <Button onClick={() => navigate('/users')}>
           ← 返回用户列表
         </Button>

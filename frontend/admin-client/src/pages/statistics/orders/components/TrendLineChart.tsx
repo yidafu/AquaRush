@@ -11,6 +11,13 @@ import {
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
 import type { TrendChartPoint } from '../data';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+});
 
 export interface TrendLineChartProps {
   data: TrendChartPoint[];
@@ -19,7 +26,7 @@ export interface TrendLineChartProps {
 
 /** 「订单与营收趋势」折线图(statistics/orders/index.tsx 拆分) */
 const TrendLineChart: React.FC<TrendLineChartProps> = ({ data, loading }) => (
-  <ChartCard title="订单与营收趋势" loading={loading} height={350} style={{ marginTop: 24 }}>
+  <ChartCard title="订单与营收趋势" loading={loading} height={350} {...stylex.props(styles.chartCard)}>
     <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="date" tick={{ fontSize: 12 }} />

@@ -5,6 +5,27 @@ import type { ApiLogItem } from '../../../../services/logs';
 import JsonViewer from '../../../../components/JsonViewer';
 import DetailModal from '@/components/DetailModal';
 import { copyText } from '@/utils/clipboard';
+import * as stylex from '@stylexjs/stylex';
+
+// 局部色值 red 为原有错误红,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  queryPre: {
+    maxHeight: '150px',
+    overflow: 'auto',
+    fontSize: '12px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-all',
+    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+  },
+  errorPre: {
+    maxHeight: '100px',
+    overflow: 'auto',
+    fontSize: '12px',
+    color: 'red',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+});
 
 export interface ApiLogDetailModalProps {
   log: ApiLogItem | null;
@@ -23,7 +44,7 @@ const ApiLogDetailModal: React.FC<ApiLogDetailModalProps> = ({ log, open, onClos
         <Descriptions.Item label="Query" span={2}>
           {log.query ? (
             <div>
-              <pre style={{ maxHeight: 150, overflow: 'auto', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}>
+              <pre {...stylex.props(styles.queryPre)}>
                 {log.query}
               </pre>
               <Button size="small" type="link" icon={<CopyOutlined />} onClick={() => copyText(log.query!)}>
@@ -53,7 +74,7 @@ const ApiLogDetailModal: React.FC<ApiLogDetailModalProps> = ({ log, open, onClos
         <Descriptions.Item label="错误信息" span={2}>
           {log.errorMessage ? (
             <div>
-              <pre style={{ maxHeight: 100, overflow: 'auto', fontSize: 12, color: 'red', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <pre {...stylex.props(styles.errorPre)}>
                 {log.errorMessage}
               </pre>
               <Button size="small" type="link" icon={<CopyOutlined />} onClick={() => copyText(log.errorMessage!)}>

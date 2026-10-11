@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useLazyQuery } from '@apollo/client';
+import * as stylex from '@stylexjs/stylex';
 import { displayCents, centsToYuan, yuanToCents } from '@aquarush/common';
 import type { CustomerGroupVo, GroupProductPriceVo, ProductVo } from '@aquarush/common';
 import { GET_PRODUCTS_QUERY } from '../../../graphql/queries/product.graphql';
@@ -11,6 +12,23 @@ import {
   useGroupProductPrices,
   useSaveGroupProductPrices,
 } from '../../../services/marketing-graphql';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+  priceInput: {
+    width: '150px',
+  },
+  groupSelect: {
+    width: '320px',
+  },
+  // 局部色值 #888 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+  batchHint: {
+    marginTop: '8px',
+    color: '#888',
+  },
+});
 
 interface PriceRow {
   productId: string;
@@ -131,7 +149,7 @@ const GroupPrices: React.FC = () => {
           max={99999}
           precision={2}
           placeholder="不设置=回退目录价"
-          style={{ width: 150 }}
+          {...stylex.props(styles.priceInput)}
           value={record.priceYuan}
           onChange={(value) => updateRowPrice(record.productId, value)}
         />
@@ -178,14 +196,14 @@ const GroupPrices: React.FC = () => {
         </Space>
       }
     >
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Space direction="vertical" size={16} {...stylex.props(styles.fullWidth)}>
         <Alert
           type="info"
           showIcon
           message="分组价仅对该客户分组内的用户生效;未设置分组价的商品自动使用目录价。保存时未填写的商品将清空其已配置分组价,回退目录价。"
         />
         <Select
-          style={{ width: 320 }}
+          {...stylex.props(styles.groupSelect)}
           placeholder="请选择客户分组"
           value={groupId ?? undefined}
           onChange={handleGroupChange}
@@ -216,11 +234,11 @@ const GroupPrices: React.FC = () => {
           max={99999}
           precision={2}
           placeholder="留空 = 清空全部分组价"
-          style={{ width: '100%' }}
+          {...stylex.props(styles.fullWidth)}
           value={batchPrice}
           onChange={(value) => setBatchPrice(value)}
         />
-        <div style={{ marginTop: 8, color: '#888' }}>将把同一分组价应用到当前列表的全部商品。</div>
+        <div {...stylex.props(styles.batchHint)}>将把同一分组价应用到当前列表的全部商品。</div>
       </Modal>
     </Card>
   );

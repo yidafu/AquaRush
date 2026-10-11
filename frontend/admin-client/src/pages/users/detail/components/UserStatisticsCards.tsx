@@ -3,6 +3,13 @@ import { Row, Col } from 'antd';
 import { ShoppingOutlined, DollarOutlined } from '@ant-design/icons';
 import StatisticsCard from '../../../../components/StatisticsCard';
 import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  row: {
+    marginBottom: '24px',
+  },
+});
 
 export interface UserStatisticsCardsProps {
   totalOrders: number;
@@ -20,7 +27,7 @@ const UserStatisticsCards: React.FC<UserStatisticsCardsProps> = ({
   completedOrders,
   averageAmountInYuan,
 }) => (
-  <Row gutter={16} style={{ marginBottom: '24px' }}>
+  <Row {...stylex.props(styles.row)} gutter={16}>
     <Col span={6}>
       <StatisticsCard
         title="总订单数"

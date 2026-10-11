@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Button, Space, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  uploadLabel: {
+    marginTop: '8px',
+  },
+  actions: {
+    marginTop: '8px',
+  },
+});
 
 interface ImageUploadProps {
   value?: string | string[];
@@ -160,12 +170,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const uploadButton = (
     <div>
       <PlusOutlined />
-      <div style={{ marginTop: 8 }}>上传图片</div>
+      <div {...stylex.props(styles.uploadLabel)}>上传图片</div>
     </div>
   );
 
   return (
-    <div className="image-upload">
+    <div>
       <Upload
         listType="picture-card"
         fileList={fileList}
@@ -198,7 +208,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       </Upload>
 
       {!multiple && value && (
-        <Space style={{ marginTop: 8 }}>
+        <Space {...stylex.props(styles.actions)}>
           <Button
             icon={<EyeOutlined />}
             size="small"

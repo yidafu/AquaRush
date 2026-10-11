@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { PromotionActivityType, PromotionScope } from '@aquarush/common';
 import type {
@@ -13,6 +14,24 @@ import ProductSelect from '../../../../components/ProductSelect';
 import { useCustomerGroups } from '../../../../services/marketing-graphql';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+  tierRow: {
+    display: 'flex',
+  },
+  itemNoMargin: {
+    marginBottom: '0px',
+  },
+  tierInput: {
+    width: '140px',
+  },
+  removeBtn: {
+    marginTop: '30px',
+  },
+});
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
 export interface PromotionFormPayload {
@@ -186,14 +205,14 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
           </Form.Item>
         )}
         <Form.Item name="timeWindow" label="活动时间" rules={[{ required: true, message: '请选择活动时间' }]}>
-          <RangePicker showTime style={{ width: '100%' }} />
+          <RangePicker showTime {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item label="优惠档位(门槛递增且互斥)" required>
           <Form.List name="tiers">
             {(fields, { add, remove }) => (
-              <Space direction="vertical" style={{ width: '100%' }}>
+              <Space direction="vertical" {...stylex.props(styles.fullWidth)}>
                 {fields.map((field) => (
-                  <Space key={field.key} align="start" style={{ display: 'flex' }}>
+                  <Space key={field.key} align="start" {...stylex.props(styles.tierRow)}>
                     <Form.Item
                       name={[field.name, 'thresholdYuan']}
                       rules={[
@@ -206,9 +225,9 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                         },
                       ]}
                       label="满(元)"
-                      style={{ marginBottom: 0 }}
+                      {...stylex.props(styles.itemNoMargin)}
                     >
-                      <InputNumber min={0.01} max={99999} precision={2} placeholder="如 100" style={{ width: 140 }} />
+                      <InputNumber min={0.01} max={99999} precision={2} placeholder="如 100" {...stylex.props(styles.tierInput)} />
                     </Form.Item>
                     {activityType === 'FULL_REDUCE' ? (
                       <Form.Item
@@ -223,9 +242,9 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                           },
                         ]}
                         label="减(元)"
-                        style={{ marginBottom: 0 }}
+                        {...stylex.props(styles.itemNoMargin)}
                       >
-                        <InputNumber min={0.01} max={99999} precision={2} placeholder="如 20" style={{ width: 140 }} />
+                        <InputNumber min={0.01} max={99999} precision={2} placeholder="如 20" {...stylex.props(styles.tierInput)} />
                       </Form.Item>
                     ) : (
                       <Form.Item
@@ -240,9 +259,9 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                           },
                         ]}
                         label="打(折)"
-                        style={{ marginBottom: 0 }}
+                        {...stylex.props(styles.itemNoMargin)}
                       >
-                        <InputNumber min={1} max={9.9} precision={1} step={0.1} placeholder="如 8.5" style={{ width: 140 }} />
+                        <InputNumber min={1} max={9.9} precision={1} step={0.1} placeholder="如 8.5" {...stylex.props(styles.tierInput)} />
                       </Form.Item>
                     )}
                     <Button
@@ -251,7 +270,7 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                       icon={<MinusCircleOutlined />}
                       disabled={fields.length <= 1}
                       onClick={() => remove(field.name)}
-                      style={{ marginTop: 30 }}
+                      {...stylex.props(styles.removeBtn)}
                     />
                   </Space>
                 ))}

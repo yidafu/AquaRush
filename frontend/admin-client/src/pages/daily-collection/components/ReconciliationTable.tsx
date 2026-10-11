@@ -2,9 +2,28 @@ import React from 'react';
 import { Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import type { DailyReconciliation } from '../../../types/daily-collection';
 import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './constants';
-import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
+
+const styles = stylex.create({
+  wrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16px',
+  },
+  actionsRow: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+  diffOk: {
+    color: tokens.success,
+  },
+  diffBad: {
+    color: tokens.error,
+  },
+});
 
 export interface ReconciliationTableProps {
   dataSource: DailyReconciliation[];
@@ -77,8 +96,11 @@ const ReconciliationTable: React.FC<ReconciliationTableProps> = ({
       key: 'discrepancyAmountCents',
       render: (cents: number | string) => {
         const value = Number(cents);
-        const color = Math.abs(value) <= 100 ? COLOR_SUCCESS : COLOR_ERROR;
-        return <span style={{ color }}>{displayCents(value)}</span>;
+        return (
+          <span {...stylex.props(Math.abs(value) <= 100 ? styles.diffOk : styles.diffBad)}>
+            {displayCents(value)}
+          </span>
+        );
       },
     },
     {
@@ -103,8 +125,8 @@ const ReconciliationTable: React.FC<ReconciliationTableProps> = ({
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="flex justify-end">
+    <div {...stylex.props(styles.wrap)}>
+      <div {...stylex.props(styles.actionsRow)}>
         <Button type="primary" onClick={onExecute} loading={executing}>
           手动执行对账
         </Button>

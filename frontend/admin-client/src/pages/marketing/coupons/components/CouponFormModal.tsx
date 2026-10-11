@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Form, Input, InputNumber, Select, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents, COUPON_TYPE_LABELS } from '@aquarush/common';
 import { CouponType, CouponScope, ValidityType, CouponIssuanceType } from '@aquarush/common';
 import type { CouponTemplateAdminVo } from '@aquarush/common';
@@ -8,6 +9,12 @@ import ProductSelect from '../../../../components/ProductSelect';
 import FormModal from '@/components/FormModal';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
 export interface CouponFormPayload {
@@ -177,7 +184,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
               },
             ]}
           >
-            <InputNumber min={0.01} max={99999} precision={2} style={{ width: '100%' }} placeholder="如 5" />
+            <InputNumber min={0.01} max={99999} precision={2} {...stylex.props(styles.fullWidth)} placeholder="如 5" />
           </Form.Item>
         ) : (
           <Form.Item
@@ -194,7 +201,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             ]}
             extra="输入如 8.5 代表 8.5 折(按原价的 85% 支付)"
           >
-            <InputNumber min={0.1} max={9.9} precision={1} step={0.1} style={{ width: '100%' }} placeholder="如 8.5" />
+            <InputNumber min={0.1} max={9.9} precision={1} step={0.1} {...stylex.props(styles.fullWidth)} placeholder="如 8.5" />
           </Form.Item>
         )}
         {couponType !== 'NO_THRESHOLD_CASH' && (
@@ -211,7 +218,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             ]}
             extra="订单实付金额需达到该值才可用;0 或留空 = 无门槛"
           >
-            <InputNumber min={0} max={99999} precision={2} style={{ width: '100%' }} placeholder="如 30" />
+            <InputNumber min={0} max={99999} precision={2} {...stylex.props(styles.fullWidth)} placeholder="如 30" />
           </Form.Item>
         )}
         <Form.Item name="scope" label="适用范围" rules={[{ required: true, message: '请选择适用范围' }]}>
@@ -227,7 +234,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
         </Form.Item>
         {validityType === 'FIXED_RANGE' ? (
           <Form.Item name="timeWindow" label="有效区间" rules={[{ required: true, message: '请选择有效区间' }]}>
-            <RangePicker showTime style={{ width: '100%' }} />
+            <RangePicker showTime {...stylex.props(styles.fullWidth)} />
           </Form.Item>
         ) : (
           <Form.Item
@@ -244,7 +251,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             ]}
             extra="用户领取后 N 天内有效"
           >
-            <InputNumber min={1} max={3650} precision={0} style={{ width: '100%' }} placeholder="如 7" />
+            <InputNumber min={1} max={3650} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 7" />
           </Form.Item>
         )}
         <Form.Item name="issuanceType" label="发放方式" rules={[{ required: true, message: '请选择发放方式' }]}>
@@ -263,7 +270,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             },
           ]}
         >
-          <InputNumber min={1} max={100} precision={0} style={{ width: '100%' }} placeholder="如 1" />
+          <InputNumber min={1} max={100} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 1" />
         </Form.Item>
       </Form>
     </FormModal>

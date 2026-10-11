@@ -23,6 +23,16 @@ import {
   useUpdateProductOption,
   useDeleteProductOption,
 } from '../../../services/product-graphql';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  infoAlert: {
+    marginBottom: '16px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 type OptionType = 'SPECIFICATION' | 'WATER_SOURCE';
 
@@ -182,7 +192,7 @@ const ProductOptionsPage: React.FC = () => {
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        {...stylex.props(styles.infoAlert)}
         message="商品新增/编辑表单的「规格」「水源地」下拉选项来源于本页配置(替换原前端硬编码候选)。禁用项不在商品表单下拉中展示,存量商品值仍正常回显;删除仅移除候选,不影响已引用该值的商品。"
       />
       <Tabs
@@ -231,7 +241,7 @@ const ProductOptionsPage: React.FC = () => {
             label="排序号"
             extra="同类型内按排序号升序展示,越小越靠前"
           >
-            <InputNumber min={0} precision={0} style={{ width: '100%' }} placeholder="缺省排到末尾" />
+            <InputNumber min={0} precision={0} {...stylex.props(styles.fullWidth)} placeholder="缺省排到末尾" />
           </Form.Item>
           <Form.Item name="enabled" label="启用" valuePropName="checked">
             <Switch />

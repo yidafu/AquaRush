@@ -2,7 +2,19 @@ import React, { useState } from 'react';
 import { Modal, Upload, Button, Table, Alert, Space, message } from 'antd';
 import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import * as stylex from '@stylexjs/stylex';
 import type { AddressInput, ExcelRowData } from './types';
+
+// 局部色值 #666 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  full: {
+    width: '100%',
+  },
+  hint: {
+    color: '#666',
+    fontSize: '12px',
+  },
+});
 
 interface AddressImportProps {
   visible: boolean;
@@ -250,7 +262,7 @@ export const AddressImport: React.FC<AddressImportProps> = ({
       ]}
       destroyOnClose
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      <Space direction="vertical" {...stylex.props(styles.full)} size="middle">
         <Space>
           <Upload
             accept=".xlsx,.xls"
@@ -300,7 +312,7 @@ export const AddressImport: React.FC<AddressImportProps> = ({
           </>
         )}
 
-        <div style={{ color: '#666', fontSize: '12px' }}>
+        <div {...stylex.props(styles.hint)}>
           <p>Excel 表头要求：收货人姓名、手机号、省、市、县、详细地址</p>
           <p>说明：导入的地址将不关联任何用户 (user_id 为 null)</p>
           <p>提示：点击「下载模板」按钮获取标准模板文件</p>

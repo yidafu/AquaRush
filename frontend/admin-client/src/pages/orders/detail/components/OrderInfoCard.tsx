@@ -5,6 +5,13 @@ import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import { displayCents, normalizeCents } from '@aquarush/common'
 import { getOrderStatusConfig } from '../../../../constants/order';
 import { toneToAntDColor } from '../../../../constants/status';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+});
 
 const OrderInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -21,7 +28,7 @@ const OrderInfoCard: React.FC = () => {
           订单信息
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
         <Descriptions.Item label="订单编号">{order.orderNo}</Descriptions.Item>

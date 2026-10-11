@@ -14,6 +14,24 @@ import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './con
 import { getOrderStatusConfig } from '../../../constants/order';
 import { getToneColor } from '../../../constants/status';
 import { COLOR_ERROR, COLOR_SUCCESS } from '../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+
+// 局部色值 #666 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  blockSpacing: {
+    marginTop: '16px',
+  },
+  detailBlock: {
+    marginTop: '24px',
+  },
+  detailTitle: {
+    marginBottom: '8px',
+  },
+  reviewed: {
+    marginTop: '16px',
+    color: '#666',
+  },
+});
 
 export interface ReconciliationDetailModalProps {
   open: boolean;
@@ -137,7 +155,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
               />
             </Col>
           </Row>
-          <Row gutter={16} style={{ marginTop: 16 }}>
+          <Row gutter={16} {...stylex.props(styles.blockSpacing)}>
             <Col span={12}>
               <Statistic
                 title="现金收款"
@@ -155,7 +173,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
               />
             </Col>
           </Row>
-          <Row gutter={16} style={{ marginTop: 16 }}>
+          <Row gutter={16} {...stylex.props(styles.blockSpacing)}>
             <Col span={12}>
               <Statistic
                 title="差异金额"
@@ -173,8 +191,8 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
           </Row>
 
           {/* G29 对账逐单差异明细:当日已送达订单流水,与日报系统计算值同源 */}
-          <div style={{ marginTop: 24 }}>
-            <h4 style={{ marginBottom: 8 }}>对账逐单明细(当日已送达订单)</h4>
+          <div {...stylex.props(styles.detailBlock)}>
+            <h4 {...stylex.props(styles.detailTitle)}>对账逐单明细(当日已送达订单)</h4>
             <Table<ReconciliationOrderDetail>
               columns={detailColumns}
               dataSource={orderDetails}
@@ -193,7 +211,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
           </div>
 
           {record.status !== 'REVIEWED' && (
-            <div style={{ marginTop: 16 }}>
+            <div {...stylex.props(styles.blockSpacing)}>
               <Form form={reviewForm}>
                 <Form.Item name="reviewNotes" label="复核备注">
                   <Input.TextArea rows={3} placeholder="请输入复核备注" />
@@ -202,7 +220,7 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
             </div>
           )}
           {record.reviewedAt && (
-            <div style={{ marginTop: 16, color: '#666' }}>
+            <div {...stylex.props(styles.reviewed)}>
               复核时间: {record.reviewedAt}
               <br />
               复核备注: {record.reviewNotes}

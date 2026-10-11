@@ -31,6 +31,43 @@ import { FloatingBubblingWall } from '../components/FloatingBubblingWall';
 import LiveProductPreview from './components/LiveProductPreview';
 import { uniq, toProductInput } from './form-utils';
 import { debounce } from '../../../utils/debounce';
+import * as stylex from '@stylexjs/stylex';
+
+// 原内联 padding: '24px' 单值拆 longhand
+const styles = stylex.create({
+  loadingBox: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    textAlign: 'center',
+  },
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  title: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+  },
+  previewCard: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  productIdText: {
+    fontSize: '12px',
+  },
+});
 
 const { Title, Text } = Typography;
 
@@ -125,7 +162,7 @@ const ProductFormPage: React.FC = () => {
 
   if (!isCreate && dataLoading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.loadingBox)}>
         <Spin size="large" tip="加载商品信息..." />
       </div>
     );
@@ -133,7 +170,7 @@ const ProductFormPage: React.FC = () => {
 
   if (!isCreate && (error || !data?.product)) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div {...stylex.props(styles.page)}>
         <Alert
           message="加载失败"
           description="商品信息加载失败，请稍后重试。"
@@ -154,19 +191,14 @@ const ProductFormPage: React.FC = () => {
   const pageTitle = isCreate ? '新增商品' : (isEdit ? '编辑商品' : product?.name || '商品详情');
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       {/* 页面头部:返回 + 标题 + 操作按钮 */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px'
-      }}>
+      <div {...stylex.props(styles.header)}>
         <Space>
           <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
             返回列表
           </Button>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title level={2} {...stylex.props(styles.title)}>
             {pageTitle}
           </Title>
         </Space>
@@ -237,11 +269,11 @@ const ProductFormPage: React.FC = () => {
                 产品数据预览
               </Space>
             }
-            style={{ position: 'relative', overflow: 'hidden' }}
+            {...stylex.props(styles.previewCard)}
             styles={{ body: { position: 'relative', zIndex: 2 } }}
             extra={
               !isCreate && product ? (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
+                <Text type="secondary" {...stylex.props(styles.productIdText)}>
                   商品ID: {product.id}
                 </Text>
               ) : undefined

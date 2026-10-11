@@ -3,8 +3,9 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';
-import { BRAND_PRIMARY } from '../../../config/theme';
 import type { FlashSaleActivityVo } from '@aquarush/common';
 import {
   useFlashSaleActivities,
@@ -16,6 +17,15 @@ import FlashSaleFormModal, { type FlashSaleFormPayload } from './components/Flas
 import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  search: {
+    width: '220px',
+  },
+  salePrice: {
+    color: tokens.brand,
+  },
+});
 
 const DISPLAY_STATUS_META: Record<string, { text: string; color: string }> = {
   UPCOMING: { text: '未开始', color: 'default' },
@@ -93,7 +103,7 @@ const FlashSale: React.FC = () => {
       dataIndex: 'salePriceCents',
       width: 110,
       render: (cents: number) => (
-        <Text strong style={{ color: BRAND_PRIMARY }}>
+        <Text strong {...stylex.props(styles.salePrice)}>
           {displayCents(cents)}
         </Text>
       ),
@@ -152,7 +162,7 @@ const FlashSale: React.FC = () => {
           <Input.Search
             placeholder="搜索活动名称"
             allowClear
-            style={{ width: 220 }}
+            {...stylex.props(styles.search)}
             onSearch={(value) => {
               setKeyword(value);
               load(0, size, value);

@@ -7,7 +7,14 @@ import {
   DollarOutlined,
 } from '@ant-design/icons';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
+
+const styles = stylex.create({
+  row: {
+    marginBottom: '24px',
+  },
+});
 
 interface DeliveryStatsCardsProps {
   totalOrders: number;
@@ -28,7 +35,7 @@ const DeliveryStatsCards: React.FC<DeliveryStatsCardsProps> = ({
   earningCents,
 }) => {
   return (
-    <Row gutter={16} style={{ marginBottom: 24 }}>
+    <Row gutter={16} {...stylex.props(styles.row)}>
       <Col span={6}>
         <Card>
           <Statistic
@@ -67,6 +74,8 @@ const DeliveryStatsCards: React.FC<DeliveryStatsCardsProps> = ({
             title="累计收入"
             value={earningCents ?? 0}
             prefix={<DollarOutlined />}
+            /* valueStyle 落在 .ant-statistic 内部元素,stylex 无法表达;
+               #722ed1 为累计收入强调紫,token 无对应值,保留字面量(报告 (a)) */
             valueStyle={{ color: '#722ed1' }}
             formatter={(value) => displayCents(Number(value))}
           />

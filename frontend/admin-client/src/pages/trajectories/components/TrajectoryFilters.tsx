@@ -1,9 +1,19 @@
 import React from 'react';
 import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import type { DeliveryWorkerVo } from '@aquarush/common';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+  workerSelect: {
+    width: '240px',
+  },
+});
 
 export interface TrajectoryFiltersProps {
   workers: readonly DeliveryWorkerVo[];
@@ -26,14 +36,14 @@ const TrajectoryFilters: React.FC<TrajectoryFiltersProps> = ({
   onRefresh,
   refreshDisabled,
 }) => (
-  <Card style={{ marginBottom: 16 }}>
+  <Card {...stylex.props(styles.card)}>
     <Row gutter={16} align="middle">
       <Col>
         <Space>
           <Typography.Text strong>送水工:</Typography.Text>
           <Select
             placeholder="选择送水工查看轨迹"
-            style={{ width: 240 }}
+            {...stylex.props(styles.workerSelect)}
             loading={workersLoading}
             value={selectedWorkerId}
             onChange={onWorkerChange}

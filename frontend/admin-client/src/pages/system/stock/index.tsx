@@ -2,10 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography, message } from 'antd';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 
 // 库存预警阈值配置页(F-SYS-003,R-PRO-02):低库存阈值 + 中档色阶阈值,保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);商品列表着色(F-PRO-006)与商品统计低库存明细(F-STA-006)按新阈值计算
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  form: {
+    maxWidth: '480px',
+  },
+  inputNumber: {
+    width: '100%',
+  },
+});
 
 interface StockConfigValues {
   lowStockThreshold?: number;
@@ -67,10 +80,10 @@ const SystemStockConfig: React.FC = () => {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 24 }}
+          {...stylex.props(styles.alert)}
           message="低库存阈值与色阶档位配置后,商品列表库存着色(F-PRO-006)与商品统计低库存预警明细(F-STA-006)按新阈值计算。每次修改留审计日志。"
         />
-        <Form form={form} layout="vertical" style={{ maxWidth: 480 }}>
+        <Form form={form} layout="vertical" {...stylex.props(styles.form)}>
           <Form.Item
             name="lowStockThreshold"
             label="低库存阈值(件)"
@@ -80,7 +93,7 @@ const SystemStockConfig: React.FC = () => {
               { type: 'number', min: 0, max: 99999, message: '阈值无效' },
             ]}
           >
-            <InputNumber style={{ width: '100%' }} min={0} max={99999} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={0} max={99999} precision={0} disabled={!canWrite} />
           </Form.Item>
           <Form.Item
             name="midThreshold"
@@ -101,7 +114,7 @@ const SystemStockConfig: React.FC = () => {
               }),
             ]}
           >
-            <InputNumber style={{ width: '100%' }} min={0} max={99999} precision={0} disabled={!canWrite} />
+            <InputNumber {...stylex.props(styles.inputNumber)} min={0} max={99999} precision={0} disabled={!canWrite} />
           </Form.Item>
 
           <Form.Item>

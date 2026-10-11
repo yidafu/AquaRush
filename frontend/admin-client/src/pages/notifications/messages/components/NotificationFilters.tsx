@@ -1,10 +1,29 @@
 import React from 'react';
 import { Select, Input, DatePicker, Space, Button } from 'antd';
 import type { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { TYPE_LABELS, RECEIVER_LABELS } from './constants';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+
+const styles = stylex.create({
+  filterBar: {
+    marginBottom: '16px',
+  },
+  typeSelect: {
+    width: '130px',
+  },
+  receiverSelect: {
+    width: '120px',
+  },
+  keywordSearch: {
+    width: '240px',
+  },
+  readSelect: {
+    width: '110px',
+  },
+});
 
 export interface NotificationFiltersState {
   messageType?: string;
@@ -28,11 +47,11 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
   onSearch,
   onReset,
 }) => (
-  <Space wrap style={{ marginBottom: 16 }}>
+  <Space wrap {...stylex.props(styles.filterBar)}>
     <Select
       placeholder='消息类型'
       allowClear
-      style={{ width: 130 }}
+      {...stylex.props(styles.typeSelect)}
       value={filters.messageType}
       onChange={(v) => onChange({ messageType: v })}
     >
@@ -43,7 +62,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
     <Select
       placeholder='接收人'
       allowClear
-      style={{ width: 120 }}
+      {...stylex.props(styles.receiverSelect)}
       value={filters.receiverType}
       onChange={(v) => onChange({ receiverType: v })}
     >
@@ -54,7 +73,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
     <Input.Search
       placeholder='关键字(关联单号/标题/摘要)'
       allowClear
-      style={{ width: 240 }}
+      {...stylex.props(styles.keywordSearch)}
       value={filters.keyword}
       onChange={(e) => onChange({ keyword: e.target.value })}
       onSearch={onSearch}
@@ -63,7 +82,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
     <Select
       placeholder='已读状态'
       allowClear
-      style={{ width: 110 }}
+      {...stylex.props(styles.readSelect)}
       value={filters.read}
       onChange={(v: unknown) => onChange({ read: v === 'READ' || v === 'UNREAD' ? v : undefined })}
     >

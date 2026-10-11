@@ -4,11 +4,18 @@ import type { TablePaginationConfig } from 'antd/es/table';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import * as stylex from '@stylexjs/stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { GiftActivityVo, MarketingUsageVo } from '@aquarush/common';
 import { GIFT_ACTIVITY_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 const GIFT_TYPE_LABELS: Record<string, string> = {
   FULL_GIFT: '满赠',
@@ -87,7 +94,7 @@ const GiftDetailPage: React.FC = () => {
     >
       {error && <Alert type="error" showIcon message="加载失败" description={error.message} />}
       <Spin spinning={loading}>
-        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        <Space direction="vertical" size={16} {...stylex.props(styles.fullWidth)}>
           {config && (
             <Descriptions bordered size="small" column={3}>
               <Descriptions.Item label="活动名称">{config.name}</Descriptions.Item>

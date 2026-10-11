@@ -2,8 +2,21 @@ import React from 'react';
 import { Table, Tag, Button, Space, Popconfirm } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import type { Address } from './types';
 import { pagination } from '@/utils/table';
+
+// 局部色值 #666 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  regionName: {
+    fontWeight: 'bold',
+    marginBottom: '4px',
+  },
+  regionDetail: {
+    color: '#666',
+    fontSize: '12px',
+  },
+});
 
 interface AddressTableProps {
   addresses: Address[];
@@ -45,10 +58,10 @@ export const AddressTable: React.FC<AddressTableProps> = ({
       width: 300,
       render: (_, record) => (
         <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+          <div {...stylex.props(styles.regionName)}>
             {record.province} {record.city} {record.district}
           </div>
-          <div style={{ color: '#666', fontSize: '12px' }}>
+          <div {...stylex.props(styles.regionDetail)}>
             {record.detailAddress}
           </div>
         </div>

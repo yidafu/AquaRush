@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import { useLazyQuery } from '@apollo/client';
+import * as stylex from '@stylexjs/stylex';
 import type { CustomerGroupVo, UserVo } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(memberIds 覆盖式成员列表,后端据此同步成员)
 export interface GroupFormPayload {
@@ -137,7 +144,7 @@ const GroupFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, o
             options={userOptions}
             loading={searching}
             placeholder="输入昵称/手机号搜索并选择客户"
-            style={{ width: '100%' }}
+            {...stylex.props(styles.fullWidth)}
             maxTagCount="responsive"
             allowClear
           />

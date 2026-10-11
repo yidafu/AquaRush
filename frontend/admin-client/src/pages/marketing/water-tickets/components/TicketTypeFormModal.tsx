@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Form, Input, InputNumber, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { TicketTypeKind, ValidityType } from '@aquarush/common';
 import type { TicketTypeAdminVo } from '@aquarush/common';
@@ -8,6 +9,12 @@ import ProductSelect from '../../../../components/ProductSelect';
 import FormModal from '@/components/FormModal';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 // 提交给 mutation 的表单载荷(金额已由元转分,时间为 ISO 字符串)
 export interface TicketTypeFormPayload {
@@ -167,7 +174,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             },
           ]}
         >
-          <InputNumber min={1} max={1000} precision={0} style={{ width: '100%' }} placeholder="如 10" />
+          <InputNumber min={1} max={1000} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 10" />
         </Form.Item>
         <Form.Item
           name="packagePriceYuan"
@@ -182,7 +189,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             },
           ]}
         >
-          <InputNumber min={0.01} max={99999} precision={2} style={{ width: '100%' }} placeholder="如 100" />
+          <InputNumber min={0.01} max={99999} precision={2} {...stylex.props(styles.fullWidth)} placeholder="如 100" />
         </Form.Item>
         <Form.Item
           name="giftCount"
@@ -197,14 +204,14 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             },
           ]}
         >
-          <InputNumber min={0} max={1000} precision={0} style={{ width: '100%' }} placeholder="如 2" />
+          <InputNumber min={0} max={1000} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 2" />
         </Form.Item>
         <Form.Item name="validityType" label="有效期类型" rules={[{ required: true, message: '请选择有效期类型' }]}>
           <Radio.Group options={VALIDITY_TYPE_OPTIONS} />
         </Form.Item>
         {validityType === 'FIXED_RANGE' ? (
           <Form.Item name="timeWindow" label="有效区间" rules={[{ required: true, message: '请选择有效区间' }]}>
-            <RangePicker showTime style={{ width: '100%' }} />
+            <RangePicker showTime {...stylex.props(styles.fullWidth)} />
           </Form.Item>
         ) : (
           <Form.Item
@@ -221,7 +228,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
             ]}
             extra="用户购买后 N 天内有效"
           >
-            <InputNumber min={1} max={3650} precision={0} style={{ width: '100%' }} placeholder="如 365" />
+            <InputNumber min={1} max={3650} precision={0} {...stylex.props(styles.fullWidth)} placeholder="如 365" />
           </Form.Item>
         )}
         <Form.Item
@@ -238,7 +245,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           ]}
           extra="0 = 不限购"
         >
-          <InputNumber min={0} max={1000} precision={0} style={{ width: '100%' }} placeholder="0 = 不限购" />
+          <InputNumber min={0} max={1000} precision={0} {...stylex.props(styles.fullWidth)} placeholder="0 = 不限购" />
         </Form.Item>
       </Form>
     </FormModal>

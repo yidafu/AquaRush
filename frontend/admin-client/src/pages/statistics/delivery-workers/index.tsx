@@ -15,6 +15,33 @@ import ChartCard from '@/components/ChartCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { BRAND_PRIMARY } from '../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件(原 margin: 0 拆 longhand)
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  metricsRow: {
+    marginTop: '16px',
+  },
+  chartsRow: {
+    marginTop: '24px',
+  },
+});
 
 const GET_DELIVERY_WORKER_STATISTICS = gql`
   query GetDeliveryWorkerStatistics {
@@ -116,8 +143,8 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 className="page-title">送水员统计</h1>
+      <div {...stylex.props(styles.header)}>
+        <h1 {...stylex.props(styles.pageTitle)}>送水员统计</h1>
         <RefreshControls
           interval={intervalMs}
           onIntervalChange={setIntervalMs}
@@ -159,7 +186,7 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
       </Row>
 
       {/* 履约效率指标卡(G36):人均单量 = 今日完成订单总数/今日在岗送水员数;平均履约时长 = Σ(completedAt − 派单时间)/完成订单数 */}
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.metricsRow)}>
         <Col xs={24} sm={12} lg={6}>
           <StatisticsCard
             title="人均单量"
@@ -180,7 +207,7 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+      <Row gutter={[16, 16]} {...stylex.props(styles.chartsRow)}>
         <Col xs={24} lg={12}>
           <ChartCard title="送水员工作量排行" loading={loading} height={300}>
             <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>

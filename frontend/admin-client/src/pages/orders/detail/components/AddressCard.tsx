@@ -2,6 +2,13 @@ import React from 'react';
 import { Card, Descriptions, Space } from 'antd';
 import { EnvironmentOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useOrderDetail } from '../OrderDetailContext';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+});
 
 const AddressCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -16,7 +23,7 @@ const AddressCard: React.FC = () => {
           收货地址
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       <Descriptions column={1} bordered size="small">
         <Descriptions.Item label="收货人">{order.address?.receiverName || '-'}</Descriptions.Item>

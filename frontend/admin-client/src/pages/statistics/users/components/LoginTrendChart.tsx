@@ -9,6 +9,13 @@ import {
 } from 'recharts';
 import ChartCard from '@/components/ChartCard';
 import { COLOR_SUCCESS } from '../../../../config/theme';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+});
 
 export interface LoginTrendChartProps {
   data: { date: string; count: number }[];
@@ -17,7 +24,7 @@ export interface LoginTrendChartProps {
 
 /** 登录趋势折线图(近30天,statistics/users/index.tsx 拆分) */
 const LoginTrendChart: React.FC<LoginTrendChartProps> = ({ data, loading }) => (
-  <ChartCard title="登录趋势（近30天）" loading={loading} height={300} style={{ marginTop: 24 }}>
+  <ChartCard title="登录趋势（近30天）" loading={loading} height={300} {...stylex.props(styles.chartCard)}>
     <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="date" tick={{ fontSize: 12 }} />

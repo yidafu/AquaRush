@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Radio, Select, Alert, message } from 'antd';
 import { useLazyQuery } from '@apollo/client';
+import * as stylex from '@stylexjs/stylex';
 import { IssueTargetType } from '@aquarush/common';
 import type { CouponTemplateAdminVo, CustomerGroupVo, UserVo } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
 import { useCustomerGroups, useIssueCoupons } from '../../../../services/marketing-graphql';
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '16px',
+  },
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 interface Props {
   open: boolean;
@@ -85,7 +95,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 16 }}
+        {...stylex.props(styles.alert)}
         message="按用户发放时按用户列表逐个发放;按分组发放时对该分组当前全部成员发放。系统自动跳过已超限领数的用户,返回实际发放张数。"
       />
       <Form form={form} layout="vertical" preserve={false}>
@@ -108,7 +118,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
               options={userOptions}
               loading={searching}
               placeholder="输入昵称/手机号搜索用户"
-              style={{ width: '100%' }}
+              {...stylex.props(styles.fullWidth)}
               maxTagCount="responsive"
             />
           </Form.Item>

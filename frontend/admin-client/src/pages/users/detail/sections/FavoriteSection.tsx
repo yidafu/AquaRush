@@ -4,7 +4,27 @@ import { useQuery } from '@apollo/client';
 import { USER_FAVORITES_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { FavoriteProductVo, ProductStatus } from '@aquarush/common';
 import { displayCents, formatDateTime } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { pagination } from '@/utils/table';
+
+const styles = stylex.create({
+  productCell: {
+    display: 'flex',
+    alignItems: 'center',
+    rowGap: '8px',
+    columnGap: '8px',
+  },
+  cover: {
+    objectFit: 'cover',
+    borderRadius: '4px',
+  },
+  subtitle: {
+    fontSize: tokens.fsNote,
+    // 局部色值:辅助信息灰,token 无对应色
+    color: '#999999',
+  },
+});
 
 interface FavoriteSectionProps {
   userId: string;
@@ -48,18 +68,18 @@ const FavoriteSection: React.FC<FavoriteSectionProps> = ({ userId }) => {
       key: 'product',
       width: 260,
       render: (_: unknown, record: FavoriteProductVo) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div {...stylex.props(styles.productCell)}>
           <Image
             src={record.coverImageUrl}
             width={40}
             height={40}
-            style={{ objectFit: 'cover', borderRadius: 4 }}
+            {...stylex.props(styles.cover)}
             preview={false}
           />
           <div>
             <div>{record.name}</div>
             {record.subtitle && (
-              <div style={{ fontSize: '12px', color: '#999' }}>{record.subtitle}</div>
+              <div {...stylex.props(styles.subtitle)}>{record.subtitle}</div>
             )}
           </div>
         </div>

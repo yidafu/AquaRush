@@ -2,6 +2,19 @@ import React from 'react';
 import { Card, Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { StockWarningItem } from '../data';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginTop: '24px',
+  },
+  note: {
+    marginTop: '8px',
+    // #999:共享 token 无此色(口径说明辅助文字灰),按规则保留字面量
+    color: '#999',
+    fontSize: '13px',
+  },
+});
 
 export interface StockWarningTableProps {
   items: StockWarningItem[];
@@ -61,7 +74,7 @@ const StockWarningTable: React.FC<StockWarningTableProps> = ({
   return (
     <Card
       title="库存预警明细"
-      style={{ marginTop: 24 }}
+      {...stylex.props(styles.card)}
       extra={
         <Button type="link" onClick={onConfigThreshold}>
           阈值配置 ›
@@ -77,7 +90,7 @@ const StockWarningTable: React.FC<StockWarningTableProps> = ({
         loading={loading}
         locale={{ emptyText: '暂无库存预警商品' }}
       />
-      <div style={{ marginTop: 8, color: '#999', fontSize: 13 }}>
+      <div {...stylex.props(styles.note)}>
         口径:库存 ≤ 阈值({threshold} 件)进入预警,库存 = 0 标记「缺货」并置顶;与「低库存预警」计数卡同源。
       </div>
     </Card>

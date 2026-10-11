@@ -7,6 +7,7 @@ import {
   DELIVERY_WORKER_DETAIL_QUERY,
 } from '../../../../graphql/queries/user.graphql';
 import type { AdminVo, DeliveryWorkerVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import AdminForm from '../../components/AdminForm';
 import DeliveryWorkerForm from '../../components/DeliveryWorkerForm';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
@@ -18,6 +19,16 @@ import AdminAccountDetail from './AdminAccountDetail';
 import WorkerAccountDetail from './WorkerAccountDetail';
 import type { DeliveryRecord } from './types';
 import { useAccountDetailActions } from './hooks/useAccountDetailActions';
+
+const styles = stylex.create({
+  statusWrap: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    textAlign: 'center',
+  },
+});
 
 /**
  * 统一账号详情页(users/accounts/:id,spec/prd/07-user.md §F-USR-020/021):
@@ -134,7 +145,7 @@ const AccountDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.statusWrap)}>
         <Spin size="large" />
       </div>
     );
@@ -142,7 +153,7 @@ const AccountDetailPage: React.FC = () => {
 
   if (!record) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.statusWrap)}>
         <h2>加载失败</h2>
         <p>无法获取账号信息</p>
         <Button type="primary" onClick={() => navigate('/users/accounts')}>

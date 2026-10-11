@@ -3,6 +3,13 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { centsToYuan } from '@aquarush/common';
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+});
 
 export interface CompositionSlice {
   name: string;
@@ -28,7 +35,7 @@ const MarketingCompositionPieChart: React.FC<MarketingCompositionPieChartProps> 
       height={320}
       empty={total <= 0}
       emptyText="所选范围暂无让利数据"
-      style={{ marginTop: 24 }}
+      {...stylex.props(styles.chartCard)}
     >
       <PieChart>
         <Pie

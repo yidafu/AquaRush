@@ -1,8 +1,22 @@
 import React from 'react';
 import { Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import { avatarFromName } from '@aquarush/common/utils';
 import { SingleImageUpload } from '../ImageUpload';
+
+// 局部色值 rgba(0,0,0,0.45) 为 antd 次级文字色,未入共享 token
+const styles = stylex.create({
+  hint: {
+    marginTop: '8px',
+    fontSize: '12px',
+    color: 'rgba(0, 0, 0, 0.45)',
+  },
+  avatar: {
+    marginLeft: '8px',
+    verticalAlign: 'middle',
+  },
+});
 
 interface AvatarUploadProps {
   value?: string;
@@ -32,14 +46,14 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       onChange={(v) => onChange?.(typeof v === 'string' ? v : undefined)}
     />
     {!value && (
-      <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(0, 0, 0, 0.45)' }}>
+      <div {...stylex.props(styles.hint)}>
         未上传头像时根据名称自动生成：
         <Avatar
           size={previewSize}
           shape="circle"
           src={avatarFromName(name || fallbackName)}
           icon={<UserOutlined />}
-          style={{ marginLeft: 8, verticalAlign: 'middle' }}
+          {...stylex.props(styles.avatar)}
         />
       </div>
     )}

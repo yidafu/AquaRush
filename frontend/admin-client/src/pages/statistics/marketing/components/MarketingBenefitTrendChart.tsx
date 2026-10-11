@@ -10,6 +10,13 @@ import {
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
 import ChartCard from '@/components/ChartCard';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  chartCard: {
+    marginTop: '24px',
+  },
+});
 
 export interface MarketingBenefitPoint {
   date: string;
@@ -36,7 +43,7 @@ const MarketingBenefitTrendChart: React.FC<MarketingBenefitTrendChartProps> = ({
       height={320}
       empty={!hasData}
       emptyText="所选范围暂无营销优惠数据"
-      style={{ marginTop: 24 }}
+      {...stylex.props(styles.chartCard)}
     >
       <LineChart data={data} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />

@@ -10,7 +10,24 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import * as stylex from '@stylexjs/stylex';
 import type { DeliveryPushScenario } from './constants';
+
+const styles = stylex.create({
+  card: {
+    marginTop: '16px',
+  },
+  alert: {
+    marginBottom: '24px',
+  },
+  form: {
+    marginTop: '16px',
+  },
+  hint: {
+    marginTop: '12px',
+    marginBottom: '0px',
+  },
+});
 
 export interface DeliveryPushRow {
   scenario: DeliveryPushScenario;
@@ -71,11 +88,11 @@ const DeliveryPushConfigCard: React.FC<DeliveryPushConfigCardProps> = ({
   ];
 
   return (
-    <Card title="送水 App 消息通知" style={{ marginTop: 16 }} loading={loading}>
+    <Card title="送水 App 消息通知" {...stylex.props(styles.card)} loading={loading}>
       <Alert
         type="info"
         showIcon
-        style={{ marginBottom: 24 }}
+        {...stylex.props(styles.alert)}
         message="送水工端实时推送(F-NTF-003)的任务节点开关与离线/弱网轮询间隔;APNs/FCM 等推送凭证为密钥类,不在此在线配置(R-NTF-05)。推送链路接通后按此配置触达,每次修改留审计日志。"
       />
       <Table
@@ -87,7 +104,7 @@ const DeliveryPushConfigCard: React.FC<DeliveryPushConfigCardProps> = ({
         pagination={false}
         locale={{ emptyText: '暂无推送场景配置' }}
       />
-      <Form layout="inline" style={{ marginTop: 16 }}>
+      <Form layout="inline" {...stylex.props(styles.form)}>
         <Form.Item label="离线/弱网轮询间隔(秒)" required>
           <InputNumber
             min={5}
@@ -104,7 +121,7 @@ const DeliveryPushConfigCard: React.FC<DeliveryPushConfigCardProps> = ({
           </Button>
         </Form.Item>
       </Form>
-      <Typography.Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
+      <Typography.Paragraph type="secondary" {...stylex.props(styles.hint)}>
         实时通道断开时,送水工端按此间隔轮询补拉任务事件,推送与轮询按幂等键合并去重(R-NTF-02/03,默认 30s)。
       </Typography.Paragraph>
     </Card>

@@ -30,6 +30,41 @@ import {
   PaymentInfoCard,
   DeliveryPhotosCard,
 } from './components';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  loadingBox: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+    textAlign: 'center',
+  },
+  errorBox: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+  },
+  title: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '0px',
+    marginLeft: '0px',
+  },
+});
 
 const { Title, Text } = Typography;
 
@@ -70,7 +105,7 @@ const OrderDetailContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div {...stylex.props(styles.loadingBox)}>
         <Spin size="large" tip="加载订单详情..." />
       </div>
     );
@@ -78,7 +113,7 @@ const OrderDetailContent: React.FC = () => {
 
   if (error || !order) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div {...stylex.props(styles.errorBox)}>
         <Alert
           message="加载失败"
           description="订单详情加载失败，请稍后重试。"
@@ -103,21 +138,14 @@ const OrderDetailContent: React.FC = () => {
   const canCancel = ['PENDING_PAYMENT', 'PENDING_DISPATCH', 'PENDING_DELIVERY'].includes(order.status);
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       {/* 页面头部 */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-        }}
-      >
+      <div {...stylex.props(styles.header)}>
         <Space wrap>
           <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
             返回列表
           </Button>
-          <Title level={3} style={{ margin: 0 }}>
+          <Title level={3} {...stylex.props(styles.title)}>
             订单详情
           </Title>
           <Tag color={toneToAntDColor[statusTone]}>{statusText}</Tag>
@@ -170,7 +198,7 @@ const OrderDetailPage: React.FC = () => {
 
   if (!id) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div {...stylex.props(styles.errorBox)}>
         <Alert
           message="参数错误"
           description="缺少订单ID参数"

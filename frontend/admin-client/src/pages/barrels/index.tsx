@@ -33,6 +33,22 @@ import {
 } from './components';
 import type { DepositPriceFormValues, RejectRefundFormValues } from './components';
 import { yuanToCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
+
+// .page-title(index.css 自研类)内联进组件;原 margin: 0 拆 longhand,
+// 再叠加原内联 marginBottom 24px
+const styles = stylex.create({
+  pageTitle: {
+    marginTop: '0px',
+    marginRight: '0px',
+    marginBottom: '24px',
+    marginLeft: '0px',
+    fontSize: tokens.fsPage,
+    lineHeight: tokens.lhPage,
+    fontWeight: 600,
+  },
+});
 
 interface PageData<T> {
   page: { content: T[]; totalElements: number; totalPages: number };
@@ -195,7 +211,7 @@ const BarrelManagementPage: React.FC = () => {
 
   return (
     <div>
-      <h1 className="page-title" style={{ marginBottom: 24 }}>
+      <h1 {...stylex.props(styles.pageTitle)}>
         押金管理
       </h1>
       <Card>

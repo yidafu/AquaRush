@@ -14,6 +14,19 @@ import {
   getCouponThresholdText,
 } from '@aquarush/common';
 import { getToneColor } from '../../../../constants/status';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  titleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    rowGap: '12px',
+    columnGap: '12px',
+  },
+  select: {
+    width: '130px',
+  },
+});
 
 interface CouponSectionProps {
   userId: string;
@@ -112,13 +125,13 @@ const CouponSection: React.FC<CouponSectionProps> = ({ userId }) => {
   return (
     <Card
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div {...stylex.props(styles.titleRow)}>
           <span>优惠券</span>
           <Select
             value={statusFilter}
             onChange={setStatusFilter}
             options={STATUS_OPTIONS}
-            style={{ width: 130 }}
+            {...stylex.props(styles.select)}
             size="small"
           />
         </div>

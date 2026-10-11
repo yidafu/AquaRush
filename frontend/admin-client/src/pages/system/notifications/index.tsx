@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Card, Typography, Modal, message } from 'antd';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 import {
   WechatTemplateTable,
@@ -17,6 +18,16 @@ import {
 // 通知与订阅消息配置页(F-NTF-005,承接原 F-SYS-005):微信订阅消息模板(用户端) + 送水 App 实时推送配置(送水工端 F-NTF-003)
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);密钥类(appid/secret、APNs/FCM 凭证)不在此在线配置(R-SYS-02/R-NTF-05);
 // 实际发送依赖通知链路(F-NTF-001/G08、F-NTF-003/G44,目标形态)
+
+const styles = stylex.create({
+  alert: {
+    marginBottom: '24px',
+  },
+  noPermission: {
+    display: 'block',
+    marginTop: '16px',
+  },
+});
 
 const SystemNotificationsConfig: React.FC = () => {
   const canWrite = JSON.parse(localStorage.getItem('userInfo') || '{}').role === 'SUPER_ADMIN';
@@ -95,7 +106,7 @@ const SystemNotificationsConfig: React.FC = () => {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 24 }}
+          {...stylex.props(styles.alert)}
           message="此处仅配置非敏感模板参数;小程序 appid/secret 等密钥类参数不提供在线配置(R-SYS-02)。实际发送依赖订阅消息链路(F-ADR-011),接通后按模板发送。每次修改留审计日志。"
         />
         <WechatTemplateTable
@@ -105,7 +116,7 @@ const SystemNotificationsConfig: React.FC = () => {
           onEdit={setEditing}
         />
         {!canWrite && (
-          <Typography.Text type="warning" style={{ display: 'block', marginTop: 16 }}>
+          <Typography.Text type="warning" {...stylex.props(styles.noPermission)}>
             当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。
           </Typography.Text>
         )}

@@ -1,7 +1,23 @@
 import React from 'react';
 import { Button, Select, Space, Tooltip } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import { REFRESH_INTERVAL_OPTIONS } from '../../hooks/useAutoRefresh';
+
+// 说明:#666 / #999 为本组件原有灰阶文字色,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  label: {
+    color: '#666',
+    fontSize: '14px',
+  },
+  select: {
+    width: '90px',
+  },
+  lastUpdated: {
+    color: '#999',
+    fontSize: '12px',
+  },
+});
 
 interface RefreshControlsProps {
   /** 当前定时更新间隔(毫秒),null 表示关闭;下拉以 0 表示关闭 */
@@ -28,11 +44,11 @@ const RefreshControls: React.FC<RefreshControlsProps> = ({
   lastUpdated,
 }) => (
   <Space size="middle">
-    <span style={{ color: '#666', fontSize: 14 }}>定时更新:</span>
+    <span {...stylex.props(styles.label)}>定时更新:</span>
     <Select
       size="small"
       value={interval ?? 0}
-      style={{ width: 90 }}
+      {...stylex.props(styles.select)}
       options={REFRESH_INTERVAL_OPTIONS}
       onChange={(value: number) => onIntervalChange(value === 0 ? null : value)}
     />
@@ -42,7 +58,7 @@ const RefreshControls: React.FC<RefreshControlsProps> = ({
       </Button>
     </Tooltip>
     {lastUpdated && (
-      <span style={{ color: '#999', fontSize: 12 }}>
+      <span {...stylex.props(styles.lastUpdated)}>
         上次更新: {lastUpdated.toLocaleTimeString()}
       </span>
     )}

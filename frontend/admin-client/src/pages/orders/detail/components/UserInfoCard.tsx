@@ -2,6 +2,13 @@ import React from 'react';
 import { Card, Descriptions, Space } from 'antd';
 import { UserOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useOrderDetail } from '../OrderDetailContext';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  card: {
+    marginBottom: '16px',
+  },
+});
 
 const UserInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -16,7 +23,7 @@ const UserInfoCard: React.FC = () => {
           用户信息
         </Space>
       }
-      style={{ marginBottom: '16px' }}
+      {...stylex.props(styles.card)}
     >
       <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
         <Descriptions.Item label="用户昵称">{order.user?.nickname || '-'}</Descriptions.Item>

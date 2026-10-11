@@ -1,6 +1,26 @@
 import React from 'react';
 import { Button, Space, Select, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  toolbar: {
+    marginBottom: '16px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    marginTop: '0px',
+    marginBottom: '0px',
+  },
+  roleSelect: {
+    width: '160px',
+  },
+  search: {
+    width: '240px',
+  },
+});
 
 export interface AccountToolbarProps {
   activeRole: string;
@@ -23,21 +43,21 @@ const AccountToolbar: React.FC<AccountToolbarProps> = ({
   onKeywordChange,
   onAdd,
 }) => (
-  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div {...stylex.props(styles.toolbar)}>
     <Space>
-      <h3 style={{ margin: 0 }}>账号列表</h3>
+      <h3 {...stylex.props(styles.title)}>账号列表</h3>
       <Select
         value={activeRole}
         onChange={onRoleChange}
         options={roleFilterOptions}
-        style={{ width: 160 }}
+        {...stylex.props(styles.roleSelect)}
       />
       <Input.Search
         allowClear
         placeholder="账号/姓名/手机号"
         defaultValue={keyword}
         onSearch={onKeywordChange}
-        style={{ width: 240 }}
+        {...stylex.props(styles.search)}
       />
     </Space>
     <Button type="primary" icon={<PlusOutlined />} onClick={onAdd}>

@@ -7,6 +7,17 @@ import { ProductTable } from '../components/ProductTable';
 import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCTS_PAGE_DATA_QUERY } from '../../../graphql/queries/product.graphql';
 import { pagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+// 原内联 padding: '24px' 单值拆 longhand
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+});
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -64,7 +75,7 @@ const ProductListPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <ProductFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}

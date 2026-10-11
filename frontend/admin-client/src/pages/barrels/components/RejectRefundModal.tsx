@@ -1,7 +1,16 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input } from 'antd';
 import { displayCents } from '@aquarush/common';
+import * as stylex from '@stylexjs/stylex';
 import type { DepositRefundApplication } from '../../../types/barrel';
+
+// 局部色值 #666 为原有辅助文字灰,共享 token 无对应值,保持原样(报告 (a))
+const styles = stylex.create({
+  summary: {
+    marginBottom: '12px',
+    color: '#666',
+  },
+});
 
 export interface RejectRefundFormValues {
   reason: string;
@@ -52,7 +61,7 @@ const RejectRefundModal: React.FC<RejectRefundModalProps> = ({
       confirmLoading={confirmLoading}
     >
       {target && (
-        <div style={{ marginBottom: 12, color: '#666' }}>
+        <div {...stylex.props(styles.summary)}>
           {target.specification} × {target.bucketCount} 桶 · 退押金额{' '}
           {displayCents(Number(target.depositCents))}
           <br />

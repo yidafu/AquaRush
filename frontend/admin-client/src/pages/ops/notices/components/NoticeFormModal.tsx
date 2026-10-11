@@ -7,6 +7,13 @@ import { useNotice } from '../../../../services/ops-graphql';
 import { NOTICE_TYPE_LABELS } from '../constants';
 import FormModal from '@/components/FormModal';
 import { useDetailBackfill } from '@/hooks/useDetailBackfill';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+});
 
 const { RangePicker } = DatePicker;
 
@@ -123,7 +130,7 @@ const NoticeFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           <Select options={NOTICE_TYPE_OPTIONS} onChange={(value: NoticeType) => setType(value)} />
         </Form.Item>
         <Form.Item name="timeWindow" label="时间窗(空 = 长期)">
-          <RangePicker showTime style={{ width: '100%' }} />
+          <RangePicker showTime {...stylex.props(styles.fullWidth)} />
         </Form.Item>
         <Form.Item
           name="pinned"

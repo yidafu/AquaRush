@@ -14,6 +14,22 @@ import { getToneColor } from '../../../constants/status';
 import { useFeedbacks, useReviewFeedback } from '../../../services/ops-graphql';
 import FeedbackDetailModal, { type ReviewPayload } from './components/FeedbackDetailModal';
 import { pagination } from '@/utils/table';
+import * as stylex from '@stylexjs/stylex';
+
+const styles = stylex.create({
+  filterSpace: {
+    marginBottom: '16px',
+  },
+  typeSelect: {
+    width: '160px',
+  },
+  statusSelect: {
+    width: '140px',
+  },
+  contactInput: {
+    width: '180px',
+  },
+});
 
 const { RangePicker } = DatePicker;
 
@@ -139,11 +155,11 @@ const Feedbacks: React.FC = () => {
 
   return (
     <Card title="意见反馈">
-      <Space wrap style={{ marginBottom: 16 }}>
+      <Space wrap {...stylex.props(styles.filterSpace)}>
         <Select
           placeholder="反馈类型"
           allowClear
-          style={{ width: 160 }}
+          {...stylex.props(styles.typeSelect)}
           options={TYPE_OPTIONS}
           value={filters.feedbackType}
           onChange={(value: FeedbackType | undefined) => setFilters((f) => ({ ...f, feedbackType: value }))}
@@ -151,7 +167,7 @@ const Feedbacks: React.FC = () => {
         <Select
           placeholder="处理状态"
           allowClear
-          style={{ width: 140 }}
+          {...stylex.props(styles.statusSelect)}
           options={FEEDBACK_STATUS_OPTIONS}
           value={filters.status}
           onChange={(value: FeedbackStatus | undefined) => setFilters((f) => ({ ...f, status: value }))}
@@ -159,7 +175,7 @@ const Feedbacks: React.FC = () => {
         <Input
           placeholder="联系方式关键字"
           allowClear
-          style={{ width: 180 }}
+          {...stylex.props(styles.contactInput)}
           value={filters.contactKeyword}
           onChange={(e) => setFilters((f) => ({ ...f, contactKeyword: e.target.value }))}
         />

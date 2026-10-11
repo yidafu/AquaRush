@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import * as stylex from '@stylexjs/stylex';
 import { queryApiLogs } from '../../../services/logs';
 import type { ApiLogItem, ApiLogQueryParams } from '../../../services/logs';
 import { ApiLogFilters, ApiLogTable, ApiLogDetailModal } from './components';
 import { pagination as createPagination } from '@/utils/table';
+
+// 原内联 padding: '24px' 迁 stylex(stylex 禁简写,拆 longhand)
+const styles = stylex.create({
+  page: {
+    paddingTop: '24px',
+    paddingRight: '24px',
+    paddingBottom: '24px',
+    paddingLeft: '24px',
+  },
+});
 
 const ApiLogs: React.FC = () => {
   const [data, setData] = useState<ApiLogItem[]>([]);
@@ -58,7 +69,7 @@ const ApiLogs: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div {...stylex.props(styles.page)}>
       <ApiLogFilters
         filters={filters}
         onChange={(partial) => setFilters(prev => ({ ...prev, ...partial }))}

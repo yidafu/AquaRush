@@ -4,6 +4,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
+import * as stylex from '@stylexjs/stylex';
 import {
   BarChart,
   Bar,
@@ -22,6 +23,18 @@ import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../../config/th
 import ChartCard from '@/components/ChartCard';
 
 const { RangePicker } = DatePicker;
+
+const styles = stylex.create({
+  fullWidth: {
+    width: '100%',
+  },
+  emptyBox: {
+    paddingTop: '48px',
+    paddingBottom: '48px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+  },
+});
 
 interface SalesPoint {
   date: string;
@@ -123,9 +136,9 @@ const WaterTicketDetailPage: React.FC = () => {
 
       <Spin spinning={loading}>
         {!summary ? (
-          <Empty description="暂无统计" style={{ padding: '48px 0' }} />
+          <Empty description="暂无统计" {...stylex.props(styles.emptyBox)} />
         ) : (
-          <Space direction="vertical" size={24} style={{ width: '100%' }}>
+          <Space direction="vertical" size={24} {...stylex.props(styles.fullWidth)}>
             {/* 区间汇总卡(与所选时间范围一致;availableCount 为当前存量) */}
             <Row gutter={16}>
               <Col span={8}>

@@ -17,9 +17,47 @@ import {
   StopOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
+import * as stylex from '@stylexjs/stylex';
 import { formatDateTime } from '@aquarush/common/utils';
 
 const { Text } = Typography;
+
+const styles = stylex.create({
+  loadingBox: {
+    textAlign: 'center',
+    paddingTop: '48px',
+    paddingBottom: '48px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+  },
+  empty: {
+    paddingTop: '48px',
+    paddingBottom: '48px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+  },
+  item: {
+    paddingBottom: '8px',
+  },
+  itemHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '8px',
+    rowGap: '8px',
+    marginBottom: '4px',
+    flexWrap: 'wrap',
+  },
+  message: {
+    marginBottom: '4px',
+    fontSize: '13px',
+  },
+  meta: {
+    fontSize: '12px',
+  },
+  timeRow: {
+    marginTop: '4px',
+  },
+});
 
 export interface BusinessLogItem {
   id: string;
@@ -251,14 +289,14 @@ interface BusinessLogTimelineProps {
 const BusinessLogTimeline: React.FC<BusinessLogTimelineProps> = ({ logs, loading }) => {
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '48px 0' }}>
+      <div {...stylex.props(styles.loadingBox)}>
         <Spin />
       </div>
     );
   }
 
   if (logs.length === 0) {
-    return <Empty description="暂无操作记录" style={{ padding: '48px 0' }} />;
+    return <Empty description="暂无操作记录" {...stylex.props(styles.empty)} />;
   }
 
   return (
@@ -272,8 +310,8 @@ const BusinessLogTimeline: React.FC<BusinessLogTimelineProps> = ({ logs, loading
           color: config.color,
           dot: config.icon,
           children: (
-            <div style={{ paddingBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <div {...stylex.props(styles.item)}>
+              <div {...stylex.props(styles.itemHeader)}>
                 <Text strong>{config.label}</Text>
                 <Tag color={LOG_LEVEL_COLOR[log.level] || 'default'}>{log.level}</Tag>
                 <Tag color="blue">{userLabel}</Tag>
@@ -282,18 +320,18 @@ const BusinessLogTimeline: React.FC<BusinessLogTimelineProps> = ({ logs, loading
                 <Typography.Paragraph
                   type="secondary"
                   ellipsis={{ rows: 2 }}
-                  style={{ marginBottom: 4, fontSize: 13 }}
+                  {...stylex.props(styles.message)}
                 >
                   {log.message}
                 </Typography.Paragraph>
               )}
               {log.correlationId && (
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" {...stylex.props(styles.meta)}>
                   关联ID: {log.correlationId}
                 </Text>
               )}
-              <div style={{ marginTop: '4px' }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+              <div {...stylex.props(styles.timeRow)}>
+                <Text type="secondary" {...stylex.props(styles.meta)}>
                   {formatDateTime(log.createdAt)}
                 </Text>
               </div>
