@@ -29,16 +29,16 @@ import java.time.LocalDateTime
 class LogPartitionRulesTest :
   FunSpec({
     test("monthOfPartition parses yyyy_MM suffix") {
-      LogPartitionRules.monthOfPartition("api_logs_2026_01") shouldBe "2026-01"
-      LogPartitionRules.monthOfPartition("business_logs_2026_12") shouldBe "2026-12"
-      LogPartitionRules.monthOfPartition("api_logs_default").shouldBeNull()
-      LogPartitionRules.monthOfPartition("api_logs_2026_13").shouldBeNull()
-      LogPartitionRules.monthOfPartition("api_logs_2026_00").shouldBeNull()
+      LogPartitionRules.monthOfPartition("aqua_api_logs_2026_01") shouldBe "2026-01"
+      LogPartitionRules.monthOfPartition("aqua_business_logs_2026_12") shouldBe "2026-12"
+      LogPartitionRules.monthOfPartition("aqua_api_logs_default").shouldBeNull()
+      LogPartitionRules.monthOfPartition("aqua_api_logs_2026_13").shouldBeNull()
+      LogPartitionRules.monthOfPartition("aqua_api_logs_2026_00").shouldBeNull()
     }
     test("yearOfPartition parses year") {
-      LogPartitionRules.yearOfPartition("api_logs_2026_01") shouldBe 2026
-      LogPartitionRules.yearOfPartition("user_action_logs_2025_11") shouldBe 2025
-      LogPartitionRules.yearOfPartition("api_logs_default").shouldBeNull()
+      LogPartitionRules.yearOfPartition("aqua_api_logs_2026_01") shouldBe 2026
+      LogPartitionRules.yearOfPartition("aqua_user_action_logs_2025_11") shouldBe 2025
+      LogPartitionRules.yearOfPartition("aqua_api_logs_default").shouldBeNull()
     }
     test("isExpired compares partition upper bound with now - retentionDays") {
       val now = LocalDateTime.of(2026, 8, 16, 12, 0)
@@ -72,7 +72,7 @@ class LogPartitionRulesTest :
   })
 
 private fun partition(
-  partitionName: String = "api_logs_2026_01",
+  partitionName: String = "aqua_api_logs_2026_01",
   toBound: LocalDateTime?,
   isDefault: Boolean = false,
   isCurrentMonth: Boolean = false,

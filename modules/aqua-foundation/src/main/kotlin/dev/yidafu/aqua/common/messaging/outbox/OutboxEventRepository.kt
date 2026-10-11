@@ -105,7 +105,7 @@ class OutboxEventRepository(
         exec(
           """
           SELECT id, event_type, destination, subscriber, payload, next_run_at, status, retry_count
-          FROM outbox_events
+          FROM aqua_outbox_events
           WHERE status = 'PENDING'
             AND next_run_at <= ?
             AND destination IN ($placeholders)
@@ -232,14 +232,14 @@ class OutboxEventRepository(
             """
             SELECT 1 FROM pg_inherits i
             JOIN pg_class c ON c.oid = i.inhrelid
-            WHERE c.relname = ? AND i.inhparent = 'outbox_events'::regclass
+            WHERE c.relname = ? AND i.inhparent = 'aqua_outbox_events'::regclass
             """.trimIndent(),
             listOf(VarCharColumnType() to name),
           ) { rs -> rs.next() } ?: false
         if (!attached) {
           val from = halfStart.format(TIMESTAMP_FMT)
           val to = halfStart.plusMonths(6).format(TIMESTAMP_FMT)
-          exec("CREATE TABLE $name PARTITION OF outbox_events FOR VALUES FROM ('$from') TO ('$to')")
+          exec("CREATE TABLE $name PARTITION OF aqua_outbox_events FOR VALUES FROM ('$from') TO ('$to')")
           created += name
         }
       }
@@ -251,7 +251,7 @@ class OutboxEventRepository(
           FROM pg_inherits i
           JOIN pg_class c ON c.oid = i.inhrelid
           JOIN pg_class p ON p.oid = i.inhparent
-          WHERE p.relname = 'outbox_events' AND p.relkind = 'p'
+          WHERE p.relname = 'aqua_outbox_events' AND p.relkind = 'p'
           """.trimIndent(),
         ) { rs ->
           buildList {
@@ -274,7 +274,7 @@ class OutboxEventRepository(
             OutboxPartitionRules.archiveNameOf(partitionName)
               ?: continue
           // 同事务内 DETACH + 改名,原子完成不留半改名状态
-          exec("ALTER TABLE outbox_events DETACH PARTITION $partitionName")
+          exec("ALTER TABLE aqua_outbox_events DETACH PARTITION $partitionName")
           exec("ALTER TABLE $partitionName RENAME TO $archiveName")
           detached += archiveName
         }

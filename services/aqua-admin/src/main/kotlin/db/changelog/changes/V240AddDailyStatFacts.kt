@@ -10,7 +10,7 @@ class V240AddDailyStatFacts :
     changeSet(author = "aqua-rush", id = "2.4.0-add-daily-stat-facts") {
       comment("Add atomic daily summary fact tables for Layer-3 historical trend metrics (nightly snapshot)")
       // 订单日事实:date × status × delivery_worker_id(amount 按单一次,不乘件数 P1-3;item_quantity 按明细)
-      createTable(tableName = "daily_order_facts") {
+      createTable(tableName = "aqua_daily_order_facts") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -38,15 +38,15 @@ class V240AddDailyStatFacts :
         }
       }
       addUniqueConstraint(
-        tableName = "daily_order_facts",
+        tableName = "aqua_daily_order_facts",
         columnNames = "stat_date, status, delivery_worker_id",
         constraintName = "uk_daily_order_facts_date_status_worker",
       )
-      createIndex(tableName = "daily_order_facts", indexName = "idx_daily_order_facts_date") {
+      createIndex(tableName = "aqua_daily_order_facts", indexName = "idx_daily_order_facts_date") {
         column(name = "stat_date")
       }
       // 商品日事实:date × status × product_id(商品名易变,查询时 join 商品表取名)
-      createTable(tableName = "daily_product_facts") {
+      createTable(tableName = "aqua_daily_product_facts") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -76,15 +76,15 @@ class V240AddDailyStatFacts :
         }
       }
       addUniqueConstraint(
-        tableName = "daily_product_facts",
+        tableName = "aqua_daily_product_facts",
         columnNames = "stat_date, status, product_id",
         constraintName = "uk_daily_product_facts_date_status_product",
       )
-      createIndex(tableName = "daily_product_facts", indexName = "idx_daily_product_facts_date") {
+      createIndex(tableName = "aqua_daily_product_facts", indexName = "idx_daily_product_facts_date") {
         column(name = "stat_date")
       }
       // 用户日事实:date → 新增用户数 / 登录用户数(USER_LOGIN 按 userId 去重)
-      createTable(tableName = "daily_user_facts") {
+      createTable(tableName = "aqua_daily_user_facts") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -105,15 +105,15 @@ class V240AddDailyStatFacts :
         }
       }
       addUniqueConstraint(
-        tableName = "daily_user_facts",
+        tableName = "aqua_daily_user_facts",
         columnNames = "stat_date",
         constraintName = "uk_daily_user_facts_date",
       )
-      createIndex(tableName = "daily_user_facts", indexName = "idx_daily_user_facts_date") {
+      createIndex(tableName = "aqua_daily_user_facts", indexName = "idx_daily_user_facts_date") {
         column(name = "stat_date")
       }
       // 退款日事实:date(processed_at 归属日) × status × refund_type(查询时组合:COMPLETED + ORDER_REFUND)
-      createTable(tableName = "daily_refund_facts") {
+      createTable(tableName = "aqua_daily_refund_facts") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true, nullable = false)
         }
@@ -140,11 +140,11 @@ class V240AddDailyStatFacts :
         }
       }
       addUniqueConstraint(
-        tableName = "daily_refund_facts",
+        tableName = "aqua_daily_refund_facts",
         columnNames = "stat_date, status, refund_type",
         constraintName = "uk_daily_refund_facts_date_status_type",
       )
-      createIndex(tableName = "daily_refund_facts", indexName = "idx_daily_refund_facts_date") {
+      createIndex(tableName = "aqua_daily_refund_facts", indexName = "idx_daily_refund_facts_date") {
         column(name = "stat_date")
       }
     }

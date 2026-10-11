@@ -11,7 +11,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         "Seed system config params for F-SYS-004 account & security, F-SYS-005 notification & subscription message, F-SYS-006 data maintenance",
       )
       // ==================== 账号与安全策略参数组(F-SYS-004) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "16")
         column(name = "setting_key", value = "password_min_length")
         column(name = "setting_value", value = "8")
@@ -24,7 +24,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "17")
         column(name = "setting_key", value = "password_require_alphanumeric")
         column(name = "setting_value", value = "true")
@@ -35,7 +35,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "18")
         column(name = "setting_key", value = "login_fail_lock_threshold")
         column(name = "setting_value", value = "5")
@@ -48,7 +48,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "19")
         column(name = "setting_key", value = "login_lock_duration_minutes")
         column(name = "setting_value", value = "30")
@@ -60,7 +60,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "20")
         column(name = "setting_key", value = "token_validity_hours")
         column(name = "setting_value", value = "24")
@@ -74,7 +74,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "updated_at", value = "NOW()")
       }
       // ==================== 通知与订阅消息参数组(F-SYS-005) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "21")
         column(name = "setting_key", value = "notification_template_order_created_id")
         column(name = "description", value = "下单通知订阅消息模板 ID(未配置为空,密钥类不在此在线配置 R-SYS-02)")
@@ -83,7 +83,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "22")
         column(name = "setting_key", value = "notification_template_order_created_enabled")
         column(name = "setting_value", value = "true")
@@ -94,7 +94,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "23")
         column(name = "setting_key", value = "notification_template_delivery_completed_id")
         column(name = "description", value = "配送完成订阅消息模板 ID(未配置为空)")
@@ -103,7 +103,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "24")
         column(name = "setting_key", value = "notification_template_delivery_completed_enabled")
         column(name = "setting_value", value = "true")
@@ -114,7 +114,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "25")
         column(name = "setting_key", value = "notification_template_order_urging_id")
         column(name = "description", value = "催单订阅消息模板 ID(未配置为空)")
@@ -123,7 +123,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "26")
         column(name = "setting_key", value = "notification_template_order_urging_enabled")
         column(name = "setting_value", value = "true")
@@ -134,7 +134,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "27")
         column(name = "setting_key", value = "notification_template_payment_result_id")
         column(name = "description", value = "支付结果订阅消息模板 ID(未配置为空)")
@@ -143,7 +143,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "28")
         column(name = "setting_key", value = "notification_template_payment_result_enabled")
         column(name = "setting_value", value = "true")
@@ -155,7 +155,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "updated_at", value = "NOW()")
       }
       // ==================== 数据维护参数组(F-SYS-006) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "29")
         column(name = "setting_key", value = "log_retention_api_days")
         column(name = "setting_value", value = "90")
@@ -168,7 +168,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "30")
         column(name = "setting_key", value = "log_retention_user_action_days")
         column(name = "setting_value", value = "90")
@@ -181,7 +181,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "31")
         column(name = "setting_key", value = "log_retention_business_days")
         column(name = "setting_value", value = "90")
@@ -194,7 +194,7 @@ class V124AddSystemSecurityNotificationDataConfig :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "32")
         column(name = "setting_key", value = "log_cleanup_enabled")
         column(name = "setting_value", value = "true")

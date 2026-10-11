@@ -12,7 +12,7 @@ class V170SeedNanshanDemoData :
     //     ============================================================================
     //     以「南山牌桶装水」为核心重建全套演示数据,替换旧 v1.0.2 通用饮料数据:
     //       - 12 款南山牌商品(含 1 缺货 / 1 下架)
-    //       - 3 名送水员(admins 单表 role=DELIVERY_WORKER,送水员档案已于 v1.2.1 并入)
+    //       - 3 名送水员(aqua_admins 单表 role=DELIVERY_WORKER,送水员档案已于 v1.2.1 并入)
     //       - 12 名杭州市西湖区用户 + 17 条收货地址(默认西湖区 330106)
     //       - 51 条最近 30 天历史订单(多商品/营销快照/各状态) + 明细/赠品/评价/轨迹
     //       - 营销配置:客户分组/分组价/优惠券/满减活动/水票/秒杀/买赠/首单活动
@@ -24,9 +24,9 @@ class V170SeedNanshanDemoData :
     //     可引用最终 schema 的列与表;必须在重建数据库后运行(旧测试数据会冲突)。
     //     ============================================================================
     changeSet(author = "aqua-rush", id = "1.7.0-seed-nanshan-basic") {
-      comment("Seed 南山牌 demo base data: customer groups, users, admins (3 delivery workers), addresses, products, favorites")
+      comment("Seed 南山牌 demo base data: customer groups, aqua_users, aqua_admins (3 delivery workers), aqua_addresses, aqua_products, favorites")
       // ==================== 客户分组(F-MKT-001) ====================
-      insert(tableName = "customer_groups") {
+      insert(tableName = "aqua_customer_groups") {
         column(name = "id", valueNumeric = 7000000000000000001)
         column(name = "name", value = "企业客户")
         column(name = "description", value = "写字楼/餐饮等高频批量客户,享专属价格")
@@ -34,7 +34,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '200 days')")
         column(name = "is_deleted", valueBoolean = false)
       }
-      insert(tableName = "customer_groups") {
+      insert(tableName = "aqua_customer_groups") {
         column(name = "id", valueNumeric = 7000000000000000002)
         column(name = "name", value = "社区会员")
         column(name = "description", value = "小区家庭长期订购用户")
@@ -42,7 +42,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '180 days')")
         column(name = "is_deleted", valueBoolean = false)
       }
-      insert(tableName = "customer_groups") {
+      insert(tableName = "aqua_customer_groups") {
         column(name = "id", valueNumeric = 7000000000000000003)
         column(name = "name", value = "普通客户")
         column(name = "description", value = "默认分组,未归属其他分组的新用户")
@@ -51,7 +51,7 @@ class V170SeedNanshanDemoData :
         column(name = "is_deleted", valueBoolean = false)
       }
       // ==================== 用户(12 名,杭州市西湖区) ====================
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000001)
         column(name = "wechat_openid", value = "openid_nanshan_001")
         column(name = "wechat_unionid", value = "unionid_nanshan_001")
@@ -61,14 +61,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "wangjianguo@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 2500)
         column(name = "total_spent_cents", valueNumeric = 15200)
         column(name = "customer_group_id", valueNumeric = 7000000000000000002)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '420 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000002)
         column(name = "wechat_openid", value = "openid_nanshan_002")
         column(name = "wechat_unionid", value = "unionid_nanshan_002")
@@ -78,14 +77,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "lixiuying@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 800)
         column(name = "total_spent_cents", valueNumeric = 9800)
         column(name = "customer_group_id", valueNumeric = 7000000000000000002)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '350 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000003)
         column(name = "wechat_openid", value = "openid_nanshan_003")
         column(name = "wechat_unionid", value = "unionid_nanshan_003")
@@ -95,13 +93,12 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "zhangwei@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 0)
         column(name = "total_spent_cents", valueNumeric = 7600)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '300 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000004)
         column(name = "wechat_openid", value = "openid_nanshan_004")
         column(name = "wechat_unionid", value = "unionid_nanshan_004")
@@ -111,14 +108,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "chenxiaodong@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 5000)
         column(name = "total_spent_cents", valueNumeric = 38600)
         column(name = "customer_group_id", valueNumeric = 7000000000000000001)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '600 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000005)
         column(name = "wechat_openid", value = "openid_nanshan_005")
         column(name = "wechat_unionid", value = "unionid_nanshan_005")
@@ -128,14 +124,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "linfang@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 1500)
         column(name = "total_spent_cents", valueNumeric = 6300)
         column(name = "customer_group_id", valueNumeric = 7000000000000000002)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '200 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000006)
         column(name = "wechat_openid", value = "openid_nanshan_006")
         column(name = "wechat_unionid", value = "unionid_nanshan_006")
@@ -145,14 +140,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "zhaoqiang@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 12000)
         column(name = "total_spent_cents", valueNumeric = 52400)
         column(name = "customer_group_id", valueNumeric = 7000000000000000001)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '720 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000007)
         column(name = "wechat_openid", value = "openid_nanshan_007")
         column(name = "wechat_unionid", value = "unionid_nanshan_007")
@@ -162,13 +156,12 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "sunzhiyuan@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 300)
         column(name = "total_spent_cents", valueNumeric = 4100)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '150 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000008)
         column(name = "wechat_openid", value = "openid_nanshan_008")
         column(name = "wechat_unionid", value = "unionid_nanshan_008")
@@ -178,14 +171,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "zhoulijuan@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 600)
         column(name = "total_spent_cents", valueNumeric = 5200)
         column(name = "customer_group_id", valueNumeric = 7000000000000000002)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '260 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000009)
         column(name = "wechat_openid", value = "openid_nanshan_009")
         column(name = "wechat_unionid", value = "unionid_nanshan_009")
@@ -195,14 +187,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "wugang@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 8000)
         column(name = "total_spent_cents", valueNumeric = 29800)
         column(name = "customer_group_id", valueNumeric = 7000000000000000001)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '500 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000010)
         column(name = "wechat_openid", value = "openid_nanshan_010")
         column(name = "wechat_unionid", value = "unionid_nanshan_010")
@@ -212,13 +203,12 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "zhengxiulan@example.com")
         column(name = "status", value = "SUSPENDED")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 0)
         column(name = "total_spent_cents", valueNumeric = 3600)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '180 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000011)
         column(name = "wechat_openid", value = "openid_nanshan_011")
         column(name = "wechat_unionid", value = "unionid_nanshan_011")
@@ -228,13 +218,12 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "hejunjie@example.com")
         column(name = "status", value = "INACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 0)
         column(name = "total_spent_cents", valueNumeric = 0)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
-      insert(tableName = "users") {
+      insert(tableName = "aqua_users") {
         column(name = "id", valueNumeric = 1000000000000000012)
         column(name = "wechat_openid", value = "openid_nanshan_012")
         column(name = "wechat_unionid", value = "unionid_nanshan_012")
@@ -244,14 +233,13 @@ class V170SeedNanshanDemoData :
         column(name = "email", value = "gaomin@example.com")
         column(name = "status", value = "ACTIVE")
         column(name = "role", value = "USER")
-        column(name = "balance_cents", valueNumeric = 200)
         column(name = "total_spent_cents", valueNumeric = 2800)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '120 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // ==================== 后台账号(superadmin/admin 自增 1/2,送水员显式 id) ====================
-      insert(tableName = "admins") {
+      insert(tableName = "aqua_admins") {
         column(name = "username", value = "superadmin")
         column(
           name = "password_hash",
@@ -264,7 +252,7 @@ class V170SeedNanshanDemoData :
         column(name = "last_login_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "admins") {
+      insert(tableName = "aqua_admins") {
         column(name = "username", value = "admin")
         column(
           name = "password_hash",
@@ -278,7 +266,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 送水员 1:陈永强(在线,评分最高)
-      insert(tableName = "admins") {
+      insert(tableName = "aqua_admins") {
         column(name = "id", valueNumeric = 9000000000000000011)
         column(name = "username", value = "delivery_worker_001")
         column(
@@ -301,7 +289,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 送水员 2:刘志刚(在线)
-      insert(tableName = "admins") {
+      insert(tableName = "aqua_admins") {
         column(name = "id", valueNumeric = 9000000000000000012)
         column(name = "username", value = "delivery_worker_002")
         column(
@@ -324,7 +312,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 送水员 3:黄海涛(离线,演示下线状态)
-      insert(tableName = "admins") {
+      insert(tableName = "aqua_admins") {
         column(name = "id", valueNumeric = 9000000000000000013)
         column(name = "username", value = "delivery_worker_003")
         column(
@@ -347,7 +335,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
       // ==================== 送水员统计(账号 id 即 delivery_worker_id) ====================
-      insert(tableName = "delivery_worker_statistics") {
+      insert(tableName = "aqua_delivery_worker_statistics") {
         column(name = "id", valueNumeric = 8500000000000000001)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "average_rating", valueNumeric = BigDecimal("4.90"))
@@ -361,7 +349,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_updated", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "delivery_worker_statistics") {
+      insert(tableName = "aqua_delivery_worker_statistics") {
         column(name = "id", valueNumeric = 8500000000000000002)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "average_rating", valueNumeric = BigDecimal("4.83"))
@@ -375,7 +363,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "last_updated", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "delivery_worker_statistics") {
+      insert(tableName = "aqua_delivery_worker_statistics") {
         column(name = "id", valueNumeric = 8500000000000000003)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000013)
         column(name = "average_rating", valueNumeric = BigDecimal("4.60"))
@@ -391,7 +379,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 收货地址(默认杭州市西湖区 330106,WGS-84 坐标,floor 用于配送费) ====================
       // 王建国(2 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000001)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "receiver_name", value = "王建国")
@@ -410,7 +398,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '400 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '400 days')")
       }
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000002)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "receiver_name", value = "王建国")
@@ -430,7 +418,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '300 days')")
       }
       // 李秀英(2 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000003)
         column(name = "user_id", valueNumeric = 1000000000000000002)
         column(name = "receiver_name", value = "李秀英")
@@ -449,7 +437,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '330 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '330 days')")
       }
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000004)
         column(name = "user_id", valueNumeric = 1000000000000000002)
         column(name = "receiver_name", value = "李秀英")
@@ -469,7 +457,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '250 days')")
       }
       // 张伟(1 条,写字楼)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000005)
         column(name = "user_id", valueNumeric = 1000000000000000003)
         column(name = "receiver_name", value = "张伟")
@@ -489,7 +477,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '280 days')")
       }
       // 陈晓东(3 条,餐饮店)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000006)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "receiver_name", value = "陈晓东")
@@ -508,7 +496,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '580 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '580 days')")
       }
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000007)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "receiver_name", value = "陈晓东")
@@ -527,7 +515,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '400 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '400 days')")
       }
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000008)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "receiver_name", value = "陈晓东")
@@ -547,7 +535,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '200 days')")
       }
       // 林芳(1 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000009)
         column(name = "user_id", valueNumeric = 1000000000000000005)
         column(name = "receiver_name", value = "林芳")
@@ -567,7 +555,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '190 days')")
       }
       // 赵强(1 条,奶茶店)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000010)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "receiver_name", value = "赵强")
@@ -587,7 +575,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '700 days')")
       }
       // 孙志远(1 条,写字楼)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000011)
         column(name = "user_id", valueNumeric = 1000000000000000007)
         column(name = "receiver_name", value = "孙志远")
@@ -607,7 +595,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '140 days')")
       }
       // 周丽娟(1 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000012)
         column(name = "user_id", valueNumeric = 1000000000000000008)
         column(name = "receiver_name", value = "周丽娟")
@@ -627,7 +615,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '250 days')")
       }
       // 吴刚(2 条,企业)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000013)
         column(name = "user_id", valueNumeric = 1000000000000000009)
         column(name = "receiver_name", value = "吴刚")
@@ -646,7 +634,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '480 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '480 days')")
       }
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000014)
         column(name = "user_id", valueNumeric = 1000000000000000009)
         column(name = "receiver_name", value = "吴刚")
@@ -666,7 +654,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '300 days')")
       }
       // 郑秀兰(1 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000015)
         column(name = "user_id", valueNumeric = 1000000000000000010)
         column(name = "receiver_name", value = "郑秀兰")
@@ -686,7 +674,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '170 days')")
       }
       // 何俊杰(1 条,新用户)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000016)
         column(name = "user_id", valueNumeric = 1000000000000000011)
         column(name = "receiver_name", value = "何俊杰")
@@ -706,7 +694,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
       // 高敏(1 条)
-      insert(tableName = "addresses") {
+      insert(tableName = "aqua_addresses") {
         column(name = "id", valueNumeric = 2000000000000000017)
         column(name = "user_id", valueNumeric = 1000000000000000012)
         column(name = "receiver_name", value = "高敏")
@@ -727,7 +715,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 商品(12 款南山牌) ====================
       // 商品 1:旗舰 18.9L 桶装水
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000001)
         column(name = "name", value = "南山牌 天然山泉水 18.9L 桶装水")
         column(name = "subtitle", value = "天目山泉 弱碱性 甘甜清冽")
@@ -754,7 +742,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 2:11.3L 小桶
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000002)
         column(name = "name", value = "南山牌 天然山泉水 11.3L 桶装水")
         column(name = "subtitle", value = "小桶轻量 适合小家庭")
@@ -774,7 +762,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 3:5L 便携装
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000003)
         column(name = "name", value = "南山牌 天然山泉水 5L 便携装")
         column(name = "subtitle", value = "出行露营 即开即饮")
@@ -795,7 +783,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 4:4.5L×2 礼盒装
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000004)
         column(name = "name", value = "南山牌 天然矿泉水 4.5L×2 礼盒装")
         column(name = "subtitle", value = "高端礼盒 商务馈赠")
@@ -815,7 +803,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 5:平价纯净水 18.9L
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000005)
         column(name = "name", value = "南山牌 饮用纯净水 18.9L 桶装水")
         column(name = "subtitle", value = "经济实惠 泡茶煮饭皆宜")
@@ -835,7 +823,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 6:550ml×24 整箱
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000006)
         column(name = "name", value = "南山牌 天然山泉水 550ml×24 整箱")
         column(name = "subtitle", value = "整箱装 办公常备")
@@ -855,7 +843,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 7:1.5L×12 整箱
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000007)
         column(name = "name", value = "南山牌 天然山泉水 1.5L×12 整箱")
         column(name = "subtitle", value = "大瓶装 厨房泡茶")
@@ -875,7 +863,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 8:饮水机
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000008)
         column(name = "name", value = "南山牌 冷热双用饮水机")
         column(name = "subtitle", value = "下置式 冷热双温")
@@ -894,7 +882,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 9:电动抽水泵
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000009)
         column(name = "name", value = "南山牌 电动抽水泵")
         column(name = "subtitle", value = "USB 充电 一键出水")
@@ -912,7 +900,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 10:桶盖
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000010)
         column(name = "name", value = "南山牌 桶装水桶盖(10只装)")
         column(name = "subtitle", value = "密封防尘 加厚耐用")
@@ -930,7 +918,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 商品 11:7.5L 家用装(缺货)
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000011)
         column(name = "name", value = "南山牌 天然山泉水 7.5L 家用装")
         column(name = "subtitle", value = "中桶装 家庭优选")
@@ -950,7 +938,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
       // 商品 12:泡茶山泉水(下架)
-      insert(tableName = "products") {
+      insert(tableName = "aqua_products") {
         column(name = "id", valueNumeric = 3000000000000000012)
         column(name = "name", value = "南山牌 高端泡茶山泉水 4L")
         column(name = "subtitle", value = "茶道专用 小分子团")
@@ -970,7 +958,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
       }
       // ==================== 水桶费价目(G06 一次性塑料水桶费,独立价目表) ====================
-      insert(tableName = "barrel_fees") {
+      insert(tableName = "aqua_barrel_fees") {
         column(name = "id", valueNumeric = 3100000000000000001)
         column(name = "specification", value = "18.9L/桶")
         column(name = "price_cents", valueNumeric = 4000)
@@ -979,7 +967,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "barrel_fees") {
+      insert(tableName = "aqua_barrel_fees") {
         column(name = "id", valueNumeric = 3100000000000000002)
         column(name = "specification", value = "11.3L/桶")
         column(name = "price_cents", valueNumeric = 3000)
@@ -989,7 +977,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // ==================== 商品收藏(F-PRO 收藏演示) ====================
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000001)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -997,7 +985,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000002)
         column(name = "user_id", valueNumeric = 1000000000000000002)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1005,7 +993,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000003)
         column(name = "user_id", valueNumeric = 1000000000000000003)
         column(name = "product_id", valueNumeric = 3000000000000000006)
@@ -1013,7 +1001,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000004)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1021,7 +1009,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000005)
         column(name = "user_id", valueNumeric = 1000000000000000005)
         column(name = "product_id", valueNumeric = 3000000000000000003)
@@ -1029,7 +1017,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000006)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "product_id", valueNumeric = 3000000000000000008)
@@ -1037,7 +1025,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000007)
         column(name = "user_id", valueNumeric = 1000000000000000007)
         column(name = "product_id", valueNumeric = 3000000000000000002)
@@ -1045,7 +1033,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000008)
         column(name = "user_id", valueNumeric = 1000000000000000008)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1053,7 +1041,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000009)
         column(name = "user_id", valueNumeric = 1000000000000000009)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -1061,7 +1049,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
-      insert(tableName = "product_favorites") {
+      insert(tableName = "aqua_product_favorites") {
         column(name = "id", valueNumeric = 8800000000000000010)
         column(name = "user_id", valueNumeric = 1000000000000000012)
         column(name = "product_id", valueNumeric = 3000000000000000003)
@@ -1075,7 +1063,7 @@ class V170SeedNanshanDemoData :
         "Seed 南山牌 demo marketing configs: group prices, coupons, promotions, water tickets, flash sale, gift, first-order (PRD 10-marketing.md)",
       )
       // ==================== 分组专属价(F-MKT-002) ====================
-      insert(tableName = "group_product_prices") {
+      insert(tableName = "aqua_group_product_prices") {
         column(name = "id", valueNumeric = 7000000000000000101)
         column(name = "customer_group_id", valueNumeric = 7000000000000000001)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1083,7 +1071,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '150 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '150 days')")
       }
-      insert(tableName = "group_product_prices") {
+      insert(tableName = "aqua_group_product_prices") {
         column(name = "id", valueNumeric = 7000000000000000102)
         column(name = "customer_group_id", valueNumeric = 7000000000000000001)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -1091,7 +1079,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '150 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '150 days')")
       }
-      insert(tableName = "group_product_prices") {
+      insert(tableName = "aqua_group_product_prices") {
         column(name = "id", valueNumeric = 7000000000000000103)
         column(name = "customer_group_id", valueNumeric = 7000000000000000002)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1101,7 +1089,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 优惠券模板(F-MKT-003) ====================
       // 券 1:新人见面礼 5 元无门槛券
-      insert(tableName = "coupon_templates") {
+      insert(tableName = "aqua_coupon_templates") {
         column(name = "id", valueNumeric = 7100000000000000001)
         column(name = "name", value = "新人见面礼 5元无门槛券")
         column(name = "coupon_type", value = "NO_THRESHOLD_CASH")
@@ -1116,7 +1104,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 券 2:满 100 减 10
-      insert(tableName = "coupon_templates") {
+      insert(tableName = "aqua_coupon_templates") {
         column(name = "id", valueNumeric = 7100000000000000002)
         column(name = "name", value = "全场满100减10元券")
         column(name = "coupon_type", value = "CASH")
@@ -1133,7 +1121,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 券 3:桶装水专享 满 50 减 5
-      insert(tableName = "coupon_templates") {
+      insert(tableName = "aqua_coupon_templates") {
         column(name = "id", valueNumeric = 7100000000000000003)
         column(name = "name", value = "桶装水专享 满50减5券")
         column(name = "coupon_type", value = "CASH")
@@ -1151,7 +1139,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 券 4:老客回馈 9 折券(已停用,演示停用态)
-      insert(tableName = "coupon_templates") {
+      insert(tableName = "aqua_coupon_templates") {
         column(name = "id", valueNumeric = 7100000000000000004)
         column(name = "name", value = "老客回馈 9折券")
         column(name = "coupon_type", value = "DISCOUNT")
@@ -1166,7 +1154,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
       // ==================== 用户优惠券实例 ====================
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000101)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000002)
@@ -1181,7 +1169,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000102)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000001)
@@ -1197,7 +1185,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000103)
         column(name = "user_id", valueNumeric = 1000000000000000002)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000002)
@@ -1212,7 +1200,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000104)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000003)
@@ -1230,7 +1218,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000105)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000003)
@@ -1248,7 +1236,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000106)
         column(name = "user_id", valueNumeric = 1000000000000000008)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000002)
@@ -1263,7 +1251,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000107)
         column(name = "user_id", valueNumeric = 1000000000000000009)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000002)
@@ -1280,7 +1268,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000108)
         column(name = "user_id", valueNumeric = 1000000000000000005)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000001)
@@ -1294,7 +1282,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000109)
         column(name = "user_id", valueNumeric = 1000000000000000012)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000001)
@@ -1308,7 +1296,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '32 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "user_coupons") {
+      insert(tableName = "aqua_user_coupons") {
         column(name = "id", valueNumeric = 7100000000000000110)
         column(name = "user_id", valueNumeric = 1000000000000000003)
         column(name = "coupon_template_id", valueNumeric = 7100000000000000001)
@@ -1326,7 +1314,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 满减/折扣活动(F-MKT-004) ====================
       // 活动 1:全场满 200 减 20
-      insert(tableName = "promotion_activities") {
+      insert(tableName = "aqua_promotion_activities") {
         column(name = "id", valueNumeric = 7200000000000000001)
         column(name = "name", value = "全场满200减20")
         column(name = "activity_type", value = "FULL_REDUCE")
@@ -1338,7 +1326,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 活动 2:桶装水 9 折
-      insert(tableName = "promotion_activities") {
+      insert(tableName = "aqua_promotion_activities") {
         column(name = "id", valueNumeric = 7200000000000000002)
         column(name = "name", value = "南山桶装水 9折优惠")
         column(name = "activity_type", value = "FULL_DISCOUNT")
@@ -1351,7 +1339,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 活动 1 档位:满 200 减 20 / 满 500 减 60
-      insert(tableName = "promotion_activity_tiers") {
+      insert(tableName = "aqua_promotion_activity_tiers") {
         column(name = "id", valueNumeric = 7200000000000000101)
         column(name = "activity_id", valueNumeric = 7200000000000000001)
         column(name = "threshold_cents", valueNumeric = 20000)
@@ -1360,7 +1348,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "promotion_activity_tiers") {
+      insert(tableName = "aqua_promotion_activity_tiers") {
         column(name = "id", valueNumeric = 7200000000000000102)
         column(name = "activity_id", valueNumeric = 7200000000000000001)
         column(name = "threshold_cents", valueNumeric = 50000)
@@ -1370,7 +1358,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 活动 2 档位:9 折
-      insert(tableName = "promotion_activity_tiers") {
+      insert(tableName = "aqua_promotion_activity_tiers") {
         column(name = "id", valueNumeric = 7200000000000000103)
         column(name = "activity_id", valueNumeric = 7200000000000000002)
         column(name = "threshold_cents", valueNumeric = 100)
@@ -1381,7 +1369,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 水票(F-MKT-007) ====================
       // 票种 1:18.9L 桶水票 10 张装(买 10 送 1)
-      insert(tableName = "ticket_types") {
+      insert(tableName = "aqua_ticket_types") {
         column(name = "id", valueNumeric = 7300000000000000001)
         column(name = "name", value = "南山山泉水 18.9L 水票(10张装)")
         column(name = "ticket_type", value = "SPECIFIC_PRODUCT")
@@ -1398,7 +1386,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 票种 2:通用水票 5 张装
-      insert(tableName = "ticket_types") {
+      insert(tableName = "aqua_ticket_types") {
         column(name = "id", valueNumeric = 7300000000000000002)
         column(name = "name", value = "通用水票(5张装)")
         column(name = "ticket_type", value = "UNIVERSAL")
@@ -1415,7 +1403,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 购票单(PAID)
-      insert(tableName = "ticket_purchases") {
+      insert(tableName = "aqua_ticket_purchases") {
         column(name = "id", valueNumeric = 7300000000000000101)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1430,7 +1418,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "ticket_purchases") {
+      insert(tableName = "aqua_ticket_purchases") {
         column(name = "id", valueNumeric = 7300000000000000102)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000002)
@@ -1445,7 +1433,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
-      insert(tableName = "ticket_purchases") {
+      insert(tableName = "aqua_ticket_purchases") {
         column(name = "id", valueNumeric = 7300000000000000103)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1461,7 +1449,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
       }
       // 用户水票实例(王建国 7 张)
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000201)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1472,7 +1460,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000202)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1483,7 +1471,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000203)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1494,7 +1482,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000204)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1505,7 +1493,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000205)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1516,7 +1504,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000206)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1527,7 +1515,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000207)
         column(name = "user_id", valueNumeric = 1000000000000000001)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1541,7 +1529,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
       // 用户水票实例(赵强 4 张)
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000208)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000002)
@@ -1552,7 +1540,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000209)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000002)
@@ -1563,7 +1551,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000210)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000002)
@@ -1576,7 +1564,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000211)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000002)
@@ -1590,7 +1578,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
       }
       // 用户水票实例(陈晓东 2 张)
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000212)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1601,7 +1589,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
       }
-      insert(tableName = "user_tickets") {
+      insert(tableName = "aqua_user_tickets") {
         column(name = "id", valueNumeric = 7300000000000000213)
         column(name = "user_id", valueNumeric = 1000000000000000004)
         column(name = "ticket_type_id", valueNumeric = 7300000000000000001)
@@ -1615,7 +1603,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
       // ==================== 限时特价(F-MKT-005) ====================
-      insert(tableName = "flash_sale_activities") {
+      insert(tableName = "aqua_flash_sale_activities") {
         column(name = "id", valueNumeric = 7400000000000000001)
         column(name = "name", value = "5L便携装 9.9元限时特价")
         column(name = "product_id", valueNumeric = 3000000000000000003)
@@ -1628,7 +1616,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 买赠/满赠(F-MKT-008) ====================
       // 活动 1:买 3 桶 18.9L 送 1 桶
-      insert(tableName = "gift_activities") {
+      insert(tableName = "aqua_gift_activities") {
         column(name = "id", valueNumeric = 7500000000000000001)
         column(name = "name", value = "买3桶送1桶")
         column(name = "gift_type", value = "BUY_GIFT")
@@ -1644,7 +1632,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 活动 2:满 200 送 5L 便携装 1 桶
-      insert(tableName = "gift_activities") {
+      insert(tableName = "aqua_gift_activities") {
         column(name = "id", valueNumeric = 7500000000000000002)
         column(name = "name", value = "满200送5L便携装")
         column(name = "gift_type", value = "FULL_GIFT")
@@ -1660,7 +1648,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 首单活动(F-MKT-009) ====================
       // 活动 1:新人首单立减 10 元
-      insert(tableName = "first_order_activities") {
+      insert(tableName = "aqua_first_order_activities") {
         column(name = "id", valueNumeric = 7600000000000000001)
         column(name = "name", value = "新人首单立减10元")
         column(name = "activity_type", value = "FIRST_ORDER_REDUCE")
@@ -1674,7 +1662,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 活动 2:新人专享 18.9L 桶 19.9 元
-      insert(tableName = "first_order_activities") {
+      insert(tableName = "aqua_first_order_activities") {
         column(name = "id", valueNumeric = 7600000000000000002)
         column(name = "name", value = "新人专享 18.9L桶 19.9元")
         column(name = "activity_type", value = "NEWCOMER_PRICE")
@@ -1688,14 +1676,14 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
     }
-    changeSet(author = "aqua-rush", id = "1.7.0-seed-nanshan-orders") {
+    changeSet(author = "aqua-rush", id = "1.7.0-seed-nanshan-aqua_orders") {
       comment(
-        "Seed 南山牌 demo orders (last 30 days), order items, gifts, reviews, delivery trajectories (PRD 04-order.md / 05-address-delivery.md)",
+        "Seed 南山牌 demo aqua_orders (last 30 days), order items, gifts, aqua_reviews, delivery trajectories (PRD 04-order.md / 05-address-delivery.md)",
       )
       // ======================================================================
       //         订单 1:王建国 2×18.9L(COMPLETED,陈永强)
       //     ======================================================================
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000001)
         column(name = "order_no", value = "NS00000001")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -1721,10 +1709,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days' + INTERVAL '50 minutes')",
         )
@@ -1740,7 +1724,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000001)
         column(name = "order_id", valueNumeric = 4000000000000000001)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1754,7 +1738,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
       }
       // 订单 2:李秀英 1×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000002)
         column(name = "order_no", value = "NS00000002")
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -1776,10 +1760,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days' + INTERVAL '55 minutes')",
         )
@@ -1794,7 +1774,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000002)
         column(name = "order_id", valueNumeric = 4000000000000000002)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1808,7 +1788,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days')")
       }
       // 订单 3:陈晓东 3×18.9L 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000003)
         column(name = "order_no", value = "NS00000003")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -1831,10 +1811,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '35 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '45 minutes')",
         )
@@ -1850,7 +1826,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '45 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000003)
         column(name = "order_id", valueNumeric = 4000000000000000003)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1864,7 +1840,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
       }
       // 订单 4:赵强 2×18.9L+1×抽水泵,核销水票1张(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000004)
         column(name = "order_no", value = "NS00000004")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -1883,10 +1859,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '20 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '1 hours')",
         )
@@ -1902,7 +1874,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000004)
         column(name = "order_id", valueNumeric = 4000000000000000004)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1915,7 +1887,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000005)
         column(name = "order_id", valueNumeric = 4000000000000000004)
         column(name = "product_id", valueNumeric = 3000000000000000009)
@@ -1929,7 +1901,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
       }
       // 订单 5:吴刚 4×18.9L 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000005)
         column(name = "order_no", value = "NS00000005")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -1951,10 +1923,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days' + INTERVAL '1 hours')",
         )
@@ -1967,7 +1935,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000006)
         column(name = "order_id", valueNumeric = 4000000000000000005)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -1981,7 +1949,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days')")
       }
       // 订单 6:王建国 1×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000006)
         column(name = "order_no", value = "NS00000006")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -2003,10 +1971,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '50 minutes')",
         )
@@ -2021,7 +1985,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000007)
         column(name = "order_id", valueNumeric = 4000000000000000006)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2035,7 +1999,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days')")
       }
       // 订单 7:林芳 1×5L 便携装(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000007)
         column(name = "order_no", value = "NS00000007")
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -2057,10 +2021,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '55 minutes')",
         )
@@ -2075,7 +2035,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000008)
         column(name = "order_id", valueNumeric = 4000000000000000007)
         column(name = "product_id", valueNumeric = 3000000000000000003)
@@ -2089,7 +2049,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '26 days')")
       }
       // 订单 8:张伟 2×550ml整箱(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000008)
         column(name = "order_no", value = "NS00000008")
         column(name = "user_id", valueNumeric = 1000000000000000003)
@@ -2111,10 +2071,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days' + INTERVAL '50 minutes')",
         )
@@ -2130,7 +2086,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000009)
         column(name = "order_id", valueNumeric = 4000000000000000008)
         column(name = "product_id", valueNumeric = 3000000000000000006)
@@ -2144,7 +2100,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '25 days')")
       }
       // 订单 9:周丽娟 1×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000009)
         column(name = "order_no", value = "NS00000009")
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -2163,10 +2119,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '20 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '55 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '1 hours')",
         )
@@ -2181,7 +2133,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000010)
         column(name = "order_id", valueNumeric = 4000000000000000009)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2195,7 +2147,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days')")
       }
       // 订单 10:陈晓东 8×18.9L 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000010)
         column(name = "order_no", value = "NS00000010")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -2217,10 +2169,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '55 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '1 hours')",
         )
@@ -2232,7 +2180,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000010)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2246,7 +2194,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '24 days')")
       }
       // 订单 11:赵强 3×18.9L 触发买3送1(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000011)
         column(name = "order_no", value = "NS00000011")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -2272,10 +2220,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '50 minutes')",
         )
@@ -2288,7 +2232,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000011)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2302,7 +2246,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days')")
       }
       // 订单 12:王建国 2×18.9L(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000012)
         column(name = "order_no", value = "NS00000012")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -2324,10 +2268,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '55 minutes')",
         )
@@ -2342,7 +2282,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000013)
         column(name = "order_id", valueNumeric = 4000000000000000012)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2356,7 +2296,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days')")
       }
       // 订单 13:吴刚 6×18.9L 企业价+满100减10券(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000013)
         column(name = "order_no", value = "NS00000013")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -2381,10 +2321,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '1 hours')",
         )
@@ -2397,7 +2333,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000014)
         column(name = "order_id", valueNumeric = 4000000000000000013)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2411,7 +2347,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
       // 订单 14:陈晓东 2×18.9L+2×纯净水,核销水票1张(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000014)
         column(name = "order_no", value = "NS00000014")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -2433,10 +2369,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '55 minutes')",
         )
@@ -2452,7 +2384,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000015)
         column(name = "order_id", valueNumeric = 4000000000000000014)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2465,7 +2397,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000016)
         column(name = "order_id", valueNumeric = 4000000000000000014)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -2479,7 +2411,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
       // 订单 15:孙志远 1×11.3L 首单立减(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000015)
         column(name = "order_no", value = "NS00000015")
         column(name = "user_id", valueNumeric = 1000000000000000007)
@@ -2504,10 +2436,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '50 minutes')",
         )
@@ -2523,7 +2451,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000017)
         column(name = "order_id", valueNumeric = 4000000000000000015)
         column(name = "product_id", valueNumeric = 3000000000000000002)
@@ -2537,7 +2465,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days')")
       }
       // 订单 16:李秀英 2×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000016)
         column(name = "order_no", value = "NS00000016")
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -2559,10 +2487,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '55 minutes')",
         )
@@ -2577,7 +2501,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000018)
         column(name = "order_id", valueNumeric = 4000000000000000016)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2591,7 +2515,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '21 days')")
       }
       // 订单 17:赵强 10×18.9L 满200减20(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000017)
         column(name = "order_no", value = "NS00000017")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -2617,10 +2541,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '20 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '1 hours')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '1 hours' + INTERVAL '10 minutes')",
         )
@@ -2633,7 +2553,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '1 hours' + INTERVAL '10 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000019)
         column(name = "order_id", valueNumeric = 4000000000000000017)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2647,7 +2567,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
       // 订单 18:王建国 1×18.9L 水票核销(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000018)
         column(name = "order_no", value = "NS00000018")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -2669,10 +2589,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '50 minutes')",
         )
@@ -2688,7 +2604,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000020)
         column(name = "order_id", valueNumeric = 4000000000000000018)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2702,7 +2618,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
       // 订单 19:吴刚 3×纯净水(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000019)
         column(name = "order_no", value = "NS00000019")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -2724,10 +2640,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '55 minutes')",
         )
@@ -2739,7 +2651,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000021)
         column(name = "order_id", valueNumeric = 4000000000000000019)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -2753,7 +2665,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
       }
       // 订单 20:陈晓东 2×18.9L+饮水机,满200减20+专享券(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000020)
         column(name = "order_no", value = "NS00000020")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -2785,10 +2697,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '20 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '1 hours')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '1 hours' + INTERVAL '15 minutes')",
         )
@@ -2804,7 +2712,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days' + INTERVAL '1 hours' + INTERVAL '15 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000022)
         column(name = "order_id", valueNumeric = 4000000000000000020)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2817,7 +2725,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000023)
         column(name = "order_id", valueNumeric = 4000000000000000020)
         column(name = "product_id", valueNumeric = 3000000000000000008)
@@ -2831,7 +2739,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
       }
       // 订单 21:林芳 1×18.9L(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000021)
         column(name = "order_no", value = "NS00000021")
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -2853,10 +2761,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '50 minutes')",
         )
@@ -2871,7 +2775,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000024)
         column(name = "order_id", valueNumeric = 4000000000000000021)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2885,7 +2789,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
       // 订单 22:周丽娟 2×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000022)
         column(name = "order_no", value = "NS00000022")
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -2907,10 +2811,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '55 minutes')",
         )
@@ -2925,7 +2825,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000025)
         column(name = "order_id", valueNumeric = 4000000000000000022)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2939,7 +2839,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
       // 订单 23:赵强 2×18.9L+2×抽水泵,专享券(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000023)
         column(name = "order_no", value = "NS00000023")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -2964,10 +2864,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '1 hours')",
         )
@@ -2982,7 +2878,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000026)
         column(name = "order_id", valueNumeric = 4000000000000000023)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -2995,7 +2891,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000027)
         column(name = "order_id", valueNumeric = 4000000000000000023)
         column(name = "product_id", valueNumeric = 3000000000000000009)
@@ -3009,7 +2905,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
       }
       // 订单 24:王建国 2×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000024)
         column(name = "order_no", value = "NS00000024")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -3031,10 +2927,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '55 minutes')",
         )
@@ -3049,7 +2941,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000028)
         column(name = "order_id", valueNumeric = 4000000000000000024)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3063,7 +2955,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
       }
       // 订单 25:张伟 1×18.9L+1×桶盖(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000025)
         column(name = "order_no", value = "NS00000025")
         column(name = "user_id", valueNumeric = 1000000000000000003)
@@ -3085,10 +2977,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '50 minutes')",
         )
@@ -3103,7 +2991,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000029)
         column(name = "order_id", valueNumeric = 4000000000000000025)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3116,7 +3004,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000030)
         column(name = "order_id", valueNumeric = 4000000000000000025)
         column(name = "product_id", valueNumeric = 3000000000000000010)
@@ -3130,7 +3018,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days')")
       }
       // 订单 26:孙志远 2×18.9L(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000026)
         column(name = "order_no", value = "NS00000026")
         column(name = "user_id", valueNumeric = 1000000000000000007)
@@ -3152,10 +3040,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '55 minutes')",
         )
@@ -3170,7 +3054,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000031)
         column(name = "order_id", valueNumeric = 4000000000000000026)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3184,7 +3068,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '16 days')")
       }
       // 订单 27:李秀英 1×纯净水(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000027)
         column(name = "order_no", value = "NS00000027")
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -3206,10 +3090,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '35 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '45 minutes')",
         )
@@ -3224,7 +3104,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '45 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000032)
         column(name = "order_id", valueNumeric = 4000000000000000027)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -3238,7 +3118,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
       }
       // 订单 28:陈晓东 3×18.9L 企业价(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000028)
         column(name = "order_no", value = "NS00000028")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -3260,10 +3140,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '20 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '1 hours')",
         )
@@ -3278,7 +3154,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000033)
         column(name = "order_id", valueNumeric = 4000000000000000028)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3292,7 +3168,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
       }
       // 订单 29:吴刚 8×18.9L 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000029)
         column(name = "order_no", value = "NS00000029")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -3314,10 +3190,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '55 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '1 hours')",
         )
@@ -3329,7 +3201,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000034)
         column(name = "order_id", valueNumeric = 4000000000000000029)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3343,7 +3215,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
       }
       // 订单 30:赵强 1×11.3L+1×550ml整箱,水票核销(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000030)
         column(name = "order_no", value = "NS00000030")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -3365,10 +3237,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '50 minutes')",
         )
@@ -3384,7 +3252,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000035)
         column(name = "order_id", valueNumeric = 4000000000000000030)
         column(name = "product_id", valueNumeric = 3000000000000000002)
@@ -3397,7 +3265,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000036)
         column(name = "order_id", valueNumeric = 4000000000000000030)
         column(name = "product_id", valueNumeric = 3000000000000000006)
@@ -3411,7 +3279,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
       }
       // 订单 31:林芳 2×18.9L(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000031)
         column(name = "order_no", value = "NS00000031")
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -3433,10 +3301,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '55 minutes')",
         )
@@ -3451,7 +3315,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000037)
         column(name = "order_id", valueNumeric = 4000000000000000031)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3465,7 +3329,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days')")
       }
       // 订单 32:周丽娟 1×18.9L(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000032)
         column(name = "order_no", value = "NS00000032")
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -3487,10 +3351,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '50 minutes')",
         )
@@ -3505,7 +3365,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000038)
         column(name = "order_id", valueNumeric = 4000000000000000032)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3519,7 +3379,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '13 days')")
       }
       // 订单 33:王建国 2×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000033)
         column(name = "order_no", value = "NS00000033")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -3541,10 +3401,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '55 minutes')",
         )
@@ -3559,7 +3415,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000039)
         column(name = "order_id", valueNumeric = 4000000000000000033)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3573,7 +3429,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
       // 订单 34:陈晓东 2×18.9L+2×纯净水 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000034)
         column(name = "order_no", value = "NS00000034")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -3595,10 +3451,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '50 minutes')",
         )
@@ -3614,7 +3466,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000040)
         column(name = "order_id", valueNumeric = 4000000000000000034)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3627,7 +3479,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000041)
         column(name = "order_id", valueNumeric = 4000000000000000034)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -3641,7 +3493,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
       // 订单 35:张伟 2×18.9L,新人券(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000035)
         column(name = "order_no", value = "NS00000035")
         column(name = "user_id", valueNumeric = 1000000000000000003)
@@ -3666,10 +3518,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '55 minutes')",
         )
@@ -3684,7 +3532,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000042)
         column(name = "order_id", valueNumeric = 4000000000000000035)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3698,7 +3546,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days')")
       }
       // 订单 36:吴刚 6×18.9L 企业价(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000036)
         column(name = "order_no", value = "NS00000036")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -3720,10 +3568,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '50 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '1 hours')",
         )
@@ -3735,7 +3579,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000043)
         column(name = "order_id", valueNumeric = 4000000000000000036)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3749,7 +3593,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '11 days')")
       }
       // 订单 37:赵强 2×18.9L+1×桶盖(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000037)
         column(name = "order_no", value = "NS00000037")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -3771,10 +3615,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days' + INTERVAL '55 minutes')",
         )
@@ -3789,7 +3629,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000044)
         column(name = "order_id", valueNumeric = 4000000000000000037)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3802,7 +3642,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000045)
         column(name = "order_id", valueNumeric = 4000000000000000037)
         column(name = "product_id", valueNumeric = 3000000000000000010)
@@ -3816,7 +3656,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
       // 订单 38:王建国 1×18.9L(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000038)
         column(name = "order_no", value = "NS00000038")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -3838,10 +3678,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days' + INTERVAL '50 minutes')",
         )
@@ -3856,7 +3692,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000046)
         column(name = "order_id", valueNumeric = 4000000000000000038)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3870,7 +3706,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
       }
       // 订单 39:陈晓东 4×18.9L 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000039)
         column(name = "order_no", value = "NS00000039")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -3892,10 +3728,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days' + INTERVAL '55 minutes')",
         )
@@ -3910,7 +3742,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000047)
         column(name = "order_id", valueNumeric = 4000000000000000039)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3924,7 +3756,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
       // 订单 40:高敏 2×18.9L(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000040)
         column(name = "order_no", value = "NS00000040")
         column(name = "user_id", valueNumeric = 1000000000000000012)
@@ -3946,10 +3778,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '50 minutes')",
         )
@@ -3964,7 +3792,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000048)
         column(name = "order_id", valueNumeric = 4000000000000000040)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -3978,7 +3806,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days')")
       }
       // 订单 41:林芳 1×18.9L(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000041)
         column(name = "order_no", value = "NS00000041")
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -4000,10 +3828,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '55 minutes')",
         )
@@ -4018,7 +3842,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000049)
         column(name = "order_id", valueNumeric = 4000000000000000041)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4032,7 +3856,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '7 days')")
       }
       // 订单 42:周丽娟 1×18.9L(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000042)
         column(name = "order_no", value = "NS00000042")
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -4054,10 +3878,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days' + INTERVAL '50 minutes')",
         )
@@ -4072,7 +3892,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000050)
         column(name = "order_id", valueNumeric = 4000000000000000042)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4086,7 +3906,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days')")
       }
       // 订单 43:赵强 3×18.9L 买3送1(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000043)
         column(name = "order_no", value = "NS00000043")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4112,10 +3932,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '50 minutes')",
         )
@@ -4128,7 +3944,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000051)
         column(name = "order_id", valueNumeric = 4000000000000000043)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4142,7 +3958,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
       // 订单 44:吴刚 2×18.9L+2×抽水泵 企业价(COMPLETED,刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000044)
         column(name = "order_no", value = "NS00000044")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -4164,10 +3980,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '55 minutes')",
         )
@@ -4182,7 +3994,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000052)
         column(name = "order_id", valueNumeric = 4000000000000000044)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4195,7 +4007,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000053)
         column(name = "order_id", valueNumeric = 4000000000000000044)
         column(name = "product_id", valueNumeric = 3000000000000000009)
@@ -4209,7 +4021,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
       // 订单 45:王建国 2×18.9L,新人券(COMPLETED,黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000045)
         column(name = "order_no", value = "NS00000045")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -4235,10 +4047,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days' + INTERVAL '10 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days' + INTERVAL '40 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days' + INTERVAL '50 minutes')",
         )
@@ -4253,7 +4061,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days' + INTERVAL '50 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000054)
         column(name = "order_id", valueNumeric = 4000000000000000045)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4267,7 +4075,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days')")
       }
       // 订单 46:陈晓东 3×18.9L+1×抽水泵 企业价(COMPLETED,陈永强)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000046)
         column(name = "order_no", value = "NS00000046")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -4289,10 +4097,6 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days' + INTERVAL '15 minutes')",
         )
         column(
-          name = "delivery_confirmed_at",
-          valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days' + INTERVAL '45 minutes')",
-        )
-        column(
           name = "completed_at",
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days' + INTERVAL '55 minutes')",
         )
@@ -4307,7 +4111,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days' + INTERVAL '55 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000055)
         column(name = "order_id", valueNumeric = 4000000000000000046)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4320,7 +4124,7 @@ class V170SeedNanshanDemoData :
         )
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000056)
         column(name = "order_id", valueNumeric = 4000000000000000046)
         column(name = "product_id", valueNumeric = 3000000000000000009)
@@ -4334,7 +4138,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
       // 订单 47:赵强 2×18.9L(配送中,陈永强,带轨迹)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000047)
         column(name = "order_no", value = "NS00000047")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4363,7 +4167,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000057)
         column(name = "order_id", valueNumeric = 4000000000000000047)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4377,7 +4181,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
       // 订单 48:李秀英 1×18.9L(配送中,刘志刚,带轨迹)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000048)
         column(name = "order_no", value = "NS00000048")
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -4409,7 +4213,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days' + INTERVAL '30 minutes')",
         )
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000058)
         column(name = "order_id", valueNumeric = 4000000000000000048)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4423,7 +4227,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 订单 49:吴刚 2×18.9L 企业价(待配送,已派单刘志刚)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000049)
         column(name = "order_no", value = "NS00000049")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -4445,7 +4249,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000059)
         column(name = "order_id", valueNumeric = 4000000000000000049)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4459,7 +4263,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // 订单 50:周丽娟 1×5L 便携装 秒杀价(待配送,已派单黄海涛)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000050)
         column(name = "order_no", value = "NS00000050")
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -4482,7 +4286,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 hours')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 hours')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000060)
         column(name = "order_id", valueNumeric = 4000000000000000050)
         column(name = "product_id", valueNumeric = 3000000000000000003)
@@ -4496,7 +4300,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 hours')")
       }
       // 订单 51:张伟 1×18.9L(待分配,已支付)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000051)
         column(name = "order_no", value = "NS00000051")
         column(name = "user_id", valueNumeric = 1000000000000000003)
@@ -4520,7 +4324,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 hours')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 hours')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000061)
         column(name = "order_id", valueNumeric = 4000000000000000051)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4534,7 +4338,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 hours')")
       }
       // 订单 52:孙志远 2×18.9L(待分配,已支付)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000052)
         column(name = "order_no", value = "NS00000052")
         column(name = "user_id", valueNumeric = 1000000000000000007)
@@ -4558,7 +4362,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 hours')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 hours')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000062)
         column(name = "order_id", valueNumeric = 4000000000000000052)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4572,7 +4376,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 hours')")
       }
       // 订单 53:高敏 1×18.9L(待支付)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000053)
         column(name = "order_no", value = "NS00000053")
         column(name = "user_id", valueNumeric = 1000000000000000012)
@@ -4594,7 +4398,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 hours')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 hours')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000063)
         column(name = "order_id", valueNumeric = 4000000000000000053)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4608,7 +4412,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 hours')")
       }
       // 订单 54:林芳 1×18.9L(待支付)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000054)
         column(name = "order_no", value = "NS00000054")
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -4629,7 +4433,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 hours')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 hours')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000064)
         column(name = "order_id", valueNumeric = 4000000000000000054)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4643,7 +4447,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 hours')")
       }
       // 订单 55:陈晓东 2×18.9L 企业价(已取消)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000055)
         column(name = "order_no", value = "NS00000055")
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -4664,7 +4468,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000065)
         column(name = "order_id", valueNumeric = 4000000000000000055)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4678,7 +4482,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
       // 订单 56:王建国 1×18.9L(超时未支付取消)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000056)
         column(name = "order_no", value = "NS00000056")
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -4699,7 +4503,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000066)
         column(name = "order_id", valueNumeric = 4000000000000000056)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4713,7 +4517,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
       // 订单 57:赵强 2×18.9L(已取消)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000057)
         column(name = "order_no", value = "NS00000057")
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4731,7 +4535,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000067)
         column(name = "order_id", valueNumeric = 4000000000000000057)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4745,7 +4549,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '10 days')")
       }
       // 订单 58:李秀英 1×纯净水(已退款)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000058)
         column(name = "order_no", value = "NS00000058")
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -4771,7 +4575,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000068)
         column(name = "order_id", valueNumeric = 4000000000000000058)
         column(name = "product_id", valueNumeric = 3000000000000000005)
@@ -4785,7 +4589,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
       }
       // 订单 59:吴刚 2×18.9L 企业价(已退款)
-      insert(tableName = "orders") {
+      insert(tableName = "aqua_orders") {
         column(name = "id", valueNumeric = 4000000000000000059)
         column(name = "order_no", value = "NS00000059")
         column(name = "user_id", valueNumeric = 1000000000000000009)
@@ -4808,7 +4612,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
-      insert(tableName = "order_items") {
+      insert(tableName = "aqua_order_items") {
         column(name = "id", valueNumeric = 5000000000000000069)
         column(name = "order_id", valueNumeric = 4000000000000000059)
         column(name = "product_id", valueNumeric = 3000000000000000001)
@@ -4822,7 +4626,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
       // ==================== 订单赠品行(买3送1活动触发) ====================
-      insert(tableName = "order_gifts") {
+      insert(tableName = "aqua_order_gifts") {
         column(name = "id", valueNumeric = 8100000000000000001)
         column(name = "order_id", valueNumeric = 4000000000000000011)
         column(name = "gift_activity_id", valueNumeric = 7500000000000000001)
@@ -4832,7 +4636,7 @@ class V170SeedNanshanDemoData :
         column(name = "quantity", valueNumeric = 1)
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days')")
       }
-      insert(tableName = "order_gifts") {
+      insert(tableName = "aqua_order_gifts") {
         column(name = "id", valueNumeric = 8100000000000000002)
         column(name = "order_id", valueNumeric = 4000000000000000043)
         column(name = "gift_activity_id", valueNumeric = 7500000000000000001)
@@ -4843,7 +4647,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
       // ==================== 订单评价(已完成订单) ====================
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000001)
         column(name = "order_id", valueNumeric = 4000000000000000001)
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -4854,7 +4658,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '29 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000002)
         column(name = "order_id", valueNumeric = 4000000000000000002)
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -4865,7 +4669,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '28 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000003)
         column(name = "order_id", valueNumeric = 4000000000000000003)
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -4876,7 +4680,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '27 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000004)
         column(name = "order_id", valueNumeric = 4000000000000000009)
         column(name = "user_id", valueNumeric = 1000000000000000008)
@@ -4887,7 +4691,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '23 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000005)
         column(name = "order_id", valueNumeric = 4000000000000000011)
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4898,7 +4702,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '22 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000006)
         column(name = "order_id", valueNumeric = 4000000000000000016)
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -4909,7 +4713,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '20 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000007)
         column(name = "order_id", valueNumeric = 4000000000000000017)
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4920,7 +4724,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '19 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000008)
         column(name = "order_id", valueNumeric = 4000000000000000020)
         column(name = "user_id", valueNumeric = 1000000000000000004)
@@ -4931,7 +4735,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '18 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000009)
         column(name = "order_id", valueNumeric = 4000000000000000021)
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -4942,7 +4746,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '17 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000010)
         column(name = "order_id", valueNumeric = 4000000000000000027)
         column(name = "user_id", valueNumeric = 1000000000000000002)
@@ -4953,7 +4757,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '14 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000031)
         column(name = "user_id", valueNumeric = 1000000000000000005)
@@ -4964,7 +4768,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '12 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000037)
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4975,7 +4779,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '9 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000013)
         column(name = "order_id", valueNumeric = 4000000000000000040)
         column(name = "user_id", valueNumeric = 1000000000000000012)
@@ -4986,7 +4790,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '6 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000014)
         column(name = "order_id", valueNumeric = 4000000000000000043)
         column(name = "user_id", valueNumeric = 1000000000000000006)
@@ -4997,7 +4801,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '4 days')")
       }
-      insert(tableName = "reviews") {
+      insert(tableName = "aqua_reviews") {
         column(name = "id", valueNumeric = 6000000000000000015)
         column(name = "order_id", valueNumeric = 4000000000000000045)
         column(name = "user_id", valueNumeric = 1000000000000000001)
@@ -5010,7 +4814,7 @@ class V170SeedNanshanDemoData :
       }
       // ==================== 配送轨迹(配送中订单) ====================
       // 订单 47:陈永强沿紫荆花路配送
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000001)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000047)
@@ -5026,7 +4830,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days' + INTERVAL '2 hours')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000002)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000047)
@@ -5042,7 +4846,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days' + INTERVAL '2 hours' + INTERVAL '5 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000003)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000047)
@@ -5058,7 +4862,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days' + INTERVAL '2 hours' + INTERVAL '10 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000004)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000047)
@@ -5074,7 +4878,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days' + INTERVAL '2 hours' + INTERVAL '15 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000005)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "order_id", valueNumeric = 4000000000000000047)
@@ -5091,7 +4895,7 @@ class V170SeedNanshanDemoData :
         )
       }
       // 订单 48:刘志刚沿教工路配送
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000006)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000048)
@@ -5107,7 +4911,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days' + INTERVAL '1 hours')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000007)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000048)
@@ -5123,7 +4927,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days' + INTERVAL '1 hours' + INTERVAL '5 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000008)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000048)
@@ -5139,7 +4943,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days' + INTERVAL '1 hours' + INTERVAL '10 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000009)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000048)
@@ -5155,7 +4959,7 @@ class V170SeedNanshanDemoData :
           valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days' + INTERVAL '1 hours' + INTERVAL '15 minutes')",
         )
       }
-      insert(tableName = "delivery_trajectories") {
+      insert(tableName = "aqua_delivery_trajectories") {
         column(name = "id", valueNumeric = 8200000000000000010)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "order_id", valueNumeric = 4000000000000000048)
@@ -5174,10 +4978,10 @@ class V170SeedNanshanDemoData :
     }
     changeSet(author = "aqua-rush", id = "1.7.0-seed-nanshan-ops") {
       comment(
-        "Seed 南山牌 demo ops configs: store profile, delivery fee rule, banners, notices, feedbacks, daily collections & reconciliations (PRD 12-operations-config.md / 04-order.md)",
+        "Seed 南山牌 demo ops configs: store profile, delivery fee rule, aqua_banners, aqua_notices, aqua_feedbacks, daily collections & reconciliations (PRD 12-operations-config.md / 04-order.md)",
       )
       // ==================== 店铺信息(F-OPS-004,单行 id=1) ====================
-      insert(tableName = "store_profiles") {
+      insert(tableName = "aqua_store_profiles") {
         column(name = "id", valueNumeric = 1)
         column(name = "shop_name", value = "南山送水站")
         column(name = "logo_url", value = "/static/default-product.jpeg")
@@ -5193,7 +4997,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
       }
       // ==================== 配送费规则(F-OPS-005,单行 id=1) ====================
-      insert(tableName = "delivery_fee_rules") {
+      insert(tableName = "aqua_delivery_fee_rules") {
         column(name = "id", valueNumeric = 1)
         column(name = "free_floor_limit", valueNumeric = 4)
         column(name = "surcharge_cents", valueNumeric = 200)
@@ -5201,7 +5005,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '30 days')")
       }
       // ==================== 轮播图(F-OPS-001) ====================
-      insert(tableName = "banners") {
+      insert(tableName = "aqua_banners") {
         column(name = "id", valueNumeric = 8000000000000000001)
         column(name = "image_url", value = "/static/default-product.jpeg")
         column(name = "title", value = "新品上市 5L便携装")
@@ -5215,7 +5019,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
       }
-      insert(tableName = "banners") {
+      insert(tableName = "aqua_banners") {
         column(name = "id", valueNumeric = 8000000000000000002)
         column(name = "image_url", value = "/static/default-product.jpeg")
         column(name = "title", value = "夏日特惠 买3桶送1桶")
@@ -5229,7 +5033,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '8 days')")
       }
-      insert(tableName = "banners") {
+      insert(tableName = "aqua_banners") {
         column(name = "id", valueNumeric = 8000000000000000003)
         column(name = "image_url", value = "/static/default-product.jpeg")
         column(name = "title", value = "水票充值 多买多送")
@@ -5244,7 +5048,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '15 days')")
       }
       // ==================== 公告(F-OPS-002) ====================
-      insert(tableName = "notices") {
+      insert(tableName = "aqua_notices") {
         column(name = "id", valueNumeric = 8000000000000000011)
         column(name = "title", value = "停水通知")
         column(
@@ -5260,7 +5064,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "notices") {
+      insert(tableName = "aqua_notices") {
         column(name = "id", valueNumeric = 8000000000000000012)
         column(name = "title", value = "活动预告:买水票送水票")
         column(name = "content", value = "水票充值活动将于下周一开启:购买 18.9L 桶装水水票 10 张装即送 1 张,多买多送,老客户专享,敬请关注。")
@@ -5273,7 +5077,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "notices") {
+      insert(tableName = "aqua_notices") {
         column(name = "id", valueNumeric = 8000000000000000013)
         column(name = "title", value = "节假日配送安排(草稿)")
         column(name = "content", value = "端午节当天配送时间调整为 09:00-18:00,请提前一天下单,感谢理解。")
@@ -5284,7 +5088,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // ==================== 意见反馈(F-OPS-003) ====================
-      insert(tableName = "feedbacks") {
+      insert(tableName = "aqua_feedbacks") {
         column(name = "id", valueNumeric = 8000000000000000021)
         column(name = "user_id", valueNumeric = 1000000000000000002)
         column(name = "feedback_type", value = "DELIVERY_SERVICE")
@@ -5294,7 +5098,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "feedbacks") {
+      insert(tableName = "aqua_feedbacks") {
         column(name = "id", valueNumeric = 8000000000000000022)
         column(name = "user_id", valueNumeric = 1000000000000000006)
         column(name = "feedback_type", value = "SUGGESTION")
@@ -5308,7 +5112,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '5 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "feedbacks") {
+      insert(tableName = "aqua_feedbacks") {
         column(name = "id", valueNumeric = 8000000000000000023)
         column(name = "user_id", valueNumeric = 1000000000000000005)
         column(name = "feedback_type", value = "PRODUCT_QUALITY")
@@ -5319,7 +5123,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
       // ==================== 每日收款记录(近 3 天) ====================
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000001)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '1 days')::date")
@@ -5340,7 +5144,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000002)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '1 days')::date")
@@ -5360,7 +5164,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000003)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000013)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '1 days')::date")
@@ -5378,7 +5182,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000004)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000011)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '2 days')::date")
@@ -5398,7 +5202,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000005)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000012)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '2 days')::date")
@@ -5418,7 +5222,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '2 days')")
       }
-      insert(tableName = "daily_collection_records") {
+      insert(tableName = "aqua_daily_collection_records") {
         column(name = "id", valueNumeric = 8600000000000000006)
         column(name = "delivery_worker_id", valueNumeric = 9000000000000000013)
         column(name = "collection_date", valueComputed = "(CURRENT_DATE - INTERVAL '3 days')::date")
@@ -5437,7 +5241,7 @@ class V170SeedNanshanDemoData :
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '3 days')")
       }
       // ==================== 每日对账记录(近 2 天) ====================
-      insert(tableName = "daily_reconciliations") {
+      insert(tableName = "aqua_daily_reconciliations") {
         column(name = "id", valueNumeric = 8700000000000000001)
         column(name = "reconciliation_date", valueComputed = "(CURRENT_DATE - INTERVAL '1 days')::date")
         column(name = "total_cash_amount_cents", valueNumeric = 25500)
@@ -5452,7 +5256,7 @@ class V170SeedNanshanDemoData :
         column(name = "created_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
         column(name = "updated_at", valueComputed = "(CURRENT_TIMESTAMP - INTERVAL '1 days')")
       }
-      insert(tableName = "daily_reconciliations") {
+      insert(tableName = "aqua_daily_reconciliations") {
         column(name = "id", valueNumeric = 8700000000000000002)
         column(name = "reconciliation_date", valueComputed = "(CURRENT_DATE - INTERVAL '2 days')::date")
         column(name = "total_cash_amount_cents", valueNumeric = 22800)

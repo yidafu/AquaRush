@@ -46,7 +46,7 @@ class BarrelLedgerRepositoryImpl(
       """
       SELECT user_id, specification, SUM(bucket_count) AS bucket_count,
              SUM(deposit_amount_cents) AS amount_cents
-      FROM deposit_records
+      FROM aqua_deposit_records
       WHERE status = 'HELD' AND is_deleted = false
         AND specification IS NOT NULL
         AND user_id IN (${userIdsIn(userIds)})
@@ -76,13 +76,13 @@ class BarrelLedgerRepositoryImpl(
       """
       SELECT o.user_id, (oi.product_snapshot->>'specification') AS specification,
              SUM(oi.quantity) AS bucket_count, 0 AS amount_cents
-      FROM order_items oi
-      JOIN orders o ON o.id = oi.order_id
+      FROM aqua_order_items oi
+      JOIN aqua_orders o ON o.id = oi.order_id
       WHERE o.status = 'COMPLETED' AND o.is_deleted = false
         AND oi.is_deleted = false
         AND o.user_id IN (${userIdsIn(userIds)})
         AND (oi.product_snapshot->>'specification') IN (
-          SELECT specification FROM barrel_fees WHERE is_deleted = false
+          SELECT specification FROM aqua_barrel_fees WHERE is_deleted = false
         )
       GROUP BY o.user_id, (oi.product_snapshot->>'specification')
       """.trimIndent()
@@ -108,12 +108,12 @@ class BarrelLedgerRepositoryImpl(
     val sql =
       """
       SELECT o.user_id, r.specification, SUM(r.bucket_count) AS bucket_count, 0 AS amount_cents
-      FROM barrel_recovery_records r
-      JOIN orders o ON o.id = r.order_id
+      FROM aqua_barrel_recovery_records r
+      JOIN aqua_orders o ON o.id = r.order_id
       WHERE r.is_deleted = false AND o.is_deleted = false
         AND o.user_id IN (${userIdsIn(userIds)})
         AND r.specification IN (
-          SELECT specification FROM barrel_fees WHERE is_deleted = false
+          SELECT specification FROM aqua_barrel_fees WHERE is_deleted = false
         )
       GROUP BY o.user_id, r.specification
       """.trimIndent()
@@ -140,38 +140,38 @@ class BarrelLedgerRepositoryImpl(
     page: Int,
     size: Int,
   ): Page<BarrelLedgerRow> {
-    // 台账为按客户的实时聚合视图(R-PRO-05):四路 CTE 汇入 users 维度,LIMIT/OFFSET 分页
+    // 台账为按客户的实时聚合视图(R-PRO-05):四路 CTE 汇入 aqua_users 维度,LIMIT/OFFSET 分页
     val ledgerCte =
       """
       WITH held AS (
         SELECT user_id, SUM(bucket_count) AS buckets, SUM(deposit_amount_cents) AS cents
-        FROM deposit_records
+        FROM aqua_deposit_records
         WHERE status = 'HELD' AND is_deleted = false AND specification IS NOT NULL
         GROUP BY user_id
       ),
       refunded AS (
         SELECT user_id, SUM(deposit_amount_cents) AS cents
-        FROM deposit_records
+        FROM aqua_deposit_records
         WHERE status = 'REFUNDED' AND is_deleted = false
         GROUP BY user_id
       ),
       delivered AS (
         SELECT o.user_id AS user_id, SUM(oi.quantity) AS buckets
-        FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id
+        FROM aqua_order_items oi
+        JOIN aqua_orders o ON o.id = oi.order_id
         WHERE o.status = 'COMPLETED' AND o.is_deleted = false AND oi.is_deleted = false
           AND (oi.product_snapshot->>'specification') IN (
-            SELECT specification FROM barrel_fees WHERE is_deleted = false
+            SELECT specification FROM aqua_barrel_fees WHERE is_deleted = false
           )
         GROUP BY o.user_id
       ),
       recovered AS (
         SELECT o.user_id AS user_id, SUM(r.bucket_count) AS buckets
-        FROM barrel_recovery_records r
-        JOIN orders o ON o.id = r.order_id
+        FROM aqua_barrel_recovery_records r
+        JOIN aqua_orders o ON o.id = r.order_id
         WHERE r.is_deleted = false AND o.is_deleted = false
           AND r.specification IN (
-            SELECT specification FROM barrel_fees WHERE is_deleted = false
+            SELECT specification FROM aqua_barrel_fees WHERE is_deleted = false
           )
         GROUP BY o.user_id
       ),
@@ -182,7 +182,7 @@ class BarrelLedgerRepositoryImpl(
                COALESCE(rf.cents, 0) AS refunded_cents,
                COALESCE(d.buckets, 0) AS delivered_buckets,
                COALESCE(rc.buckets, 0) AS recovered_buckets
-        FROM users u
+        FROM aqua_users u
         LEFT JOIN held h ON h.user_id = u.id
         LEFT JOIN refunded rf ON rf.user_id = u.id
         LEFT JOIN delivered d ON d.user_id = u.id

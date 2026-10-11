@@ -31,7 +31,7 @@ import java.math.BigDecimal
 // created_at/updated_at 均 NOT NULL,由仓储插入时赋值(与 ReconciliationTables 风格一致)。
 
 /** 支付单表(`payments`,19 列;transaction_id/prepay_id 各有 DB 唯一约束,status 有取值 CHECK)。 */
-object PaymentsTable : SoftDeletableTable("payments") {
+object PaymentsTable : SoftDeletableTable("aqua_payments") {
   val id = long("id")
   val orderId = long("order_id")
   val userId = long("user_id")
@@ -52,7 +52,7 @@ object PaymentsTable : SoftDeletableTable("payments") {
 }
 
 /** 订单评价表(`reviews`,12 列;order_id 有 DB 唯一约束 —— 一单一评,rating 有 1~5 CHECK)。 */
-object ReviewsTable : SoftDeletableTable("reviews") {
+object ReviewsTable : SoftDeletableTable("aqua_reviews") {
   val id = long("id")
   val orderId = long("order_id")
   val userId = long("user_id")
@@ -66,7 +66,7 @@ object ReviewsTable : SoftDeletableTable("reviews") {
 }
 
 /** 配送轨迹实时上报表(`delivery_trajectories`,8 列;无软删/updated_at —— 裸 Table)。 */
-object DeliveryTrajectoriesTable : Table("delivery_trajectories") {
+object DeliveryTrajectoriesTable : Table("aqua_delivery_trajectories") {
   val id = long("id")
   val deliveryWorkerId = long("delivery_worker_id")
   val orderId = long("order_id")
@@ -83,7 +83,7 @@ object DeliveryTrajectoriesTable : Table("delivery_trajectories") {
  * last_updated 由数据库触发器在 UPDATE 时自动刷新,仓储更新时无需写入。
  * INSERT 必须显式设置 [lastUpdated]:H2 无 CURRENT_TIMESTAMP 列默认,PG 侧也不依赖列默认。
  */
-object DeliveryWorkerStatisticsTable : SoftDeletableTable("delivery_worker_statistics") {
+object DeliveryWorkerStatisticsTable : SoftDeletableTable("aqua_delivery_worker_statistics") {
   val id = long("id")
   val deliveryWorkerId = long("delivery_worker_id")
   val averageRating = decimal("average_rating", 3, 2).default(BigDecimal("0.00"))
@@ -104,7 +104,7 @@ object DeliveryWorkerStatisticsTable : SoftDeletableTable("delivery_worker_stati
  * DDL 仅有 is_deleted(无 deleted_at/deleted_by)—— 不可用 SoftDeletableTable,裸 Table + 自声明软删列;
  * (delivery_worker_id, collection_date) 有 DB 唯一约束。
  */
-object DailyCollectionRecordsTable : SoftDeleteFlagTable("daily_collection_records") {
+object DailyCollectionRecordsTable : SoftDeleteFlagTable("aqua_daily_collection_records") {
   val id = long("id")
   val deliveryWorkerId = long("delivery_worker_id")
   val collectionDate = date("collection_date")
@@ -135,7 +135,7 @@ object DailyCollectionRecordsTable : SoftDeleteFlagTable("daily_collection_recor
  * 同 daily_collection_records:仅 is_deleted → SoftDeleteFlagTable(无留痕列);reconciliation_date 有 DB 唯一约束;
  * report_data 在 DDL 与线上库均为 text(实体注解写 json,以 DDL 为准,故用 text 而非 jsonString)。
  */
-object DailyReconciliationsTable : SoftDeleteFlagTable("daily_reconciliations") {
+object DailyReconciliationsTable : SoftDeleteFlagTable("aqua_daily_reconciliations") {
   val id = long("id")
   val reconciliationDate = date("reconciliation_date")
   val totalCashAmountCents = long("total_cash_amount_cents")
@@ -159,7 +159,7 @@ object DailyReconciliationsTable : SoftDeleteFlagTable("daily_reconciliations") 
  * 配送区域表(`delivery_areas`,11 列)。
  * DDL/线上列名为 `is_enabled`(JPA 实体 `enabled` 漂移,P5 迁移时对齐),此处以 DDL 为准。
  */
-object DeliveryAreasTable : SoftDeletableTable("delivery_areas") {
+object DeliveryAreasTable : SoftDeletableTable("aqua_delivery_areas") {
   val id = long("id")
   val name = varchar("name", 255)
   val province = varchar("province", 50)

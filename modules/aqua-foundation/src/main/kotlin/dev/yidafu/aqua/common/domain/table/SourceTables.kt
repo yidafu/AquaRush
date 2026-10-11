@@ -30,7 +30,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // json 列(DDL 类型 json)一律以 jsonString() 映射,结构化转换由仓储层负责;text() 会在 PostgreSQL 上绑定失败。
 
 /** 订单表(`orders`,trade 域,46 列)。 */
-object OrdersTable : SoftDeletableTable("orders") {
+object OrdersTable : SoftDeletableTable("aqua_orders") {
   val id = long("id")
   val orderNo = varchar("order_no", 64)
   val userId = long("user_id")
@@ -83,7 +83,7 @@ object OrdersTable : SoftDeletableTable("orders") {
 }
 
 /** 订单明细表(`order_items`,trade 域,11 列)。 */
-object OrderItemsTable : SoftDeletableTable("order_items") {
+object OrderItemsTable : SoftDeletableTable("aqua_order_items") {
   val id = long("id")
   val orderId = long("order_id")
   val productId = long("product_id")
@@ -97,7 +97,7 @@ object OrderItemsTable : SoftDeletableTable("order_items") {
 }
 
 /** 用户表(`users`,user 域,17 列)。 */
-object UsersTable : SoftDeletableTable("users") {
+object UsersTable : SoftDeletableTable("aqua_users") {
   val id = long("id")
   val wechatOpenid = varchar("wechat_openid", 128)
   val wechatUnionid = varchar("wechat_unionid", 128).nullable()
@@ -119,7 +119,7 @@ object UsersTable : SoftDeletableTable("users") {
  * 用户行为日志表(`user_action_logs`,platform 域,由 v1.3.0 raw SQL 建的 RANGE 分区表)。
  * 无软删列;主键为 (id, created_at) 复合 —— analytics 仅按日期窗口聚合,不按单 id 检索。
  */
-object UserActionLogsTable : Table("user_action_logs") {
+object UserActionLogsTable : Table("aqua_user_action_logs") {
   val id = long("id")
   val userId = varchar("user_id", 50).nullable()
   val username = varchar("username", 100).nullable()
@@ -137,7 +137,7 @@ object UserActionLogsTable : Table("user_action_logs") {
 }
 
 /** 退款表(`payment_refunds`,trade 域,20 列)。注意列名与属性名的映射:reason/refund_no/processed_at。 */
-object PaymentRefundsTable : SoftDeletableTable("payment_refunds") {
+object PaymentRefundsTable : SoftDeletableTable("aqua_payment_refunds") {
   val id = long("id")
   val paymentId = long("payment_id")
   val orderId = long("order_id")
@@ -159,7 +159,7 @@ object PaymentRefundsTable : SoftDeletableTable("payment_refunds") {
 }
 
 /** 用户券表(`user_coupons`,marketing 域,21 列)。 */
-object UserCouponsTable : SoftDeletableTable("user_coupons") {
+object UserCouponsTable : SoftDeletableTable("aqua_user_coupons") {
   val id = long("id")
   val userId = long("user_id")
   val couponTemplateId = long("coupon_template_id")
@@ -182,7 +182,7 @@ object UserCouponsTable : SoftDeletableTable("user_coupons") {
 }
 
 /** 购桶票订单表(`ticket_purchases`,marketing 域,17 列)。 */
-object TicketPurchasesTable : SoftDeletableTable("ticket_purchases") {
+object TicketPurchasesTable : SoftDeletableTable("aqua_ticket_purchases") {
   val id = long("id")
   val userId = long("user_id")
   val ticketTypeId = long("ticket_type_id")
@@ -203,7 +203,7 @@ object TicketPurchasesTable : SoftDeletableTable("ticket_purchases") {
 }
 
 /** 用户桶票表(`user_tickets`,marketing 域,16 列;ticket_no 有 DB 唯一约束 —— 列级不表达,此处 KDoc 留痕)。 */
-object UserTicketsTable : SoftDeletableTable("user_tickets") {
+object UserTicketsTable : SoftDeletableTable("aqua_user_tickets") {
   val id = long("id")
   val userId = long("user_id")
   val ticketTypeId = long("ticket_type_id")
@@ -223,7 +223,7 @@ object UserTicketsTable : SoftDeletableTable("user_tickets") {
 }
 
 /** 订单赠品表(`order_gifts`,marketing 域,8 列,无软删列)。 */
-object OrderGiftsTable : Table("order_gifts") {
+object OrderGiftsTable : Table("aqua_order_gifts") {
   val id = long("id")
   val orderId = long("order_id")
   val giftActivityId = long("gift_activity_id").nullable()
@@ -236,7 +236,7 @@ object OrderGiftsTable : Table("order_gifts") {
 }
 
 /** 商品表(`products`,product 域,25 列;image_gallery 为遗留死列,全量映射)。 */
-object ProductsTable : SoftDeletableTable("products") {
+object ProductsTable : SoftDeletableTable("aqua_products") {
   val id = long("id")
   val name = varchar("name", 255)
   val priceCents = long("price_cents")
@@ -266,7 +266,7 @@ object ProductsTable : SoftDeletableTable("products") {
  * 管理员/送水员账号表(`admins`,user 域,24 列)。
  * coordinates/current_location 在 DDL 为 json 列,实体系 String 文本(仓储层直接读写字符串)。
  */
-object AdminsTable : SoftDeletableTable("admins") {
+object AdminsTable : SoftDeletableTable("aqua_admins") {
   val id = long("id")
   val username = varchar("username", 50)
   val passwordHash = varchar("password_hash", 255)
@@ -292,7 +292,7 @@ object AdminsTable : SoftDeletableTable("admins") {
 }
 
 /** 订单操作流水表(`order_operations`,trade 域,8 列,无软删列)。 */
-object OrderOperationsTable : Table("order_operations") {
+object OrderOperationsTable : Table("aqua_order_operations") {
   val id = long("id")
   val orderId = long("order_id")
   val operationType = varchar("operation_type", 50)

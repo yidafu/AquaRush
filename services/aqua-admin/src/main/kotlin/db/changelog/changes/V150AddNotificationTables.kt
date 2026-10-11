@@ -11,7 +11,7 @@ class V150AddNotificationTables :
         "Notification & message domain (PRD 13-notification.md F-NTF-001~006): unified in-app notification table + WeChat subscription auth table",
       )
       // ==================== 站内消息统一落库表(F-NTF-002/004/006,订阅消息发送记录亦落此表) ====================
-      createTable(tableName = "notifications") {
+      createTable(tableName = "aqua_notifications") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -52,25 +52,35 @@ class V150AddNotificationTables :
         column(name = "updated_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
           constraints(nullable = false)
         }
+        // 微信订阅消息模板上下文(v2.6.0,F-NTF-006 失败消息手动重发)
+        column(name = "template_scene", type = "varchar(50)") {
+          constraints(nullable = true)
+        }
+        column(name = "template_page", type = "varchar(255)") {
+          constraints(nullable = true)
+        }
+        column(name = "template_fields", type = "text") {
+          constraints(nullable = true)
+        }
       }
-      createIndex(tableName = "notifications", indexName = "idx_notifications_receiver_user") {
+      createIndex(tableName = "aqua_notifications", indexName = "idx_notifications_receiver_user") {
         column(name = "receiver_type")
         column(name = "user_id")
         column(name = "created_at")
       }
-      createIndex(tableName = "notifications", indexName = "idx_notifications_receiver_worker") {
+      createIndex(tableName = "aqua_notifications", indexName = "idx_notifications_receiver_worker") {
         column(name = "receiver_type")
         column(name = "worker_id")
         column(name = "created_at")
       }
-      createIndex(tableName = "notifications", indexName = "idx_notifications_created_at") {
+      createIndex(tableName = "aqua_notifications", indexName = "idx_notifications_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "notifications", indexName = "idx_notifications_deleted") {
+      createIndex(tableName = "aqua_notifications", indexName = "idx_notifications_deleted") {
         column(name = "is_deleted")
       }
       // ==================== 微信订阅消息授权记录(R-NTF-01,一次性模板:授权一次可发一次) ====================
-      createTable(tableName = "user_subscription_auths") {
+      createTable(tableName = "aqua_user_subscription_auths") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -95,15 +105,15 @@ class V150AddNotificationTables :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "user_subscription_auths", indexName = "idx_sub_auth_user_template") {
+      createIndex(tableName = "aqua_user_subscription_auths", indexName = "idx_sub_auth_user_template") {
         column(name = "user_id")
         column(name = "template_id")
       }
-      createIndex(tableName = "user_subscription_auths", indexName = "idx_sub_auth_deleted") {
+      createIndex(tableName = "aqua_user_subscription_auths", indexName = "idx_sub_auth_deleted") {
         column(name = "is_deleted")
       }
       // ==================== 通知域新增系统参数(补齐 F-NTF-001 五节点模板 + R-NTF-04 保留时长) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "40")
         column(name = "setting_key", value = "notification_template_delivery_assigned_id")
         column(name = "description", value = "配送员接单订阅消息模板 ID(未配置为空)")
@@ -112,7 +122,7 @@ class V150AddNotificationTables :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "41")
         column(name = "setting_key", value = "notification_template_delivery_assigned_enabled")
         column(name = "setting_value", value = "true")
@@ -123,7 +133,7 @@ class V150AddNotificationTables :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "42")
         column(name = "setting_key", value = "notification_template_delivery_started_id")
         column(name = "description", value = "开始配送订阅消息模板 ID(未配置为空)")
@@ -132,7 +142,7 @@ class V150AddNotificationTables :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "43")
         column(name = "setting_key", value = "notification_template_delivery_started_enabled")
         column(name = "setting_value", value = "true")
@@ -143,7 +153,7 @@ class V150AddNotificationTables :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "44")
         column(name = "setting_key", value = "notification_retention_days")
         column(name = "setting_value", value = "90")

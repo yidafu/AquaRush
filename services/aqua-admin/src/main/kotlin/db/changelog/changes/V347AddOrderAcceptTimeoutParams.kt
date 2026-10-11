@@ -11,7 +11,7 @@ class V347AddOrderAcceptTimeoutParams :
         "G94 接单超时预警(F-NTF-008/R-NTF-07): two accept/delivery-start timeout threshold params in F-SYS-002 ORDER_AND_FULFILLMENT group",
       )
       // ==================== 订单与履约参数组(F-SYS-002)·接单超时预警阈值(G94) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "47")
         column(name = "setting_key", value = "order_accept_timeout_minutes")
         column(name = "setting_value", value = "30")
@@ -23,7 +23,7 @@ class V347AddOrderAcceptTimeoutParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "48")
         column(name = "setting_key", value = "delivery_start_timeout_minutes")
         column(name = "setting_value", value = "60")

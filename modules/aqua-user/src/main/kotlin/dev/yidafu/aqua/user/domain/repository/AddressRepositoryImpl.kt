@@ -249,7 +249,7 @@ class AddressRepositoryImpl(
       "(6371 * acos(cos(radians(?)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(?)) + sin(radians(?)) * sin(radians(a.latitude))))"
     val sql =
       """
-      SELECT a.* FROM addresses a
+      SELECT a.* FROM aqua_addresses a
       WHERE a.longitude IS NOT NULL
         AND a.latitude IS NOT NULL
         AND a.is_deleted = false

@@ -33,7 +33,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * **注意**：本表**没有** `is_deleted/deleted_at/deleted_by` 软删列（实体也未实现 SoftDeletable），
  * 因此不继承 SoftDeletableTable；删除语义是物理删除。
  */
-object SystemSettingsTable : Table("system_settings") {
+object SystemSettingsTable : Table("aqua_system_settings") {
   val id = long("id")
   val settingKey = varchar("setting_key", 64)
   val settingValue = varchar("setting_value", 255).nullable()

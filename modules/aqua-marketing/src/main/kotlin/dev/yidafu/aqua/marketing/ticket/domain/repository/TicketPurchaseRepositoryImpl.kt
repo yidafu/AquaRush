@@ -191,7 +191,7 @@ class TicketPurchaseRepositoryImpl(
              COUNT(*) AS purchase_count,
              SUM(total_count) AS ticket_count,
              SUM(package_price_cents) AS revenue_cents
-      FROM ticket_purchases
+      FROM aqua_ticket_purchases
       WHERE ticket_type_id = ?
         AND payment_status = 'PAID'
         AND is_deleted = false

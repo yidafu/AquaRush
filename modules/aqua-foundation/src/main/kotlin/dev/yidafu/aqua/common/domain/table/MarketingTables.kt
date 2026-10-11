@@ -31,7 +31,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // created_at/updated_at 均 NOT NULL,由仓储插入时赋值(与 ReconciliationTables 风格一致)。
 
 /** 优惠券模板表(`coupon_templates`,20 列)。 */
-object CouponTemplatesTable : SoftDeletableTable("coupon_templates") {
+object CouponTemplatesTable : SoftDeletableTable("aqua_coupon_templates") {
   val id = long("id")
   val name = varchar("name", 100)
   val couponType = varchar("coupon_type", 30)
@@ -53,7 +53,7 @@ object CouponTemplatesTable : SoftDeletableTable("coupon_templates") {
 }
 
 /** 客户分组表(`customer_groups`,8 列;name 有 DB 唯一约束)。 */
-object CustomerGroupsTable : SoftDeletableTable("customer_groups") {
+object CustomerGroupsTable : SoftDeletableTable("aqua_customer_groups") {
   val id = long("id")
   val name = varchar("name", 50)
   val description = varchar("description", 500).nullable()
@@ -63,7 +63,7 @@ object CustomerGroupsTable : SoftDeletableTable("customer_groups") {
 }
 
 /** 分组商品专属价表(`group_product_prices`,9 列;(customer_group_id, product_id) 有 DB 唯一约束)。 */
-object GroupProductPricesTable : SoftDeletableTable("group_product_prices") {
+object GroupProductPricesTable : SoftDeletableTable("aqua_group_product_prices") {
   val id = long("id")
   val customerGroupId = long("customer_group_id")
   val productId = long("product_id")
@@ -74,7 +74,7 @@ object GroupProductPricesTable : SoftDeletableTable("group_product_prices") {
 }
 
 /** 满减/折扣活动表(`promotion_activities`,14 列)。 */
-object PromotionActivitiesTable : SoftDeletableTable("promotion_activities") {
+object PromotionActivitiesTable : SoftDeletableTable("aqua_promotion_activities") {
   val id = long("id")
   val name = varchar("name", 100)
   val activityType = varchar("activity_type", 30)
@@ -90,7 +90,7 @@ object PromotionActivitiesTable : SoftDeletableTable("promotion_activities") {
 }
 
 /** 活动档位表(`promotion_activity_tiers`,11 列,档位金额递增互斥)。 */
-object PromotionActivityTiersTable : SoftDeletableTable("promotion_activity_tiers") {
+object PromotionActivityTiersTable : SoftDeletableTable("aqua_promotion_activity_tiers") {
   val id = long("id")
   val activityId = long("activity_id")
   val thresholdCents = long("threshold_cents")
@@ -103,7 +103,7 @@ object PromotionActivityTiersTable : SoftDeletableTable("promotion_activity_tier
 }
 
 /** 限时特价活动表(`flash_sale_activities`,12 列)。 */
-object FlashSaleActivitiesTable : SoftDeletableTable("flash_sale_activities") {
+object FlashSaleActivitiesTable : SoftDeletableTable("aqua_flash_sale_activities") {
   val id = long("id")
   val name = varchar("name", 100)
   val productId = long("product_id")
@@ -117,7 +117,7 @@ object FlashSaleActivitiesTable : SoftDeletableTable("flash_sale_activities") {
 }
 
 /** 买赠/满赠活动表(`gift_activities`,18 列,v1 单档单赠品)。 */
-object GiftActivitiesTable : SoftDeletableTable("gift_activities") {
+object GiftActivitiesTable : SoftDeletableTable("aqua_gift_activities") {
   val id = long("id")
   val name = varchar("name", 100)
   val giftType = varchar("gift_type", 30)
@@ -137,7 +137,7 @@ object GiftActivitiesTable : SoftDeletableTable("gift_activities") {
 }
 
 /** 首单立减/新人专享价活动表(`first_order_activities`,17 列,两形态单表)。 */
-object FirstOrderActivitiesTable : SoftDeletableTable("first_order_activities") {
+object FirstOrderActivitiesTable : SoftDeletableTable("aqua_first_order_activities") {
   val id = long("id")
   val name = varchar("name", 100)
   val activityType = varchar("activity_type", 30)
@@ -156,7 +156,7 @@ object FirstOrderActivitiesTable : SoftDeletableTable("first_order_activities") 
 }
 
 /** 桶水票票种表(`ticket_types`,22 列)。 */
-object TicketTypesTable : SoftDeletableTable("ticket_types") {
+object TicketTypesTable : SoftDeletableTable("aqua_ticket_types") {
   val id = long("id")
   val name = varchar("name", 100)
   val ticketType = varchar("ticket_type", 30)
@@ -186,14 +186,14 @@ object TicketTypesTable : SoftDeletableTable("ticket_types") {
  * 无 bigint id —— 主键为 month_key(varchar(6),YYYYMM);仓储以
  * `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` 原子取号。
  */
-object TicketNoSequencesTable : Table("ticket_no_sequences") {
+object TicketNoSequencesTable : Table("aqua_ticket_no_sequences") {
   val monthKey = varchar("month_key", 6)
   val lastSeq = long("last_seq")
   override val primaryKey = PrimaryKey(monthKey)
 }
 
 /** 水桶费价目表(`barrel_fees`,10 列;specification 有 DB 唯一约束)。 */
-object DepositPricesTable : SoftDeletableTable("barrel_fees") {
+object DepositPricesTable : SoftDeletableTable("aqua_barrel_fees") {
   val id = long("id")
   val specification = varchar("specification", 100)
   val priceCents = long("price_cents")
@@ -205,7 +205,7 @@ object DepositPricesTable : SoftDeletableTable("barrel_fees") {
 }
 
 /** 水桶购买单表(`barrel_purchases`,16 列;order_no 有 DB 唯一约束,BK 前缀作支付 out_trade_no)。 */
-object BarrelPurchasesTable : SoftDeletableTable("barrel_purchases") {
+object BarrelPurchasesTable : SoftDeletableTable("aqua_barrel_purchases") {
   val id = long("id")
   val userId = long("user_id")
   val orderNo = varchar("order_no", 64)
@@ -223,7 +223,7 @@ object BarrelPurchasesTable : SoftDeletableTable("barrel_purchases") {
 }
 
 /** 购桶单明细表(`barrel_purchase_items`,12 列,规格/单价/数量快照)。 */
-object BarrelPurchaseItemsTable : SoftDeletableTable("barrel_purchase_items") {
+object BarrelPurchaseItemsTable : SoftDeletableTable("aqua_barrel_purchase_items") {
   val id = long("id")
   val purchaseId = long("purchase_id")
   val barrelFeeId = long("barrel_fee_id")
@@ -241,7 +241,7 @@ object BarrelPurchaseItemsTable : SoftDeletableTable("barrel_purchase_items") {
  * V346 扩列 specification/unit_deposit_cents/bucket_count(在租按规格口径),
  * 状态值域 PENDING→HELD→REFUNDED;G06 时代历史行前三列可空。
  */
-object DepositRecordsTable : SoftDeletableTable("deposit_records") {
+object DepositRecordsTable : SoftDeletableTable("aqua_deposit_records") {
   val id = long("id")
   val orderId = long("order_id")
   val userId = long("user_id")
@@ -263,7 +263,7 @@ object DepositRecordsTable : SoftDeletableTable("deposit_records") {
  * 退押申请表(`deposit_refund_applications`,R-PRO-04/F-PRO-010):
  * PENDING(待处理)→ RECOVERED(已回收)→ REFUNDED(已退还)/ REJECTED(已驳回)。
  */
-object DepositRefundApplicationsTable : SoftDeletableTable("deposit_refund_applications") {
+object DepositRefundApplicationsTable : SoftDeletableTable("aqua_deposit_refund_applications") {
   val id = long("id")
   val userId = long("user_id")
   val specification = varchar("specification", 100)
@@ -285,7 +285,7 @@ object DepositRefundApplicationsTable : SoftDeletableTable("deposit_refund_appli
 }
 
 /** 空桶回收登记表(`barrel_recovery_records`,F-ORD-011;送水工完成配送按规格登记)。 */
-object BarrelRecoveryRecordsTable : SoftDeletableTable("barrel_recovery_records") {
+object BarrelRecoveryRecordsTable : SoftDeletableTable("aqua_barrel_recovery_records") {
   val id = long("id")
   val workerId = long("worker_id")
   val orderId = long("order_id")

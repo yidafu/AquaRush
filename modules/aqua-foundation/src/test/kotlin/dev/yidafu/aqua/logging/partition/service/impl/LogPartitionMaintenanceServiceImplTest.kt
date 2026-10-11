@@ -66,9 +66,9 @@ class LogPartitionMaintenanceServiceImplTest :
         LogBackupRecordModel(
           id = 1L,
           logTable = LogTableType.API_LOG,
-          partitionName = "api_logs_2026_01",
+          partitionName = "aqua_api_logs_2026_01",
           partitionMonth = "2026-01",
-          coldTableName = "log_archive.api_logs_2026",
+          coldTableName = "log_archive.aqua_api_logs_2026",
           status = LogBackupStatus.SUCCEEDED,
         )
       every { backupService.backupExpiredPartitions(LogTableType.API_LOG, 90, "system") } returns listOf(record)

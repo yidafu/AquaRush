@@ -51,10 +51,10 @@ class OutboxPartitionRulesTest :
       val h1 = LocalDateTime.of(2026, 1, 1, 0, 0)
       OutboxPartitionRules.suffixOf(h1) shouldBe "2026h1"
       OutboxPartitionRules.suffixOf(h2) shouldBe "2026h2"
-      OutboxPartitionRules.partitionName(h2) shouldBe "outbox_events_2026h2"
-      OutboxPartitionRules.archiveName(h2) shouldBe "outbox_events_archive_2026h2"
-      OutboxPartitionRules.archiveNameOf("outbox_events_2025h1") shouldBe "outbox_events_archive_2025h1"
-      OutboxPartitionRules.archiveNameOf("api_logs_2026_01") shouldBe null
+      OutboxPartitionRules.partitionName(h2) shouldBe "aqua_outbox_events_2026h2"
+      OutboxPartitionRules.archiveName(h2) shouldBe "aqua_outbox_events_archive_2026h2"
+      OutboxPartitionRules.archiveNameOf("aqua_outbox_events_2025h1") shouldBe "aqua_outbox_events_archive_2025h1"
+      OutboxPartitionRules.archiveNameOf("aqua_api_logs_2026_01") shouldBe null
     }
 
     test("isExpired:上界 ≤ now - 保留天数 即超期(含等于)") {

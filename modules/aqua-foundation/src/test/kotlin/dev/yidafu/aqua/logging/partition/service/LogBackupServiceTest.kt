@@ -53,7 +53,7 @@ class LogBackupServiceTest :
     val expiredPartition =
       LogPartitionInfo(
         logTable = LogTableType.API_LOG,
-        partitionName = "api_logs_2026_01",
+        partitionName = "aqua_api_logs_2026_01",
         partitionMonth = "2026-01",
         rowCount = 10,
         sizeBytes = 1024,
@@ -86,14 +86,14 @@ class LogBackupServiceTest :
         LogBackupRecordModel(
           id = 1L,
           logTable = LogTableType.API_LOG,
-          partitionName = "api_logs_2026_01",
+          partitionName = "aqua_api_logs_2026_01",
           partitionMonth = "2026-01",
-          coldTableName = "log_archive.api_logs_2026",
+          coldTableName = "log_archive.aqua_api_logs_2026",
           status = LogBackupStatus.SUCCEEDED,
         )
       every { transactionService.doBackup(expiredPartition, 1L, "admin") } returns saved
 
-      val result = service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", retentionDays = 90)
+      val result = service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", retentionDays = 90)
 
       result shouldBe saved
       verify { transactionService.doBackup(expiredPartition, 1L, "admin") }
@@ -102,15 +102,15 @@ class LogBackupServiceTest :
     test("backup rejects unknown partition") {
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns emptyList()
       shouldThrow<LogPartitionNotFoundException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
     }
 
     test("backup rejects default partition") {
-      val defaultPartition = expiredPartition.copy(partitionName = "api_logs_default", partitionMonth = null, isDefault = true)
+      val defaultPartition = expiredPartition.copy(partitionName = "aqua_api_logs_default", partitionMonth = null, isDefault = true)
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(defaultPartition)
       shouldThrow<LogPartitionNotBackupableException> {
-        service.backup(LogTableType.API_LOG, "api_logs_default", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_default", 1L, "admin", 90)
       }
     }
 
@@ -118,7 +118,7 @@ class LogBackupServiceTest :
       val current = expiredPartition.copy(isCurrentMonth = true)
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(current)
       shouldThrow<LogPartitionNotBackupableException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
     }
 
@@ -126,24 +126,24 @@ class LogBackupServiceTest :
       val fresh = expiredPartition.copy(toBound = LocalDateTime.now().plusDays(1))
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(fresh)
       shouldThrow<LogPartitionNotBackupableException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
     }
 
     test("backup rejects already backed up partition") {
       every { backupRecordRepository.existsByPartitionNameAndStatusIn(any(), any()) } returns true
       shouldThrow<LogPartitionAlreadyBackedUpException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
     }
 
     test("backup failure before export deletes partial file and records FAILED") {
       every { transactionService.doBackup(any(), any(), any()) } throws BackupExecutionException(false, RuntimeException("copy failed"))
-      val target = Path.of(backupDir.toString(), "api_logs_2026_01.csv.gz")
+      val target = Path.of(backupDir.toString(), "aqua_api_logs_2026_01.csv.gz")
       Files.writeString(target, "partial")
 
       shouldThrow<LogPartitionBackupFailedException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
 
       Files.exists(target) shouldBe false
@@ -151,7 +151,7 @@ class LogBackupServiceTest :
         backupRecordRepository.save(
           match<LogBackupRecordModel> {
             it.status == LogBackupStatus.FAILED &&
-              it.partitionName == "api_logs_2026_01" &&
+              it.partitionName == "aqua_api_logs_2026_01" &&
               it.errorMessage == "copy failed"
           },
         )
@@ -162,23 +162,23 @@ class LogBackupServiceTest :
       every { transactionService.doBackup(any(), any(), any()) } throws BackupExecutionException(true, RuntimeException("append failed"))
 
       shouldThrow<LogPartitionBackupFailedException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
 
       verify {
         backupRecordRepository.save(
           match<LogBackupRecordModel> {
             it.status == LogBackupStatus.FAILED &&
-              it.filePath == Path.of(backupDir.toString(), "api_logs_2026_01.csv.gz").toString()
+              it.filePath == Path.of(backupDir.toString(), "aqua_api_logs_2026_01.csv.gz").toString()
           },
         )
       }
     }
 
     test("in-progress conflict passes through without FAILED record") {
-      every { transactionService.doBackup(any(), any(), any()) } throws LogPartitionBackupInProgressException("api_logs_2026_01")
+      every { transactionService.doBackup(any(), any(), any()) } throws LogPartitionBackupInProgressException("aqua_api_logs_2026_01")
       shouldThrow<LogPartitionBackupInProgressException> {
-        service.backup(LogTableType.API_LOG, "api_logs_2026_01", 1L, "admin", 90)
+        service.backup(LogTableType.API_LOG, "aqua_api_logs_2026_01", 1L, "admin", 90)
       }
       verify(exactly = 0) { backupRecordRepository.save(any()) }
     }
@@ -186,25 +186,25 @@ class LogBackupServiceTest :
     test("backupExpiredPartitions backs up expired and skips failures") {
       val expired2 =
         expiredPartition.copy(
-          partitionName = "api_logs_2026_02",
+          partitionName = "aqua_api_logs_2026_02",
           partitionMonth = "2026-02",
           toBound = LocalDateTime.of(2026, 3, 1, 0, 0),
         )
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(expiredPartition, expired2)
-      every { backupRecordRepository.existsByPartitionNameAndStatusIn("api_logs_2026_02", any()) } returns true // 已备份跳过
+      every { backupRecordRepository.existsByPartitionNameAndStatusIn("aqua_api_logs_2026_02", any()) } returns true // 已备份跳过
       every { transactionService.doBackup(expiredPartition, null, "system") } returns
         LogBackupRecordModel(
           id = 1L,
           logTable = LogTableType.API_LOG,
-          partitionName = "api_logs_2026_01",
+          partitionName = "aqua_api_logs_2026_01",
           partitionMonth = "2026-01",
-          coldTableName = "log_archive.api_logs_2026",
+          coldTableName = "log_archive.aqua_api_logs_2026",
           status = LogBackupStatus.SUCCEEDED,
         )
 
       val done = service.backupExpiredPartitions(LogTableType.API_LOG, 90, "system")
 
-      done.map { it.partitionName } shouldBe listOf("api_logs_2026_01")
+      done.map { it.partitionName } shouldBe listOf("aqua_api_logs_2026_01")
       verify(exactly = 1) { transactionService.doBackup(expiredPartition, null, "system") }
     }
   })

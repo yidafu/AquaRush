@@ -234,7 +234,7 @@ class UserTicketRepositoryImpl(
              SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS redeemed_count,
              SUM(CASE WHEN status = 'RETURNED' THEN 1 ELSE 0 END) AS returned_count,
              SUM(CASE WHEN status = 'EXPIRED' THEN 1 ELSE 0 END) AS expired_count
-      FROM user_tickets
+      FROM aqua_user_tickets
       WHERE ticket_type_id = ?
         AND status IN ($statuses)
         AND is_deleted = false

@@ -29,7 +29,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
  * 计划终止是状态(TERMINATED)而非删除,故为普通表(非软删),历史计划长期可查。
  * 列定义与 changelog V347AddSubscriptions 逐列对齐。
  */
-object SubscriptionsTable : Table("subscriptions") {
+object SubscriptionsTable : Table("aqua_subscriptions") {
   val id = long("id")
   val userId = long("user_id")
   val addressId = long("address_id")
@@ -72,7 +72,7 @@ object SubscriptionsTable : Table("subscriptions") {
 }
 
 /** 周期订购计划商品明细表(`subscription_items`):生成订单时按当期营销链路重算价格。 */
-object SubscriptionItemsTable : Table("subscription_items") {
+object SubscriptionItemsTable : Table("aqua_subscription_items") {
   val id = long("id")
   val subscriptionId = long("subscription_id")
   val productId = long("product_id")

@@ -32,7 +32,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 主键由 SnowflakeIdGenerator 生成(与 JPA @SnowflakeIdGenerator 语义一致)。
 
 /** 通知表(`notifications`,R-NTF)。 */
-object NotificationsTable : SoftDeletableTable("notifications") {
+object NotificationsTable : SoftDeletableTable("aqua_notifications") {
   val id = long("id")
   val receiverType = varchar("receiver_type", 20)
   val userId = long("user_id").nullable()
@@ -56,7 +56,7 @@ object NotificationsTable : SoftDeletableTable("notifications") {
 }
 
 /** 微信订阅消息授权表(`user_subscription_auths`,R-NTF-01 一次性模板)。 */
-object UserSubscriptionAuthsTable : SoftDeletableTable("user_subscription_auths") {
+object UserSubscriptionAuthsTable : SoftDeletableTable("aqua_user_subscription_auths") {
   val id = long("id")
   val userId = long("user_id")
   val templateId = varchar("template_id", 100)
@@ -66,7 +66,7 @@ object UserSubscriptionAuthsTable : SoftDeletableTable("user_subscription_auths"
 }
 
 /** 用户通知开关表(`user_notification_settings`)。 */
-object UserNotificationSettingsTable : SoftDeletableTable("user_notification_settings") {
+object UserNotificationSettingsTable : SoftDeletableTable("aqua_user_notification_settings") {
   val id = long("id")
   val userId = long("user_id")
   val orderUpdates = bool("order_updates").clientDefault { true }
@@ -81,7 +81,7 @@ object UserNotificationSettingsTable : SoftDeletableTable("user_notification_set
  * 站内信/微信消息发送历史表(`message_history`)。
  * 注意:当前平台主代码已无调用方(死代码保留域),仓储随 P3 收尾迁移以对齐 DDL。
  */
-object MessageHistoriesTable : SoftDeletableTable("message_history") {
+object MessageHistoriesTable : SoftDeletableTable("aqua_message_history") {
   val id = long("id")
   val userId = long("user_id")
   val messageType = varchar("message_type", 50)
@@ -97,7 +97,7 @@ object MessageHistoriesTable : SoftDeletableTable("message_history") {
 }
 
 /** 文件元数据表(`file_metadata`,storage 域)。 */
-object FileMetadataTable : SoftDeletableTable("file_metadata") {
+object FileMetadataTable : SoftDeletableTable("aqua_file_metadata") {
   val id = long("id")
   val fileName = varchar("file_name", 255)
   val storagePath = varchar("storage_path", 500)

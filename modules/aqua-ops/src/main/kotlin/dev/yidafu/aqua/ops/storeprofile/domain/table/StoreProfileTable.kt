@@ -30,7 +30,7 @@ import org.jetbrains.exposed.v1.javatime.time
  * + `v1.7.0-seed-nanshan-demo-data.xml`(种子数据)。
  * 对应 JPA 实体为 `StoreProfileModel`。
  */
-object StoreProfileTable : SoftDeletableTable("store_profiles") {
+object StoreProfileTable : SoftDeletableTable("aqua_store_profiles") {
   val id = long("id")
   val shopName = varchar("shop_name", 20)
   val logoUrl = varchar("logo_url", 1000).nullable()

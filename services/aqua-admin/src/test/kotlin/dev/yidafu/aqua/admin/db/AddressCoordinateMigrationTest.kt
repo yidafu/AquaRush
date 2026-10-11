@@ -31,7 +31,7 @@ import org.springframework.test.context.ActiveProfiles
 
 /**
  * 坐标体系统一(v1.6.0)迁移测试:
- * 存量 addresses 的 GCJ-02 坐标 → WGS-84,
+ * 存量 aqua_addresses 的 GCJ-02 坐标 → WGS-84,
  * SQL 算法须与 frontend/common/src/utils/coordinate.ts gcj02ToWgs84 一致。
  * (delivery_addresses 死表已随缺陷 #7 删除,V341;迁移 SQL 中针对该表的语句过滤跳过。)
  *
@@ -79,7 +79,7 @@ class AddressCoordinateMigrationTest(
     ) {
       jdbc.update(
         """
-        INSERT INTO addresses
+        INSERT INTO aqua_addresses
           (id, user_id, receiver_name, phone, province, city, district, detail_address,
            longitude, latitude, is_default, is_deleted, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
@@ -100,12 +100,12 @@ class AddressCoordinateMigrationTest(
     }
 
     fun readAddress(id: Long): Pair<Double, Double> {
-      val row = jdbc.queryForMap("SELECT longitude, latitude FROM addresses WHERE id = ?", id)
+      val row = jdbc.queryForMap("SELECT longitude, latitude FROM aqua_addresses WHERE id = ?", id)
       return (row["longitude"] as Number).toDouble() to (row["latitude"] as Number).toDouble()
     }
 
     context("地址坐标 GCJ-02 → WGS-84 迁移(v1.6.0)") {
-      test("addresses 上海向量转换与前端算法一致") {
+      test("aqua_addresses 上海向量转换与前端算法一致") {
         insertAddress(9000000000000000001L, 121.531541859215, 31.17530398364597)
         migrationStatements.forEach { jdbc.execute(it) }
 
@@ -114,7 +114,7 @@ class AddressCoordinateMigrationTest(
         lat shouldBe (31.177440 plusOrMinus tolerance)
       }
 
-      test("addresses 杭州测试数据向量转换与前端算法一致") {
+      test("aqua_addresses 杭州测试数据向量转换与前端算法一致") {
         insertAddress(9000000000000000002L, 120.16142, 30.259224)
         migrationStatements.forEach { jdbc.execute(it) }
 

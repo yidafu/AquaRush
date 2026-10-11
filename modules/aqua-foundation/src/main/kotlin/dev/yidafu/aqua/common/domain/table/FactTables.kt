@@ -28,7 +28,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 注意:updated_at 在 model 上非空,但部分 DDL 允许 NULL —— 列定义按 model 语义非空,读到 NULL 行为与 JPA 版一致。
 
 /** 订单日事实(`daily_order_facts`,原子粒度 stat_date × status × delivery_worker_id)。 */
-object DailyOrderFactsTable : Table("daily_order_facts") {
+object DailyOrderFactsTable : Table("aqua_daily_order_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val status = varchar("status", 30)
@@ -42,7 +42,7 @@ object DailyOrderFactsTable : Table("daily_order_facts") {
 }
 
 /** 商品日事实(`daily_product_facts`,原子粒度 stat_date × status × product_id)。 */
-object DailyProductFactsTable : Table("daily_product_facts") {
+object DailyProductFactsTable : Table("aqua_daily_product_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val status = varchar("status", 30)
@@ -56,7 +56,7 @@ object DailyProductFactsTable : Table("daily_product_facts") {
 }
 
 /** 用户日事实(`daily_user_facts`,每日一行,新增/登录计数)。 */
-object DailyUserFactsTable : Table("daily_user_facts") {
+object DailyUserFactsTable : Table("aqua_daily_user_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val newUserCount = long("new_user_count").default(0L)
@@ -67,7 +67,7 @@ object DailyUserFactsTable : Table("daily_user_facts") {
 }
 
 /** 退款日事实(`daily_refund_facts`,原子粒度 stat_date × status × refund_type)。 */
-object DailyRefundFactsTable : Table("daily_refund_facts") {
+object DailyRefundFactsTable : Table("aqua_daily_refund_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val status = varchar("status", 30)
@@ -80,7 +80,7 @@ object DailyRefundFactsTable : Table("daily_refund_facts") {
 }
 
 /** 已完成营收日事实(`daily_revenue_facts`,按 completed_at 归属日)。 */
-object DailyRevenueFactsTable : Table("daily_revenue_facts") {
+object DailyRevenueFactsTable : Table("aqua_daily_revenue_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val orderCount = long("order_count").default(0L)
@@ -91,7 +91,7 @@ object DailyRevenueFactsTable : Table("daily_revenue_facts") {
 }
 
 /** 营销日事实(`daily_marketing_facts`,F-STA-007)。 */
-object DailyMarketingFactsTable : Table("daily_marketing_facts") {
+object DailyMarketingFactsTable : Table("aqua_daily_marketing_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val marketingOrderCount = long("marketing_order_count").default(0L)
@@ -109,7 +109,7 @@ object DailyMarketingFactsTable : Table("daily_marketing_facts") {
 }
 
 /** 营销使用日事实(`daily_marketing_usage_facts`,原子粒度 stat_date × kind × ref_id)。 */
-object DailyMarketingUsageFactsTable : Table("daily_marketing_usage_facts") {
+object DailyMarketingUsageFactsTable : Table("aqua_daily_marketing_usage_facts") {
   val id = long("id")
   val statDate = date("stat_date")
   val kind = varchar("kind", 30)

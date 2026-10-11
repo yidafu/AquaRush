@@ -26,18 +26,18 @@ import java.time.LocalDateTime
  * outbox 半年分区规则(纯函数,可单测;spec/tech/design/outbox-messaging.md 修订)。
  *
  * 半区边界:H1 = [YYYY-01-01, YYYY-07-01),H2 = [YYYY-07-01, 次年-01-01);
- * 分区名 `outbox_events_YYYYHn`,归档名 `outbox_events_archive_YYYYHn`。
- * PG 未加引号标识符折叠为小写,故规则直接产出小写名(如 `outbox_events_2026h2`),
+ * 分区名 `aqua_outbox_events_YYYYHn`,归档名 `aqua_outbox_events_archive_YYYYHn`。
+ * PG 未加引号标识符折叠为小写,故规则直接产出小写名(如 `aqua_outbox_events_2026h2`),
  * 与 PG 实际存储的关系名一致,免去大小写比对问题。
  * 超期口径与日志分区 [dev.yidafu.aqua.logging.partition.domain.LogPartitionRules.isExpired] 一致:
  * 分区上界 ≤ now - 保留天数 即可卸载。
  */
 object OutboxPartitionRules {
   /** 主表名。 */
-  const val TABLE_NAME = "outbox_events"
+  const val TABLE_NAME = "aqua_outbox_events"
 
   /** 归档表前缀(卸载后改名 `{ARCHIVE_PREFIX}_{YYYYHn}`)。 */
-  const val ARCHIVE_PREFIX = "outbox_events_archive"
+  const val ARCHIVE_PREFIX = "aqua_outbox_events_archive"
 
   /** 分区滚动维护的事务级 advisory 锁 key(双服务实例串行化)。 */
   const val MAINTENANCE_LOCK_KEY = "aquarush:outbox-partition-maintenance"
@@ -55,10 +55,10 @@ object OutboxPartitionRules {
   /** 半区起点对应的后缀,如 `2026h2`(入参须为 H1/H2 起点,即 1 月 1 日或 7 月 1 日)。 */
   fun suffixOf(halfStart: LocalDateTime): String = if (halfStart.monthValue <= 6) "${halfStart.year}h1" else "${halfStart.year}h2"
 
-  /** 半区起点对应的分区名,如 `outbox_events_2026h2`。 */
+  /** 半区起点对应的分区名,如 `aqua_outbox_events_2026h2`。 */
   fun partitionName(halfStart: LocalDateTime): String = "${TABLE_NAME}_${suffixOf(halfStart)}"
 
-  /** 半区起点对应的归档表名,如 `outbox_events_archive_2026h2`。 */
+  /** 半区起点对应的归档表名,如 `aqua_outbox_events_archive_2026h2`。 */
   fun archiveName(halfStart: LocalDateTime): String = "${ARCHIVE_PREFIX}_${suffixOf(halfStart)}"
 
   /** 由分区名推导归档名(前缀替换);非 outbox 分区名返回 null。 */

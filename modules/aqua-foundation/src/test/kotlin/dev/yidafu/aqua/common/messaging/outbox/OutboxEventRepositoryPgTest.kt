@@ -64,17 +64,17 @@ class OutboxEventRepositoryPgTest :
       val to = halfStart.plusMonths(6).format(tsFmt)
       sql(
         "CREATE TABLE ${OutboxPartitionRules.partitionName(halfStart)} " +
-          "PARTITION OF outbox_events FOR VALUES FROM ('$from') TO ('$to')",
+          "PARTITION OF aqua_outbox_events FOR VALUES FROM ('$from') TO ('$to')",
       )
     }
 
     fun reset() {
-      // 清掉主表/挂载分区/归档表(outbox_events% 的全部表变体)
+      // 清掉主表/挂载分区/归档表(aqua_outbox_events% 的全部表变体)
       sql(
         """
         DO $$ DECLARE t record; BEGIN
           FOR t IN SELECT relname FROM pg_class
-                    WHERE relname LIKE 'outbox_events%' AND relkind IN ('r', 'p')
+                    WHERE relname LIKE 'aqua_outbox_events%' AND relkind IN ('r', 'p')
           LOOP
             EXECUTE format('DROP TABLE IF EXISTS %I CASCADE', t.relname);
           END LOOP;
@@ -83,7 +83,7 @@ class OutboxEventRepositoryPgTest :
       )
       sql(
         """
-        CREATE TABLE outbox_events (
+        CREATE TABLE aqua_outbox_events (
           id bigint NOT NULL,
           event_type varchar(100) NOT NULL,
           destination varchar(50) NOT NULL,
@@ -105,9 +105,9 @@ class OutboxEventRepositoryPgTest :
       val currentHalfStart = OutboxPartitionRules.halfStartOf(LocalDateTime.now())
       listOf(currentHalfStart.minusMonths(6), currentHalfStart, currentHalfStart.plusMonths(6))
         .forEach { createHalfPartition(it) }
-      sql("CREATE INDEX idx_outbox_status_next_run ON outbox_events (status, next_run_at)")
-      sql("CREATE INDEX idx_outbox_destination ON outbox_events (destination)")
-      sql("CREATE INDEX idx_outbox_subscriber_status ON outbox_events (subscriber, status)")
+      sql("CREATE INDEX idx_outbox_status_next_run ON aqua_outbox_events (status, next_run_at)")
+      sql("CREATE INDEX idx_outbox_destination ON aqua_outbox_events (destination)")
+      sql("CREATE INDEX idx_outbox_subscriber_status ON aqua_outbox_events (subscriber, status)")
     }
 
     fun insertRow(
@@ -131,7 +131,7 @@ class OutboxEventRepositoryPgTest :
       if (status != OutboxStatus.PENDING || retryCount != 0 || lockedBy != null) {
         sql(
           """
-          UPDATE outbox_events
+          UPDATE aqua_outbox_events
           SET status = '$status', retry_count = $retryCount,
               locked_by = ${lockedBy?.let { "'$it'" } ?: "NULL"},
               locked_at = ${lockedAt?.let { "'$it'" } ?: "NULL"}
@@ -224,7 +224,7 @@ class OutboxEventRepositoryPgTest :
       repository.recoverStuck(LocalDateTime.now().minusMinutes(5)) shouldBe 0
 
       // 人为把 locked_at 拨回 10 分钟前 → 复位
-      sql("UPDATE outbox_events SET locked_at = now() - interval '10 minutes' WHERE id = 10")
+      sql("UPDATE aqua_outbox_events SET locked_at = now() - interval '10 minutes' WHERE id = 10")
       repository.recoverStuck(LocalDateTime.now().minusMinutes(5)) shouldBe 1
 
       val reclaimed = repository.claim(setOf("order-events"), instance = "client", limit = 10)
@@ -238,14 +238,14 @@ class OutboxEventRepositoryPgTest :
       createHalfPartition(oldHalfStart)
       insertRow(11L)
       // created_at 是分区键,UPDATE 触发行移入旧半区
-      sql("UPDATE outbox_events SET created_at = '${oldHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 11")
+      sql("UPDATE aqua_outbox_events SET created_at = '${oldHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 11")
 
       val first = repository.maintainPartitions(LocalDateTime.now(), retentionDays = 30)
       first.lockAcquired shouldBe true
       first.detachedArchives shouldContain OutboxPartitionRules.archiveName(oldHalfStart)
 
       // 主表不再含该行;归档表保留数据
-      count("SELECT count(*) FROM outbox_events WHERE id = 11") shouldBe 0
+      count("SELECT count(*) FROM aqua_outbox_events WHERE id = 11") shouldBe 0
       count("SELECT count(*) FROM ${OutboxPartitionRules.archiveName(oldHalfStart)} WHERE id = 11") shouldBe 1
 
       // 幂等:重复执行不再卸载/重建已处理过的分区
@@ -266,9 +266,9 @@ class OutboxEventRepositoryPgTest :
       // 补建的分区可接收落在该半区的行
       insertRow(15L)
       sql(
-        "UPDATE outbox_events SET created_at = '${nextHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 15",
+        "UPDATE aqua_outbox_events SET created_at = '${nextHalfStart.plusDays(10).format(tsFmt)}' WHERE id = 15",
       )
-      count("SELECT count(*) FROM outbox_events WHERE id = 15") shouldBe 1
+      count("SELECT count(*) FROM aqua_outbox_events WHERE id = 15") shouldBe 1
     }
 
     test("maintainPartitions:维护锁被另一连接持有时整体跳过(lockAcquired=false)") {

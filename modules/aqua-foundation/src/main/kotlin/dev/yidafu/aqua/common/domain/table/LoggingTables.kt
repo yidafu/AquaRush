@@ -32,7 +32,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 登录/行为日志(user_action_logs)定义在 SourceTables.kt(analytics 聚合先用到,保持原处)。
 
 /** API 请求日志表(`api_logs`,logging 域,17 列)。 */
-object ApiLogsTable : Table("api_logs") {
+object ApiLogsTable : Table("aqua_api_logs") {
   val id = long("id")
   val correlationId = varchar("correlation_id", 50).nullable()
   val requestType = varchar("request_type", 20)
@@ -54,7 +54,7 @@ object ApiLogsTable : Table("api_logs") {
 }
 
 /** 业务日志表(`business_logs`,logging 域,10 列;operation 列由 1.1.1 加入后合并至 v1.0.0 DDL)。 */
-object BusinessLogsTable : Table("business_logs") {
+object BusinessLogsTable : Table("aqua_business_logs") {
   val id = long("id")
   val correlationId = varchar("correlation_id", 50).nullable()
   val level = varchar("level", 10)
@@ -69,7 +69,7 @@ object BusinessLogsTable : Table("business_logs") {
 }
 
 /** 日志离线备份记录表(`log_backup_records`,logging 域,18 列,单列主键)。 */
-object LogBackupRecordsTable : Table("log_backup_records") {
+object LogBackupRecordsTable : Table("aqua_log_backup_records") {
   val id = long("id")
   val logTable = varchar("log_table", 30)
   val partitionName = varchar("partition_name", 100)

@@ -9,7 +9,7 @@ class V126AddDeliveryPushConfigParams :
     changeSet(author = "aqua-rush", id = "1.2.6-add-delivery-push-config-params") {
       comment("Seed delivery app real-time push config params for F-NTF-003 (scenario switches + offline polling interval)")
       // ==================== 送水 App 实时推送配置(F-NTF-003,NOTIFICATION 参数组) ====================
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "33")
         column(name = "setting_key", value = "delivery_push_new_order_enabled")
         column(name = "setting_value", value = "true")
@@ -20,7 +20,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "34")
         column(name = "setting_key", value = "delivery_push_assigned_enabled")
         column(name = "setting_value", value = "true")
@@ -31,7 +31,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "35")
         column(name = "setting_key", value = "delivery_push_cancelled_enabled")
         column(name = "setting_value", value = "true")
@@ -42,7 +42,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "36")
         column(name = "setting_key", value = "delivery_push_urging_enabled")
         column(name = "setting_value", value = "true")
@@ -53,7 +53,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "37")
         column(name = "setting_key", value = "delivery_push_timeout_enabled")
         column(name = "setting_value", value = "true")
@@ -64,7 +64,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "38")
         column(name = "setting_key", value = "delivery_push_payment_timeout_enabled")
         column(name = "setting_value", value = "true")
@@ -75,7 +75,7 @@ class V126AddDeliveryPushConfigParams :
         column(name = "created_at", value = "NOW()")
         column(name = "updated_at", value = "NOW()")
       }
-      insert(tableName = "system_settings") {
+      insert(tableName = "aqua_system_settings") {
         column(name = "id", value = "39")
         column(name = "setting_key", value = "delivery_poll_interval_seconds")
         column(name = "setting_value", value = "30")

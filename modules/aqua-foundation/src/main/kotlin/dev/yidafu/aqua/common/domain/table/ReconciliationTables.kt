@@ -25,7 +25,7 @@ import org.jetbrains.exposed.v1.javatime.datetime
 // 三表均带 @SoftDelete(is_deleted) —— 查询必须显式过滤各表的 isDeleted 列。
 
 /** 对账任务表(`reconciliation_tasks`)。 */
-object ReconciliationTasksTable : SoftDeletableTable("reconciliation_tasks") {
+object ReconciliationTasksTable : SoftDeletableTable("aqua_reconciliation_tasks") {
   val id = long("id")
   val taskId = varchar("task_id", 100)
   val taskType = varchar("task_type", 20)
@@ -51,7 +51,7 @@ object ReconciliationTasksTable : SoftDeletableTable("reconciliation_tasks") {
 }
 
 /** 对账报表表(`reconciliation_reports`)。 */
-object ReconciliationReportsTable : SoftDeletableTable("reconciliation_reports") {
+object ReconciliationReportsTable : SoftDeletableTable("aqua_reconciliation_reports") {
   val id = long("id")
   val taskId = varchar("task_id", 100)
   val reportType = varchar("report_type", 20)
@@ -68,7 +68,7 @@ object ReconciliationReportsTable : SoftDeletableTable("reconciliation_reports")
 }
 
 /** 对账差异表(`reconciliation_discrepancies`)。 */
-object ReconciliationDiscrepanciesTable : SoftDeletableTable("reconciliation_discrepancies") {
+object ReconciliationDiscrepanciesTable : SoftDeletableTable("aqua_reconciliation_discrepancies") {
   val id = long("id")
   val taskId = varchar("task_id", 100)
   val discrepancyType = varchar("discrepancy_type", 20)

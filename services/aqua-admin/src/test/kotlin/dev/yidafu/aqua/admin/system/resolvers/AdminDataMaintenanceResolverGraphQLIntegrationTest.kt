@@ -86,7 +86,7 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
     val partition =
       LogPartitionInfo(
         logTable = LogTableType.API_LOG,
-        partitionName = "api_logs_2026_01",
+        partitionName = "aqua_api_logs_2026_01",
         partitionMonth = "2026-01",
         rowCount = 5,
         sizeBytes = 1024,
@@ -100,11 +100,11 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
       LogBackupRecordModel(
         id = 1L,
         logTable = LogTableType.API_LOG,
-        partitionName = "api_logs_2026_01",
+        partitionName = "aqua_api_logs_2026_01",
         partitionMonth = "2026-01",
-        coldTableName = "log_archive.api_logs_2026",
+        coldTableName = "log_archive.aqua_api_logs_2026",
         rowCount = 5,
-        filePath = "/data/log-backup/api_logs_2026_01.csv.gz",
+        filePath = "/data/log-backup/aqua_api_logs_2026_01.csv.gz",
         fileChecksum = "abc123",
         status = LogBackupStatus.SUCCEEDED,
         operatorName = "admin",
@@ -181,9 +181,9 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
         )
       withClue("response: $json") {
         json.contains("\"settingKey\" : \"${SystemSettingKeys.LOG_RETENTION_API_DAYS}\"") &&
-          json.contains("\"partitionName\" : \"api_logs_2026_01\"") &&
+          json.contains("\"partitionName\" : \"aqua_api_logs_2026_01\"") &&
           json.contains("\"backupable\" : true") &&
-          json.contains("\"coldTableName\" : \"log_archive.api_logs_2026\"") &&
+          json.contains("\"coldTableName\" : \"log_archive.aqua_api_logs_2026\"") &&
           json.contains("\"total\" : 1") &&
           !json.contains("\"errors\"") shouldBe true
       }
@@ -195,18 +195,18 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
       val json =
         postGraphql(
           """
-          mutation { backupLogPartition(input: { logTable: API_LOG, partitionName: "api_logs_2026_01" }) { id status coldTableName } }
+          mutation { backupLogPartition(input: { logTable: API_LOG, partitionName: "aqua_api_logs_2026_01" }) { id status coldTableName } }
           """.trimIndent(),
         )
       withClue("response: $json") {
         json.contains("\"status\" : \"SUCCEEDED\"") &&
-          json.contains("\"coldTableName\" : \"log_archive.api_logs_2026\"") &&
+          json.contains("\"coldTableName\" : \"log_archive.aqua_api_logs_2026\"") &&
           !json.contains("\"errors\"") shouldBe true
       }
       verify {
         logPartitionMutationService.backup(
           logTable = LogTableType.API_LOG,
-          partitionName = "api_logs_2026_01",
+          partitionName = "aqua_api_logs_2026_01",
           operatorId = 1L,
           operatorName = "admin",
           retentionDays = 90,
@@ -224,7 +224,7 @@ class AdminDataMaintenanceResolverGraphQLIntegrationTest(
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_READ"))
       val json =
         postGraphql(
-          """mutation { backupLogPartition(input: { logTable: API_LOG, partitionName: "api_logs_2026_01" }) { id } }""",
+          """mutation { backupLogPartition(input: { logTable: API_LOG, partitionName: "aqua_api_logs_2026_01" }) { id } }""",
         )
       json.contains("\"errors\"") shouldBe true
       verify(exactly = 0) { logPartitionMutationService.backup(any(), any(), any(), any(), any()) }

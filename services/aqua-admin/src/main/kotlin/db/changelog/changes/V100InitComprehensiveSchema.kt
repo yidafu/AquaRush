@@ -10,9 +10,9 @@ class V100InitComprehensiveSchema :
     // =======================================================================
     // Reference Tables (No Dependencies)
     // =======================================================================
-    changeSet(author = "aqua-rush", id = "1.0.0-create-regions-table") {
-      comment("Create regions table for province/city/district data")
-      createTable(tableName = "regions") {
+    changeSet(author = "aqua-rush", id = "1.0.0-create-aqua_regions-table") {
+      comment("Create aqua_regions table for province/city/district data")
+      createTable(tableName = "aqua_regions") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -40,27 +40,27 @@ class V100InitComprehensiveSchema :
         column(name = "deleted_at", type = "timestamp")
         column(name = "deleted_by", type = "bigint")
       }
-      createIndex(tableName = "regions", indexName = "idx_regions_parent_code") {
+      createIndex(tableName = "aqua_regions", indexName = "idx_regions_parent_code") {
         column(name = "parent_code")
       }
-      createIndex(tableName = "regions", indexName = "idx_regions_level") {
+      createIndex(tableName = "aqua_regions", indexName = "idx_regions_level") {
         column(name = "level")
       }
-      createIndex(tableName = "regions", indexName = "idx_regions_parent_level") {
+      createIndex(tableName = "aqua_regions", indexName = "idx_regions_parent_level") {
         column(name = "parent_code")
         column(name = "level")
       }
-      createIndex(tableName = "regions", indexName = "idx_regions_deleted") {
+      createIndex(tableName = "aqua_regions", indexName = "idx_regions_deleted") {
         column(name = "is_deleted")
       }
     }
-    changeSet(author = "aqua-rush", id = "1.0.0-insert-regions-data") {
-      comment("Insert initial regions data (provinces, cities, districts)")
+    changeSet(author = "aqua-rush", id = "1.0.0-insert-aqua_regions-data") {
+      comment("Insert initial aqua_regions data (provinces, cities, districts)")
       sqlFile(path = "db/changelog/changes/insert-regions.sql", relativeToChangelogFile = false)
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-admin-table") {
       comment("Create admin table")
-      createTable(tableName = "admins") {
+      createTable(tableName = "aqua_admins") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -88,7 +88,7 @@ class V100InitComprehensiveSchema :
         column(name = "updated_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
           constraints(nullable = false)
         }
-        // 配送业务字段(送水员档案并入 admins 单表,v1.2.1;role=DELIVERY_WORKER 区分身份)
+        // 配送业务字段(送水员档案并入 aqua_admins 单表,v1.2.1;role=DELIVERY_WORKER 区分身份)
         column(name = "avatar_url", type = "varchar(512)")
         column(name = "online_status", type = "varchar(20)", defaultValue = "OFFLINE") {
           constraints(nullable = false)
@@ -112,17 +112,17 @@ class V100InitComprehensiveSchema :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "admins", indexName = "idx_admin_username") {
+      createIndex(tableName = "aqua_admins", indexName = "idx_admin_username") {
         column(name = "username")
       }
-      createIndex(tableName = "admins", indexName = "idx_admins_deleted") {
+      createIndex(tableName = "aqua_admins", indexName = "idx_admins_deleted") {
         column(name = "is_deleted")
       }
-      addUniqueConstraint(tableName = "admins", columnNames = "user_id", constraintName = "uq_admins_user_id")
+      addUniqueConstraint(tableName = "aqua_admins", columnNames = "user_id", constraintName = "uq_admins_user_id")
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-product-table") {
       comment("Create product table")
-      createTable(tableName = "products") {
+      createTable(tableName = "aqua_products") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -177,22 +177,22 @@ class V100InitComprehensiveSchema :
         }
       }
       // Indexes for performance
-      createIndex(tableName = "products", indexName = "idx_product_status") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_status") {
         column(name = "status")
       }
-      createIndex(tableName = "products", indexName = "idx_product_sales_volume") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_sales_volume") {
         column(name = "sales_volume")
       }
-      createIndex(tableName = "products", indexName = "idx_product_sort_order") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_sort_order") {
         column(name = "sort_order")
       }
-      createIndex(tableName = "products", indexName = "idx_product_deleted") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_deleted") {
         column(name = "is_deleted")
       }
-      createIndex(tableName = "products", indexName = "idx_product_water_source") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_water_source") {
         column(name = "water_source")
       }
-      createIndex(tableName = "products", indexName = "idx_product_composite") {
+      createIndex(tableName = "aqua_products", indexName = "idx_product_composite") {
         column(name = "is_deleted")
         column(name = "status")
         column(name = "sales_volume")
@@ -201,7 +201,7 @@ class V100InitComprehensiveSchema :
       sql(
         sql = """
             
-      ALTER TABLE products
+      ALTER TABLE aqua_products
         ADD CONSTRAINT chk_product_sales_volume_non_negative
           CHECK (sales_volume >= 0),
                 ADD CONSTRAINT chk_product_sort_order_positive
@@ -222,7 +222,7 @@ class V100InitComprehensiveSchema :
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.0-create-storage-schema") {
       comment("Create file metadata table for storage system")
-      createTable(tableName = "file_metadata") {
+      createTable(tableName = "aqua_file_metadata") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -262,30 +262,30 @@ class V100InitComprehensiveSchema :
         column(name = "deleted_at", type = "timestamp")
         column(name = "deleted_by", type = "bigint")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_checksum") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_checksum") {
         column(name = "checksum")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_storage_path") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_storage_path") {
         column(name = "storage_path")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_file_type") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_file_type") {
         column(name = "file_type")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_owner_id") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_owner_id") {
         column(name = "owner_id")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_created_at") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_is_public") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_is_public") {
         column(name = "is_public")
       }
-      createIndex(tableName = "file_metadata", indexName = "idx_file_metadata_deleted") {
+      createIndex(tableName = "aqua_file_metadata", indexName = "idx_file_metadata_deleted") {
         column(name = "is_deleted")
       }
       sql(
         sql = """
- ALTER TABLE file_metadata
+ ALTER TABLE aqua_file_metadata
       ADD CONSTRAINT chk_file_type CHECK (file_type IN ('IMAGE',
                                                         'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION',
                                                         'FRONTEND', 'ARCHIVE',
@@ -304,68 +304,70 @@ class V100InitComprehensiveSchema :
     CREATE TRIGGER
       trigger_file_metadata_updated_at
       BEFORE UPDATE
-      ON file_metadata
+      ON aqua_file_metadata
       FOR EACH ROW EXECUTE FUNCTION update_file_metadata_updated_at(); 
             """,
       )
     }
-    changeSet(author = "aqua-rush", id = "1.0.0-create-event-table") {
-      comment("Create outbox event table for async processing")
-      createTable(tableName = "outbox_events") {
-        column(name = "id", type = "bigint", autoIncrement = true) {
-          constraints(primaryKey = true, nullable = false)
-        }
-        column(name = "event_type", type = "varchar(100)") {
-          constraints(nullable = false)
-        }
-        column(name = "payload", type = "json") {
-          constraints(nullable = false)
-        }
-        column(name = "retry_count", type = "integer", defaultValueNumeric = 0) {
-          constraints(nullable = false)
-        }
-        column(name = "next_run_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
-          constraints(nullable = false)
-        }
-        column(name = "status", type = "varchar(20)", defaultValue = "PENDING") {
-          constraints(nullable = false)
-        }
-        column(name = "error_message", type = "text")
-        column(name = "created_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
-          constraints(nullable = false)
-        }
-        column(name = "updated_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
-          constraints(nullable = false)
-        }
-        column(name = "is_deleted", type = "boolean", defaultValueBoolean = false) {
-          constraints(nullable = false)
-        }
-        column(name = "deleted_at", type = "timestamp")
-        column(name = "deleted_by", type = "bigint")
-      }
-      createIndex(tableName = "outbox_events", indexName = "idx_event_type") {
-        column(name = "event_type")
-      }
-      createIndex(tableName = "outbox_events", indexName = "idx_event_status") {
-        column(name = "status")
-      }
-      createIndex(tableName = "outbox_events", indexName = "idx_event_next_run") {
-        column(name = "next_run_at")
-      }
-      createIndex(tableName = "outbox_events", indexName = "idx_event_composite") {
-        column(name = "status")
-        column(name = "next_run_at")
-      }
-      createIndex(tableName = "outbox_events", indexName = "idx_outbox_events_deleted") {
-        column(name = "is_deleted")
-      }
+    changeSet(author = "aqua-rush", id = "1.0.0-create-event-table", dbms = "postgresql") {
+      comment("Create outbox event table for async processing (half-year RANGE partitions, v3.4.0 替代 Artemis / v3.4.2 分区化)")
+      sql(
+        sql = """
+        CREATE TABLE aqua_outbox_events (
+          id bigint NOT NULL,
+          event_type varchar(100) NOT NULL,
+          destination varchar(50) NOT NULL,
+          subscriber varchar(20),
+          payload text NOT NULL,
+          next_run_at timestamp NOT NULL,
+          status varchar(20) NOT NULL DEFAULT 'PENDING',
+          retry_count integer NOT NULL DEFAULT 0,
+          error_message text,
+          locked_by varchar(64),
+          locked_at timestamp,
+          created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT outbox_events_pkey PRIMARY KEY (id, created_at)
+        ) PARTITION BY RANGE (created_at);
+
+        CREATE INDEX idx_outbox_status_next_run ON aqua_outbox_events (status, next_run_at);
+        CREATE INDEX idx_outbox_destination ON aqua_outbox_events (destination);
+        CREATE INDEX idx_outbox_subscriber_status ON aqua_outbox_events (subscriber, status);
+        """,
+      )
+      // 初始建当前与下一半区(承接未来 6 个月 INSERT);滚动 DETACH 归档由服务侧维护
+      sql(
+        sql = """
+        DO ${'$'}${'$'}
+        DECLARE
+          h timestamp;
+          h2 timestamp;
+        BEGIN
+          SELECT CASE WHEN extract(month from now()) <= 6 THEN date_trunc('year', now())
+                      ELSE date_trunc('year', now()) + interval '6 months' END
+          INTO h;
+          h2 := h + interval '6 months';
+          EXECUTE format(
+            'CREATE TABLE IF NOT EXISTS aqua_outbox_events_%s%s PARTITION OF aqua_outbox_events FOR VALUES FROM (%L) TO (%L)',
+            to_char(h, 'YYYY'),
+            CASE WHEN extract(month from h) = 7 THEN 'H2' ELSE 'H1' END,
+            h, h2);
+          EXECUTE format(
+            'CREATE TABLE IF NOT EXISTS aqua_outbox_events_%s%s PARTITION OF aqua_outbox_events FOR VALUES FROM (%L) TO (%L)',
+            to_char(h2, 'YYYY'),
+            CASE WHEN extract(month from h2) = 7 THEN 'H2' ELSE 'H1' END,
+            h2, h2 + interval '6 months');
+        END ${'$'}${'$'};
+        """,
+        splitStatements = false,
+      )
     }
     // =======================================================================
     // Base Entity Tables
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.0-create-user-table") {
       comment("Create user table")
-      createTable(tableName = "users") {
+      createTable(tableName = "aqua_users") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -387,9 +389,7 @@ class V100InitComprehensiveSchema :
         column(name = "role", type = "varchar(50)", defaultValue = "NONE") {
           constraints(nullable = false)
         }
-        column(name = "balance_cents", type = "bigint", defaultValueNumeric = 0) {
-          constraints(nullable = false)
-        }
+        // balance_cents 遗留列已删(v3.3.0:不做用户储值,PRD 2026-10-09 决策)
         column(name = "total_spent_cents", type = "bigint", defaultValueNumeric = 0) {
           constraints(nullable = false)
         }
@@ -410,19 +410,19 @@ class V100InitComprehensiveSchema :
         // 客户分组(v1.0.9,单分组,空=未分组)
         column(name = "customer_group_id", type = "bigint")
       }
-      createIndex(tableName = "users", indexName = "idx_users_openid") {
+      createIndex(tableName = "aqua_users", indexName = "idx_users_openid") {
         column(name = "wechat_openid")
       }
-      createIndex(tableName = "users", indexName = "idx_users_deleted") {
+      createIndex(tableName = "aqua_users", indexName = "idx_users_deleted") {
         column(name = "is_deleted")
       }
-      createIndex(tableName = "users", indexName = "idx_users_customer_group_id") {
+      createIndex(tableName = "aqua_users", indexName = "idx_users_customer_group_id") {
         column(name = "customer_group_id")
       }
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-delivery-area-table") {
       comment("Create delivery area table")
-      createTable(tableName = "delivery_areas") {
+      createTable(tableName = "aqua_delivery_areas") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -453,18 +453,18 @@ class V100InitComprehensiveSchema :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "delivery_areas", indexName = "idx_area_location") {
+      createIndex(tableName = "aqua_delivery_areas", indexName = "idx_area_location") {
         column(name = "province")
         column(name = "city")
         column(name = "district")
       }
-      createIndex(tableName = "delivery_areas", indexName = "idx_delivery_areas_deleted") {
+      createIndex(tableName = "aqua_delivery_areas", indexName = "idx_delivery_areas_deleted") {
         column(name = "is_deleted")
       }
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-reconciliation-tasks-table") {
       comment("Create reconciliation tasks table")
-      createTable(tableName = "reconciliation_tasks") {
+      createTable(tableName = "aqua_reconciliation_tasks") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -503,40 +503,61 @@ class V100InitComprehensiveSchema :
         column(name = "updated_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
           constraints(nullable = false)
         }
+        // 触发方式/执行人与微信、本地两侧汇总列(v3.4.7 G93 对账收尾,F-ORD-031/R-PAY-04)
+        column(name = "trigger_type", type = "varchar(20)", defaultValue = "SCHEDULED") {
+          constraints(nullable = false)
+        }
+        column(name = "executed_by", type = "bigint")
+        column(name = "wechat_total_count", type = "int", defaultValueNumeric = 0) {
+          constraints(nullable = false)
+        }
+        column(name = "wechat_total_amount_cents", type = "bigint", defaultValueNumeric = 0) {
+          constraints(nullable = false)
+        }
+        column(name = "local_total_count", type = "int", defaultValueNumeric = 0) {
+          constraints(nullable = false)
+        }
+        column(name = "local_total_amount_cents", type = "bigint", defaultValueNumeric = 0) {
+          constraints(nullable = false)
+        }
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_id") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_id") {
         column(name = "task_id")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_type") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_type") {
         column(name = "task_type")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_status") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_status") {
         column(name = "status")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_date") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_task_date") {
         column(name = "task_date")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_composite") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_composite") {
         column(name = "task_date")
         column(name = "status")
         column(name = "created_at")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_type_status") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_type_status") {
         column(name = "task_type")
         column(name = "status")
       }
-      createIndex(tableName = "reconciliation_tasks", indexName = "idx_reconciliation_tasks_deleted") {
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_deleted") {
         column(name = "is_deleted")
+      }
+      createIndex(tableName = "aqua_reconciliation_tasks", indexName = "idx_reconciliation_tasks_trigger") {
+        column(name = "trigger_type")
       }
       sql(
         sql = """
- ALTER TABLE reconciliation_tasks
+ ALTER TABLE aqua_reconciliation_tasks
       ADD CONSTRAINT chk_task_type CHECK (task_type IN
                                           ('PAYMENT', 'REFUND', 'SETTLEMENT')), ADD CONSTRAINT chk_task_status CHECK (status IN
-      ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED')), ADD CONSTRAINT chk_total_records_non_negative
+      ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED', 'SKIPPED')), ADD CONSTRAINT chk_total_records_non_negative
       CHECK (total_records >= 0), ADD CONSTRAINT chk_matched_records_non_negative CHECK
       (matched_records >= 0), ADD CONSTRAINT chk_unmatched_records_non_negative CHECK
-      (unmatched_records >= 0); 
+      (unmatched_records >= 0), ADD CONSTRAINT chk_recon_trigger_type CHECK (trigger_type IN
+      ('SCHEDULED', 'MANUAL'));
             """,
       )
     }
@@ -545,7 +566,7 @@ class V100InitComprehensiveSchema :
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.1-create-user-address-table") {
       comment("Create user address table")
-      createTable(tableName = "addresses") {
+      createTable(tableName = "aqua_addresses") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -602,86 +623,27 @@ class V100InitComprehensiveSchema :
         // 地址楼层(v1.0.7,配送费楼层判定用,空=无楼层信息/平房)
         column(name = "floor", type = "int")
       }
-      createIndex(tableName = "addresses", indexName = "idx_user_address_user_id") {
+      createIndex(tableName = "aqua_addresses", indexName = "idx_user_address_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "addresses", indexName = "idx_addresses_phone") {
+      createIndex(tableName = "aqua_addresses", indexName = "idx_addresses_phone") {
         column(name = "phone")
       }
-      createIndex(tableName = "addresses", indexName = "idx_user_address_is_default") {
+      createIndex(tableName = "aqua_addresses", indexName = "idx_user_address_is_default") {
         column(name = "user_id")
         column(name = "is_default")
       }
-      createIndex(tableName = "addresses", indexName = "idx_addresses_location") {
+      createIndex(tableName = "aqua_addresses", indexName = "idx_addresses_location") {
         column(name = "longitude")
         column(name = "latitude")
       }
-      createIndex(tableName = "addresses", indexName = "idx_addresses_deleted") {
-        column(name = "is_deleted")
-      }
-    }
-    changeSet(author = "aqua-rush", id = "1.0.2-create-delivery-address-table") {
-      comment("Create delivery address table")
-      createTable(tableName = "delivery_addresses") {
-        column(name = "id", type = "bigint", autoIncrement = true) {
-          constraints(primaryKey = true, nullable = false)
-        }
-        column(name = "user_id", type = "bigint") {
-          constraints(nullable = false)
-        }
-        column(name = "receiver_name", type = "varchar(100)") {
-          constraints(nullable = false)
-        }
-        column(name = "receiver_phone", type = "varchar(20)") {
-          constraints(nullable = false)
-        }
-        column(name = "province", type = "varchar(50)") {
-          constraints(nullable = false)
-        }
-        column(name = "city", type = "varchar(50)") {
-          constraints(nullable = false)
-        }
-        column(name = "district", type = "varchar(50)") {
-          constraints(nullable = false)
-        }
-        column(name = "detail_address", type = "varchar(512)") {
-          constraints(nullable = false)
-        }
-        column(name = "longitude", type = "double", remarks = "经度坐标") {
-          constraints(nullable = true)
-        }
-        column(name = "latitude", type = "double", remarks = "纬度坐标") {
-          constraints(nullable = true)
-        }
-        column(name = "is_default", type = "boolean", defaultValueBoolean = false) {
-          constraints(nullable = false)
-        }
-        column(name = "created_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
-          constraints(nullable = false)
-        }
-        column(name = "updated_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
-          constraints(nullable = false)
-        }
-        column(name = "is_deleted", type = "boolean", defaultValueBoolean = false) {
-          constraints(nullable = false)
-        }
-        column(name = "deleted_at", type = "timestamp")
-        column(name = "deleted_by", type = "bigint")
-      }
-      createIndex(tableName = "delivery_addresses", indexName = "idx_delivery_address_user_id") {
-        column(name = "user_id")
-      }
-      createIndex(tableName = "delivery_addresses", indexName = "idx_delivery_address_location") {
-        column(name = "longitude")
-        column(name = "latitude")
-      }
-      createIndex(tableName = "delivery_addresses", indexName = "idx_delivery_addresses_deleted") {
+      createIndex(tableName = "aqua_addresses", indexName = "idx_addresses_deleted") {
         column(name = "is_deleted")
       }
     }
     changeSet(author = "aqua-rush", id = "1.0.1-create-user-notification-settings-table") {
       comment("Create user notification settings table")
-      createTable(tableName = "user_notification_settings") {
+      createTable(tableName = "aqua_user_notification_settings") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -713,13 +675,13 @@ class V100InitComprehensiveSchema :
         }
       }
       createIndex(
-        tableName = "user_notification_settings",
+        tableName = "aqua_user_notification_settings",
         indexName = "idx_user_notification_settings_user_id",
       ) {
         column(name = "user_id")
       }
       createIndex(
-        tableName = "user_notification_settings",
+        tableName = "aqua_user_notification_settings",
         indexName = "idx_user_notification_settings_deleted",
       ) {
         column(name = "is_deleted")
@@ -727,7 +689,7 @@ class V100InitComprehensiveSchema :
     }
     changeSet(author = "aqua-rush", id = "1.0.1-create-message-history-table") {
       comment("Create message history table")
-      createTable(tableName = "message_history") {
+      createTable(tableName = "aqua_message_history") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -762,27 +724,27 @@ class V100InitComprehensiveSchema :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_user_id") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_status") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_status") {
         column(name = "status")
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_message_type") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_message_type") {
         column(name = "message_type")
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_created_at") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_wx_message_id") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_wx_message_id") {
         column(name = "wx_message_id")
       }
-      createIndex(tableName = "message_history", indexName = "idx_message_history_deleted") {
+      createIndex(tableName = "aqua_message_history", indexName = "idx_message_history_deleted") {
         column(name = "is_deleted")
       }
       sql(
         sql = """
- ALTER TABLE message_history
+ ALTER TABLE aqua_message_history
       ADD CONSTRAINT chk_message_status CHECK
         (status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING')); 
             """,
@@ -790,7 +752,7 @@ class V100InitComprehensiveSchema :
       )
       sql(
         sql = """
- ALTER TABLE message_history
+ ALTER TABLE aqua_message_history
       ADD CONSTRAINT chk_message_status CHECK (status
         IN ('PENDING', 'SENT', 'FAILED', 'RETRYING')); 
             """,
@@ -807,7 +769,7 @@ class V100InitComprehensiveSchema :
     CREATE TRIGGER
       update_user_notification_settings_updated_at
       BEFORE UPDATE
-      ON user_notification_settings
+      ON aqua_user_notification_settings
       FOR
         EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
             """,
@@ -815,7 +777,7 @@ class V100InitComprehensiveSchema :
     }
     changeSet(author = "aqua-rush", id = "1.0.1-create-delivery-worker-statistics-table") {
       comment("Create delivery worker statistics table")
-      createTable(tableName = "delivery_worker_statistics") {
+      createTable(tableName = "aqua_delivery_worker_statistics") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -858,18 +820,18 @@ class V100InitComprehensiveSchema :
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "delivery_worker_statistics", indexName = "idx_delivery_worker_statistics_id") {
+      createIndex(tableName = "aqua_delivery_worker_statistics", indexName = "idx_delivery_worker_statistics_id") {
         column(name = "delivery_worker_id")
       }
       createIndex(
-        tableName = "delivery_worker_statistics",
+        tableName = "aqua_delivery_worker_statistics",
         indexName = "idx_delivery_worker_statistics_deleted",
       ) {
         column(name = "is_deleted")
       }
       sql(
         sql = """
- ALTER TABLE delivery_worker_statistics
+ ALTER TABLE aqua_delivery_worker_statistics
       ADD CONSTRAINT chk_average_rating_range CHECK
         (average_rating >= 0.00 AND average_rating <= 5.00), ADD CONSTRAINT
       chk_total_reviews_non_negative CHECK (total_reviews >= 0), ADD CONSTRAINT
@@ -889,14 +851,14 @@ class V100InitComprehensiveSchema :
     CREATE TRIGGER trigger_delivery_worker_statistics_last_updated
       BEFORE UPDATE
       ON
-        delivery_worker_statistics
+        aqua_delivery_worker_statistics
       FOR EACH ROW EXECUTE FUNCTION update_delivery_worker_statistics_last_updated(); 
             """,
       )
     }
     changeSet(author = "aqua-rush", id = "1.0.2-create-product-favorites-table") {
       comment("Create product favorites table for managing product favorites")
-      createTable(tableName = "product_favorites") {
+      createTable(tableName = "aqua_product_favorites") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -923,57 +885,57 @@ class V100InitComprehensiveSchema :
       }
       // Composite unique constraint to prevent duplicate favorites
       addUniqueConstraint(
-        tableName = "product_favorites",
+        tableName = "aqua_product_favorites",
         columnNames = "user_id, product_id",
         constraintName = "uk_user_product_favorite",
       )
       // Foreign key constraints
       addForeignKeyConstraint(
-        baseTableName = "product_favorites",
+        baseTableName = "aqua_product_favorites",
         baseColumnNames = "user_id",
-        referencedTableName = "users",
+        referencedTableName = "aqua_users",
         referencedColumnNames = "id",
         constraintName = "fk_favorites_user",
       )
       addForeignKeyConstraint(
-        baseTableName = "product_favorites",
+        baseTableName = "aqua_product_favorites",
         baseColumnNames = "product_id",
-        referencedTableName = "products",
+        referencedTableName = "aqua_products",
         referencedColumnNames = "id",
         constraintName = "fk_favorites_product",
       )
       // Basic performance indexes
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_user_id") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_product_id") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_product_id") {
         column(name = "product_id")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_created_at") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_product_favorites_deleted") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_product_favorites_deleted") {
         column(name = "is_deleted")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_enable") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_enable") {
         column(name = "enable")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_user_product_enable") {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_user_product_enable") {
         column(name = "user_id")
         column(name = "product_id")
         column(name = "enable")
       }
       // Enhanced performance indexes
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_user_created", unique = false) {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_user_created", unique = false) {
         column(name = "user_id")
         column(name = "created_at", descending = true)
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_product_created", unique = false) {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_product_created", unique = false) {
         column(name = "product_id")
         column(name = "created_at", descending = true)
       }
       createIndex(
-        tableName = "product_favorites",
+        tableName = "aqua_product_favorites",
         indexName = "idx_favorites_date_user_product",
         unique = false,
       ) {
@@ -981,7 +943,7 @@ class V100InitComprehensiveSchema :
         column(name = "user_id")
         column(name = "product_id")
       }
-      createIndex(tableName = "product_favorites", indexName = "idx_favorites_created_at_desc", unique = false) {
+      createIndex(tableName = "aqua_product_favorites", indexName = "idx_favorites_created_at_desc", unique = false) {
         column(name = "created_at", descending = true)
       }
     }
@@ -991,9 +953,9 @@ class V100InitComprehensiveSchema :
       context = "production,development",
     ) {
       preConditions(onFail = "MARK_RAN") {
-        tableExists(tableName = "product_favorites")
-        tableExists(tableName = "products")
-        tableExists(tableName = "users")
+        tableExists(tableName = "aqua_product_favorites")
+        tableExists(tableName = "aqua_products")
+        tableExists(tableName = "aqua_users")
       }
       // Materialized view for daily favorites statistics (PostgreSQL)
       // <sql dbms="postgresql">
@@ -1003,12 +965,12 @@ class V100InitComprehensiveSchema :
       //                 COUNT(*) as total_favorites,
       //                 COUNT(DISTINCT pf.user_id) as active_users,
       //                 COUNT(DISTINCT pf.product_id) as unique_products
-      //             FROM product_favorites pf
+      //             FROM aqua_product_favorites pf
       //             WHERE pf.is_deleted = false
       //             GROUP BY DATE(pf.created_at)
       //             ORDER BY date DESC;
       //         </sql>
-      // Regular view for most favorited products
+      // Regular view for most favorited aqua_products
       createView(viewName = "v_most_favorited_products", replaceIfExists = true) {
         """            
       SELECT p.id               as product_id,
@@ -1018,8 +980,8 @@ class V100InitComprehensiveSchema :
              p.sales_volume,
              COUNT(pf.id)       as favorite_count,
              MAX(pf.created_at) as last_favorite_at
-      FROM products p
-             INNER JOIN product_favorites pf ON p.id = pf.product_id
+      FROM aqua_products p
+             INNER JOIN aqua_product_favorites pf ON p.id = pf.product_id
       WHERE p.is_deleted = false
         AND pf.is_deleted = false
         AND p.status IN ('ONLINE', 'ACTIVE')
@@ -1039,9 +1001,9 @@ class V100InitComprehensiveSchema :
              MAX(pf.created_at)            as last_favorite_at,
              AVG(p.price_cents)            as avg_favorite_price,
              COUNT(DISTINCT pf.product_id) as unique_products_favorited
-      FROM users u
-             LEFT JOIN product_favorites pf ON u.id = pf.user_id AND pf.is_deleted = false
-             LEFT JOIN products p ON pf.product_id = p.id AND p.is_deleted = false
+      FROM aqua_users u
+             LEFT JOIN aqua_product_favorites pf ON u.id = pf.user_id AND pf.is_deleted = false
+             LEFT JOIN aqua_products p ON pf.product_id = p.id AND p.is_deleted = false
       GROUP BY u.id, u.nickname, u.created_at
       ORDER BY total_favorites DESC
       
@@ -1063,7 +1025,7 @@ Performance views for admin analytics:
       context = "production,development",
     ) {
       preConditions(onFail = "MARK_RAN") {
-        tableExists(tableName = "product_favorites")
+        tableExists(tableName = "aqua_product_favorites")
       }
       // Note: Indexes cannot be created on regular views in PostgreSQL
       // The underlying tables already have indexes for optimal performance
@@ -1071,21 +1033,21 @@ Performance views for admin analytics:
       sql(
         sql = """
  ANALYZE
-    product_favorites; 
+    aqua_product_favorites; 
             """,
         dbms = "postgresql",
       )
       sql(
         sql = """
  ANALYZE
-    products; 
+    aqua_products; 
             """,
         dbms = "postgresql",
       )
       sql(
         sql = """
  ANALYZE
-    users; 
+    aqua_users; 
             """,
         dbms = "postgresql",
       )
@@ -1093,7 +1055,7 @@ Performance views for admin analytics:
       sql(
         sql = """
  ANALYZE
-    TABLE product_favorites; 
+    TABLE aqua_product_favorites; 
             """,
         dbms = "mysql",
       )
@@ -1101,7 +1063,7 @@ Performance views for admin analytics:
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-reconciliation-discrepancies-table") {
       comment("Create reconciliation discrepancies table")
-      createTable(tableName = "reconciliation_discrepancies") {
+      createTable(tableName = "aqua_reconciliation_discrepancies") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1137,76 +1099,76 @@ Performance views for admin analytics:
         }
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_task_id",
       ) {
         column(name = "task_id")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_discrepancy_type",
       ) {
         column(name = "discrepancy_type")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_source_system",
       ) {
         column(name = "source_system")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_status",
       ) {
         column(name = "status")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_record_id",
       ) {
         column(name = "record_id")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_task_created",
       ) {
         column(name = "task_id")
         column(name = "created_at")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_resolution",
       ) {
         column(name = "status")
         column(name = "discrepancy_type")
       }
       createIndex(
-        tableName = "reconciliation_discrepancies",
+        tableName = "aqua_reconciliation_discrepancies",
         indexName = "idx_reconciliation_discrepancies_deleted",
       ) {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "reconciliation_discrepancies",
+        baseTableName = "aqua_reconciliation_discrepancies",
         baseColumnNames = "task_id",
-        referencedTableName = "reconciliation_tasks",
+        referencedTableName = "aqua_reconciliation_tasks",
         referencedColumnNames = "task_id",
         constraintName = "fk_reconciliation_discrepancies_task_id",
         onDelete = "CASCADE",
       )
       sql(
         sql = """
- ALTER TABLE reconciliation_discrepancies
+ ALTER TABLE aqua_reconciliation_discrepancies
       ADD CONSTRAINT chk_discrepancy_type CHECK
         (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA')), ADD CONSTRAINT chk_source_system CHECK
       (source_system IN ('INTERNAL', 'WECHAT')), ADD CONSTRAINT chk_discrepancy_status CHECK (status
-      IN ('UNRESOLVED', 'RESOLVED')); 
+      IN ('UNRESOLVED', 'RESOLVED', 'IGNORED')); 
             """,
       )
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-reconciliation-reports-table") {
       comment("Create reconciliation reports table")
-      createTable(tableName = "reconciliation_reports") {
+      createTable(tableName = "aqua_reconciliation_reports") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1237,26 +1199,26 @@ Performance views for admin analytics:
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "reconciliation_reports", indexName = "idx_reconciliation_reports_task_id") {
+      createIndex(tableName = "aqua_reconciliation_reports", indexName = "idx_reconciliation_reports_task_id") {
         column(name = "task_id")
       }
-      createIndex(tableName = "reconciliation_reports", indexName = "idx_reconciliation_reports_report_type") {
+      createIndex(tableName = "aqua_reconciliation_reports", indexName = "idx_reconciliation_reports_report_type") {
         column(name = "report_type")
       }
-      createIndex(tableName = "reconciliation_reports", indexName = "idx_reconciliation_reports_generated_at") {
+      createIndex(tableName = "aqua_reconciliation_reports", indexName = "idx_reconciliation_reports_generated_at") {
         column(name = "generated_at")
       }
-      createIndex(tableName = "reconciliation_reports", indexName = "idx_reconciliation_reports_task_type") {
+      createIndex(tableName = "aqua_reconciliation_reports", indexName = "idx_reconciliation_reports_task_type") {
         column(name = "task_id")
         column(name = "report_type")
       }
-      createIndex(tableName = "reconciliation_reports", indexName = "idx_reconciliation_reports_deleted") {
+      createIndex(tableName = "aqua_reconciliation_reports", indexName = "idx_reconciliation_reports_deleted") {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "reconciliation_reports",
+        baseTableName = "aqua_reconciliation_reports",
         baseColumnNames = "task_id",
-        referencedTableName = "reconciliation_tasks",
+        referencedTableName = "aqua_reconciliation_tasks",
         referencedColumnNames = "task_id",
         constraintName = "fk_reconciliation_reports_task_id",
         onDelete = "CASCADE",
@@ -1267,7 +1229,7 @@ Performance views for admin analytics:
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.1-create-order-table") {
       comment("Create order table")
-      createTable(tableName = "orders") {
+      createTable(tableName = "aqua_orders") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1283,7 +1245,7 @@ Performance views for admin analytics:
         column(name = "address_id", type = "bigint") {
           constraints(nullable = false)
         }
-        column(name = "status", type = "varchar(20)", defaultValue = "PENDING_PAYMENT") {
+        column(name = "status", type = "varchar(30)", defaultValue = "PENDING_PAYMENT") {
           constraints(nullable = false)
         }
         column(name = "payment_method", type = "varchar(20)")
@@ -1292,9 +1254,7 @@ Performance views for admin analytics:
         column(name = "delivery_worker_id", type = "bigint") {
           constraints(nullable = true)
         }
-        column(name = "delivery_address_id", type = "bigint") {
-          constraints(nullable = true)
-        }
+        // delivery_address_id 恒空列已删(缺陷 #7②,v3.4.1);订单地址为内联快照
         column(name = "delivery_photos", type = "json")
         column(name = "is_self_collect", type = "boolean", defaultValueBoolean = false) {
           constraints(nullable = false)
@@ -1302,7 +1262,7 @@ Performance views for admin analytics:
         column(name = "payment_type", type = "varchar(20)")
         column(name = "remark", type = "varchar(500)")
         column(name = "delivery_started_at", type = "timestamp")
-        column(name = "delivery_confirmed_at", type = "timestamp")
+        // delivery_confirmed_at 已删(v3.4.3 订单 7 态:送达时间统一锚 completed_at)
         column(name = "completed_at", type = "timestamp")
         column(name = "created_at", type = "timestamp", defaultValueComputed = "CURRENT_TIMESTAMP") {
           constraints(nullable = false)
@@ -1315,7 +1275,7 @@ Performance views for admin analytics:
         }
         column(name = "deleted_at", type = "timestamp")
         column(name = "deleted_by", type = "bigint")
-        // 多商品下单(v1.2.0):单商品列 product_id/quantity 已移除,商品权威数据以 order_items 为准
+        // 多商品下单(v1.2.0):单商品列 product_id/quantity 已移除,商品权威数据以 aqua_order_items 为准
         column(name = "delivery_remark", type = "varchar(500)")
         // 全文本搜索(v1.0.3)
         column(name = "search_content", type = "text")
@@ -1361,44 +1321,45 @@ Performance views for admin analytics:
         column(name = "deposit_amount_cents", type = "bigint", defaultValueNumeric = 0) {
           constraints(nullable = false)
         }
+        // 派单/抢单记时(v3.4.4,缺陷 #9:履约时长锚点)
+        column(name = "assigned_at", type = "timestamp")
+        // 完成配送回收空桶总数快照(v3.4.6,01 §4.1)
+        column(name = "empty_barrels_retrieved", type = "int")
       }
-      createIndex(tableName = "orders", indexName = "idx_order_no") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_order_no") {
         column(name = "order_no")
       }
-      createIndex(tableName = "orders", indexName = "idx_order_user_id") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_order_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "orders", indexName = "idx_order_status") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_order_status") {
         column(name = "status")
       }
-      createIndex(tableName = "orders", indexName = "idx_order_created_at") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_order_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "orders", indexName = "idx_orders_deleted") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_orders_deleted") {
         column(name = "is_deleted")
       }
-      createIndex(tableName = "orders", indexName = "idx_orders_delivery_worker_id") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_orders_delivery_worker_id") {
         column(name = "delivery_worker_id")
       }
-      createIndex(tableName = "orders", indexName = "idx_orders_delivery_address_id") {
-        column(name = "delivery_address_id")
-      }
-      createIndex(tableName = "orders", indexName = "idx_orders_is_self_collect") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_orders_is_self_collect") {
         column(name = "is_self_collect")
       }
       // 全文本搜索(v1.0.3)
-      createIndex(tableName = "orders", indexName = "idx_orders_search_content") {
+      createIndex(tableName = "aqua_orders", indexName = "idx_orders_search_content") {
         column(name = "search_content")
       }
       // 服务端幂等唯一索引(v1.2.5,R-ORD-06:同一用户同一 clientRequestId 全局唯一)
-      createIndex(indexName = "uk_orders_user_client_request", tableName = "orders", unique = true) {
+      createIndex(indexName = "uk_orders_user_client_request", tableName = "aqua_orders", unique = true) {
         column(name = "user_id")
         column(name = "client_request_id")
       }
     }
     changeSet(author = "aqua-rush", id = "1.0.2-create-order-items-table") {
       comment("Create order items table for order line items")
-      createTable(tableName = "order_items") {
+      createTable(tableName = "aqua_order_items") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1432,33 +1393,33 @@ Performance views for admin analytics:
         column(name = "deleted_at", type = "timestamp")
         column(name = "deleted_by", type = "bigint")
       }
-      createIndex(tableName = "order_items", indexName = "idx_order_items_order_id") {
+      createIndex(tableName = "aqua_order_items", indexName = "idx_order_items_order_id") {
         column(name = "order_id")
       }
-      createIndex(tableName = "order_items", indexName = "idx_order_items_product_id") {
+      createIndex(tableName = "aqua_order_items", indexName = "idx_order_items_product_id") {
         column(name = "product_id")
       }
-      createIndex(tableName = "order_items", indexName = "idx_order_items_deleted") {
+      createIndex(tableName = "aqua_order_items", indexName = "idx_order_items_deleted") {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "order_items",
+        baseTableName = "aqua_order_items",
         baseColumnNames = "order_id",
-        referencedTableName = "orders",
+        referencedTableName = "aqua_orders",
         referencedColumnNames = "id",
         constraintName = "fk_order_items_order",
         onDelete = "CASCADE",
       )
       addForeignKeyConstraint(
-        baseTableName = "order_items",
+        baseTableName = "aqua_order_items",
         baseColumnNames = "product_id",
-        referencedTableName = "products",
+        referencedTableName = "aqua_products",
         referencedColumnNames = "id",
         constraintName = "fk_order_items_product",
       )
       sql(
         sql = """
- ALTER TABLE order_items
+ ALTER TABLE aqua_order_items
       ADD CONSTRAINT chk_order_items_quantity_positive CHECK (quantity
         > 0), ADD CONSTRAINT chk_order_items_unit_price_cents_positive CHECK (unit_price_cents
       >= 0), ADD CONSTRAINT chk_order_items_total_price_cents_positive CHECK (total_price_cents
@@ -1466,9 +1427,9 @@ Performance views for admin analytics:
             """,
       )
     }
-    changeSet(author = "aqua-rush", id = "1.0.0-create-payments-table") {
-      comment("Create payments table")
-      createTable(tableName = "payments") {
+    changeSet(author = "aqua-rush", id = "1.0.0-create-aqua_payments-table") {
+      comment("Create aqua_payments table")
+      createTable(tableName = "aqua_payments") {
         column(name = "id", type = "BIGINT", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1516,40 +1477,40 @@ Performance views for admin analytics:
           constraints(nullable = false)
         }
       }
-      createIndex(indexName = "idx_payments_user_id", tableName = "payments") {
+      createIndex(indexName = "idx_payments_user_id", tableName = "aqua_payments") {
         column(name = "user_id")
       }
-      createIndex(indexName = "idx_payments_status", tableName = "payments") {
+      createIndex(indexName = "idx_payments_status", tableName = "aqua_payments") {
         column(name = "status")
       }
-      createIndex(indexName = "idx_payments_created_at", tableName = "payments") {
+      createIndex(indexName = "idx_payments_created_at", tableName = "aqua_payments") {
         column(name = "created_at")
       }
-      createIndex(indexName = "idx_payments_order_id", tableName = "payments") {
+      createIndex(indexName = "idx_payments_order_id", tableName = "aqua_payments") {
         column(name = "order_id")
       }
-      createIndex(indexName = "idx_payments_deleted", tableName = "payments") {
+      createIndex(indexName = "idx_payments_deleted", tableName = "aqua_payments") {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "payments",
+        baseTableName = "aqua_payments",
         baseColumnNames = "order_id",
-        referencedTableName = "orders",
+        referencedTableName = "aqua_orders",
         referencedColumnNames = "id",
         constraintName = "fk_payments_order_id",
         onDelete = "CASCADE",
       )
       addForeignKeyConstraint(
-        baseTableName = "payments",
+        baseTableName = "aqua_payments",
         baseColumnNames = "user_id",
-        referencedTableName = "users",
+        referencedTableName = "aqua_users",
         referencedColumnNames = "id",
         constraintName = "fk_payments_user_id",
         onDelete = "CASCADE",
       )
       sql(
         sql = """
- ALTER TABLE payments
+ ALTER TABLE aqua_payments
       ADD CONSTRAINT chk_payments_amount_cents_positive CHECK (amount_cents
         > 0), ADD CONSTRAINT chk_payments_currency_code CHECK (LENGTH(currency) = 3), ADD
       CONSTRAINT chk_payments_status CHECK (status IN ('PENDING', 'PROCESSING', 'SUCCESS', 'FAILED',
@@ -1559,7 +1520,7 @@ Performance views for admin analytics:
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-payment-refunds-table") {
       comment("Create payment refunds table")
-      createTable(tableName = "payment_refunds") {
+      createTable(tableName = "aqua_payment_refunds") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1606,48 +1567,48 @@ Performance views for admin analytics:
         column(name = "admin_note", type = "varchar(1000)")
         column(name = "processed_by", type = "bigint")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_payment_id") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_payment_id") {
         column(name = "payment_id")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_order_id") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_order_id") {
         column(name = "order_id")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_user_id") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_status") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_status") {
         column(name = "status")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_created_at") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "payment_refunds", indexName = "idx_payment_refunds_deleted") {
+      createIndex(tableName = "aqua_payment_refunds", indexName = "idx_payment_refunds_deleted") {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "payment_refunds",
+        baseTableName = "aqua_payment_refunds",
         baseColumnNames = "payment_id",
-        referencedTableName = "payments",
+        referencedTableName = "aqua_payments",
         referencedColumnNames = "id",
         constraintName = "fk_payment_refunds_payment",
       )
       addForeignKeyConstraint(
-        baseTableName = "payment_refunds",
+        baseTableName = "aqua_payment_refunds",
         baseColumnNames = "order_id",
-        referencedTableName = "orders",
+        referencedTableName = "aqua_orders",
         referencedColumnNames = "id",
         constraintName = "fk_payment_refunds_order",
       )
       addForeignKeyConstraint(
-        baseTableName = "payment_refunds",
+        baseTableName = "aqua_payment_refunds",
         baseColumnNames = "user_id",
-        referencedTableName = "users",
+        referencedTableName = "aqua_users",
         referencedColumnNames = "id",
         constraintName = "fk_payment_refunds_user",
       )
       sql(
         sql = """
- ALTER TABLE payment_refunds
+ ALTER TABLE aqua_payment_refunds
       ADD CONSTRAINT
         chk_payment_refunds_refund_amount_cents_positive CHECK (refund_amount_cents > 0), ADD
       CONSTRAINT chk_payment_refunds_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED',
@@ -1655,9 +1616,9 @@ Performance views for admin analytics:
             """,
       )
     }
-    changeSet(author = "aqua-rush", id = "1.0.0-create-reviews-table") {
+    changeSet(author = "aqua-rush", id = "1.0.0-create-aqua_reviews-table") {
       comment("Create review table")
-      createTable(tableName = "reviews") {
+      createTable(tableName = "aqua_reviews") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1670,7 +1631,7 @@ Performance views for admin analytics:
         column(
           name = "delivery_worker_id",
           type = "bigint",
-          remarks = "送水员账号 id(档案已并入 admins 单表,无外键约束)",
+          remarks = "送水员账号 id(档案已并入 aqua_admins 单表,无外键约束)",
         ) {
           constraints(nullable = false)
         }
@@ -1693,45 +1654,45 @@ Performance views for admin analytics:
         column(name = "deleted_at", type = "timestamp")
         column(name = "deleted_by", type = "bigint")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_order_id") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_order_id") {
         column(name = "order_id")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_user_id") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_delivery_worker_id") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_delivery_worker_id") {
         column(name = "delivery_worker_id")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_created_at") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_created_at") {
         column(name = "created_at")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_rating") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_rating") {
         column(name = "rating")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_composite") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_composite") {
         column(name = "delivery_worker_id")
         column(name = "created_at")
       }
-      createIndex(tableName = "reviews", indexName = "idx_reviews_deleted") {
+      createIndex(tableName = "aqua_reviews", indexName = "idx_reviews_deleted") {
         column(name = "is_deleted")
       }
       addForeignKeyConstraint(
-        baseTableName = "reviews",
+        baseTableName = "aqua_reviews",
         baseColumnNames = "order_id",
-        referencedTableName = "orders",
+        referencedTableName = "aqua_orders",
         referencedColumnNames = "id",
         constraintName = "fk_reviews_order",
       )
       addForeignKeyConstraint(
-        baseTableName = "reviews",
+        baseTableName = "aqua_reviews",
         baseColumnNames = "user_id",
-        referencedTableName = "users",
+        referencedTableName = "aqua_users",
         referencedColumnNames = "id",
         constraintName = "fk_reviews_user",
       )
       sql(
         sql = """
- ALTER TABLE reviews
+ ALTER TABLE aqua_reviews
       ADD CONSTRAINT chk_reviews_rating_range CHECK (rating >= 1 AND
                                                      rating <= 5), ADD CONSTRAINT chk_reviews_comment_length CHECK (LENGTH(COALESCE(comment,
       '')) <= 500); 
@@ -1748,7 +1709,7 @@ Performance views for admin analytics:
     CREATE TRIGGER
       trigger_reviews_updated_at
       BEFORE UPDATE
-      ON reviews
+      ON aqua_reviews
       FOR EACH ROW EXECUTE FUNCTION update_reviews_updated_at(); 
             """,
       )
@@ -1766,19 +1727,19 @@ Performance views for admin analytics:
       NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
     END ${'$'}${'$'} LANGUAGE plpgsql;
-    DROP TRIGGER IF EXISTS update_reconciliation_tasks_updated_at ON reconciliation_tasks;
+    DROP TRIGGER IF EXISTS update_reconciliation_tasks_updated_at ON aqua_reconciliation_tasks;
     CREATE TRIGGER
       update_reconciliation_tasks_updated_at
       BEFORE UPDATE
-      ON reconciliation_tasks
+      ON aqua_reconciliation_tasks
       FOR EACH ROW
       EXECUTE FUNCTION update_updated_at_column();
     DROP TRIGGER IF EXISTS
-      update_reconciliation_discrepancies_updated_at ON reconciliation_discrepancies;
+      update_reconciliation_discrepancies_updated_at ON aqua_reconciliation_discrepancies;
     CREATE TRIGGER
       update_reconciliation_discrepancies_updated_at
       BEFORE UPDATE
-      ON reconciliation_discrepancies
+      ON aqua_reconciliation_discrepancies
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
             """,
       )
@@ -1788,7 +1749,7 @@ Performance views for admin analytics:
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.0-create-system-settings-table") {
       comment("Create system settings table (config params center, R-SYS-01)")
-      createTable(tableName = "system_settings") {
+      createTable(tableName = "aqua_system_settings") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true)
         }
@@ -1819,7 +1780,7 @@ Performance views for admin analytics:
     }
     changeSet(author = "aqua-rush", id = "1.0.0-create-bucket-deposits-table") {
       comment("Create bucket deposits table")
-      createTable(tableName = "bucket_deposits") {
+      createTable(tableName = "aqua_bucket_deposits") {
         column(name = "id", type = "bigint") {
           constraints(primaryKey = true)
         }
@@ -1847,13 +1808,13 @@ Performance views for admin analytics:
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "bucket_deposits", indexName = "idx_bucket_deposits_user_id") {
+      createIndex(tableName = "aqua_bucket_deposits", indexName = "idx_bucket_deposits_user_id") {
         column(name = "user_id")
       }
-      createIndex(tableName = "bucket_deposits", indexName = "idx_bucket_deposits_status") {
+      createIndex(tableName = "aqua_bucket_deposits", indexName = "idx_bucket_deposits_status") {
         column(name = "status")
       }
-      createIndex(tableName = "bucket_deposits", indexName = "idx_bucket_deposits_created_at") {
+      createIndex(tableName = "aqua_bucket_deposits", indexName = "idx_bucket_deposits_created_at") {
         column(name = "created_at")
       }
     }
@@ -1866,8 +1827,8 @@ Performance views for admin analytics:
     // Order Operations Table (merged from v1.0.3)
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.3-create-order-operations-table") {
-      comment("Create order_operations table for order timeline tracking")
-      createTable(tableName = "order_operations") {
+      comment("Create aqua_order_operations table for order timeline tracking")
+      createTable(tableName = "aqua_order_operations") {
         column(name = "id", type = "bigint", autoIncrement = true) {
           constraints(primaryKey = true, nullable = false)
         }
@@ -1893,23 +1854,23 @@ Performance views for admin analytics:
           constraints(nullable = false)
         }
       }
-      createIndex(tableName = "order_operations", indexName = "idx_order_operations_order_id") {
+      createIndex(tableName = "aqua_order_operations", indexName = "idx_order_operations_order_id") {
         column(name = "order_id")
       }
-      createIndex(tableName = "order_operations", indexName = "idx_order_operations_created_at") {
+      createIndex(tableName = "aqua_order_operations", indexName = "idx_order_operations_created_at") {
         column(name = "created_at")
       }
       addForeignKeyConstraint(
-        baseTableName = "order_operations",
+        baseTableName = "aqua_order_operations",
         baseColumnNames = "order_id",
-        referencedTableName = "orders",
+        referencedTableName = "aqua_orders",
         referencedColumnNames = "id",
         constraintName = "fk_order_operations_order_id",
       )
       sql(
         sql = """
       
-        ALTER TABLE order_operations
+        ALTER TABLE aqua_order_operations
           ADD CONSTRAINT chk_operation_type_valid
             CHECK (operation_type IN (
               'ORDER_CREATED',
@@ -1943,11 +1904,11 @@ Performance views for admin analytics:
     // API Logs Table (merged from v1.0.4)
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.4-create-api-logs-table", dbms = "postgresql") {
-      comment("Create api_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006)")
+      comment("Create aqua_api_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006)")
       sql(
         sql = """
       
-      CREATE TABLE api_logs (
+      CREATE TABLE aqua_api_logs (
         id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
         correlation_id varchar(50),
         request_type varchar(20) NOT NULL,
@@ -1968,15 +1929,15 @@ Performance views for admin analytics:
         CONSTRAINT api_logs_pkey PRIMARY KEY (id, created_at)
       ) PARTITION BY RANGE (created_at);
 
-      CREATE TABLE api_logs_default PARTITION OF api_logs DEFAULT;
+      CREATE TABLE aqua_api_logs_default PARTITION OF aqua_api_logs DEFAULT;
 
-      CREATE INDEX idx_api_logs_correlation_id ON api_logs (correlation_id);
-      CREATE INDEX idx_api_logs_request_type ON api_logs (request_type);
-      CREATE INDEX idx_api_logs_created_at ON api_logs (created_at);
-      CREATE INDEX idx_api_logs_user_id ON api_logs (user_id);
-      CREATE INDEX idx_api_logs_response_status ON api_logs (response_status);
-      CREATE INDEX idx_api_logs_operation_type ON api_logs (operation_type);
-      CREATE INDEX idx_api_logs_operation_name ON api_logs (operation_name);
+      CREATE INDEX idx_api_logs_correlation_id ON aqua_api_logs (correlation_id);
+      CREATE INDEX idx_api_logs_request_type ON aqua_api_logs (request_type);
+      CREATE INDEX idx_api_logs_created_at ON aqua_api_logs (created_at);
+      CREATE INDEX idx_api_logs_user_id ON aqua_api_logs (user_id);
+      CREATE INDEX idx_api_logs_response_status ON aqua_api_logs (response_status);
+      CREATE INDEX idx_api_logs_operation_type ON aqua_api_logs (operation_type);
+      CREATE INDEX idx_api_logs_operation_name ON aqua_api_logs (operation_name);
       
     
             """,
@@ -1986,11 +1947,11 @@ Performance views for admin analytics:
     // Business Logs Table (merged from v1.0.4)
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.4-create-business-logs-table", dbms = "postgresql") {
-      comment("Create business_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006; operation 列 v1.1.1)")
+      comment("Create aqua_business_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006; operation 列 v1.1.1)")
       sql(
         sql = """
       
-      CREATE TABLE business_logs (
+      CREATE TABLE aqua_business_logs (
         id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
         correlation_id varchar(50),
         level varchar(10) NOT NULL,
@@ -2005,13 +1966,13 @@ Performance views for admin analytics:
         CONSTRAINT chk_log_level_valid CHECK (level IN ('TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'))
       ) PARTITION BY RANGE (created_at);
 
-      CREATE TABLE business_logs_default PARTITION OF business_logs DEFAULT;
+      CREATE TABLE aqua_business_logs_default PARTITION OF aqua_business_logs DEFAULT;
 
-      CREATE INDEX idx_business_logs_correlation_id ON business_logs (correlation_id);
-      CREATE INDEX idx_business_logs_level ON business_logs (level);
-      CREATE INDEX idx_business_logs_created_at ON business_logs (created_at);
-      CREATE INDEX idx_business_logs_user_id ON business_logs (user_id);
-      CREATE INDEX idx_business_logs_logger_name ON business_logs (logger_name);
+      CREATE INDEX idx_business_logs_correlation_id ON aqua_business_logs (correlation_id);
+      CREATE INDEX idx_business_logs_level ON aqua_business_logs (level);
+      CREATE INDEX idx_business_logs_created_at ON aqua_business_logs (created_at);
+      CREATE INDEX idx_business_logs_user_id ON aqua_business_logs (user_id);
+      CREATE INDEX idx_business_logs_logger_name ON aqua_business_logs (logger_name);
       
     
             """,
@@ -2021,11 +1982,11 @@ Performance views for admin analytics:
     // User Action Logs Table (merged from v1.0.6)
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.0.6-create-user-action-logs-table", dbms = "postgresql") {
-      comment("Create user_action_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006)")
+      comment("Create aqua_user_action_logs table as monthly RANGE partition (v1.3.0 log partition F-SYS-006)")
       sql(
         sql = """
       
-      CREATE TABLE user_action_logs (
+      CREATE TABLE aqua_user_action_logs (
         id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL,
         user_id varchar(50),
         username varchar(100),
@@ -2042,11 +2003,11 @@ Performance views for admin analytics:
         CONSTRAINT user_action_logs_pkey PRIMARY KEY (id, created_at)
       ) PARTITION BY RANGE (created_at);
 
-      CREATE TABLE user_action_logs_default PARTITION OF user_action_logs DEFAULT;
+      CREATE TABLE aqua_user_action_logs_default PARTITION OF aqua_user_action_logs DEFAULT;
 
-      CREATE INDEX idx_user_action_logs_user_id ON user_action_logs (user_id);
-      CREATE INDEX idx_user_action_logs_action_type ON user_action_logs (action_type);
-      CREATE INDEX idx_user_action_logs_created_at ON user_action_logs (created_at);
+      CREATE INDEX idx_user_action_logs_user_id ON aqua_user_action_logs (user_id);
+      CREATE INDEX idx_user_action_logs_action_type ON aqua_user_action_logs (action_type);
+      CREATE INDEX idx_user_action_logs_created_at ON aqua_user_action_logs (created_at);
       
     
             """,
@@ -2056,13 +2017,13 @@ Performance views for admin analytics:
     // 日志离线备份(F-SYS-006,v1.3.0):归档 schema + 备份记录表,仅 PostgreSQL
     // =======================================================================
     changeSet(author = "aqua-rush", id = "1.3.0-create-log-archive-schema-backup-records", dbms = "postgresql") {
-      comment("Create log_archive schema and log_backup_records table (PRD 11-system-settings.md F-SYS-006)")
+      comment("Create log_archive schema and aqua_log_backup_records table (PRD 11-system-settings.md F-SYS-006)")
       sql(
         sql = """
       
       CREATE SCHEMA IF NOT EXISTS log_archive;
 
-      CREATE TABLE log_backup_records (
+      CREATE TABLE aqua_log_backup_records (
         id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL PRIMARY KEY,
         log_table varchar(30) NOT NULL,
         partition_name varchar(100) NOT NULL,
@@ -2083,8 +2044,8 @@ Performance views for admin analytics:
         created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE INDEX idx_log_backup_records_log_table ON log_backup_records (log_table);
-      CREATE INDEX idx_log_backup_records_created_at ON log_backup_records (created_at);
+      CREATE INDEX idx_log_backup_records_log_table ON aqua_log_backup_records (log_table);
+      CREATE INDEX idx_log_backup_records_created_at ON aqua_log_backup_records (created_at);
       
     
             """,
