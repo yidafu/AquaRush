@@ -695,7 +695,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 ### 7.3 `store_profiles` 店铺信息（F-OPS-004;原设计名单数 store_profile,现状复数表名）
 
 `shop_name(≤20;列名 shop_name) / logo_url / service_hotline(列名 service_hotline,非 service_phone) / business_hours_start + business_hours_end(TIME 两列,非单列 business_hours) / shop_intro(≤100;列名 shop_intro,非 intro) / about_us(≤2000) / created_at / updated_at`（**无 updated_by 列**,操作人留痕走业务日志）。用户端 about/feedback 页动态读取，未配置按默认值兜底。
-**规划列**（R-OPS-03 距离阶梯运费的输入,G96 排期待定）：`longitude / latitude`（门店经纬度,WGS-84,后台店铺信息表单维护）——现状无此两列,距离计算落地时随迁移补建。
+**门店经纬度裁决（2026-10-11,G96 落地）**：原规划在本表补 `longitude / latitude`（店铺信息表单维护）；实际就近落 `delivery_fee_rules.store_longitude/store_latitude`（随距离阶梯同页配置,见 §7.4 V347）,本表不增列（F-OPS-004 店铺信息维持现状字段）。
 
 ### 7.4 `delivery_fee_rules` 配送费规则（F-OPS-005,单行）
 
@@ -703,10 +703,10 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 `tiers: [{fromFloor:5,toFloor:6,feeCents:200},{fromFloor:7,toFloor:9,feeCents:500},{fromFloor:10,toFloor:null,feeCents:800}]`（存量行已回填该默认三档）;校验（服务层）：free_floor ≥0;档位非空、按起始楼层严格升序、区间不重叠、起始楼层 > 免费楼层、末档 toFloor=null（不封顶）、各档 0-999 元 ≤2 位小数。
 计费口径（R-MON-02 2026-10 分档修订）：楼层为空 → 0；楼层 ≤ free_floor → 0；否则命中档位 [fromFloor..toFloor|null=∞] 取 feeCents,tiers 为空回退 surcharge_cents；自提 → 0。下单服务端快照落 `orders.delivery_fee_cents`，配置变更不追溯。
 
-**规划列**（R-OPS-03 起送门槛与距离阶梯运费,G96 排期待定,与楼层分档互补叠加计算）：
+**已落列（V347,R-OPS-03 起送门槛与距离阶梯运费,G96 已实现 2026-10-11,与楼层分档互补叠加计算）**：
 
-- `minimum_order_cents BIGINT DEFAULT 0`——起送门槛（0=不启用,默认）。createOrder 前置校验：商品金额（未扣优惠）< 门槛 → 拦截下单（BUSINESS_RULE「未达起送金额」）；自提订单不受限（R-OPS-03）；
-- `distance_tiers JSON`——按距离阶梯加价表,结构与 tiers 同构：`[{fromKm:0,toKm:3,feeCents:0},{fromKm:3,toKm:5,feeCents:300},{fromKm:5,toKm:null,feeCents:600}]`（默认示例=PRD 示例,存量行回填全 0 档等效不启用）;校验（服务层）：按起始距离升序、区间不重叠、末档 toKm=null（不封顶）、各档金额 ≥0 且 ≤2 位小数。距离 = 收货地址经纬度与门店经纬度（store_profiles 规划列）的**直线距离（Haversine）**【开放决策：PRD 留口径开放,默认直线;若改骑行/驾车需外部路径服务,与单服务器轻量定位冲突】。坐标体系：地址 WGS-84（提交端已转换）对门店 WGS-84,同系直接计算。
+- `minimum_order_cents BIGINT DEFAULT 0`——起送门槛（0=不启用,默认;存量行 0 行为不变）。createOrder/createDeliveryOrder 前置校验：商品金额（成交小计,未扣优惠）< 门槛 → 拦截下单（BUSINESS_RULE「商品金额未达起送金额 ¥X，还差 ¥Y」,自提单豁免,R-OPS-03）；
+- `distance_tiers JSON`——按距离阶梯加价表,**按距离上限档位结构（实现形态,与设计稿「距离上限」表单一致,原 fromKm/toKm 同构规划收口为本形态）**：`[{upToKm:3,feeCents:0},{upToKm:5,feeCents:300},{upToKm:null,feeCents:600}]`（upToKm=null 不封顶且必须末档;默认空=不启用,存量行 NULL 行为不变）;校验（服务层）：按距离上限严格升序、区间不重叠、不封顶仅末档、距离上限 >0、各档 0-999 元 ≤2 位小数;配置了距离档必须同时配置门店坐标（成对且经纬度值域内）。距离 = 收货地址经纬度与门店经纬度（同表 `store_longitude/store_latitude`,WGS-84）的**直线距离（Haversine）**【开放决策收口 2026-10-11：默认直线;若改骑行/驾车需外部路径服务,与单服务器轻量定位冲突】。坐标体系：地址 WGS-84（提交端已转换）对门店 WGS-84,同系直接计算;任一侧坐标缺失 → 距离档不加收。
 
 计价叠加顺序（R-MON-02 扩展,快照语义不变）：楼层分档运费 + 距离阶梯加价 → `orders.delivery_fee_cents` 一次快照合计；配置变更即时生效但不追溯已生成订单。
 
