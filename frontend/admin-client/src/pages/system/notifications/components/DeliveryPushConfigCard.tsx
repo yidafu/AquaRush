@@ -8,8 +8,8 @@ import {
   InputNumber,
   Button,
   Typography,
-} from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+} from '@/ui';
+import type { ColumnsType } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { DeliveryPushScenario } from './constants';
 

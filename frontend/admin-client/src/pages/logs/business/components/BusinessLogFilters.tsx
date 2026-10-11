@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Space, Select, Input, DatePicker, Button, Segmented } from 'antd';
+import { Card, Space, Select, Input, DatePicker, Button, Segmented } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import { DOMAIN_OPTIONS, LOG_LEVEL_OPTIONS } from './constants';
 import type { BizLogFilters } from './constants';
@@ -46,9 +46,9 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
         allowClear
         {...stylex.props(styles.width120)}
         value={filters.domain}
-        onChange={(value) => {
+        onChange={(value: unknown) => {
           // 业务域变更后操作类型联动重置
-          onChange({ domain: value, operationType: undefined });
+          onChange({ domain: value as string | undefined, operationType: undefined });
         }}
       >
         {DOMAIN_OPTIONS.map(opt => (
@@ -60,7 +60,7 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
         allowClear
         {...stylex.props(styles.width150)}
         value={filters.operationType}
-        onChange={(value) => onChange({ operationType: value })}
+        onChange={(value: unknown) => onChange({ operationType: value as string | undefined })}
       >
         {operationOptions.map(opt => (
           <Option key={opt.value} value={opt.value}>{opt.label}</Option>
@@ -71,7 +71,7 @@ const BusinessLogFilters: React.FC<BusinessLogFiltersProps> = ({
         allowClear
         {...stylex.props(styles.width120)}
         value={filters.level}
-        onChange={(value) => onChange({ level: value })}
+        onChange={(value: unknown) => onChange({ level: value as string | undefined })}
       >
         {LOG_LEVEL_OPTIONS.map(opt => (
           <Option key={opt.value} value={opt.value}>{opt.label}</Option>

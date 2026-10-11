@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, message } from 'antd';
-import type { TableProps } from 'antd';
+import { Button, message } from '@/ui';
+import type { TableProps } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { ORDERS_PAGE_DATA_QUERY } from '../../graphql/queries/order.graphql';
 import { BATCH_ASSIGN_ORDERS_MUTATION } from '../../graphql/mutations/order.graphql';

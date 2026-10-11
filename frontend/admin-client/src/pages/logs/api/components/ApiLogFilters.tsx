@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Space, Select, Input, DatePicker, Button } from 'antd';
+import { Card, Space, Select, Input, DatePicker, Button } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { ApiLogQueryParams } from '../../../../services/logs';
 
@@ -34,7 +34,7 @@ const ApiLogFilters: React.FC<ApiLogFiltersProps> = ({ filters, onChange, onSear
         allowClear
         {...stylex.props(styles.width120)}
         value={filters.requestType}
-        onChange={(value) => onChange({ requestType: value })}
+        onChange={(value: unknown) => onChange({ requestType: value as 'HTTP' | 'GRAPHQL' | undefined })}
       >
         <Option value="HTTP">HTTP</Option>
         <Option value="GRAPHQL">GraphQL</Option>
@@ -44,7 +44,7 @@ const ApiLogFilters: React.FC<ApiLogFiltersProps> = ({ filters, onChange, onSear
         allowClear
         {...stylex.props(styles.width100)}
         value={filters.method}
-        onChange={(value) => onChange({ method: value })}
+        onChange={(value: unknown) => onChange({ method: value as string | undefined })}
       >
         <Option value="GET">GET</Option>
         <Option value="POST">POST</Option>

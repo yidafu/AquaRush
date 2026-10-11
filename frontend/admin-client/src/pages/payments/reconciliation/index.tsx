@@ -9,14 +9,15 @@ import {
   Input,
   Modal,
   Radio,
+  RadioGroup,
   Select,
   Space,
   Statistic,
   Table,
   Tag,
   message,
-} from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+} from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import dayjs, { type Dayjs } from 'dayjs';
 import { displayCents } from '@aquarush/common';
@@ -325,10 +326,11 @@ const PaymentReconciliationPage: React.FC = () => {
   );
 
   const handleDetailFilterChange = useCallback(
-    (value?: DiscrepancyType) => {
-      setDiscrepancyType(value);
+    (value: DiscrepancyType | DiscrepancyType[] | undefined) => {
+      const next = typeof value === 'string' ? value : undefined;
+      setDiscrepancyType(next);
       setDetailPage(0);
-      refetchDetail({ taskId: detailTask?.taskId, page: 0, size: PAGE_SIZE, discrepancyType: value ?? null });
+      refetchDetail({ taskId: detailTask?.taskId, page: 0, size: PAGE_SIZE, discrepancyType: next ?? null });
     },
     [detailTask, refetchDetail],
   );
@@ -545,7 +547,7 @@ const PaymentReconciliationPage: React.FC = () => {
             {...stylex.props(styles.selectType)}
             value={taskType}
             onChange={(v) => {
-              setTaskType(v);
+              setTaskType(typeof v === 'string' ? (v as ReconciliationTaskType) : undefined);
               setPage(0);
             }}
             options={Object.entries(TASK_TYPE_MAP).map(([value, info]) => ({ value, label: info.text }))}
@@ -563,7 +565,7 @@ const PaymentReconciliationPage: React.FC = () => {
             {...stylex.props(styles.selectStatus)}
             value={status}
             onChange={(v) => {
-              setStatus(v);
+              setStatus(typeof v === 'string' ? (v as ReconciliationTaskStatus) : undefined);
               setPage(0);
             }}
             options={Object.entries(TASK_STATUS_MAP).map(([value, info]) => ({ value, label: info.text }))}
@@ -584,7 +586,7 @@ const PaymentReconciliationPage: React.FC = () => {
       <Card>
         <Table
           columns={columns}
-          dataSource={data?.reconciliationTasks.content}
+          dataSource={data?.reconciliationTasks.content ?? []}
           loading={loading}
           rowKey="id"
           scroll={{ x: 1100 }}
@@ -720,13 +722,13 @@ const PaymentReconciliationPage: React.FC = () => {
         )}
         <Form form={resolveForm} layout="vertical">
           <Form.Item label="处置结果" required>
-            <Radio.Group
+            <RadioGroup
               value={resolveAction}
               onChange={(e) => setResolveAction(e.target.value as 'RESOLVE' | 'IGNORE')}
             >
               <Radio value="RESOLVE">解决（已核实无资金损失或已修复）</Radio>
               <Radio value="IGNORE">忽略（跨日边界等可解释差异）</Radio>
-            </Radio.Group>
+            </RadioGroup>
           </Form.Item>
           <Form.Item
             name="resolutionNotes"
@@ -753,10 +755,10 @@ const PaymentReconciliationPage: React.FC = () => {
       >
         <Form form={executeForm} layout="vertical" initialValues={{ taskType: 'PAYMENT' }}>
           <Form.Item name="taskType" label="账单类型" rules={[{ required: true }]}>
-            <Radio.Group>
+            <RadioGroup>
               <Radio value="PAYMENT">支付账单</Radio>
               <Radio value="REFUND">退款账单</Radio>
-            </Radio.Group>
+            </RadioGroup>
           </Form.Item>
           <Form.Item name="reconciliationDate" label="账单日" rules={[{ required: true, message: '请选择账单日' }]}>
             <DatePicker

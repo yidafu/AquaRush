@@ -10,14 +10,14 @@ import {
   Typography,
   Row,
   Col,
-} from 'antd';
+} from '@/ui';
 import {
   ArrowLeftOutlined,
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
   EyeOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import {
   useCreateProduct,
   useUpdateProduct,

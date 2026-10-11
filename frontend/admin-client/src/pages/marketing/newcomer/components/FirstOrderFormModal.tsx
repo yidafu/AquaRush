@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
@@ -191,8 +191,8 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
               rules={[
                 { required: true, message: '请输入门槛金额' },
                 {
-                  validator: (_, value: number | undefined) =>
-                    value !== undefined && value >= 0.01 && value <= 99999
+                  validator: (_, value: unknown) =>
+                    typeof value === 'number' && value >= 0.01 && value <= 99999
                       ? Promise.resolve()
                       : Promise.reject(new Error('门槛无效(0.01-99999元)')),
                 },
@@ -215,8 +215,8 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
                 rules={[
                   { required: true, message: '请输入减金额' },
                   {
-                    validator: (_, value: number | undefined) =>
-                      value !== undefined && value >= 0.01 && value <= 99999
+                    validator: (_, value: unknown) =>
+                      typeof value === 'number' && value >= 0.01 && value <= 99999
                         ? Promise.resolve()
                         : Promise.reject(new Error('减金额无效(0.01-99999元)')),
                   },
@@ -231,8 +231,8 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
                 rules={[
                   { required: true, message: '请输入折扣' },
                   {
-                    validator: (_, value: number | undefined) =>
-                      value !== undefined && value >= 1 && value <= 9.9
+                    validator: (_, value: unknown) =>
+                      typeof value === 'number' && value >= 1 && value <= 9.9
                         ? Promise.resolve()
                         : Promise.reject(new Error('折扣率超出范围(1-9.9折)')),
                   },
@@ -261,8 +261,8 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
               rules={[
                 { required: true, message: '请输入新人专享价' },
                 {
-                  validator: (_, value: number | undefined) =>
-                    value !== undefined && value >= 0.01 && value <= 99999
+                  validator: (_, value: unknown) =>
+                    typeof value === 'number' && value >= 0.01 && value <= 99999
                       ? Promise.resolve()
                       : Promise.reject(new Error('新人专享价无效(0.01-99999元)')),
                 },

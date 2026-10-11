@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@apollo/client';
-import { message } from 'antd';
+import { message } from '@/ui';
 import {
   GET_USERS_QUERY,
   GET_ADMINS_QUERY,

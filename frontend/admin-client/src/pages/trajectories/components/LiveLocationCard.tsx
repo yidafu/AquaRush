@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Col, Spin, Descriptions, Typography } from 'antd';
-import { AimOutlined } from '@ant-design/icons';
+import { Card, Col, Spin, Descriptions, Typography } from '@/ui';
+import { AimOutlined } from '@/ui/icons';
 import type { DeliveryTrajectoryVo } from '@aquarush/common';
 
 export interface LiveLocationCardProps {

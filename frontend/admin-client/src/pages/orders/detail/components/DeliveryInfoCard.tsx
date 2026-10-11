@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Descriptions, Empty, Space } from 'antd';
-import { CarOutlined, PhoneOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Empty, Space } from '@/ui';
+import { CarOutlined, PhoneOutlined } from '@/ui/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import * as stylex from '@stylexjs/stylex';
 

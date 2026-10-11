@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col } from 'antd';
+import { Row, Col } from '@/ui';
 import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '../../../components/StatisticsCard';
 

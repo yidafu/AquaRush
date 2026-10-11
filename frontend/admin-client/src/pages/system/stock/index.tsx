@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography, message } from 'antd';
+import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography, message } from '@/ui';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
@@ -105,7 +105,7 @@ const SystemStockConfig: React.FC = () => {
               { type: 'number', min: 0, max: 99999, message: '阈值无效' },
               ({ getFieldValue }) => ({
                 validator: (_, value?: number) => {
-                  const low = getFieldValue('lowStockThreshold');
+                  const low = getFieldValue('lowStockThreshold') as number | undefined;
                   if (value != null && low != null && value <= low) {
                     return Promise.reject(new Error('档位需递增'));
                   }

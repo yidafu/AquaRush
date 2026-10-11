@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Space, Select, Input } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Space, Select, Input } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({
@@ -48,7 +48,7 @@ const AccountToolbar: React.FC<AccountToolbarProps> = ({
       <h3 {...stylex.props(styles.title)}>账号列表</h3>
       <Select
         value={activeRole}
-        onChange={onRoleChange}
+        onChange={(value) => onRoleChange(value as string)}
         options={roleFilterOptions}
         {...stylex.props(styles.roleSelect)}
       />

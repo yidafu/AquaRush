@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Table } from 'antd';
+import { Card, Row, Col, Table } from '@/ui';
 import {
   BarChart,
   Bar,

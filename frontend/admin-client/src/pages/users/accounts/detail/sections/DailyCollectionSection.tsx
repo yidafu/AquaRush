@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Card, Col, DatePicker, Empty, Row, Statistic, Table, Tag } from 'antd';
+import { Alert, Card, Col, DatePicker, Empty, Row, Statistic, Table, Tag } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { GET_DAILY_COLLECTIONS } from '../../../../../graphql/queries/daily-collection.graphql';
 import type { DailyCollectionRecord, DailyCollectionStatus } from '../../../../../types/daily-collection';

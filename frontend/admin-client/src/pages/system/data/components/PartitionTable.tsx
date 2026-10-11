@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button, Tooltip } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Button, Tooltip } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import type { LogPartitionVo } from '@aquarush/common';
 import { formatBytes } from './constants';
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Radio, Select, Alert, message } from 'antd';
+import { Modal, Form, Radio, Select, Alert, message } from '@/ui';
 import { useLazyQuery } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { IssueTargetType } from '@aquarush/common';
@@ -105,7 +105,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
           initialValue="USER"
           rules={[{ required: true, message: '请选择发放方式' }]}
         >
-          <Radio.Group options={TARGET_TYPE_OPTIONS} onChange={(e) => setTargetType(e.target.value)} />
+          <Radio.Group options={TARGET_TYPE_OPTIONS} onChange={(e) => setTargetType(e.target.value as IssueTargetType)} />
         </Form.Item>
         {targetType === 'USER' ? (
           <Form.Item name="userIds" label="选择用户" rules={[{ required: true, message: '请选择用户' }]}>

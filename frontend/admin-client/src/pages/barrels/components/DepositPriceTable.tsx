@@ -1,6 +1,6 @@
 import React from 'react';
-import { Space, Select, Input, Button, Table, Tag } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Space, Select, Input, Button, Table, Tag } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositPrice } from '../../../types/barrel';
@@ -102,7 +102,7 @@ const DepositPriceTable: React.FC<DepositPriceTableProps> = ({
           placeholder="状态筛选"
           {...stylex.props(styles.statusSelect)}
           value={statusFilter}
-          onChange={onStatusFilterChange}
+          onChange={(value) => onStatusFilterChange(value as string | undefined)}
           options={Object.entries(DEPOSIT_PRICE_STATUS_MAP).map(([value, info]) => ({
             value,
             label: info.text,

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Button } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import type { BusinessLogVo } from '@aquarush/common';
 import { OPERATION_CONFIG } from '../../../../components/BusinessLogTimeline';
 import { getLogLevelInfo } from './constants';

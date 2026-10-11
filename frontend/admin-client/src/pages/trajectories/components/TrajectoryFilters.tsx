@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from '@/ui';
+import { ReloadOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import type { DeliveryWorkerVo } from '@aquarush/common';
 
@@ -46,7 +46,7 @@ const TrajectoryFilters: React.FC<TrajectoryFiltersProps> = ({
             {...stylex.props(styles.workerSelect)}
             loading={workersLoading}
             value={selectedWorkerId}
-            onChange={onWorkerChange}
+            onChange={(value: unknown) => onWorkerChange(value as string)}
             options={workers.map((w) => ({
               value: String(w.id),
               label: `${w.name}（${w.phone ?? ''}）${w.onlineStatus === 'ONLINE' ? ' · 在线' : ''}`,

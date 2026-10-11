@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd';
+import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { SingleImageUpload } from '../../../../components/ImageUpload';
@@ -147,7 +147,7 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
         <Form.Item name="linkType" label="跳转类型" rules={[{ required: true, message: '请选择跳转类型' }]}>
           <Select
             options={LINK_TYPE_OPTIONS}
-            onChange={(value: BannerLinkType) => setLinkType(value)}
+            onChange={(value: unknown) => setLinkType(value as BannerLinkType)}
           />
         </Form.Item>
         <Form.Item

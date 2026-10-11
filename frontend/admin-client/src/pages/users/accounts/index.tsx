@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, message } from 'antd';
+import { Modal, message } from '@/ui';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import AdminForm from '../components/AdminForm';

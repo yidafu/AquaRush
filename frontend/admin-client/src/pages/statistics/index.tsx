@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Button, Row } from 'antd';
+import { Alert, Button, Row } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import RefreshControls from '@/components/RefreshControls';

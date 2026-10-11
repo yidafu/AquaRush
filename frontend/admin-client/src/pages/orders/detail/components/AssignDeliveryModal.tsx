@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Select } from 'antd';
+import { Modal, Form, Select } from '@/ui';
 import { useOrderDetail } from '../OrderDetailContext';
 
 const AssignDeliveryModal: React.FC = () => {
@@ -37,7 +37,7 @@ const AssignDeliveryModal: React.FC = () => {
           <Select
             placeholder="选择配送员"
             loading={workersLoading}
-            onChange={(value) => setSelectedWorkerId(value)}
+            onChange={(value) => setSelectedWorkerId(typeof value === 'string' ? value : null)}
             value={selectedWorkerId}
           >
             {workers.map((worker) => (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col } from 'antd';
+import { Col } from '@/ui';
 import {
   PieChart,
   Pie,

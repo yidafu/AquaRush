@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Table, Rate, Tag, Empty, Alert } from 'antd';
+import { Card, Table, Rate, Tag, Empty, Alert } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { REVIEWS_BY_USER_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { ReviewVo } from '@aquarush/common';

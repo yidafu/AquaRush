@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { ProductTable } from '../components/ProductTable';

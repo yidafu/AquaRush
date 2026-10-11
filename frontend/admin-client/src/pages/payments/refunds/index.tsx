@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message } from 'antd';
+import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { REFUND_REQUESTS_PAGE_QUERY, REFUND_REQUESTS_PAGE } from '../../../graphql/queries/refund.graphql';
 import { PROCESS_REFUND_MUTATION } from '../../../graphql/mutations/refund.graphql';
 import type { RefundRequest } from '../../../types/refund';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from '@/ui';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 import * as stylex from '@stylexjs/stylex';
@@ -197,7 +197,7 @@ const RefundManagementPage: React.FC = () => {
             {...stylex.props(styles.filterSelect)}
             value={statusFilter}
             onChange={(v) => {
-              setStatusFilter(v);
+              setStatusFilter(typeof v === 'string' ? v : undefined);
               setPage(0);
             }}
             options={Object.entries(STATUS_MAP).map(([value, info]) => ({ value, label: info.text }))}
@@ -206,7 +206,7 @@ const RefundManagementPage: React.FC = () => {
         </Space>
         <Table
           columns={columns}
-          dataSource={data?.refundRequests.content}
+          dataSource={data?.refundRequests.content ?? []}
           loading={loading}
           rowKey="id"
           scroll={{ x: 1100 }}

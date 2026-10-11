@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Select, Input, DatePicker, Space, Tag, Button, Modal, Descriptions } from 'antd';
+import { Table, Card, Select, Input, DatePicker, Space, Tag, Button, Modal, Descriptions } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import { queryUserActionLogs } from '../../../services/logs';
 import type { UserActionLogItem, UserActionLogQueryParams } from '../../../services/logs';
@@ -179,7 +179,7 @@ const UserActionLogs: React.FC = () => {
             allowClear
             {...stylex.props(styles.width140)}
             value={filters.actionType}
-            onChange={(value) => setFilters(prev => ({ ...prev, actionType: value }))}
+            onChange={(value: unknown) => setFilters(prev => ({ ...prev, actionType: value as string | undefined }))}
           >
             {ACTION_TYPE_OPTIONS.map(opt => (
               <Option key={opt.value} value={opt.value}>{opt.label}</Option>

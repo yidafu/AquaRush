@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col } from 'antd';
-import { ShoppingOutlined, DollarOutlined } from '@ant-design/icons';
+import { Row, Col } from '@/ui';
+import { ShoppingOutlined, DollarOutlined } from '@/ui/icons';
 import StatisticsCard from '../../../../components/StatisticsCard';
 import { BRAND_PRIMARY, COLOR_ERROR, COLOR_SUCCESS } from '../../../../config/theme';
 import * as stylex from '@stylexjs/stylex';

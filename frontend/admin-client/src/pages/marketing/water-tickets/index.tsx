@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Space, Button, Card, Popconfirm, Input } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { TicketTypeAdminVo } from '@aquarush/common';
 import { useQuery } from '@apollo/client';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button, Typography } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Button, Typography } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';

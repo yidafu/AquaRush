@@ -1,6 +1,6 @@
 import React from 'react';
-import { Space, Select, Button, Table, Tag, Tooltip, Typography } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Space, Select, Button, Table, Tag, Tooltip, Typography } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositRefundApplication } from '../../../types/barrel';
@@ -87,7 +87,13 @@ const DepositRefundTable: React.FC<DepositRefundTableProps> = ({
         const detail = [record.receiverName, record.receiverPhone, record.receiverDetail]
           .filter(Boolean)
           .join(' ');
-        return detail ? <Tooltip title={detail}>{detail}</Tooltip> : '-';
+        return detail ? (
+          <Tooltip title={detail}>
+            <span>{detail}</span>
+          </Tooltip>
+        ) : (
+          '-'
+        );
       },
     },
     {
@@ -169,7 +175,7 @@ const DepositRefundTable: React.FC<DepositRefundTableProps> = ({
           placeholder="状态筛选"
           {...stylex.props(styles.statusSelect)}
           value={statusFilter}
-          onChange={onStatusFilterChange}
+          onChange={(value) => onStatusFilterChange(value as string | undefined)}
           options={Object.entries(REFUND_APPLICATION_STATUS_MAP).map(([value, info]) => ({
             value,
             label: info.text,

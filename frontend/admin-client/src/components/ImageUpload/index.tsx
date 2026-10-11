@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Button, Space, message } from 'antd';
-import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import type { UploadFile, UploadProps } from 'antd/es/upload';
+import { Upload, Button, Space, message } from '@/ui';
+import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@/ui/icons';
+import type { UploadFile, UploadProps, UploadRequestOptions } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({
@@ -118,7 +118,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     return true;
   };
 
-  const customRequest = async ({ file, onSuccess, onError }: any) => {
+  const customRequest = async ({ file, onSuccess, onError }: UploadRequestOptions) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -162,7 +162,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       message.success(`${file.name} 上传成功`);
     } catch (error) {
       console.error('Upload error:', error);
-      onError?.(error);
+      onError?.(error instanceof Error ? error : new Error(String(error)));
       message.error(`${file.name} 上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Select, Table, Tag, Empty, Alert } from 'antd';
+import { Card, Select, Table, Tag, Empty, Alert } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { USER_TICKETS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { UserTicketVo, UserTicketStatus } from '@aquarush/common';
@@ -114,7 +114,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({ userId }) => {
           <span>桶水票</span>
           <Select
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => setStatusFilter(value as string)}
             options={STATUS_OPTIONS}
             {...stylex.props(styles.select)}
             size="small"

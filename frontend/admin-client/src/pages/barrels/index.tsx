@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Tabs, Modal, message } from 'antd';
+import { Card, Tabs, Modal, message } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   DEPOSIT_PRICES_PAGE_QUERY,

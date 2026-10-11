@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Spin, Empty } from 'antd';
+import { Card, Spin, Empty } from '@/ui';
 import { ResponsiveContainer } from 'recharts';
 import * as stylex from '@stylexjs/stylex';
 

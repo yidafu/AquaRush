@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Statistic } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { Card, Statistic } from '@/ui';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { COLOR_SUCCESS, COLOR_ERROR, TEXT_SECONDARY } from '../../config/theme';
 

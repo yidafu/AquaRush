@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Button } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

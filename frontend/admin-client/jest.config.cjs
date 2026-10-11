@@ -7,6 +7,9 @@
 module.exports = {
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.test.ts'],
+  // `@/` 别名与 vite 对齐(http.ts 等已从 `@/ui` 导入 message);
+  // 测试用 jest.mock('@/ui', factory) 拦截,无需 tsx transform。
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   transform: {
     '^.+\\.ts$': [
       'babel-jest',

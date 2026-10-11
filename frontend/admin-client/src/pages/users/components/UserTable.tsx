@@ -1,9 +1,9 @@
 import React from 'react';
-import { Table, Button, Space, Tag, Avatar } from 'antd';
-import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined, UsergroupAddOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Avatar } from '@/ui';
+import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined, UsergroupAddOutlined } from '@/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { avatarFromName } from '@aquarush/common/utils';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from '@/ui';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
 import * as stylex from '@stylexjs/stylex';

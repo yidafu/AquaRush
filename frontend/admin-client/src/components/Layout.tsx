@@ -1,15 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Layout as AntLayout,
-  Menu,
-  Dropdown,
-  Avatar,
-  Breadcrumb,
-  message,
-  theme,
-} from 'antd';
-import type { MenuProps } from 'antd';
+import { Menu, Dropdown, Avatar, Breadcrumb, message } from '@/ui';
+import type { DropdownMenuItem, MenuProps } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { usePageViewTracking } from '../hooks/usePageViewTracking';
@@ -50,14 +42,44 @@ import {
   BellOutlined,
   DatabaseOutlined,
   CalendarOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 
-const { Header, Sider, Content } = AntLayout;
-
-// Header 背景/描边与内层 Layout 底色依赖 antd theme token,保留 style={{ }} 动态注入
+// Layout 骨架:StyleX div 复刻 antd Layout DOM(div > aside.sider + div > header + main),
+// 底色/描边原依赖 antd theme token,现映射到共享 token(bg/card/border/side)。
 const styles = stylex.create({
   root: {
     minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'row',
+    // 原 antd .ant-layout 底色 colorBgLayout(spec/design/ui-design-system.md §2.3)
+    backgroundColor: tokens.bg,
+  },
+  sider: {
+    position: 'relative',
+    flexGrow: '0',
+    flexShrink: '0',
+    flexBasis: '200px',
+    width: '200px',
+    minWidth: '200px',
+    maxWidth: '200px',
+    // 原 antd Layout Sider theme="dark" 底色 #001529
+    backgroundColor: tokens.side,
+    overflowY: 'auto',
+  },
+  siderChildren: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100%',
+  },
+  main: {
+    flexGrow: '1',
+    flexShrink: '1',
+    flexBasis: '0%',
+    minWidth: '0px',
+    display: 'flex',
+    flexDirection: 'column',
+    // 原 antd 内层 Layout style={{ background: token.colorBgLayout }}
+    backgroundColor: tokens.bg,
   },
   brand: {
     height: '64px',
@@ -81,6 +103,7 @@ const styles = stylex.create({
     whiteSpace: 'nowrap',
   },
   header: {
+    height: '64px',
     paddingTop: '0px',
     paddingBottom: '0px',
     paddingLeft: '24px',
@@ -88,6 +111,11 @@ const styles = stylex.create({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    // 原 antd Header token:background colorBgContainer + borderBottom colorBorderSecondary
+    backgroundColor: tokens.card,
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: tokens.border,
   },
   userBox: {
     cursor: 'pointer',
@@ -372,7 +400,6 @@ const findOpenKeys = (items: MenuProps['items'], target: string, trail: string[]
 const Layout: React.FC = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { token } = theme.useToken();
 
   // 埋点:路由变化上报 PAGE_VIEW
   usePageViewTracking();
@@ -426,7 +453,7 @@ const Layout: React.FC = () => {
     navigate('/login');
   };
 
-  const userMenuItems: MenuProps['items'] = [
+  const userMenuItems: DropdownMenuItem[] = [
     {
       key: 'profile',
       icon: <UserOutlined />,
@@ -438,6 +465,7 @@ const Layout: React.FC = () => {
       label: '设置',
     },
     {
+      key: 'divider',
       type: 'divider',
     },
     {
@@ -449,30 +477,26 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <AntLayout {...stylex.props(styles.root)}>
-      <Sider theme="dark">
-        <div {...stylex.props(styles.brand)}>
-          <img src="/aqua-rush-mark.svg" alt="奔泉" {...stylex.props(styles.brandLogo)} />
-          <span {...stylex.props(styles.brandName)}>奔泉运营后台</span>
+    <div {...stylex.props(styles.root)}>
+      <aside {...stylex.props(styles.sider)}>
+        <div {...stylex.props(styles.siderChildren)}>
+          <div {...stylex.props(styles.brand)}>
+            <img src="/aqua-rush-mark.svg" alt="奔泉" {...stylex.props(styles.brandLogo)} />
+            <span {...stylex.props(styles.brandName)}>奔泉运营后台</span>
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            items={menuItems}
+            selectedKeys={[selectedKey]}
+            openKeys={openKeys}
+            onOpenChange={(keys) => setOpenKeys(keys)}
+            onClick={({ key }) => navigate(key)}
+          />
         </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          items={menuItems}
-          selectedKeys={[selectedKey]}
-          openKeys={openKeys}
-          onOpenChange={(keys) => setOpenKeys(keys as string[])}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
-      <AntLayout style={{ background: token.colorBgLayout }}>
-        <Header
-          {...stylex.props(styles.header)}
-          style={{
-            background: token.colorBgContainer,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
+      </aside>
+      <div {...stylex.props(styles.main)}>
+        <header {...stylex.props(styles.header)}>
           {crumbs.length > 0 && (
             <Breadcrumb items={crumbs.map((title) => ({ title }))} />
           )}
@@ -485,13 +509,13 @@ const Layout: React.FC = () => {
               <span>{userInfo.username || userInfo.nickname || '管理员'}</span>
             </div>
           </Dropdown>
-        </Header>
+        </header>
         {/* 灰底画布(spec/design/ui-design-system.md §2.3 colorBgLayout),内容白卡由页面内 Card 呈现 */}
-        <Content {...stylex.props(styles.content)}>
+        <main {...stylex.props(styles.content)}>
           <Outlet />
-        </Content>
-      </AntLayout>
-    </AntLayout>
+        </main>
+      </div>
+    </div>
   );
 };
 

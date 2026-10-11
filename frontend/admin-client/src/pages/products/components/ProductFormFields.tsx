@@ -9,8 +9,8 @@ import {
   Row,
   Col,
   Space,
-} from 'antd';
-import { SettingOutlined } from '@ant-design/icons';
+} from '@/ui';
+import { SettingOutlined } from '@/ui/icons';
 import { SingleImageUpload, MultiImageUpload } from '../../../components/ImageUpload';
 import { SimpleRichTextEditor } from '../../../components/RichTextEditor';
 import { TagsEditor } from '../../../components/JsonEditor';
@@ -352,6 +352,7 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             label="封面图片URL（手动输入）"
             name="coverImageUrl"
             rules={[
+              // warningOnly:URL 不合法时仅提示、不阻断提交(门面原生支持该键)
               { type: 'url', message: '请输入有效的URL地址', warningOnly: true }
             ]}
           >

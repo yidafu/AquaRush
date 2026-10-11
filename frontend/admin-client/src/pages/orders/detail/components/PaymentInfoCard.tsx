@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Descriptions, Space } from 'antd';
-import { DollarOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Space } from '@/ui';
+import { DollarOutlined } from '@/ui/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import * as stylex from '@stylexjs/stylex';
 

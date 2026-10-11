@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Space, Typography, message } from 'antd';
+import { Button, Space, Text, message } from '@/ui';
 import {
   CopyOutlined,
   CheckOutlined,
@@ -7,11 +7,9 @@ import {
   RightOutlined,
   MinusSquareOutlined,
   PlusSquareOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
-
-const { Text } = Typography;
 
 /**
  * 只读 JSON 查看器

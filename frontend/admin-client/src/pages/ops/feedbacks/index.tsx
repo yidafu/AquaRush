@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Select, Input, DatePicker } from 'antd';
-import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Space, Button, Card, Select, Input, DatePicker } from '@/ui';
+import { SearchOutlined, ReloadOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import type { Dayjs } from 'dayjs';
 import {
   FEEDBACK_STATUS_OPTIONS,
@@ -162,7 +162,7 @@ const Feedbacks: React.FC = () => {
           {...stylex.props(styles.typeSelect)}
           options={TYPE_OPTIONS}
           value={filters.feedbackType}
-          onChange={(value: FeedbackType | undefined) => setFilters((f) => ({ ...f, feedbackType: value }))}
+          onChange={(value: unknown) => setFilters((f) => ({ ...f, feedbackType: value as FeedbackType | undefined }))}
         />
         <Select
           placeholder="处理状态"
@@ -170,7 +170,7 @@ const Feedbacks: React.FC = () => {
           {...stylex.props(styles.statusSelect)}
           options={FEEDBACK_STATUS_OPTIONS}
           value={filters.status}
-          onChange={(value: FeedbackStatus | undefined) => setFilters((f) => ({ ...f, status: value }))}
+          onChange={(value: unknown) => setFilters((f) => ({ ...f, status: value as FeedbackStatus | undefined }))}
         />
         <Input
           placeholder="联系方式关键字"

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Image, Space, Tag, Button, Modal, Input, message, Descriptions } from 'antd';
-import { CarOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { Card, Image, Space, Tag, Button, Modal, Input, message, Descriptions } from '@/ui';
+import { CarOutlined, CheckOutlined, CloseOutlined } from '@/ui/icons';
 import { useMutation } from '@apollo/client';
 import { REVIEW_DELIVERY_PHOTO_MUTATION } from '../../../../graphql/mutations/order.graphql';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';

@@ -10,7 +10,7 @@ import {
   Tabs,
   Tag,
   Typography,
-} from 'antd';
+} from '@/ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -19,7 +19,7 @@ import {
   LockOutlined,
   UnlockOutlined,
   UserOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import { avatarFromName } from '@aquarush/common/utils';
 import * as stylex from '@stylexjs/stylex';
 import { ROLE_MAPPINGS } from '../../components/types';

@@ -6,7 +6,7 @@ import {
   Spin,
   Empty,
   Tabs,
-} from 'antd';
+} from '@/ui';
 import { useQuery } from '@apollo/client';
 import {
   USER_DETAIL_PAGE_DATA_QUERY,

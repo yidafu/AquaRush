@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Table, Tag, Empty, Alert } from 'antd';
+import { Card, Table, Tag, Empty, Alert } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { GET_FEEDBACKS_QUERY } from '../../../../graphql/queries/ops.graphql';
 import type { FeedbackVo, FeedbackType, FeedbackStatus } from '@aquarush/common';

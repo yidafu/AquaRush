@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Modal } from 'antd';
+import { Form, Input, Select, Modal } from '@/ui';
 import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { UserFormData, FormModalProps } from './types';
 
@@ -10,7 +10,7 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
   onSubmit,
   loading = false,
 }) => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<UserFormData>();
   // 头像/昵称联动:未上传头像时预览根据昵称自动生成的默认头像
   const nickname = Form.useWatch('nickname', form);
 

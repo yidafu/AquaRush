@@ -1,6 +1,6 @@
 import React from 'react';
-import { Descriptions, Button } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { Descriptions, Button } from '@/ui';
+import { CopyOutlined } from '@/ui/icons';
 import type { ApiLogItem } from '../../../../services/logs';
 import JsonViewer from '../../../../components/JsonViewer';
 import DetailModal from '@/components/DetailModal';

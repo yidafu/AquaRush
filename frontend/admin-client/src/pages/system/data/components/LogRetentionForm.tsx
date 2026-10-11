@@ -1,6 +1,6 @@
 import React from 'react';
-import { Alert, Card, Divider, Form, InputNumber, Space, Switch, Button, Typography } from 'antd';
-import type { FormInstance } from 'antd';
+import { Alert, Card, Divider, Form, InputNumber, Space, Switch, Button, Typography } from '@/ui';
+import type { FormInstance } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { DataMaintenanceValues } from './constants';
 

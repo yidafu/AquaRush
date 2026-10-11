@@ -1,5 +1,5 @@
 import React from 'react';
-import { Timeline, Tag, Typography, Empty, Spin } from 'antd';
+import { Tag, Text, Paragraph, Empty, Spin } from '@/ui';
 import {
   PlusOutlined,
   DollarOutlined,
@@ -16,11 +16,23 @@ import {
   EditOutlined,
   StopOutlined,
   TeamOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { formatDateTime } from '@aquarush/common/utils';
 
-const { Text } = Typography;
+// antd Timeline 预设色 → 真实色值(与 @/ui Tag 预设文字色一致);
+// tokens 无对应值,字面量保留
+const TIMELINE_COLORS: Record<string, string> = {
+  blue: '#1677FF',
+  green: '#52C41A',
+  red: '#FF4D4F',
+  orange: '#FA8C16',
+  cyan: '#13C2C2',
+  purple: '#722ED1',
+  default: 'rgba(0, 0, 0, 0.35)',
+  gray: 'rgba(0, 0, 0, 0.35)',
+};
 
 const styles = stylex.create({
   loadingBox: {
@@ -56,6 +68,45 @@ const styles = stylex.create({
   },
   timeRow: {
     marginTop: '4px',
+  },
+  // —— 垂直时间线(替代 antd Timeline mode="left";@/ui 无 Timeline)——
+  timeline: {
+    listStyleType: 'none',
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    marginTop: '0px',
+    marginBottom: '0px',
+  },
+  timelineItem: {
+    position: 'relative',
+  },
+  timelineHead: {
+    position: 'absolute',
+    top: '3px',
+    left: '0px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '16px',
+    height: '16px',
+    fontSize: '14px',
+    // 动态:图标颜色由条目 color 决定,经 style={{}} 注入
+  },
+  timelineTail: {
+    position: 'absolute',
+    top: '19px',
+    bottom: '0px',
+    left: '7px',
+    width: '2px',
+    backgroundColor: tokens.border,
+  },
+  timelineContent: {
+    paddingTop: '0px',
+    paddingBottom: '12px',
+    paddingLeft: '24px',
+    paddingRight: '0px',
   },
 });
 
@@ -300,46 +351,53 @@ const BusinessLogTimeline: React.FC<BusinessLogTimelineProps> = ({ logs, loading
   }
 
   return (
-    <Timeline
-      mode="left"
-      items={logs.map((log) => {
+    <ol {...stylex.props(styles.timeline)}>
+      {logs.map((log) => {
         const operation = log.operation || parseOperationFromMessage(log.message);
         const config = getOperationConfig(operation);
         const userLabel = log.username || (log.userId != null ? String(log.userId) : '-');
-        return {
-          color: config.color,
-          dot: config.icon,
-          children: (
-            <div {...stylex.props(styles.item)}>
-              <div {...stylex.props(styles.itemHeader)}>
-                <Text strong>{config.label}</Text>
-                <Tag color={LOG_LEVEL_COLOR[log.level] || 'default'}>{log.level}</Tag>
-                <Tag color="blue">{userLabel}</Tag>
-              </div>
-              {log.message && (
-                <Typography.Paragraph
-                  type="secondary"
-                  ellipsis={{ rows: 2 }}
-                  {...stylex.props(styles.message)}
-                >
-                  {log.message}
-                </Typography.Paragraph>
-              )}
-              {log.correlationId && (
-                <Text type="secondary" {...stylex.props(styles.meta)}>
-                  关联ID: {log.correlationId}
-                </Text>
-              )}
-              <div {...stylex.props(styles.timeRow)}>
-                <Text type="secondary" {...stylex.props(styles.meta)}>
-                  {formatDateTime(log.createdAt)}
-                </Text>
+        return (
+          <li key={log.id} {...stylex.props(styles.timelineItem)}>
+            {/* 动态:图标颜色取决于条目 color */}
+            <span
+              {...stylex.props(styles.timelineHead)}
+              style={{ color: TIMELINE_COLORS[config.color] ?? TIMELINE_COLORS.gray }}
+            >
+              {config.icon}
+            </span>
+            <div {...stylex.props(styles.timelineTail)} />
+            <div {...stylex.props(styles.timelineContent)}>
+              <div {...stylex.props(styles.item)}>
+                <div {...stylex.props(styles.itemHeader)}>
+                  <Text strong>{config.label}</Text>
+                  <Tag color={LOG_LEVEL_COLOR[log.level] || 'default'}>{log.level}</Tag>
+                  <Tag color="blue">{userLabel}</Tag>
+                </div>
+                {log.message && (
+                  <Paragraph
+                    type="secondary"
+                    ellipsis={{ rows: 2 }}
+                    {...stylex.props(styles.message)}
+                  >
+                    {log.message}
+                  </Paragraph>
+                )}
+                {log.correlationId && (
+                  <Text type="secondary" {...stylex.props(styles.meta)}>
+                    关联ID: {log.correlationId}
+                  </Text>
+                )}
+                <div {...stylex.props(styles.timeRow)}>
+                  <Text type="secondary" {...stylex.props(styles.meta)}>
+                    {formatDateTime(log.createdAt)}
+                  </Text>
+                </div>
               </div>
             </div>
-          ),
-        };
+          </li>
+        );
       })}
-    />
+    </ol>
   );
 };
 

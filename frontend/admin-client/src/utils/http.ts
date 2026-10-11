@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { message } from 'antd';
+import { message } from '@/ui';
 export interface ApiResponse<T> {
   success: boolean,
   data?: T,

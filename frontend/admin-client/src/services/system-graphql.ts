@@ -1,5 +1,5 @@
 import { useLazyQuery, useMutation } from '@apollo/client';
-import { message } from 'antd';
+import { message } from '@/ui';
 import { GET_DATA_MAINTENANCE_OVERVIEW_QUERY, GET_SYSTEM_CONFIGS_QUERY } from '../graphql/queries/system.graphql';
 import { BACKUP_LOG_PARTITION_MUTATION, RESTORE_SYSTEM_CONFIG_MUTATION, SAVE_SYSTEM_CONFIGS_MUTATION } from '../graphql/mutations/system.graphql';
 

@@ -7,7 +7,7 @@ import {
   Modal,
   Tabs,
   Typography,
-} from 'antd';
+} from '@/ui';
 import { LogTableType } from '@aquarush/common';
 import type { DataMaintenanceOverviewVo, LogBackupRecordVo, LogPartitionVo } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
@@ -113,7 +113,7 @@ const SystemDataMaintenanceConfig: React.FC = () => {
       ),
       okText: '确认备份',
       cancelText: '取消',
-      okButtonProps: { danger: true },
+      okType: 'danger',
       onOk: () =>
         backupPartition({
           variables: { input: { logTable: partition.logTable, partitionName: partition.partitionName } },

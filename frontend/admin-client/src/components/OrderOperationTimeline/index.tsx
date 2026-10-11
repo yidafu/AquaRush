@@ -1,5 +1,5 @@
 import React from 'react';
-import { Timeline, Card, Tag, Typography } from 'antd';
+import { Card, Tag, Text } from '@/ui';
 import {
   PlusOutlined,
   DollarOutlined,
@@ -9,11 +9,23 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   SafetyOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import JsonViewer from '../JsonViewer';
 import * as stylex from '@stylexjs/stylex';
+import { tokens } from '@aquarush/common/theme/tokens.stylex';
 
-const { Text } = Typography;
+// antd Timeline 预设色 → 真实色值(与 @/ui Tag 预设文字色一致);
+// tokens 无对应值,字面量保留
+const TIMELINE_COLORS: Record<string, string> = {
+  blue: '#1677FF',
+  green: '#52C41A',
+  red: '#FF4D4F',
+  orange: '#FA8C16',
+  cyan: '#13C2C2',
+  purple: '#722ED1',
+  default: 'rgba(0, 0, 0, 0.35)',
+  gray: 'rgba(0, 0, 0, 0.35)',
+};
 
 const styles = stylex.create({
   item: {
@@ -31,6 +43,45 @@ const styles = stylex.create({
   },
   time: {
     fontSize: '12px',
+  },
+  // —— 垂直时间线(替代 antd Timeline mode="left";@/ui 无 Timeline)——
+  timeline: {
+    listStyleType: 'none',
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    marginTop: '0px',
+    marginBottom: '0px',
+  },
+  timelineItem: {
+    position: 'relative',
+  },
+  timelineHead: {
+    position: 'absolute',
+    top: '3px',
+    left: '0px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '16px',
+    height: '16px',
+    fontSize: '14px',
+    // 动态:图标颜色由条目 color 决定,经 style={{}} 注入
+  },
+  timelineTail: {
+    position: 'absolute',
+    top: '19px',
+    bottom: '0px',
+    left: '7px',
+    width: '2px',
+    backgroundColor: tokens.border,
+  },
+  timelineContent: {
+    paddingTop: '0px',
+    paddingBottom: '12px',
+    paddingLeft: '24px',
+    paddingRight: '0px',
   },
 });
 
@@ -179,9 +230,8 @@ const OrderOperationTimeline: React.FC<OrderOperationTimelineProps> = ({ operati
 
   return (
     <Card size="small" title="操作记录">
-      <Timeline
-        mode="left"
-        items={sortedOperations.map((operation) => {
+      <ol {...stylex.props(styles.timeline)}>
+        {sortedOperations.map((operation) => {
           const config = OPERATION_CONFIG[operation.operationType] || {
             icon: <ClockCircleOutlined />,
             color: 'gray',
@@ -192,35 +242,43 @@ const OrderOperationTimeline: React.FC<OrderOperationTimelineProps> = ({ operati
             : null;
           const extraDataObj = parseExtraData(operation.extraData);
 
-          return {
-            color: config.color,
-            dot: config.icon,
-            children: (
-              <div {...stylex.props(styles.item)}>
-                <div {...stylex.props(styles.itemHeader)}>
-                  <Text strong>{config.label}</Text>
-                  {operatorTag && (
-                    <Tag color={operatorTag.color}>{operatorTag.text}</Tag>
-                  )}
-                </div>
-                {operation.description && (
-                  <Text type="secondary">{operation.description}</Text>
-                )}
-                {extraDataObj && (
-                  <div {...stylex.props(styles.metaRow)}>
-                    <JsonViewer value={extraDataObj} maxHeight={200} defaultExpandLevel={0} />
+          return (
+            <li key={operation.id} {...stylex.props(styles.timelineItem)}>
+              {/* 动态:图标颜色取决于条目 color */}
+              <span
+                {...stylex.props(styles.timelineHead)}
+                style={{ color: TIMELINE_COLORS[config.color] ?? TIMELINE_COLORS.gray }}
+              >
+                {config.icon}
+              </span>
+              <div {...stylex.props(styles.timelineTail)} />
+              <div {...stylex.props(styles.timelineContent)}>
+                <div {...stylex.props(styles.item)}>
+                  <div {...stylex.props(styles.itemHeader)}>
+                    <Text strong>{config.label}</Text>
+                    {operatorTag && (
+                      <Tag color={operatorTag.color}>{operatorTag.text}</Tag>
+                    )}
                   </div>
-                )}
-                <div {...stylex.props(styles.metaRow)}>
-                  <Text type="secondary" {...stylex.props(styles.time)}>
-                    {formatTime(operation.createdAt)}
-                  </Text>
+                  {operation.description && (
+                    <Text type="secondary">{operation.description}</Text>
+                  )}
+                  {extraDataObj && (
+                    <div {...stylex.props(styles.metaRow)}>
+                      <JsonViewer value={extraDataObj} maxHeight={200} defaultExpandLevel={0} />
+                    </div>
+                  )}
+                  <div {...stylex.props(styles.metaRow)}>
+                    <Text type="secondary" {...stylex.props(styles.time)}>
+                      {formatTime(operation.createdAt)}
+                    </Text>
+                  </div>
                 </div>
               </div>
-            ),
-          };
+            </li>
+          );
         })}
-      />
+      </ol>
     </Card>
   );
 };

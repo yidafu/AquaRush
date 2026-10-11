@@ -1,6 +1,6 @@
 import React from 'react';
-import { Space, Select, Button, Table, Tag, Tooltip } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Space, Select, Button, Table, Tag, Tooltip } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositRecord } from '../../../types/barrel';
@@ -117,7 +117,13 @@ const DepositRecordTable: React.FC<DepositRecordTableProps> = ({
       key: 'refundRemark',
       ellipsis: true,
       render: (remark?: string | null) =>
-        remark ? <Tooltip title={remark}>{remark}</Tooltip> : '-',
+        remark ? (
+          <Tooltip title={remark}>
+            <span>{remark}</span>
+          </Tooltip>
+        ) : (
+          '-'
+        ),
     },
     {
       title: '创建时间',
@@ -136,7 +142,7 @@ const DepositRecordTable: React.FC<DepositRecordTableProps> = ({
           placeholder="状态筛选"
           {...stylex.props(styles.statusSelect)}
           value={statusFilter}
-          onChange={onStatusFilterChange}
+          onChange={(value) => onStatusFilterChange(value as string | undefined)}
           options={Object.entries(DEPOSIT_RECORD_STATUS_MAP).map(([value, info]) => ({
             value,
             label: info.text,
@@ -148,7 +154,7 @@ const DepositRecordTable: React.FC<DepositRecordTableProps> = ({
           placeholder="规格筛选"
           {...stylex.props(styles.specSelect)}
           value={specification || undefined}
-          onChange={(value) => onSpecificationChange(value ?? '')}
+          onChange={(value) => onSpecificationChange((value as string | undefined) ?? '')}
           options={Array.from(new Set(dataSource.map((r) => r.specification).filter(Boolean))).map(
             (spec) => ({ value: spec as string, label: spec as string }),
           )}

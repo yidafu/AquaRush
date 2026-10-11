@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Switch, Modal } from 'antd';
+import { Form, Input, Select, Switch, Modal } from '@/ui';
 import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { AdminFormData, FormModalProps } from './types';
 
@@ -16,7 +16,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
   loading = false,
   isSuperAdmin = true,
 }) => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<AdminFormData>();
   const selectedRole = Form.useWatch('role', form);
   // 头像/用户名联动:未上传头像时预览根据用户名自动生成的默认头像
   const username = Form.useWatch('username', form);
@@ -88,7 +88,9 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
           extra={isDeliveryWorker ? '送水员用户名由系统自动生成（delivery_{账号ID}）' : undefined}
           rules={[
             {
-              validator: (_, value) => {
+              validator: (_, rawValue) => {
+                // @/ui AntdRule.validator 的 value 上下文类型为 {},按字符串窄化(运行时语义不变)
+                const value = rawValue as string;
                 if (isDeliveryWorker && !value) {
                   return Promise.resolve();
                 }

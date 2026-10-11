@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, Input, DatePicker, Space, Button } from 'antd';
+import { Select, Input, DatePicker, Space, Button } from '@/ui';
 import type { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { TYPE_LABELS, RECEIVER_LABELS } from './constants';
@@ -53,7 +53,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
       allowClear
       {...stylex.props(styles.typeSelect)}
       value={filters.messageType}
-      onChange={(v) => onChange({ messageType: v })}
+      onChange={(v: unknown) => onChange({ messageType: v as string | undefined })}
     >
       {Object.entries(TYPE_LABELS).map(([value, info]) => (
         <Option key={value} value={value}>{info.label}</Option>
@@ -64,7 +64,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
       allowClear
       {...stylex.props(styles.receiverSelect)}
       value={filters.receiverType}
-      onChange={(v) => onChange({ receiverType: v })}
+      onChange={(v: unknown) => onChange({ receiverType: v as string | undefined })}
     >
       {Object.entries(RECEIVER_LABELS).map(([value, label]) => (
         <Option key={value} value={value}>{label}</Option>

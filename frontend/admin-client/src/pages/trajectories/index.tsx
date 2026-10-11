@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Row, Empty, Card, message } from 'antd';
+import { Row, Empty, Card, message } from '@/ui';
 import { useQuery } from '@apollo/client';
 import type { DeliveryTrajectoryVo, DeliveryWorkerVo } from '@aquarush/common';
 import { BRAND_PRIMARY, COLOR_SUCCESS, COLOR_ERROR } from '../../config/theme';

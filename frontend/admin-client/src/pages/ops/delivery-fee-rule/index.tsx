@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Card, Form, InputNumber, Button, Modal, Alert, Space, Descriptions, Row, Col, Typography, Switch } from 'antd';
-import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { Card, Form, InputNumber, Button, Modal, Alert, Space, Descriptions, Row, Col, Typography, Switch } from '@/ui';
+import { PlusOutlined, MinusCircleOutlined } from '@/ui/icons';
 import { formatDateTime, centsToYuan, yuanToCents } from '@aquarush/common';
 import { useDeliveryFeeRule, useSaveDeliveryFeeRule } from '../../../services/ops-graphql';
 import * as stylex from '@stylexjs/stylex';

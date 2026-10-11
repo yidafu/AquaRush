@@ -9,11 +9,11 @@ import {
   Tag,
   Popconfirm,
   message
-} from 'antd';
+} from '@/ui';
 import {
   ArrowLeftOutlined,
   ReloadOutlined
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import { useMutation } from '@apollo/client';
 import { CANCEL_ORDER_MUTATION } from '../../../graphql/mutations/order.graphql';
 import { OrderDetailProvider, useOrderDetail } from './OrderDetailContext';
@@ -117,7 +117,6 @@ const OrderDetailContent: React.FC = () => {
         <Alert
           message="加载失败"
           description="订单详情加载失败，请稍后重试。"
-          type="error"
           action={
             <Space>
               <Button onClick={handleBack}>返回列表</Button>
@@ -126,6 +125,7 @@ const OrderDetailContent: React.FC = () => {
               </Button>
             </Space>
           }
+          type="error"
         />
       </div>
     );

@@ -1,4 +1,4 @@
-import type { TablePaginationConfig } from 'antd/es/table';
+import type { TablePaginationConfig } from '@/ui';
 
 /**
  * 表格分页工厂 —— 统一全项目 Table pagination 的 showSizeChanger/showQuickJumper/

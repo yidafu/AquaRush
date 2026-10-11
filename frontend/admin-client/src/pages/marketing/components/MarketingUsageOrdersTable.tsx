@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Space, Table, Tag } from 'antd';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Button, Space, Table, Tag } from '@/ui';
+import type { ColumnsType, TablePaginationConfig } from '@/ui';
 import { useNavigate } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';
 import { OrderStatus, displayCents, formatDateTime } from '@aquarush/common';

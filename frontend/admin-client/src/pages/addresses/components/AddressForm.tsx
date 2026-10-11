@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input, Checkbox } from 'antd';
+import { Modal, Form, Input, Checkbox } from '@/ui';
 import type { Address, AddressFormData } from './types';
 import { RegionCascader } from '../../../components/RegionCascader';
 import type { RegionCascaderValue } from '../../../components/RegionCascader';

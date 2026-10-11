@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Descriptions, Tag, Space } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Tag, Space } from '@/ui';
+import { ShoppingCartOutlined } from '@/ui/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import { displayCents, normalizeCents } from '@aquarush/common'
 import { getOrderStatusConfig } from '../../../../constants/order';

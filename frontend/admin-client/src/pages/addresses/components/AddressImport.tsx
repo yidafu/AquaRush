@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, Upload, Button, Table, Alert, Space, message } from 'antd';
-import { UploadOutlined, DownloadOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/es/upload/interface';
+import { Modal, Upload, Button, Table, Alert, Space, message } from '@/ui';
+import { UploadOutlined, DownloadOutlined } from '@/ui/icons';
+import type { UploadFile } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { AddressInput, ExcelRowData } from './types';
 

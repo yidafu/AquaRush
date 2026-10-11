@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Select, Spin } from 'antd';
+import { Select, Spin } from '@/ui';
 import { useLazyQuery } from '@apollo/client';
 import type { ProductVo } from '@aquarush/common';
 import { GET_PRODUCTS_QUERY } from '../graphql/queries/product.graphql';
@@ -51,7 +51,10 @@ const ProductSelect: React.FC<Props> = ({
       showSearch
       optionFilterProp="label"
       value={value != null ? String(value) : undefined}
-      onChange={(v) => onChange?.(v)}
+      onChange={(v) => {
+        // @/ui Select onChange 泛型为 V | V[] | undefined;本组件单选 string,收窄后回传
+        if (typeof v === 'string') onChange?.(v);
+      }}
       options={options}
       placeholder={placeholder}
       allowClear={allowClear}

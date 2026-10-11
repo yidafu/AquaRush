@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Form, Select, message } from 'antd';
+import { Modal, Form, Select, message } from '@/ui';
 import type { DeliveryWorkerOption } from '../types';
 
 export interface BatchAssignModalProps {
@@ -45,7 +45,7 @@ const BatchAssignModal: React.FC<BatchAssignModalProps> = ({
       onCancel={onCancel}
       confirmLoading={confirmLoading}
       width={500}
-      destroyOnHidden
+      destroyOnClose
     >
       <Form layout="vertical">
         <Form.Item label="选择送水员" required>
@@ -53,7 +53,7 @@ const BatchAssignModal: React.FC<BatchAssignModalProps> = ({
             placeholder="选择送水员（仅在线可派单，R-ORD-08）"
             loading={workersLoading}
             value={workerId}
-            onChange={setWorkerId}
+            onChange={(value) => setWorkerId(typeof value === 'string' ? value : null)}
           >
             {workers.map((worker) => (
               <Select.Option key={worker.id} value={worker.id}>
