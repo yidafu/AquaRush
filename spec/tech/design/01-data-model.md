@@ -722,8 +722,8 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | | `delivery.immediate_minutes` | 30 | 立即配送时限文案 |
 | | `delivery.slot_morning/afternoon/evening.enabled` + `.window` | true / 09:00-12:00 / 14:00-18:00 / 18:00-21:00 | `deliverySlots` 下发（F-SYS-002） |
 | | `delivery.assign_timeout_remind_minutes` | — | 派单超时提醒 |
-| | `order_accept_timeout_minutes` | 30 | 接单超时预警·「待派单」超阈值（ORDER_ACCEPT_TIMEOUT 推送管理员；F-NTF-008/G94 规划中） |
-| | `delivery_start_timeout_minutes` | 60 | 接单超时预警·「待配送」未开始配送超阈值（DELIVERY_START_TIMEOUT；F-NTF-008/G94 规划中） |
+| | `order_accept_timeout_minutes` | 30 | 接单超时预警·「待派单」超阈值（ORDER_ACCEPT_TIMEOUT 推送管理员；F-NTF-008/G94 已实现 2026-10） |
+| | `delivery_start_timeout_minutes` | 60 | 接单超时预警·「待配送」未开始配送超阈值（DELIVERY_START_TIMEOUT；F-NTF-008/G94 已实现 2026-10） |
 | | `delivery.timeout_minutes` | 120 | 配送超时推送（DELIVERY_TIMEOUT） |
 | STOCK | `stock.warning_threshold` | 10 | 库存预警（R-PRO-02，F-STA-006 同源） |
 | | `stock.warning_tiers` | <10 红/<50 橙/≥50 绿 | 列表着色 |

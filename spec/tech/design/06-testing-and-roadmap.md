@@ -36,7 +36,7 @@
 | 地址配送 | AC-ADR-003-01~03（范围校验三态）、AC-ADR-012-05/07（弱网补传/拒绝上报）、AC-ADR-013-01~06（片区启停/推荐） |
 | 运营配置 | AC-OPS-005-01~06（楼层分档回显/计费/快照不追溯/配置校验拦截/审计留痕）、AC-OPS-005-07~09（起送门槛服务端拦截/距离阶梯加收/默认 0 不启用——R-OPS-03，G96 规划中） |
 | 用户 | AC-USR-001-04/07/08（自动建用户/单飞/回跳）、AC-USR-020-07~10（停用失效/删除保护）、AC-USR-022-10（统计全量口径）、AC-USR-023-02~06（兼送水同权） |
-| 通知 | AC-NTF-001-06~08（降级/门控/回写）、AC-NTF-003-04/05（补发/去重）、AC-NTF-007-01~08（提醒频率上限/场景开关）、AC-NTF-008-01~05（接单超时预警：双阈值/幂等不重复/预警前状态变化不发/阈值即时生效——R-NTF-07，G94 规划中） |
+| 通知 | AC-NTF-001-06~08（降级/门控/回写）、AC-NTF-003-04/05（补发/去重）、AC-NTF-007-01~08（提醒频率上限/场景开关）、AC-NTF-008-01~05（接单超时预警：双阈值/幂等不重复/预警前状态变化不发/阈值即时生效——R-NTF-07，G94 已实现 2026-10，单测覆盖 OrderAcceptTimeoutScannerTest/NotificationEventHandlerTest/NotificationGatewayServiceTest + OrderRepositoryImplTest 锚点分页） |
 | 统计 | AC-STA-002-08~12（口径与负净营收）、AC-STA-005-09~13（分布合计）、AC-STA-007-13（快照两段合并一致） |
 
 ### 1.4 端到端场景（AC-E2E-01~03，集成测试顶层）
@@ -90,11 +90,11 @@
 
 > ~~G83 企业客户~~：原列本批次，**[暂缓]**（2026-10-10 决策）移出。
 
-### 批次 D · 调研报告 v2 新增（P2 排期待定，2026-10-11 立项 G94~G97）
+### 批次 D · 调研报告 v2 新增（2026-10-11 立项 G94~G97；G94 已于 2026-10 实现，其余 P2 排期待定）
 
 | 缺口 | 交付 |
 | --- | --- |
-| G94 | 接单超时预警（OrderAcceptTimeoutScanner 双阈值扫描 → ORDER_ACCEPT_TIMEOUT/DELIVERY_START_TIMEOUT 事件 → 推送全体管理员；阈值参数入 F-SYS-002；复用通知网关幂等落库+WS，无新 API） |
+| ~~G94~~ | 接单超时预警**已交付（2026-10）**：OrderAcceptTimeoutScanner 双阈值分页扫描 → ORDER_ACCEPT_TIMEOUT/DELIVERY_START_TIMEOUT 事件 → 通知网关幂等落库全体管理员站内预警（ADMIN 接收类型）；阈值参数入 F-SYS-002；无新 API；残余（目标形态/裁决）：WS 推送不接入、超时升级通知本期不做——见 03 §18 实现记录 |
 | G95 | 号码保护（送水工端订单查询按订单状态服务端裁剪收货人电话；管理员不受限；无新表，改查询投影+权限主体判定） |
 | G96 | 起送门槛与距离阶梯运费（delivery_fee_rules 增 minimum_order_cents/distance_tiers + store_profiles 增经纬度；orderPreview 下发 belowMinimum + createOrder 拦截；计价叠加进 R-MON-02 快照） |
 | G97 | 水票运营策略（ticket_types 增三列引流票/复购激活/单次核销上限；核销前置校验与 createOrder 截断；后台票种表单扩展） |

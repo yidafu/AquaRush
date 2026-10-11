@@ -19,7 +19,7 @@
       <span class="chip">F-SYS-002</span>
       <span class="chip chip-partial">部分实现</span>
       <span class="chip chip-goal">目标形态</span>
-      <span class="chip chip-plan">F-NTF-008 预警阈值 规划中</span>
+      <span class="chip chip-ok">F-NTF-008 预警阈值 已实现</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -211,16 +211,16 @@
                       <div class="input" style="width:180px"><span>30</span></div>
                       <span class="f-note t-sub">分钟</span>
                     </div>
-                    <div class="f-note t-weak mt2">订单「待派单」超过阈值仍无人接单 → 预警管理员（ORDER_ACCEPT_TIMEOUT，站内 + WebSocket，R-NTF-07/F-NTF-008）；2026-10-11 新增规划中，缺口 G94；预警仅一次（同订单同阶段幂等）。</div>
+                    <div class="f-note t-weak mt2">订单「待派单」超过阈值仍无人接单 → 预警管理员（ORDER_ACCEPT_TIMEOUT，站内消息后台消息列表可查，WebSocket 目标形态，R-NTF-07/F-NTF-008）；2026-10 新增并已实现，缺口 G94 已解决；预警仅一次（同订单同阶段幂等）。</div>
                   </div>
 
                   <div class="field mb0">
-                    <label>开始配送超时预警阈值（分钟） <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 30 ｜ 取值 &gt; 0</span> <span class="tag tag-goal"></span></label>
+                    <label>开始配送超时预警阈值（分钟） <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 60 ｜ 取值 &gt; 0</span> <span class="tag tag-goal"></span></label>
                     <div class="row gap2">
-                      <div class="input" style="width:180px"><span>30</span></div>
+                      <div class="input" style="width:180px"><span>60</span></div>
                       <span class="f-note t-sub">分钟</span>
                     </div>
-                    <div class="f-note t-weak mt2">订单「待配送」超过阈值未开始配送 → 预警管理员（DELIVERY_START_TIMEOUT，R-NTF-07/F-NTF-008，缺口 G94）；非法值 ≤0 回退默认。</div>
+                    <div class="f-note t-weak mt2">订单「待配送」超过阈值未开始配送 → 预警管理员（DELIVERY_START_TIMEOUT，R-NTF-07/F-NTF-008，缺口 G94 已解决 2026-10）；非法值 ≤0 回退默认；默认 60 按 PRD R-NTF-07（修正原稿 30）。</div>
                   </div>
                 </div>
 

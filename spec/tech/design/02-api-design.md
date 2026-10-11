@@ -275,7 +275,7 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `notifications(input{messageType,receiverType,keyword,read,startAt,endAt,page,size})` / `notification(id)` | NOTIFICATION_READ | 后台消息列表（默认近 30 天）+ 详情（原设计名 type/readStatus/dateRange，现状为 messageType/read/startAt/endAt） |
 | `resendNotification(id)` | NOTIFICATION_WRITE（仅超管） | 失败订阅消息重发（复用全部门控；站内消息不重推） |
 
-> **接单超时预警（F-NTF-008/R-NTF-07，规划中 G94）**：无新 API——`OrderAcceptTimeoutScanner` 调度（admin）扫描「待派单/待配送」超阈值订单 → `ORDER_ACCEPT_TIMEOUT` / `DELIVERY_START_TIMEOUT` 事件（outbox）→ 通知网关落库 + WS 推送**全体管理员**（幂等键=订单号+事件类型，R-NTF-07）；阈值参数 `order_accept_timeout_minutes`（默认 30）/`delivery_start_timeout_minutes`（默认 60）入 F-SYS-002。
+> **接单超时预警（F-NTF-008/R-NTF-07，已实现 2026-10 G94）**：无新 API——`OrderAcceptTimeoutScanner` 调度（5 分钟周期）扫描「待派单/待配送」超阈值订单 → `ORDER_ACCEPT_TIMEOUT` / `DELIVERY_START_TIMEOUT` 事件（outbox）→ 通知网关落库**全体管理员站内预警**（接收人类型 ADMIN，幂等键=订单号+事件类型+阶段锚点，R-NTF-07）；阈值参数 `order_accept_timeout_minutes`（默认 30）/`delivery_start_timeout_minutes`（默认 60）入 F-SYS-002；WS 推送为目标形态本期不接入（偏差见 03 §18 实现记录）。
 
 ---
 
