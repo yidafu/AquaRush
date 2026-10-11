@@ -200,6 +200,10 @@ type UserTicketVo {
   status: UserTicketStatus!
   expireTime: LocalDateTime!
   isGift: Boolean!
+  # G97 复购激活:true=待激活(复购条件未满足,不可核销)
+  pendingActivation: Boolean!
+  # G97 复购激活单数(空=非激活票)
+  activationOrderCount: Int
 }
 
 enum UserTicketStatus {
@@ -382,6 +386,10 @@ type TicketTypeAdminVo {
   validDays: Int
   perUserLimit: Int!
   status: TicketTypeStatus!
+  # G97 运营策略(R-MKT-08 修订)
+  isLeadGeneration: Boolean!
+  activationOrderCount: Int
+  maxRedeemPerOrder: Int
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
@@ -424,6 +432,10 @@ input CreateTicketTypeInput {
   validTo: LocalDateTime
   validDays: Int
   perUserLimit: Int!
+  # G97 运营策略(R-MKT-08 修订)
+  isLeadGeneration: Boolean
+  activationOrderCount: Int
+  maxRedeemPerOrder: Int
 }
 
 input UpdateTicketTypeInput {
@@ -439,6 +451,10 @@ input UpdateTicketTypeInput {
   validTo: LocalDateTime
   validDays: Int
   perUserLimit: Int!
+  # G97 运营策略(R-MKT-08 修订)
+  isLeadGeneration: Boolean
+  activationOrderCount: Int
+  maxRedeemPerOrder: Int
 }
 
 # ============ 限时特价活动(F-MKT-005) ============

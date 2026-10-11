@@ -39,6 +39,8 @@ open class TicketPurchaseModel(
   var paymentStatus: TicketPurchaseStatus = TicketPurchaseStatus.PENDING,
   var transactionId: String? = null,
   var paidAt: LocalDateTime? = null,
+  // G97 复购激活基线:购票时刻用户已完成订单数;仅票种启用复购激活时落值,NULL=该购票单不参与激活判定
+  var completedOrdersAtPurchase: Int? = null,
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   override var deletedAt: LocalDateTime? = null,

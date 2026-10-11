@@ -110,6 +110,8 @@ class NotificationWsHandler(
     return when (receiverType) {
       NotificationReceiverType.USER -> userQueryApiService.findByWechatOpenId(username)?.id
       NotificationReceiverType.WORKER -> adminService.findByUsername(username)?.id
+      // 管理员预警仅落库站内消息(读取面=后台消息列表),网关不向 ADMIN 定向推送,不注册会话(F-NTF-008)
+      NotificationReceiverType.ADMIN -> null
     }
   }
 }

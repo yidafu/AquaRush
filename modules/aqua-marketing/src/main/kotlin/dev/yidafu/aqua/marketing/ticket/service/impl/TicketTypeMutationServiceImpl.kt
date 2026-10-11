@@ -57,6 +57,7 @@ class TicketTypeMutationServiceImpl(
     val validityType = input.validityType.toDomain()
     validateType(ticketType, input.productId, input.specification)
     validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
+    validateStrategy(input.activationOrderCount, input.maxRedeemPerOrder)
     val ticketTypeModel =
       TicketTypeModel(
         name = input.name,
@@ -71,6 +72,9 @@ class TicketTypeMutationServiceImpl(
         validTo = input.validTo,
         validDays = input.validDays,
         perUserLimit = input.perUserLimit,
+        isLeadGeneration = input.isLeadGeneration ?: false,
+        activationOrderCount = normalizeCount(input.activationOrderCount),
+        maxRedeemPerOrder = normalizeCount(input.maxRedeemPerOrder),
         status = TicketTypeStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -103,6 +107,7 @@ class TicketTypeMutationServiceImpl(
     val validityType = input.validityType.toDomain()
     validateType(kind, input.productId, input.specification)
     validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
+    validateStrategy(input.activationOrderCount, input.maxRedeemPerOrder)
     ticketType.name = input.name
     ticketType.ticketType = kind
     ticketType.productId = input.productId
@@ -115,6 +120,9 @@ class TicketTypeMutationServiceImpl(
     ticketType.validTo = input.validTo
     ticketType.validDays = input.validDays
     ticketType.perUserLimit = input.perUserLimit
+    ticketType.isLeadGeneration = input.isLeadGeneration ?: false
+    ticketType.activationOrderCount = normalizeCount(input.activationOrderCount)
+    ticketType.maxRedeemPerOrder = normalizeCount(input.maxRedeemPerOrder)
     val saved = ticketTypeRepository.save(ticketType)
     logger.info("Admin {} updated ticket type {}", adminId, id)
 
@@ -179,4 +187,18 @@ class TicketTypeMutationServiceImpl(
       else -> Unit
     }
   }
+
+  /**
+   * G97 运营策略服务层校验(GraphQL input 已 @min/@max 双重约束):
+   * 0/空 = 不启用(归一为 null 落库);激活单数与单次核销上限 0~100。
+   */
+  private fun validateStrategy(
+    activationOrderCount: Int?,
+    maxRedeemPerOrder: Int?,
+  ) {
+    require(activationOrderCount == null || activationOrderCount in 0..100) { "复购激活单数无效(0-100)" }
+    require(maxRedeemPerOrder == null || maxRedeemPerOrder in 0..100) { "单次核销上限无效(0-100)" }
+  }
+
+  private fun normalizeCount(value: Int?): Int? = value?.takeIf { it > 0 }
 }

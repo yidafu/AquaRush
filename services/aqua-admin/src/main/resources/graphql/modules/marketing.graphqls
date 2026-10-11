@@ -413,6 +413,12 @@ type TicketTypeAdminVo {
   validDays: Int
   perUserLimit: Int!
   status: TicketTypeStatus!
+  # G97 运营策略(R-MKT-08 修订):引流票标记(拉新专享,仅新用户可购)
+  isLeadGeneration: Boolean!
+  # G97 复购激活单数(NULL=不启用;购票后需再完成 N 单方可核销)
+  activationOrderCount: Int
+  # G97 单次核销上限(NULL=不限;单笔订单该票种核销张数 ≤ N)
+  maxRedeemPerOrder: Int
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
@@ -452,6 +458,13 @@ input CreateTicketTypeInput {
   validTo: LocalDateTime
   validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
   perUserLimit: Int! @min(value: 0, message: "限购数无效") @max(value: 1000, message: "限购数不能超过1000")
+  # G97 运营策略(R-MKT-08 修订,票种级可配开关、默认不启用)
+  # 引流票:小额票拉新,仅无已完成订单的新用户可购(口径同 R-MKT-10)
+  isLeadGeneration: Boolean
+  # 复购激活单数:0/空=不启用;N=购票后需再完成 N 单方可核销
+  activationOrderCount: Int @min(value: 0, message: "复购激活单数无效") @max(value: 100, message: "复购激活单数不能超过100")
+  # 单次核销上限:0/空=不限;单笔订单该票种核销张数 ≤ N
+  maxRedeemPerOrder: Int @min(value: 0, message: "单次核销上限无效") @max(value: 100, message: "单次核销上限不能超过100")
 }
 
 input UpdateTicketTypeInput {
@@ -467,6 +480,13 @@ input UpdateTicketTypeInput {
   validTo: LocalDateTime
   validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
   perUserLimit: Int! @min(value: 0, message: "限购数无效") @max(value: 1000, message: "限购数不能超过1000")
+  # G97 运营策略(R-MKT-08 修订,票种级可配开关、默认不启用)
+  # 引流票:小额票拉新,仅无已完成订单的新用户可购(口径同 R-MKT-10)
+  isLeadGeneration: Boolean
+  # 复购激活单数:0/空=不启用;N=购票后需再完成 N 单方可核销
+  activationOrderCount: Int @min(value: 0, message: "复购激活单数无效") @max(value: 100, message: "复购激活单数不能超过100")
+  # 单次核销上限:0/空=不限;单笔订单该票种核销张数 ≤ N
+  maxRedeemPerOrder: Int @min(value: 0, message: "单次核销上限无效") @max(value: 100, message: "单次核销上限不能超过100")
 }
 
 # 桶水票票种销售/使用统计(后台票种详情图表,F-MKT-007)

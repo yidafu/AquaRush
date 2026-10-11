@@ -41,6 +41,9 @@ interface TicketPurchaseRepository {
 
   fun findById(id: Long): Optional<TicketPurchaseModel>
 
+  /** 批量按 id 查询(复购激活基线装载,G97;空集合直接返回空)。 */
+  fun findByIds(ids: List<Long>): List<TicketPurchaseModel>
+
   /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
   fun save(entity: TicketPurchaseModel): TicketPurchaseModel
 

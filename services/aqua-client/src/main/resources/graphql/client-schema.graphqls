@@ -197,6 +197,10 @@ type TicketTypeVo {
   perUserLimit: Int!
   # 当前用户已购张数(限购判定展示)
   myPurchasedCount: Int!
+  # G97 运营策略:引流票标记(购票页「拉新专享」角标;仅无已完成订单的新用户可购)
+  isLeadGeneration: Boolean!
+  # G97 复购激活单数(空=不启用;卡面「需复购 N 单后可核销」)
+  activationOrderCount: Int
 }
 
 # UserTicketVo / UserTicketStatus 已上移 shared-config/graphql/shared-types.graphqls

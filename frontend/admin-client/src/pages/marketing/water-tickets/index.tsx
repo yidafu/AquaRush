@@ -127,6 +127,17 @@ const WaterTickets: React.FC = () => {
       render: (perUserLimit: number) => (perUserLimit > 0 ? `${perUserLimit}套` : '不限'),
     },
     {
+      title: '运营策略',
+      width: 170,
+      render: (_, record) => {
+        const tags: React.ReactNode[] = [];
+        if (record.isLeadGeneration) tags.push(<Tag key="lead" color="magenta">拉新专享</Tag>);
+        if ((record.activationOrderCount ?? 0) > 0) tags.push(<Tag key="activation" color="orange">复购激活{record.activationOrderCount}单</Tag>);
+        if ((record.maxRedeemPerOrder ?? 0) > 0) tags.push(<Tag key="cap" color="cyan">单次限{record.maxRedeemPerOrder}张</Tag>);
+        return tags.length > 0 ? tags : '—';
+      },
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       width: 90,

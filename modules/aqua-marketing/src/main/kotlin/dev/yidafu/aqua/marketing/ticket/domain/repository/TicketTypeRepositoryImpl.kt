@@ -69,6 +69,9 @@ class TicketTypeRepositoryImpl(
       validTo = row[TicketTypesTable.validTo],
       validDays = row[TicketTypesTable.validDays],
       perUserLimit = row[TicketTypesTable.perUserLimit],
+      isLeadGeneration = row[TicketTypesTable.isLeadGeneration],
+      activationOrderCount = row[TicketTypesTable.activationOrderCount],
+      maxRedeemPerOrder = row[TicketTypesTable.maxRedeemPerOrder],
       status = TicketTypeStatus.fromValue(row[TicketTypesTable.status]),
       createdAt = row[TicketTypesTable.createdAt],
       updatedAt = row[TicketTypesTable.updatedAt],
@@ -168,6 +171,9 @@ class TicketTypeRepositoryImpl(
           it[validTo] = entity.validTo
           it[validDays] = entity.validDays
           it[perUserLimit] = entity.perUserLimit
+          it[isLeadGeneration] = entity.isLeadGeneration
+          it[activationOrderCount] = entity.activationOrderCount
+          it[maxRedeemPerOrder] = entity.maxRedeemPerOrder
           it[status] = entity.status.name
           it[updatedAt] = now
         }
@@ -186,6 +192,9 @@ class TicketTypeRepositoryImpl(
           it[validTo] = entity.validTo
           it[validDays] = entity.validDays
           it[perUserLimit] = entity.perUserLimit
+          it[isLeadGeneration] = entity.isLeadGeneration
+          it[activationOrderCount] = entity.activationOrderCount
+          it[maxRedeemPerOrder] = entity.maxRedeemPerOrder
           it[status] = entity.status.name
           it[TicketTypesTable.createdAt] = entity.createdAt
           it[updatedAt] = entity.updatedAt

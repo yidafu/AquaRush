@@ -26,8 +26,10 @@ import dev.yidafu.aqua.common.domain.table.activeOnly
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import org.jetbrains.exposed.v1.core.LongColumnType
 import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
@@ -62,6 +64,7 @@ class TicketPurchaseRepositoryImpl(
       paymentStatus = TicketPurchaseStatus.fromValue(row[TicketPurchasesTable.paymentStatus]),
       transactionId = row[TicketPurchasesTable.transactionId],
       paidAt = row[TicketPurchasesTable.paidAt],
+      completedOrdersAtPurchase = row[TicketPurchasesTable.completedOrdersAtPurchase],
       createdAt = row[TicketPurchasesTable.createdAt],
       updatedAt = row[TicketPurchasesTable.updatedAt],
       deletedAt = row[TicketPurchasesTable.deletedAt],
@@ -119,6 +122,17 @@ class TicketPurchaseRepositoryImpl(
       }?.let(::toModel),
     )
 
+  override fun findByIds(ids: List<Long>): List<TicketPurchaseModel> {
+    if (ids.isEmpty()) return emptyList()
+    return transaction(database) {
+      TicketPurchasesTable
+        .selectAll()
+        .andWhere { TicketPurchasesTable.id inList ids }
+        .orderBy(TicketPurchasesTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+  }
+
   override fun save(entity: TicketPurchaseModel): TicketPurchaseModel =
     transaction(database) {
       val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
@@ -141,6 +155,7 @@ class TicketPurchaseRepositoryImpl(
           it[paymentStatus] = entity.paymentStatus.name
           it[transactionId] = entity.transactionId
           it[paidAt] = entity.paidAt
+          it[completedOrdersAtPurchase] = entity.completedOrdersAtPurchase
           it[updatedAt] = now
         }
       } else {
@@ -156,6 +171,7 @@ class TicketPurchaseRepositoryImpl(
           it[paymentStatus] = entity.paymentStatus.name
           it[transactionId] = entity.transactionId
           it[paidAt] = entity.paidAt
+          it[completedOrdersAtPurchase] = entity.completedOrdersAtPurchase
           it[TicketPurchasesTable.createdAt] = entity.createdAt
           it[updatedAt] = entity.updatedAt
         }

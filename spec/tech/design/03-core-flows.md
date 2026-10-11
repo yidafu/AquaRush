@@ -162,7 +162,7 @@ subtotal(现金) = Σ 未被票/赠覆盖的 item：成交单价×数量        
 - 批量派单：逐单执行同语句（或单事务批量），失败单回显原因；
 - 就近派单（F-ADR-013）：派单弹窗按订单地址所属片区（省市区匹配）**置顶推荐**片区绑定且在线的送水工，仍可人工改选；
 - 派单超时提醒（`delivery.assign_timeout_remind_minutes`）：待派单滞留超阈值 → 提醒管理员（通知域）；
-- 接单超时预警（F-NTF-008/R-NTF-07，规划中 G94）：与配送超时（G72）对称覆盖「无人接单」侧——「待派单」超 `order_accept_timeout_minutes`（默认 30 分钟）→ ORDER_ACCEPT_TIMEOUT、「待配送」超 `delivery_start_timeout_minutes`（默认 60 分钟）→ DELIVERY_START_TIMEOUT，均推送**全体管理员**（站内 + WS，幂等键=订单号+事件类型、同阶段仅一次，预警前已接单/取消则不发）；调度接入见 §21；
+- 接单超时预警（F-NTF-008/R-NTF-07，已实现 2026-10 G94）：与配送超时（G72）对称覆盖「无人接单」侧——「待派单」超 `order_accept_timeout_minutes`（默认 30 分钟）→ ORDER_ACCEPT_TIMEOUT（阶段锚点=coalesce(支付时刻,建单时刻)）、「待配送」超 `delivery_start_timeout_minutes`（默认 60 分钟）→ DELIVERY_START_TIMEOUT（阶段锚点=派单时刻），落库**全体管理员站内预警**（接收人类型 ADMIN；幂等键=订单号+事件类型+阶段锚点、同阶段仅一次，预警前已接单/取消则不发）；WS 实时推送为目标形态本期不接入（偏差见 §18 实现记录）；调度接入见 §21；
 - 号码保护（F-ORD-032/R-ORD-17，规划中 G95）：送水工端任务/订单查询由服务端按订单状态裁剪收货人电话——仅 PENDING_DELIVERY/DELIVERING 下发完整号码，其余状态下发脱敏串（前端不可绕过）；ADMIN/SUPER_ADMIN 兼送水不受限（02 §4.4）。
 
 ## 7. 转单（R-ORD-15，目标形态）
@@ -233,14 +233,35 @@ completeDelivery（仅本人 DELIVERING 单，单事务）:
 退回: 订单取消/退款 → 已核销未过期票 RETURNED（回票夹可复用）；过期作废 EXPIRED
 退款: 未核销且未过期按张退（TICKET_REFUND 计入退款统计）；已核销/已过期不可退
 目标增强【G91】: 送达侧扫码核销（或下单侧预扣+送达确认），使核销与服务交付对齐
-运营策略【G97，规划中排期待定】（票种级开关，默认不启用，R-MKT-08 修订）:
-  引流票: is_lead_generation 标记（拉新票种标签，不改变核销语义）
-  复购激活: activation_order_count=N 时核销前置校验
-            （当前已完成订单数 − ticket_purchases.completed_orders_at_purchase 基线 ≥ N）
-            不满足 → 拒核销提示「完成复购后可用」；判定口径/上限计法随实现细化【开放决策】
-  单次核销上限: max_redeem_per_order=N → createOrder 入口
-            ticketRedeemCount 截断 + 服务端校验 ≤ N（防一次性清票）
+运营策略【G97，已实现 2026-10】（票种级开关，默认不启用，R-MKT-08 修订）:
+  引流票: is_lead_generation 标记 → 购票门禁:仅无已完成订单新用户可购(口径同 R-MKT-10)
+            (purchaseTickets 服务层 hasCompletedOrders 校验,违规拒绝;核销语义不变)
+  复购激活: activation_order_count=N(0/空=关) → 购票单落基线 completed_orders_at_purchase
+            (启用票种购票时刻的已完成订单数;未启用/启用前存量单为 NULL 不参与判定)
+            核销前置:当前已完成订单数 − 基线 ≥ N → 自动可用;
+            不满足 → 「待激活」派生态(查询侧 findPendingActivationIds 判定,不入库)
+            候选池剔除 + 显式请求超已激活池且存在待激活 → 拒「水票待激活:需完成复购后方可核销」
+  单次核销上限: max_redeem_per_order=N(0/空=不限) → 计法=单笔订单 × 票种 ≤ N
+            TicketRule 按票种截断(组内先过期先用,组合后重排 FIFO),
+            请求超截断池且上限确为瓶颈 → 拒「超出单次核销上限」;普通存量不足保持静默截断
+            preview.availableTicketCount = 截断后池大小(确认页勾选上限随之收敛)
 ```
+
+**G97 实现记录与偏差清单（2026-10）**:
+1. **激活判定口径(开放问题裁决)**:基线=启用票种**购票单创建时刻**的已完成订单数（`ticket_purchases.completed_orders_at_purchase`,V348）,
+   激活条件=当前完成单数−基线≥N;**条件满足自动可用,无手动激活动作**;「待激活」为查询侧派生展示态
+   （`UserTicketVo.pendingActivation`,服务端 `TicketQueryApiService.findPendingActivationIds` 一次判定）,
+   **不新增持久化状态**——user_tickets 仍四态,`redeemAtomically` 原子条件与防重核销不变。
+2. **上限计法(开放问题裁决)**:「单张票单笔订单最多核销 N 张」定为**单笔订单 × 票种**维度（非单票维度）;
+   实现=构池按票种截断 + 超限拒绝;`availableTicketCount` 同步按截断后池下发。
+3. **门禁优先级**:待激活 > 单次上限 > 普通存量不足(截断)——三者均以 `min(请求张数, 下单桶数)` 为有效请求比较;
+   正常 UI 流(勾选数 ≤ preview 可用数)不会触发拒绝,拒绝仅兜底直连 API 与并发边界。
+4. **引流票「拉新首购」判定(裁决)**:= R-MKT-10 新用户口径（无已完成订单）,**作用于购票环节**(非核销环节),
+   核销语义与普通票一致;与 R-MKT-007 首单链路正交。
+5. **配置变更口径**:策略仅对**启用后新购**的购票单生效(基线仅在启用时落值),遵循 R-MKT-08「票种/套餐配置变更不影响已购票」;
+   票种侧停用激活(N→NULL)即时生效于已落基线的存量票(策略开关按票种当前值,基线按购票时快照)。
+6. **效果区未实现残留(裁决)**:拉新首购转化/激活率/上限触发次数三指标——转化缺漏斗口径(无曝光/访问埋点)、
+   触发缺事件埋点,成本不可控,**本期不实现**,记残留待口径齐备后补（_spec/10-marketing.md 页面 11）。
 
 ## 11. 配送费（R-MON-02 / F-OPS-005）
 
@@ -391,14 +412,32 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
   补水提醒: 用户近 N 次订单平均间隔（默认 30 天）判定 + 频率上限（同人 7 天 1 条）
             + 幂等键=用户+场景+期次；不向用户发周期提醒（2026-10-11 新方向，周期订单生成后仅提醒送水工，§12）
   周期提醒 / 券到期(默认 3 天窗口) / 水票余量 / 积分到期 / 配送超时(默认120分钟)
-接单超时预警（F-NTF-008/R-NTF-07，规划中 G94 排期待定）:
-  OrderAcceptTimeoutScanner 调度（admin）分页扫描「待派单/待配送」:
+接单超时预警（F-NTF-008/R-NTF-07，已实现 2026-10 G94）:
+  OrderAcceptTimeoutScanner 调度（aqua-trade，5 分钟周期）分页扫描「待派单/待配送」:
     待派单 超 order_accept_timeout_minutes(默认30) → ORDER_ACCEPT_TIMEOUT
+      （阶段锚点 = coalesce(paid_at, created_at):在线支付以支付时刻、代客下单以落库时刻起算）
     待配送 超 delivery_start_timeout_minutes(默认60) → DELIVERY_START_TIMEOUT
-  → 事件经 outbox 投递 → 通知网关落库 + WS 推送全体管理员（摘要含订单号/金额/超时时长，
-    关联单号跳订单详情）；幂等键=订单号+事件类型（同订单同状态阶段仅预警一次，R-NTF-07）；
-    预警前订单被接单/开始配送/取消 → 不预警（扫描时状态谓词过滤，AC-NTF-008-04）
+      （阶段锚点 = assigned_at 派单时刻）
+  → 事件经 outbox 投递 → 通知网关落库全体管理员站内预警（接收人类型 ADMIN，
+    摘要含订单号/金额/超时时长，关联单号跳订单详情，后台消息列表 F-NTF-006 可查）；
+    幂等键=订单号+事件类型+阶段锚点（同订单同状态阶段仅预警一次，R-NTF-07）；
+    预警前订单被接单/开始配送/取消 → 不预警（扫描状态谓词 + 消费端状态复核，AC-NTF-008-04）
+    【偏差】WS 推送全体管理员为目标形态本期不接入（见 §18 G94 实现记录）
 ```
+
+**G94 实现记录与偏差清单（2026-10）**:
+1. 无新 API（沿用设计）——新增 `OrderAcceptTimeoutScanner`（aqua-trade，5 分钟周期）、
+   `OrderAcceptTimeoutNotificationHandler` / `DeliveryStartTimeoutNotificationHandler`（aqua-platform）、
+   仓储分页查询 `findByStatusAndDispatchAnchorBefore` / `findByStatusAndAssignedAtBefore`（规则 13 分页游标，禁全表）。
+2. **接收人模型偏差**:新增 `NotificationReceiverType.ADMIN`（GraphQL 枚举同步）,预警落库为**全体管理员共享单条站内消息**
+   （不逐管理员复制;后台消息列表 F-NTF-006 为读取面;已读态共享,列表无逐人已读交互）。
+3. **WS 实时推送不接入（偏差）**:admin-client 无 WebSocket 客户端与未读角标,现有 `/ws/notifications` 会话仅覆盖 USER/WORKER;
+   网关对 ADMIN 仅落库不推送,WS 链路接入留目标形态（触达面=后台消息列表站内消息）。
+4. **幂等锚点**:事件时间取阶段稳定锚点（待派单=支付/建单时刻、待配送=派单时刻）而非扫描时刻,
+   使幂等键 `订单号:事件类型:锚点` 跨次扫描/双服务并发不变（R-NTF-07 = 订单号+事件类型+阶段）。
+5. **开放问题裁决**:「超时升级（多次预警通知超管）」本期不做——每阶段仅一次预警,超时未处理由消息常驻后台消息列表人工跟进。
+6. **阈值默认值口径**:`delivery_start_timeout_minutes` 默认 60 按 PRD R-NTF-07 与本技术设计定稿
+   （`_spec/11-system-settings.md` 与 order-fulfillment.html 原稿「默认 30」已同步修正）。
 
 ## 19. 轨迹上报（R-ADR-03）
 
@@ -439,7 +478,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
 | SubscriptionScheduler | 每日 05:30 | aqua.subscription.scan-cron(默认 `0 30 5 * * *`) | 周期计划扫描 → 幂等生成 CASH 订单进待派单 → 发 SUBSCRIPTION_ORDER_CREATED 提醒送水工；失败记 last_error 次日重试（G77 后台侧已实现，§12） |
 | EnterpriseBillScheduler | 每日 | — | 账期到期生成月结账单（**[暂缓]** G83，不实现） |
 | DeliveryTimeoutScanner | 周期扫描 | delivery.timeout_minutes(120) | 配送超时事件+定向推送（幂等键=订单号+场景+开始配送时间） |
-| OrderAcceptTimeoutScanner | 周期扫描 | order_accept_timeout_minutes(30) / delivery_start_timeout_minutes(60) | 接单超时预警（F-NTF-008/G94 规划中）：待派单/待配送超阈值 → ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT 推送全体管理员（幂等键=订单号+事件类型） |
+| OrderAcceptTimeoutScanner | 每 5 分钟 | order_accept_timeout_minutes(30) / delivery_start_timeout_minutes(60) | 接单超时预警（F-NTF-008/G94 已实现 2026-10）：待派单/待配送超阈值 → ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT 落库全体管理员站内预警（幂等键=订单号+事件类型+阶段锚点；WS 推送目标形态不接入，见 §18 实现记录） |
 | CouponExpiringScanner | 每日 | coupon_expiring_notify_days(3) | 券到期提醒（幂等键=券id+场景+过期时间） |
 | ReplenishReminderScanner | 每日 | 平均周期 30 天 / 频率 7 天 1 条 | 补水/余量/余额提醒（幂等键=用户+场景+期次） |
 | PointsExpiryScanner | 每日 | 批次有效期 | 积分到期作废+提前提醒 |
@@ -457,7 +496,7 @@ computeDeliveryFee(floor, selfPickup, rule, distance?):
 | PAYMENT_EXPIRY_CHECK | payment-expiry-events（**仅 admin 订阅**） | `PaymentExpiryCheckConsumer` → handlePaymentTimeout（R-ORD-04 主触发，`next_run_at` 到期投递） |
 | DELIVERY_ASSIGNED / DELIVERY_STARTED / DELIVERY_COMPLETED / DELIVERY_TIMEOUT | delivery-events | 通知网关（被派单/开始配送/送达确认/超时定向推送）、DeliveryAssignmentHandler、DeliveryTimeoutHandler |
 | SUBSCRIPTION_ORDER_CREATED | delivery-events（缺省路由分支） | `SubscriptionOrderNotificationHandler`（平台层 `notification/gateway/NotificationEventHandler.kt`，G77 后台侧已实现）→ 发 NOTIFICATION_SEND：绑定送水工定向站内+WS/系统通知栏、未绑定广播（不落库）；开关 delivery_push_subscription_enabled（默认开），见 §12/F-NTF-003 |
-| ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT | delivery-events | **规划中**（F-NTF-008/R-NTF-07，G94 排期待定，代码未落）：接单超时预警——路由随 DELIVERY_TIMEOUT 惯例，通知网关落库 + WS 推送全体管理员（幂等键=订单号+事件类型，见 §18） |
+| ORDER_ACCEPT_TIMEOUT / DELIVERY_START_TIMEOUT | delivery-events | **已实现（2026-10）**（F-NTF-008/R-NTF-07，G94）：接单超时预警——路由随 DELIVERY_TIMEOUT 惯例，通知网关落库全体管理员站内预警（接收人类型 ADMIN，幂等键=订单号+事件类型+阶段锚点，见 §18） |
 | USER_REGISTERED / USER_UPDATED / COUPON_EXPIRING | user-events | COUPON_EXPIRING → 通知网关（券到期提醒）；USER_* 现状预留（消费端仅记 warn，按需挂处理器） |
 | ADDRESS_UPDATED / PRODUCT_UPDATED | delivery-events（缺省路由分支） | UpdateOrderSearchContentHandler / UpdateOrderSearchContentForProductHandler（订单搜索内容刷新） |
 | NOTIFICATION_SEND | notifications-events | `NotificationMessageConsumer` → 消息网关组装落库 notifications 并分发（03 §18） |

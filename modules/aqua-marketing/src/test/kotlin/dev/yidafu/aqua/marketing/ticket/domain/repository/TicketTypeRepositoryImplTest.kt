@@ -88,4 +88,33 @@ class TicketTypeRepositoryImplTest :
       page0.content.map { it.id } shouldContainExactly listOf(a)
       page1.content.map { it.id } shouldContainExactly listOf(b)
     }
+
+    test("运营策略三列落库回读(G97)") {
+      val saved =
+        repo.save(
+          TicketTypeModel(
+            name = "引流票",
+            packageCount = 1,
+            packagePriceCents = 100L,
+            isLeadGeneration = true,
+            activationOrderCount = 2,
+            maxRedeemPerOrder = 3,
+          ),
+        )
+
+      val loaded = repo.findById(saved.id!!).orElse(null).shouldNotBeNull()
+      loaded.isLeadGeneration shouldBe true
+      loaded.activationOrderCount shouldBe 2
+      loaded.maxRedeemPerOrder shouldBe 3
+
+      loaded.isLeadGeneration = false
+      loaded.activationOrderCount = null
+      loaded.maxRedeemPerOrder = null
+      repo.save(loaded)
+
+      val disabled = repo.findById(saved.id!!).orElse(null).shouldNotBeNull()
+      disabled.isLeadGeneration shouldBe false
+      disabled.activationOrderCount shouldBe null
+      disabled.maxRedeemPerOrder shouldBe null
+    }
   })

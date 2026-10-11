@@ -84,4 +84,8 @@ class DbChangelogMaster :
     include(file = "db/changelog/changes/V347AddSubscriptions", logicalFilePath = "db/changelog/changes/v3.4.7-add-subscriptions.xml")
     // G93 微信支付对账收尾(F-ORD-031/R-PAY-04):任务表触发方式/微信与本地汇总列 + SKIPPED/IGNORED 状态值域
     include(file = "db/changelog/changes/V347AlignReconciliationSchema", logicalFilePath = "db/changelog/changes/v3.4.7-align-reconciliation-schema.xml")
+    // G94 接单超时预警(F-NTF-008/R-NTF-07):F-SYS-002 派单与确认组新增两阈值参数种子
+    include(file = "db/changelog/changes/V347AddOrderAcceptTimeoutParams", logicalFilePath = "db/changelog/changes/v3.4.7-add-order-accept-timeout-params.xml")
+    // G97 水票运营策略(R-MKT-08 修订):ticket_types 引流票/复购激活/单次核销上限 + ticket_purchases 激活基线
+    include(file = "db/changelog/changes/V348AddTicketOperationStrategy", logicalFilePath = "db/changelog/changes/v3.4.8-add-ticket-operation-strategy.xml")
   })

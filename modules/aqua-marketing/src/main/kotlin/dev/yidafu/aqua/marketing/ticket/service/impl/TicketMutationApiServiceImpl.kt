@@ -21,8 +21,10 @@ package dev.yidafu.aqua.marketing.ticket.service.impl
 
 import dev.yidafu.aqua.api.dto.PurchaseTicketsRequest
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
@@ -39,14 +41,17 @@ import java.time.format.DateTimeFormatter
 
 /**
  * 桶水票用户侧变更服务实现(F-MKT-007):
- * 购票(校验 ACTIVE+限购,建 PENDING 购票单)→ 支付回调入账(原子 PENDING→PAID+票包入账 N+M,幂等)→ 取消退票。
- * 购票即预收款项,一经购买不支持退款(R-MKT-08)。
+ * 购票(校验 ACTIVE+限购+引流票新客门禁,建 PENDING 购票单)→ 支付回调入账(原子 PENDING→PAID+票包入账 N+M,幂等)→ 取消退票。
+ * 购票即预收款项,未核销且未过期可退(2026-10 修订,R-MKT-08)。
+ * G97 运营策略(R-MKT-08 修订):引流票仅新用户(无已完成订单,口径同 R-MKT-10)可购;
+ * 复购激活票种在购票单落「购票时已完成订单数」基线,核销侧按基线差判定待激活。
  */
 @Service
 class TicketMutationApiServiceImpl(
   private val ticketTypeRepository: TicketTypeRepository,
   private val ticketPurchaseRepository: TicketPurchaseRepository,
   private val userTicketRepository: UserTicketRepository,
+  private val orderQueryApiService: OrderQueryApiService,
   private val bizLogger: BizLogger,
 ) : TicketMutationApiService {
   @Transactional
@@ -68,6 +73,18 @@ class TicketMutationApiServiceImpl(
         throw IllegalArgumentException("超过限购张数(限购 ${ticketType.perUserLimit} 张)")
       }
     }
+    val activationEnabled = (ticketType.activationOrderCount ?: 0) > 0
+    // G97 引流票门禁:拉新首购——仅无已完成订单的新用户可购(口径同 R-MKT-10 新用户判定)
+    if (ticketType.isLeadGeneration && orderQueryApiService.hasCompletedOrders(userId)) {
+      throw IllegalArgumentException("引流票仅限新用户(无已完成订单)购买")
+    }
+    // G97 复购激活基线:仅启用激活的票种落基线(启用前已购存量单不参与激活判定,配置变更不影响已购票 R-MKT-08)
+    val completedOrdersAtPurchase =
+      if (activationEnabled) {
+        orderQueryApiService.countByUserIdGroupByStatus(userId)[OrderModelStatus.COMPLETED]?.toInt() ?: 0
+      } else {
+        null
+      }
     val giftCount = ticketType.giftCount * request.packageCount
     val totalCount = request.packageCount + giftCount
     val now = LocalDateTime.now()
@@ -81,6 +98,7 @@ class TicketMutationApiServiceImpl(
         totalCount = totalCount,
         packagePriceCents = ticketType.packagePriceCents * request.packageCount,
         paymentStatus = TicketPurchaseStatus.PENDING,
+        completedOrdersAtPurchase = completedOrdersAtPurchase,
         createdAt = now,
         updatedAt = now,
       )

@@ -390,6 +390,9 @@ object MarketingPgTestSupport {
     validTo: LocalDateTime? = now().plusDays(365),
     validDays: Int? = null,
     perUserLimit: Int = 0,
+    isLeadGeneration: Boolean = false,
+    activationOrderCount: Int? = null,
+    maxRedeemPerOrder: Int? = null,
     status: String = "ACTIVE",
     createdAt: LocalDateTime = now(),
     deleted: Boolean = false,
@@ -409,6 +412,9 @@ object MarketingPgTestSupport {
         it[TicketTypesTable.validTo] = validTo
         it[TicketTypesTable.validDays] = validDays
         it[TicketTypesTable.perUserLimit] = perUserLimit
+        it[TicketTypesTable.isLeadGeneration] = isLeadGeneration
+        it[TicketTypesTable.activationOrderCount] = activationOrderCount
+        it[TicketTypesTable.maxRedeemPerOrder] = maxRedeemPerOrder
         it[TicketTypesTable.status] = status
         it[TicketTypesTable.createdAt] = createdAt
         it[TicketTypesTable.updatedAt] = createdAt
@@ -429,6 +435,7 @@ object MarketingPgTestSupport {
     paymentStatus: String = "PAID",
     transactionId: String? = null,
     paidAt: LocalDateTime? = now(),
+    completedOrdersAtPurchase: Int? = null,
     createdAt: LocalDateTime = now(),
     deleted: Boolean = false,
   ): Long =
@@ -445,6 +452,7 @@ object MarketingPgTestSupport {
         it[TicketPurchasesTable.paymentStatus] = paymentStatus
         it[TicketPurchasesTable.transactionId] = transactionId
         it[TicketPurchasesTable.paidAt] = paidAt
+        it[TicketPurchasesTable.completedOrdersAtPurchase] = completedOrdersAtPurchase
         it[TicketPurchasesTable.createdAt] = createdAt
         it[TicketPurchasesTable.updatedAt] = createdAt
         it[TicketPurchasesTable.isDeleted] = deleted

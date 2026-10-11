@@ -47,6 +47,9 @@ fun TicketTypeModel.toGraphQL(): TicketTypeAdminVo =
     validDays = validDays,
     perUserLimit = perUserLimit,
     status = status.toGraphQL(),
+    isLeadGeneration = isLeadGeneration,
+    activationOrderCount = activationOrderCount,
+    maxRedeemPerOrder = maxRedeemPerOrder,
     createdAt = createdAt,
     updatedAt = updatedAt,
   )

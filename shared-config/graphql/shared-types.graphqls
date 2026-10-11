@@ -2610,6 +2610,10 @@ type UserTicketVo {
   expireTime: LocalDateTime!
   # 是否赠送票
   isGift: Boolean!
+  # G97 复购激活:true=待激活(复购条件未满足,不可核销;票夹置灰提示)
+  pendingActivation: Boolean!
+  # G97 复购激活单数(空=非激活票;文案「需复购 N 单后可核销」)
+  activationOrderCount: Int
 }
 
 enum UserTicketStatus {
@@ -2632,7 +2636,7 @@ enum NotificationType {
 type NotificationVo {
   id: PrimaryId!
   type: NotificationType!
-  # 接收人类型(USER/WORKER,后台消息列表展示)
+  # 接收人类型(USER/WORKER/ADMIN,后台消息列表展示;ADMIN=全体管理员共享预警,F-NTF-008)
   receiverType: NotificationReceiverType!
   # 触发场景(领域事件名,如 ORDER_PAID)
   scene: String!
@@ -2677,10 +2681,11 @@ type SubscribeTemplateVo {
   enabled: Boolean!
 }
 
-# 通知接收人类型(后台消息列表筛选,F-NTF-006)
+# 通知接收人类型(后台消息列表筛选,F-NTF-006;ADMIN=全体管理员,F-NTF-008 接单超时预警)
 enum NotificationReceiverType {
   USER
   WORKER
+  ADMIN
 }
 
 # ============ 水桶押金(R-MON-03 / R-PRO-04,B2 押金模型回退 2026-10) ============

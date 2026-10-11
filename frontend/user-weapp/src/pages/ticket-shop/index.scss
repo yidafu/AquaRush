@@ -101,6 +101,11 @@
     line-height: 1.5;
     color: var(--weui-FG-1);
   }
+
+  // G97 复购激活警示文案(ticket-mall.html f-note t-warn)
+  .ticket-meta-line--warn {
+    color: var(--weui-ORANGE);
+  }
 }
 
 // 价格行:套餐价(金额红)+ 立即购买(品牌蓝)
