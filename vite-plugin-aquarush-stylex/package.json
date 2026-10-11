@@ -1,0 +1,36 @@
+{
+  "name": "vite-plugin-aquarush-stylex",
+  "version": "1.0.0",
+  "description": "Compile-time StyleX for AquaRush: runs @stylexjs/babel-plugin in vite transform and exposes extracted CSS via virtual:stylex.css (mini-program safe, no runtime <style> injection)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc"
+  },
+  "keywords": [
+    "stylex",
+    "vite-plugin",
+    "taro",
+    "aquarush"
+  ],
+  "author": "AquaRush Team",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@babel/core": "^7.28.5",
+    "@stylexjs/babel-plugin": "^0.19.1"
+  },
+  "devDependencies": {
+    "@stylexjs/stylex": "^0.19.1",
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^24.10.1",
+    "typescript": "~5.9.3"
+  }
+}

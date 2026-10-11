@@ -60,6 +60,16 @@
       "import": "./src/hooks/index.ts",
       "default": "./src/hooks/index.ts"
     },
+    "./theme": {
+      "types": "./src/theme/index.ts",
+      "import": "./src/theme/index.ts",
+      "default": "./src/theme/index.ts"
+    },
+    "./theme/tokens.stylex": {
+      "types": "./src/theme/tokens.stylex.ts",
+      "import": "./src/theme/tokens.stylex.ts",
+      "default": "./src/theme/tokens.stylex.ts"
+    },
     "./types": {
       "types": "./src/types/index.ts",
       "import": "./src/types/index.ts",
@@ -74,6 +84,11 @@
       "types": "./src/tracking/index.ts",
       "import": "./src/tracking/index.ts",
       "default": "./src/tracking/index.ts"
+    },
+    "./stylex": {
+      "types": "./src/stylex/props.ts",
+      "import": "./src/stylex/props.ts",
+      "default": "./src/stylex/props.ts"
     }
   },
   "scripts": {
@@ -91,6 +106,7 @@
   "author": "AquaRush Team",
   "license": "ISC",
   "dependencies": {
+    "@stylexjs/stylex": "^0.19.1",
     "taro-ui": "^3.3.0"
   },
   "devDependencies": {

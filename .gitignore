@@ -131,6 +131,8 @@ coverage/
 # Ignore Gradle build output directory
 build
 frontend/user-weapp/src/constants/qqmap.ts
+# weapp tsconfig outDir:tsc -b 类型检查的副产物(非源码)
+frontend/user-weapp/lib/
 /data
 services/aqua-admin/data/
 !frontend/admin-client/src/pages/logs
