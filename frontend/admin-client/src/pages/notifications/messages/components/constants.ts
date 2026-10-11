@@ -2,7 +2,7 @@
 
 export interface NotificationRecord {
   id: string;
-  receiverType: 'USER' | 'WORKER';
+  receiverType: 'USER' | 'WORKER' | 'ADMIN';
   type: 'ORDER' | 'SYSTEM' | 'ANNOUNCEMENT' | 'FEEDBACK';
   scene: string;
   title: string;
@@ -28,6 +28,7 @@ export const TYPE_LABELS: Record<string, { label: string; color: string }> = {
 export const RECEIVER_LABELS: Record<string, string> = {
   USER: '用户',
   WORKER: '送水工',
+  ADMIN: '管理员', // 接单超时预警等管理员站内消息(F-NTF-008/G94)
 };
 
 export const CHANNEL_STATUS_LABELS: Record<string, { label: string; color: string }> = {

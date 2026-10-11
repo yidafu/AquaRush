@@ -5,7 +5,7 @@ import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 
-// 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单提醒,保存即生效
+// 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单提醒/接单超时预警阈值(F-NTF-008/G94),保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);已生成订单不受影响(快照原则,R-SYS-01)
 
 interface SlotConfig {
@@ -45,6 +45,8 @@ interface OrderConfigValues {
   paymentTimeoutMinutes?: number;
   immediateMinutes?: number;
   dispatchTimeoutReminderMinutes?: number;
+  orderAcceptTimeoutMinutes?: number;
+  deliveryStartTimeoutMinutes?: number;
   slots: Record<string, { enabled: boolean; range?: [Dayjs, Dayjs] }>;
 }
 
@@ -86,6 +88,8 @@ const SystemOrderConfig: React.FC = () => {
       paymentTimeoutMinutes: numberValue(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES),
       immediateMinutes: numberValue(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES),
       dispatchTimeoutReminderMinutes: numberValue(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES),
+      orderAcceptTimeoutMinutes: numberValue(SystemSettingKeys.ORDER_ACCEPT_TIMEOUT_MINUTES),
+      deliveryStartTimeoutMinutes: numberValue(SystemSettingKeys.DELIVERY_START_TIMEOUT_MINUTES),
       slots: slotValues,
     });
   }, [data, form]);
@@ -102,6 +106,8 @@ const SystemOrderConfig: React.FC = () => {
     pushNumber(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES, values.paymentTimeoutMinutes);
     pushNumber(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES, values.immediateMinutes);
     pushNumber(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES, values.dispatchTimeoutReminderMinutes);
+    pushNumber(SystemSettingKeys.ORDER_ACCEPT_TIMEOUT_MINUTES, values.orderAcceptTimeoutMinutes);
+    pushNumber(SystemSettingKeys.DELIVERY_START_TIMEOUT_MINUTES, values.deliveryStartTimeoutMinutes);
     for (const slot of SLOTS) {
       const slotValue = values.slots?.[slot.label];
       if (!slotValue) continue;
@@ -187,10 +193,26 @@ const SystemOrderConfig: React.FC = () => {
             }
           </Form.List>
 
-          <Divider plain>派单提醒</Divider>
+          <Divider plain>派单与确认</Divider>
           <Form.Item
             name="dispatchTimeoutReminderMinutes"
             label="派单超时提醒(分钟)"
+            rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+          </Form.Item>
+          <Form.Item
+            name="orderAcceptTimeoutMinutes"
+            label="接单超时预警阈值(分钟)"
+            extra="订单「待派单」超阈值仍无人接单 → 预警管理员(站内消息,同订单同阶段仅预警一次,R-NTF-07/F-NTF-008)"
+            rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
+          </Form.Item>
+          <Form.Item
+            name="deliveryStartTimeoutMinutes"
+            label="开始配送超时预警阈值(分钟)"
+            extra="订单「待配送」超阈值仍未开始配送 → 预警管理员(站内消息,R-NTF-07/F-NTF-008)"
             rules={[{ required: true, message: '参数无效' }, { type: 'number', min: 1, message: '参数无效' }]}
           >
             <InputNumber style={{ width: '100%' }} min={1} precision={0} disabled={!canWrite} />
