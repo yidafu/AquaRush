@@ -94,6 +94,9 @@ class NotificationRepositoryImpl(
         (NotificationsTable.receiverType eq receiverType.name) and (NotificationsTable.userId eq receiverId)
       NotificationReceiverType.WORKER ->
         (NotificationsTable.receiverType eq receiverType.name) and (NotificationsTable.workerId eq receiverId)
+      // 全体管理员共享消息(F-NTF-008):无逐接收人过滤,读取面为后台消息列表全局视图(F-NTF-006)
+      NotificationReceiverType.ADMIN ->
+        NotificationsTable.receiverType eq receiverType.name
     }
 
   private fun contentAndCount(

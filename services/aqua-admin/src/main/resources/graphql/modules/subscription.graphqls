@@ -1,0 +1,108 @@
+# 周期订购计划(G77/F-ORD-026,后台入口:到期自动生成代客下单订单并提醒送水工,R-ORD-13)
+
+extend type Query {
+  # 计划列表(分页+筛选:关键字=用户昵称/手机号、状态、下次配送时间区间;PERMISSION_SUBSCRIPTION_READ)
+  subscriptions(input: SubscriptionListInput): SubscriptionVoPage!
+  # 计划详情
+  subscription(subscriptionId: PrimaryId!): SubscriptionVo
+}
+
+extend type Mutation {
+  # 创建计划(绑定用户+收货地址;PERMISSION_SUBSCRIPTION_WRITE)
+  createSubscription(input: CreateSubscriptionInput!): SubscriptionVo!
+  # 暂停/恢复/终止(终止不可恢复,需新建)
+  pauseSubscription(subscriptionId: PrimaryId!): SubscriptionVo!
+  resumeSubscription(subscriptionId: PrimaryId!): SubscriptionVo!
+  terminateSubscription(subscriptionId: PrimaryId!): SubscriptionVo!
+}
+
+type SubscriptionVo {
+  id: PrimaryId!
+  # 计划归属用户
+  user: UserVo
+  # 收货地址(生成订单时取当时值快照,R-ORD-13)
+  address: AddressVo
+  # 绑定送水工(可空:设置后到期定向提醒,未设置则广播提醒)
+  workerId: PrimaryId
+  workerName: String
+  cycleType: SubscriptionCycleType!
+  # 每周/每两周配送星期(ISO 1=周一..7=周日);MONTHLY 为空数组
+  weekdays: [Int!]!
+  # 每月配送日(1-31);WEEKLY/BIWEEKLY 为 null
+  monthDay: Int
+  timeSlot: DeliveryTimeSlot!
+  startDate: String!
+  endDate: String
+  nextRunDate: String!
+  maxPeriods: Int
+  executedPeriods: Int!
+  status: SubscriptionStatus!
+  remark: String
+  # 最近一次到期执行失败原因(不静默,次日重试)
+  lastError: String
+  lastRunAt: LocalDateTime
+  items: [SubscriptionItemVo!]!
+  createdAt: LocalDateTime!
+}
+
+type SubscriptionItemVo {
+  productId: PrimaryId!
+  productName: String!
+  quantity: Int!
+}
+
+type SubscriptionVoPage {
+  content: [SubscriptionVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input SubscriptionListInput {
+  page: Int = 0
+  size: Int = 20
+  search: String
+  status: SubscriptionStatus
+  # 下次配送时间区间 yyyy-MM-dd
+  nextRunFrom: String
+  nextRunTo: String
+}
+
+input CreateSubscriptionInput {
+  userId: PrimaryId! @positive(message: "用户ID必须为正数")
+  addressId: PrimaryId! @positive(message: "收货地址ID必须为正数")
+  # 绑定送水工(可空)
+  workerId: PrimaryId
+  items: [SubscriptionItemInput!]!
+  cycleType: SubscriptionCycleType!
+  # WEEKLY/BIWEEKLY 必填(1=周一..7=周日)
+  weekdays: [Int!]
+  # MONTHLY 必填(1-31)
+  monthDay: Int
+  timeSlot: DeliveryTimeSlot!
+  # 生效日期 yyyy-MM-dd
+  startDate: String! @notBlank(message: "生效日期不能为空")
+  # 终止日期 yyyy-MM-dd(可空)
+  endDate: String
+  # 期次上限(可空,>=1)
+  maxPeriods: Int
+  remark: String @size(max: 500, message: "备注长度不能超过500个字符")
+}
+
+input SubscriptionItemInput {
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  quantity: Int! @min(value: 1, message: "数量必须大于0") @max(value: 999, message: "数量不能超过999")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  TERMINATED
+}
+
+enum SubscriptionCycleType {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}

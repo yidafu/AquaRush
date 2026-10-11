@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>用户端 · 确认订单｜AquaRush UI 设计稿</title>
+<title>用户端 · 确认订单｜奔泉 UI 设计稿</title>
 <link rel="stylesheet" href="../../assets/tokens.css">
 <link rel="stylesheet" href="../../assets/ui.css">
 <link rel="stylesheet" href="../../assets/weui.css">
@@ -21,7 +21,7 @@
       <span class="chip chip-ok">已实现</span>
       <span class="chip">F-ORD-023</span>
       <span class="chip chip-partial">部分实现</span>
-      <span class="chip chip-plan">F-OPS-005 起送门槛 规划中</span>
+      <span class="chip chip-ok">F-OPS-005 起送门槛 已实现 2026-10-11</span>
       <span class="chip chip-plain">user-weapp · WeUI</span>
     </div>
   </header>
@@ -180,8 +180,8 @@
               </div>
               <div class="weui-cells__tips">楼层 3 层，处于免费楼层（默认 4 层）内；超出免费楼层按档加收（2 层内 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">+¥</span><span class="weui-price__int">2</span><span class="weui-price__dec">.00</span></span> / 再上 3 层 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">+¥</span><span class="weui-price__int">5</span><span class="weui-price__dec">.00</span></span>）。</div>
 
-              <!-- 起送门槛拦截提示（目标形态，R-OPS-03/G96） -->
-              <div class="weui-notice weui-notice--red mt2">商品金额未达起送金额 ¥30.00，还差 ¥5.00，暂不能提交（起送门槛 · 目标形态 G96）</div>
+              <!-- 起送门槛拦截提示（R-OPS-03/G96，已实现 2026-10-11） -->
+              <div class="weui-notice weui-notice--red mt2">商品金额未达起送金额 ¥30.00，还差 ¥5.00，暂不能提交（起送门槛 G96 已实现）</div>
 
               <!-- 服务条款 -->
               <div class="weui-cells mt3">
@@ -489,7 +489,7 @@
         <p><strong>状态：</strong>空态（地址为空时地址行显示「请选择收货地址」+「选择地址」）；加载态（预检 loading；提交中按钮文案固定「提交中...」且禁用）；禁用态（提交期间防重复提交）；本页创建的订单落入「待支付」（30 分钟超时自动取消并恢复库存）。支付方式区仅微信支付（<strong>无余额支付选项</strong>——用户储值不做，2026-10-09 合规决策）。</p>
         <p><strong>金额口径：</strong>商品金额按成交单价计；减项 <code>-¥x</code>（微信电商红）；赠品 ¥0.00；配送费免费楼层（默认 4 层）内显示「免配送费」，超出按档加价；水桶押金首次为该规格购桶时收取、可退；实付 = 商品金额 − 优惠 − 水票抵扣 + 配送费 + 水桶押金。</p>
         <p><strong>设计要点：</strong>地址行须为「紧凑两行」；配送时段选中态为分段控件白底高亮；金额一律两位小数且全部用 <code>.weui-price</code>；条款未勾选不得提交；商品图严禁卡通插画，统一「实拍图占位」；强调橙每屏 ≤ 3 处。</p>
-        <p><strong>起送门槛（R-OPS-03，缺口 G96 <span class="tag tag-goal"></span> 规划中）：</strong>商品金额低于后台配置门槛（示例 ¥30.00）时提交拦截——客户端展示红色提示「商品金额未达起送金额 ¥30.00，还差 ¥5.00」，服务端同步校验拦截；起送门槛 0 = 不启用；画布内红色提示条为目标形态。距离阶梯运费（与楼层分档叠加）配置见后台 F-OPS-005。</p>
+        <p><strong>起送门槛（R-OPS-03，缺口 G96 <span class="tag tag-ok"></span> 已实现 2026-10-11）：</strong>商品金额低于后台配置门槛（示例 ¥30.00）时提交拦截——客户端按 orderPreview.belowMinimum 展示红色提示「商品金额未达起送金额 ¥30.00，还差 ¥5.00」并禁提交，服务端 createOrder 同步校验拦截（最终防线）；起送门槛 0 = 不启用。距离阶梯运费（与楼层分档叠加）配置见后台 F-OPS-005。</p>
       </div>
     </div>
 

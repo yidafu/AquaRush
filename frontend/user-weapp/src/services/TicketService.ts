@@ -49,6 +49,8 @@ class TicketService {
           validDays
           perUserLimit
           myPurchasedCount
+          isLeadGeneration
+          activationOrderCount
         }
       }
     `
@@ -84,6 +86,8 @@ class TicketService {
           status
           expireTime
           isGift
+          pendingActivation
+          activationOrderCount
         }
       }
     `

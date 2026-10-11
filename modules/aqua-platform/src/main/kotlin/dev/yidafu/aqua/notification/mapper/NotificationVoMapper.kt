@@ -37,10 +37,10 @@ object NotificationVoMapper {
       id = model.id ?: 0L,
       type = NotificationType.valueOfLabel(model.messageType.name) ?: NotificationType.SYSTEM,
       receiverType =
-        if (model.receiverType == NotificationReceiverType.USER) {
-          GraphQlNotificationReceiverType.USER
-        } else {
-          GraphQlNotificationReceiverType.WORKER
+        when (model.receiverType) {
+          NotificationReceiverType.USER -> GraphQlNotificationReceiverType.USER
+          NotificationReceiverType.WORKER -> GraphQlNotificationReceiverType.WORKER
+          NotificationReceiverType.ADMIN -> GraphQlNotificationReceiverType.ADMIN
         },
       scene = model.scene,
       title = model.title,
@@ -73,6 +73,7 @@ object NotificationVoMapper {
     when (receiverType) {
       GraphQlNotificationReceiverType.USER -> NotificationReceiverType.USER
       GraphQlNotificationReceiverType.WORKER -> NotificationReceiverType.WORKER
+      GraphQlNotificationReceiverType.ADMIN -> NotificationReceiverType.ADMIN
       null -> null
     }
 }

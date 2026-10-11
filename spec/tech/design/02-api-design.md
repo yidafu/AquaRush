@@ -89,8 +89,8 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 
 | 名称 | 权限 | 说明 |
 | --- | --- | --- |
-| `orderPreview(input)` | authenticated | 确认订单页**单请求**预览：按 R-MKT 链路服务端计价，返回逐行成交价/划线价、优惠明细（满减/立减/会员折扣/券）、可选券列表、可用水票、押金、配送费（楼层分档 + 距离阶梯加价【R-OPS-03 规划中,G96】）、赠品行、应付合计，并返回起送门槛信息（`minimumOrderCents`/`belowMinimum`，未达时前端禁提交+提示——R-OPS-03 规划中，服务端 createOrder 二次拦截为最终防线）（F-ORD-001） |
-| `createOrder(input)` | authenticated | 提交下单。input：items[{productId,quantity}]×1~20、addressId、deliveryTime（时段枚举，缺省 IMMEDIATE）、remark、preferredCouponId?（0=不用券，缺省引擎自动选最优）、ticketRedeemCount?、clientRequestId（幂等）；服务端全量重算并校验金额（含**起送门槛拦截**——商品金额 < `minimum_order_cents` 抛 BUSINESS_RULE「未达起送金额」，自提单豁免，R-OPS-03 规划中；水票单次核销上限校验随 G97）、扣库存、核销券/票、收押金、落快照；创建 `PENDING_PAYMENT`（月结单另见 §4.3，**[暂缓]**） |
+| `orderPreview(input)` | authenticated | 确认订单页**单请求**预览：按 R-MKT 链路服务端计价，返回逐行成交价/划线价、优惠明细（满减/立减/会员折扣/券）、可选券列表、可用水票、押金、配送费（楼层分档 + 距离阶梯加价【R-OPS-03,G96 已实现 2026-10-11】）、赠品行、应付合计，并返回起送门槛信息（`minimumOrderCents`/`belowMinimum`，未达时前端禁提交+提示——服务端 createOrder 二次拦截为最终防线，已实现）（F-ORD-001） |
+| `createOrder(input)` | authenticated | 提交下单。input：items[{productId,quantity}]×1~20、addressId、deliveryTime（时段枚举，缺省 IMMEDIATE）、remark、preferredCouponId?（0=不用券，缺省引擎自动选最优）、ticketRedeemCount?、clientRequestId（幂等）；服务端全量重算并校验金额（含**起送门槛拦截**——商品成交小计 < `minimum_order_cents` 抛 BUSINESS_RULE「商品金额未达起送金额 ¥X，还差 ¥Y」，自提单豁免，R-OPS-03/G96 已实现 2026-10-11；水票单次核销上限校验 G97 已实现——TicketRule 按票种截断 + 超限拒绝）、扣库存、核销券/票、收押金、落快照；创建 `PENDING_PAYMENT`（月结单另见 §4.3，**[暂缓]**） |
 | `myOrders(statuses,page,size)` | authenticated | 订单列表：`statuses: [OrderStatus!]` 数组筛选（缺省=全部），前端 Tab 映射为状态数组——全部/待付款/待配送(PENDING_DISPATCH+PENDING_DELIVERY)/配送中/已完成（10/页）；「已取消/已退款」在全部以标签呈现 |
 | `order(id)` | authenticated | 详情：步骤条/地址卡/商品卡（划线价）/费用明细/时间线（order_operations）/按状态操作集 |
 | `myOrderStatistics` | authenticated | 我的页角标单请求：total/pendingPayment/pendingDispatch/pendingDelivery/delivering/completed/cancelled/refunded（待配送口径=两项之和） |
@@ -99,7 +99,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `urgeOrder(orderId)` | authenticated | 催单：仅本人配送中订单；服务端 5 分钟防抖；发 ORDER_URGING 事件双端推送（F-ORD-008） |
 | `createReview(input{orderId,deliveryWorkerId,rating,comment,isAnonymous})` | authenticated | 一单一评（原设计名 reviewOrder）：1-5 星、comment ≤1000 字（R-EVL-01 的 500 字上限现状放宽至 1000）；提交前以 `orderReviewCheck(orderId)` 查可评状态（hasReviewed/canReview） |
 | `reorder(orderId)` | authenticated | 再来一单：校验在售/库存、剔除失效并提示、地址快照回填或默认地址、价格当前重算——返回待下单数据（本地缓存），不直接建单（R-ORD-12；G76 排期，schema 现状未落） |
-| `subscriptions(page,size)` / `createSubscription(input)` / `pauseSubscription(id)` / `resumeSubscription(id)` / `terminateSubscription(id)` | authenticated | 周期订购计划管理（R-ORD-13；G77 **[暂缓]** 2026-10-10 决策，schema 现状未落、不排期） |
+| `subscriptions` / `subscription` / `createSubscription` 等周期订购 API | — | **用户端本期不提供**(2026-10-11 新方向:入口仅管理后台,F-ORD-026 后台侧已实现);API 归 admin schema,签名见 §5.2 |
 | `deliverySlots` | authenticated | 配送时段配置下发（读 F-SYS-002：立即配送恒启用 + 上午/下午/晚上按启停与时间窗；未配置回退种子默认） |
 | `checkDeliveryArea(addressId)` | authenticated | 范围校验（片区省市区匹配）；**异常降级放行**（R-ADR-02）。缺陷 #3：底层 `isAddressInDeliveryArea` 现状恒放行、查询未落 schema——按裁决改代码接线（B3，PRD G07） |
 | `deliveryTracking(orderId)` | authenticated | 配送跟踪：订单状态门控（非配送中拦截「订单尚未开始配送」）；返回送水工姓名/电话/概略位置（latest location）、ETA；**不下发完整轨迹序列**（隐私，仅概略；F-ADR-010 目标形态，schema 现状未落） |
@@ -135,7 +135,7 @@ POST /api/auth/login     { username, password }   // admins 表，BCrypt 校验
 | `workbenchData` | DELIVERY_TASK | 工作台单请求：今日四卡（总订单/已完成/未完成/今日营收）+ 近 7 天双折线 + 快捷入口九宫格（30s 轮询）。现状替代实现：`todayStatistics`+`weekStatistics` 单请求双字段（§5.7），聚合查询补全列零散清单（A 类） |
 | `deliveryWorkerHistoryOrders(status,keyword,page,size)` | ORDER_READ | 历史订单（状态 Tab + 关键字，统计卡跳转；原设计名 workerHistoryOrders） |
 
-> **号码保护（F-ORD-032/R-ORD-17，规划中 G95）**：`workerTasks` / `deliveryWorkerHistoryOrders` / 订单详情查询对 DELIVERY_WORKER 主体**服务端按订单状态裁剪收货人电话**——仅 PENDING_DELIVERY/DELIVERING 返回完整号码，其余状态一律返回脱敏串（138\*\*\*\*1234），完整号码不下发（前端不可绕过，AC-ORD-032-05）；ADMIN/SUPER_ADMIN 主体（兼送水）不受限。`tel:` 一键拨号仅在有完整号码阶段渲染。
+> **号码保护（F-ORD-032/R-ORD-17，已实现 2026-10-11，G95 已闭环）**：`workerTasks` / `deliveryWorkerHistoryOrders` / 订单详情查询对 DELIVERY_WORKER 主体**服务端按订单状态裁剪收货人电话**——仅 PENDING_DELIVERY/DELIVERING 返回完整号码，其余状态一律返回脱敏串（138\*\*\*\*1234），完整号码不下发（前端不可绕过，AC-ORD-032-05）；ADMIN/SUPER_ADMIN 主体（兼送水）不受限。`tel:` 一键拨号仅在有完整号码阶段渲染。
 
 ### 4.5 消息中心（两端）
 
@@ -190,7 +190,8 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `reconciliationTasks(input{taskType,status,dateFrom,dateTo,page,size})` / `reconciliationTask(taskId)` / `reconciliationReports(taskId,reportType)` / `reconciliationDiscrepancies(input{taskId,status,page,size})` | RECONCILIATION_READ | 微信资金对账任务/报表/差异查询（B 类补录,现状签名;流程见 03 §16） |
 | `executeReconciliation(input{taskType,reconciliationDate})` / `resolveDiscrepancy(input{discrepancyId,resolutionNotes})` | RECONCILIATION_EXECUTE / RECONCILIATION_REVIEW | 发起支付/退款/结算对账（T-1/T-1/T-2 错峰,hasRunningTask 防并发）与差异处置留痕。**目标演进**（R-PAY-04,G93——billType/billDate 入参与 `PAYMENT_RECONCILIATION_*` 权限码为规划形态）见 [07-payment-reconciliation.md](07-payment-reconciliation.md) §8 |
 | `transfers(input)` | ORDER_READ | 转单记录查看（留痕；随 G84 排期，schema 现状未落） |
-| `subscriptions(input)` | ORDER_READ | 周期订购计划查看/管理（G77 **[暂缓]** 2026-10-10 决策，schema 现状未落、不排期） |
+| `subscriptions(input{page,size,search,status,nextRunFrom,nextRunTo})` / `subscription(subscriptionId)` | SUBSCRIPTION_READ | 周期订购计划列表/详情（F-ORD-026 后台侧已实现 2026-10-11，R-ORD-13；`SubscriptionVo` 含 user/address/items/workerName/lastError/nextRunDate/status 等；schema：`modules/subscription.graphqls`） |
+| `createSubscription(input)` / `pauseSubscription(subscriptionId)` / `resumeSubscription(subscriptionId)` / `terminateSubscription(subscriptionId)` | SUBSCRIPTION_WRITE | 创建计划（绑定用户+收货地址+可选 workerId，items/cycleType/weekdays/monthDay/timeSlot/startDate/endDate/maxPeriods）与暂停/恢复/终止（终止不可恢复）；到期由 SubscriptionScheduler 自动生成 CASH 订单进待派单并提醒送水工（03 §12） |
 
 ### 5.3 用户与账号域
 
@@ -232,7 +233,7 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `promotionActivities(input)` / `promotionActivity(id)` / `createPromotionActivity/updatePromotionActivity/disablePromotionActivity` | MKT_READ / MKT_WRITE | 满减/折扣（多档位；原设计名 promotions 系列按实现改名） |
 | `flashSaleActivities(input)` / `flashSaleActivity(id)` / `createFlashSaleActivity/updateFlashSaleActivity/disableFlashSaleActivity` | MKT_READ / MKT_WRITE | 限时特价（同商品时间窗重叠拦截；原设计名 flashSales 系列） |
 | `memberLevels` / `upsertMemberLevel` | MKT_READ / MKT_WRITE | 会员等级与权益（门槛递增唯一；schema 现状未落，G80 排期 A 类） |
-| `ticketTypes(input)` / `ticketType(id)` / `createTicketType/updateTicketType/disableTicketType` / `ticketTypeStats(ticketTypeId,input)` | MKT_READ / MKT_WRITE | 票种管理 + 票种统计（销售/核销/退回/过期/当前可用；原设计名 ticketTypeStatistics）；票种表单预留**运营策略**字段（`isLeadGeneration`/`activationOrderCount`/`maxRedeemPerOrder`，R-MKT-08 修订、G97 排期待定，schema 现状未落） |
+| `ticketTypes(input)` / `ticketType(id)` / `createTicketType/updateTicketType/disableTicketType` / `ticketTypeStats(ticketTypeId,input)` | MKT_READ / MKT_WRITE | 票种管理 + 票种统计（销售/核销/退回/过期/当前可用；原设计名 ticketTypeStatistics）；票种表单含**运营策略**字段（`isLeadGeneration`/`activationOrderCount`/`maxRedeemPerOrder`，R-MKT-08 修订，**G97 已落 schema 2026-10**——VO 与 Create/Update input 均含三字段，`@min/@max` 指令约束 + 服务层归一校验） |
 | `giftActivities(input)` / `giftActivity(id)` / `createGiftActivity/updateGiftActivity/disableGiftActivity` | MKT_READ / MKT_WRITE | 买赠/满赠 |
 | `firstOrderActivities(input)` / `firstOrderActivity(id)` / `createFirstOrderActivity/updateFirstOrderActivity/disableFirstOrderActivity` | MKT_READ / MKT_WRITE | 首单立减/新人价（原设计名 newcomerActivities/upsertNewcomerActivity，按实现改名） |
 | `userCoupons(userId,status)` / `userTickets(userId,status)` | MKT_READ | 按用户查券包/票包（B 类补录） |
@@ -267,15 +268,15 @@ POST /api/pay/notify    微信支付 V3 通知（aqua-client）
 | `activeBanners` / `banners(input)` / `banner(id)` / `createBanner/updateBanner/deleteBanner` / `reorderBanner(id,direction)` | public / OPS_CONFIG_READ / OPS_CONFIG_WRITE | 用户端只读 activeBanners；后台维护（排序=reorderBanner 上下移，原设计名 moveBanner；时间窗、启停） |
 | `activeNotices` / `notices(input)` / `notice(id)` / `createNotice/updateNotice/publishNotice/stopNotice/setNoticePinned/deleteNotice` | public / OPS_CONFIG_* | 公告（发布/置顶/停用闭环；原设计名 disableNotice 现状为 stopNotice，另有独立置顶/删除） |
 | `feedbacks(input{type,status,contact,userId,dateRange,page,size})` / `reviewFeedback(id,input{status,handleResult})` | FEEDBACK_READ / FEEDBACK_REVIEW | 反馈处理（待处理→处理中→已处理仅允许前进；处理人/时间留痕；原设计名 processFeedback({status,reply})，字段现状为 handleResult） |
-| `storeProfile` / `saveStoreProfile(input)` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 店铺信息（原设计名 updateStoreProfile）；表单预留**门店经纬度**（longitude/latitude，R-OPS-03 距离计算输入、G96 排期待定，列现状未落） |
-| `deliveryFeeRule` / `saveDeliveryFeeRule(input{freeFloorLimit,surchargeCents,tiers})` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 配送费规则。**R-MON-02 分档已落地（V345,结构 #6 完成）**：input 必填 `tiers: [{fromFloor,toFloor,feeCents}]`（升序/不重叠/起始楼层>免费楼层/末档不封顶,服务层校验）;`surchargeCents` 为 tiers 为空时的兜底单档。**规划扩展**（R-OPS-03,G96 排期待定）：input 增 `minimumOrderCents`（起送门槛,0=不启用）与 `distanceTiers: [{fromKm,toKm,feeCents}]`（距离阶梯,升序/不重叠/末档不封顶）,与楼层分档叠加计价、下单快照 |
+| `storeProfile` / `saveStoreProfile(input)` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 店铺信息（原设计名 updateStoreProfile）；门店经纬度**不落本表**（2026-10-11 G96 裁决：距离计费输入就近配 `delivery_fee_rules.store_longitude/store_latitude`,见 `deliveryFeeRule` 条目;本表字段维持现状） |
+| `deliveryFeeRule` / `saveDeliveryFeeRule(input{freeFloorLimit,surchargeCents,tiers})` | OPS_CONFIG_READ / OPS_CONFIG_WRITE | 配送费规则。**R-MON-02 分档已落地（V345,结构 #6 完成）**：input 必填 `tiers: [{fromFloor,toFloor,feeCents}]`（升序/不重叠/起始楼层>免费楼层/末档不封顶,服务层校验）;`surchargeCents` 为 tiers 为空时的兜底单档。**R-OPS-03 扩展（G96 已实现 2026-10-11,V347）**：input 增 `minimumOrderCents`（起送门槛,0=不启用,≥0）与 `distanceTiers: [{upToKm,feeCents}]`（距离阶梯,按距离上限升序/不重叠/不封顶仅末档;实现形态按设计稿「距离上限」表单,收口原 fromKm/toKm 规划）,以及 `storeLongitude/storeLatitude`（门店坐标 Float,WGS-84,成对且值域内;有距离档必填）;Vo 同步下发 `minimumOrderCents/distanceTiers/storeLongitude/storeLatitude`,与楼层分档叠加计价、下单快照 |
 | `systemConfigs(group)` / `saveSystemConfigs(input)` / `restoreSystemConfig(settingKey)` / `systemConfigChanges(key,page,size)` | SYSTEM_CONFIG_READ / SYSTEM_CONFIG_WRITE（仅超管） | 参数中心（键类型校验/审计闭环/恢复默认——原设计名 resetSystemConfig 现状为 restoreSystemConfig；审计查询 API 现状未落 schema，列零散补全 A 类） |
 | `dataMaintenanceOverview(input)` | SYSTEM_CONFIG_READ | 数据维护单查询：保留策略 + 三类日志分区状态（行数/大小/可备份性）+ 备份记录 |
 | `backupLogPartition(input)` | SYSTEM_CONFIG_WRITE | 手动离线备份（不受自动开关影响） |
 | `notifications(input{messageType,receiverType,keyword,read,startAt,endAt,page,size})` / `notification(id)` | NOTIFICATION_READ | 后台消息列表（默认近 30 天）+ 详情（原设计名 type/readStatus/dateRange，现状为 messageType/read/startAt/endAt） |
 | `resendNotification(id)` | NOTIFICATION_WRITE（仅超管） | 失败订阅消息重发（复用全部门控；站内消息不重推） |
 
-> **接单超时预警（F-NTF-008/R-NTF-07，规划中 G94）**：无新 API——`OrderAcceptTimeoutScanner` 调度（admin）扫描「待派单/待配送」超阈值订单 → `ORDER_ACCEPT_TIMEOUT` / `DELIVERY_START_TIMEOUT` 事件（outbox）→ 通知网关落库 + WS 推送**全体管理员**（幂等键=订单号+事件类型，R-NTF-07）；阈值参数 `order_accept_timeout_minutes`（默认 30）/`delivery_start_timeout_minutes`（默认 60）入 F-SYS-002。
+> **接单超时预警（F-NTF-008/R-NTF-07，已实现 2026-10 G94）**：无新 API——`OrderAcceptTimeoutScanner` 调度（5 分钟周期）扫描「待派单/待配送」超阈值订单 → `ORDER_ACCEPT_TIMEOUT` / `DELIVERY_START_TIMEOUT` 事件（outbox）→ 通知网关落库**全体管理员站内预警**（接收人类型 ADMIN，幂等键=订单号+事件类型+阶段锚点，R-NTF-07）；阈值参数 `order_accept_timeout_minutes`（默认 30）/`delivery_start_timeout_minutes`（默认 60）入 F-SYS-002；WS 推送为目标形态本期不接入（偏差见 03 §18 实现记录）。
 
 ---
 

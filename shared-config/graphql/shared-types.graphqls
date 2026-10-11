@@ -184,6 +184,9 @@ type UserVo {
   # 用户昵称
   nickname: String
   # 用户手机号
+  # 号码保护(F-ORD-032/R-ORD-17,语义变化):作为 OrderVo.user 下发且请求者为送水工时,
+  # 按订单状态由服务端裁剪 —— 仅待配送/配送中为完整号码,其余状态下发脱敏串(138****1234),
+  # 完整号码不下发、无查看旁路;管理员与用户本人不受限。脱敏由服务端完成,前端不自行处理。
   phone: String
   # 用户头像URL
   avatarUrl: String
@@ -242,6 +245,10 @@ type AddressVo {
   # 收货人姓名
   receiverName: String!
   # 收货人手机号
+  # 号码保护(F-ORD-032/R-ORD-17,语义变化):作为 OrderVo.address 下发且请求者为送水工时,
+  # 按订单状态由服务端裁剪 —— 仅待配送/配送中为完整号码,其余状态下发脱敏串(138****1234,
+  # 固定「前 3 + **** + 后 4」),完整号码不下发、无「查看完整号码」旁路(AC-ORD-032-05);
+  # 管理员(AC-ORD-032-04)与用户本人不受限。`tel:` 拨号入口仅完整号码形态渲染。
   phone: String!
   # 省份
   province: String!
@@ -2167,7 +2174,7 @@ input ReviewReconciliationInput {
 
 # ==================== 微信资金对账域(REC) ====================
 # 微信支付对账:微信账单(交易/退款/结算) vs 内部支付流水(payments)/退款记录(payment_refunds)。
-# 后台「微信资金对账」页(支付管理):对账任务/差异列表与解决/报表查看。
+# 后台「支付管理-支付对账」页:对账任务/差异列表与解决/忽略/报表查看(F-ORD-031/R-PAY-04,G93)。
 # 实现于 aqua-analytics reconciliation 模块(ReconciliationServiceImpl)。
 
 # 对账任务类型
@@ -2180,16 +2187,34 @@ enum ReconciliationTaskType {
   SETTLEMENT
 }
 
-# 对账任务状态
+# 对账任务状态(SKIPPED:未配置真实商户参数——假支付模式下调度跳过并说明原因,R-PAY-04)
 enum ReconciliationTaskStatus {
   # 待执行
   PENDING
   # 执行中
   RUNNING
-  # 执行成功(无差异)
+  # 执行成功(差异数 > 0 仍为成功:对账完成 ≠ 无差异,差异走人工处置)
   SUCCESS
-  # 执行失败(有差异或执行异常)
+  # 执行失败(异常)
   FAILED
+  # 跳过(未配置真实商户参数)
+  SKIPPED
+}
+
+# 对账任务触发方式(详情页「触发方式」)
+enum ReconciliationTriggerType {
+  # 每日调度(02:00 支付 / 02:05 退款)
+  SCHEDULED
+  # 管理员手动触发(重跑同账单日)
+  MANUAL
+}
+
+# 对账差异处置动作(R-PAY-04:解决=已核实无资金损失或已修复;忽略=跨日边界等可解释差异;备注必填)
+enum DiscrepancyResolveAction {
+  # 解决
+  RESOLVE
+  # 忽略
+  IGNORE
 }
 
 # 对账差异类型
@@ -2202,12 +2227,14 @@ enum DiscrepancyType {
   EXTRA
 }
 
-# 对账差异状态
+# 对账差异状态(IGNORED:忽略——跨日边界等可解释差异;已处置状态不可再改)
 enum DiscrepancyStatus {
   # 未解决
   UNRESOLVED
   # 已解决
   RESOLVED
+  # 已忽略
+  IGNORED
 }
 
 # 差异来源系统
@@ -2240,8 +2267,20 @@ type ReconciliationTaskVo {
   matchedRecords: Int!
   # 未匹配记录数
   unmatchedRecords: Int!
-  # 错误信息(有差异时提示差异数,异常时提示异常信息)
+  # 错误信息(异常时提示原因;SKIPPED 时提示跳过原因)
   errorMessage: String
+  # 触发方式(每日调度/管理员手动,F-ORD-031)
+  triggerType: ReconciliationTriggerType!
+  # 手动触发的管理员ID(调度为空)
+  executedBy: PrimaryId
+  # 微信账单侧总笔数(三方校验)
+  wechatTotalCount: Int!
+  # 微信账单侧总金额(分)
+  wechatTotalAmountCents: Long!
+  # 本地账实侧总笔数
+  localTotalCount: Int!
+  # 本地账实侧总金额(分)
+  localTotalAmountCents: Long!
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间
@@ -2322,11 +2361,13 @@ input ExecuteReconciliationInput {
   reconciliationDate: String!
 }
 
-# 解决对账差异输入
+# 差异处置输入(R-PAY-04:解决/忽略均须备注,处置留痕;已处置不可再改)
 input ResolveDiscrepancyInput {
   # 差异记录ID
   discrepancyId: PrimaryId!
-  # 解决备注(必填,留痕)
+  # 处置动作:RESOLVE-解决 / IGNORE-忽略
+  action: DiscrepancyResolveAction!
+  # 处理说明(必填,留痕)
   resolutionNotes: String!
 }
 
@@ -2461,7 +2502,7 @@ type StoreProfileVo {
   updatedAt: LocalDateTime
 }
 
-# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元)
+# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元;R-OPS-03 起送门槛/距离阶梯)
 type DeliveryFeeRuleVo {
   # 免费楼层(楼层 ≤ 该值免运费)
   freeFloorLimit: Int!
@@ -2469,6 +2510,14 @@ type DeliveryFeeRuleVo {
   surchargeCents: Long!
   # 楼层档位(R-MON-02 分档,按楼层升序;空=未配置分档,计价回退 surchargeCents)
   tiers: [DeliveryFeeTierVo!]
+  # 起送门槛(分,0=不启用;商品金额低于门槛拦截下单,R-OPS-03)
+  minimumOrderCents: Long!
+  # 距离阶梯档位(按距离上限升序、末档可不封顶;空=不启用距离计费,R-OPS-03)
+  distanceTiers: [DeliveryDistanceTierVo!]
+  # 门店经度(WGS84;距离阶梯计费基准,空=未配置距离计费)
+  storeLongitude: Float
+  # 门店纬度(WGS84)
+  storeLatitude: Float
   # 更新时间
   updatedAt: LocalDateTime
 }
@@ -2484,6 +2533,19 @@ input DeliveryFeeTierInput {
   fromFloor: Int! @min(value: 1, message: "档位起始楼层至少为1")
   toFloor: Int
   feeCents: Long! @min(value: 0, message: "档位金额无效") @max(value: 99900, message: "档位金额无效")
+}
+
+# 距离阶梯档位(R-OPS-03:直线距离 ≤ upToKm 加收 feeCents;upToKm=null 不封顶,必须最后一档)
+type DeliveryDistanceTierVo {
+  upToKm: Float
+  feeCents: Long!
+}
+
+input DeliveryDistanceTierInput {
+  # 距离上限(km,>0;空=不封顶,仅允许最后一档)
+  upToKm: Float
+  # 加价(分,0-99900)
+  feeCents: Long! @min(value: 0, message: "距离档金额无效") @max(value: 99900, message: "距离档金额无效")
 }
 
 # ==================== 营销域(MKT,PRD 10-marketing.md) ====================
@@ -2576,6 +2638,10 @@ type UserTicketVo {
   expireTime: LocalDateTime!
   # 是否赠送票
   isGift: Boolean!
+  # G97 复购激活:true=待激活(复购条件未满足,不可核销;票夹置灰提示)
+  pendingActivation: Boolean!
+  # G97 复购激活单数(空=非激活票;文案「需复购 N 单后可核销」)
+  activationOrderCount: Int
 }
 
 enum UserTicketStatus {
@@ -2598,7 +2664,7 @@ enum NotificationType {
 type NotificationVo {
   id: PrimaryId!
   type: NotificationType!
-  # 接收人类型(USER/WORKER,后台消息列表展示)
+  # 接收人类型(USER/WORKER/ADMIN,后台消息列表展示;ADMIN=全体管理员共享预警,F-NTF-008)
   receiverType: NotificationReceiverType!
   # 触发场景(领域事件名,如 ORDER_PAID)
   scene: String!
@@ -2643,10 +2709,11 @@ type SubscribeTemplateVo {
   enabled: Boolean!
 }
 
-# 通知接收人类型(后台消息列表筛选,F-NTF-006)
+# 通知接收人类型(后台消息列表筛选,F-NTF-006;ADMIN=全体管理员,F-NTF-008 接单超时预警)
 enum NotificationReceiverType {
   USER
   WORKER
+  ADMIN
 }
 
 # ============ 水桶押金(R-MON-03 / R-PRO-04,B2 押金模型回退 2026-10) ============

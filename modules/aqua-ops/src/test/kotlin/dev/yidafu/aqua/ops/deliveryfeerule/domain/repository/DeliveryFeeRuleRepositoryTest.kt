@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.ops.deliveryfeerule.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.DeliveryDistanceTier
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.ops.common.exposed.OpsPgTestSupport
 import io.kotest.core.spec.style.FunSpec
@@ -66,6 +67,35 @@ class DeliveryFeeRuleRepositoryTest :
       val reloaded = repository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).orElseThrow()
       reloaded.freeFloorLimit shouldBe 3
       reloaded.surchargeCents shouldBe 300L
+    }
+
+    test("save 回读 G96 字段:起送门槛/距离阶梯/门店坐标") {
+      OpsPgTestSupport.reset()
+      repository.save(
+        DeliveryFeeRuleModel(
+          id = DeliveryFeeRuleRepository.SINGLETON_ID,
+          freeFloorLimit = 4,
+          surchargeCents = 200L,
+          minimumOrderCents = 3000L,
+          distanceTiers =
+            listOf(
+              DeliveryDistanceTier(upToKm = 3.0, feeCents = 0L),
+              DeliveryDistanceTier(upToKm = 5.0, feeCents = 300L),
+              DeliveryDistanceTier(upToKm = null, feeCents = 600L),
+            ),
+          storeLongitude = 113.93,
+          storeLatitude = 22.53,
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now(),
+        ),
+      )
+
+      val loaded = repository.findById(DeliveryFeeRuleRepository.SINGLETON_ID).orElseThrow()
+      loaded.minimumOrderCents shouldBe 3000L
+      loaded.distanceTiers!!.map { it.upToKm } shouldBe listOf(3.0, 5.0, null)
+      loaded.distanceTiers!!.map { it.feeCents } shouldBe listOf(0L, 300L, 600L)
+      loaded.storeLongitude shouldBe 113.93
+      loaded.storeLatitude shouldBe 22.53
     }
 
     test("findById 不存在返回 empty") {

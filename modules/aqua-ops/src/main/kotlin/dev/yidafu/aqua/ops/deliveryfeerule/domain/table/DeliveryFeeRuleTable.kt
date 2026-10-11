@@ -34,6 +34,12 @@ object DeliveryFeeRuleTable : SoftDeletableTable("delivery_fee_rules") {
   val freeFloorLimit = integer("free_floor_limit").default(4)
   val surchargeCents = long("surcharge_cents").default(200L)
   val tiers = jsonString("tiers").nullable()
+
+  // R-OPS-03(G96):起送门槛(分,0=不启用)、距离阶梯档位(JSON)、门店坐标(距离计费基准)
+  val minimumOrderCents = long("minimum_order_cents").default(0L)
+  val distanceTiers = jsonString("distance_tiers").nullable()
+  val storeLongitude = double("store_longitude").nullable()
+  val storeLatitude = double("store_latitude").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
 

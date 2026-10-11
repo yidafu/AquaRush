@@ -192,7 +192,7 @@ const Login: React.FC = () => {
       <div {...stylex.props(styles.container)}>
         <div {...stylex.props(styles.header)}>
           <div {...stylex.props(styles.logo)}>
-            <img src="/aqua-rush-mark.svg" alt="AquaRush" {...stylex.props(styles.logoImg)} />
+            <img src="/aqua-rush-mark.svg" alt="奔泉" {...stylex.props(styles.logoImg)} />
           </div>
           <h1 {...stylex.props(styles.title)}>桶装水订水系统</h1>
           <p {...stylex.props(styles.subtitle)}>管理后台</p>

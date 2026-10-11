@@ -63,6 +63,12 @@ object SystemSettingKeys {
   const val DELIVERY_SLOT_EVENING_END = "delivery_slot_evening_end"
   const val DISPATCH_TIMEOUT_REMINDER_MINUTES = "dispatch_timeout_reminder_minutes" // 派单超时提醒(分钟),默认值待 PRD 确认
 
+  // 接单超时预警阈值(R-NTF-07/F-NTF-008,缺口 G94):「待派单」超阈值无人接单预警管理员,默认 30 分钟
+  const val ORDER_ACCEPT_TIMEOUT_MINUTES = "order_accept_timeout_minutes"
+
+  // 开始配送超时预警阈值(R-NTF-07/F-NTF-008,缺口 G94):「待配送」超阈值未开始配送预警管理员,默认 60 分钟
+  const val DELIVERY_START_TIMEOUT_MINUTES = "delivery_start_timeout_minutes"
+
   // 库存预警参数组(F-SYS-003,R-PRO-02)
   const val LOW_STOCK_THRESHOLD = "low_stock_threshold" // 低库存阈值(件),默认 10
   const val STOCK_WARNING_TIER_MID = "stock_warning_tier_mid" // 中档预警阈值(件),默认 50;须大于低库存阈值

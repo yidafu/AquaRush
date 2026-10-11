@@ -137,6 +137,13 @@ export const SAVE_DELIVERY_FEE_RULE_MUTATION = gql`
         toFloor
         feeCents
       }
+      minimumOrderCents
+      distanceTiers {
+        upToKm
+        feeCents
+      }
+      storeLongitude
+      storeLatitude
       updatedAt
     }
   }

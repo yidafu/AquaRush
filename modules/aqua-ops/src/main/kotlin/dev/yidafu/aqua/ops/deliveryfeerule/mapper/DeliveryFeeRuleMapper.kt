@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.deliveryfeerule.mapper
 
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.graphql.generated.DeliveryDistanceTierVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeRuleVo
 import dev.yidafu.aqua.common.graphql.generated.DeliveryFeeTierVo
 
@@ -39,5 +40,15 @@ fun DeliveryFeeRuleModel.toGraphQL(): DeliveryFeeRuleVo =
           feeCents = tier.feeCents,
         )
       },
+    minimumOrderCents = minimumOrderCents,
+    distanceTiers =
+      distanceTiers?.map { tier ->
+        DeliveryDistanceTierVo(
+          upToKm = tier.upToKm?.toFloat(),
+          feeCents = tier.feeCents,
+        )
+      },
+    storeLongitude = storeLongitude?.toFloat(),
+    storeLatitude = storeLatitude?.toFloat(),
     updatedAt = updatedAt,
   )

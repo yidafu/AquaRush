@@ -59,21 +59,27 @@ class AdminUserCouponTicketQueryResolver(
   ): List<UserCouponVo> = couponQueryApiService.findUserCoupons(userId, status?.toDomain()).map { it.toGraphQL() }
 
   /**
-   * 用户持有的桶水票(状态空=全部;票种名称/通兑票限定规格取自票种)
+   * 用户持有的桶水票(状态空=全部;票种名称/通兑票限定规格取自票种;
+   * pendingActivation=G97 复购激活待激活展示态,按该用户口径服务端判定)
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
   fun userTickets(
     @Argument userId: Long,
     @Argument status: GraphQLUserTicketStatus?,
-  ): List<UserTicketVo> =
-    ticketQueryApiService.findUserTickets(userId, status?.toDomain()).map { ticket ->
+  ): List<UserTicketVo> {
+    val tickets = ticketQueryApiService.findUserTickets(userId, status?.toDomain())
+    val pendingIds = ticketQueryApiService.findPendingActivationIds(userId, tickets)
+    return tickets.map { ticket ->
       val ticketType = ticketTypeQueryService.getTicketType(ticket.ticketTypeId)
       ticket.toGraphQL(
         ticketTypeName = ticketType?.name ?: "水票",
         specification = ticketType?.specification,
+        pendingActivation = ticket.id != null && pendingIds.contains(ticket.id!!),
+        activationOrderCount = ticketType?.activationOrderCount,
       )
     }
+  }
 
   private fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus =
     when (this) {
@@ -109,6 +115,8 @@ class AdminUserCouponTicketQueryResolver(
   private fun UserTicketModel.toGraphQL(
     ticketTypeName: String,
     specification: String?,
+    pendingActivation: Boolean,
+    activationOrderCount: Int?,
   ): UserTicketVo =
     UserTicketVo(
       id = id ?: 0L,
@@ -118,6 +126,8 @@ class AdminUserCouponTicketQueryResolver(
       status = status.toGraphQL(),
       expireTime = expireTime,
       isGift = isGift,
+      pendingActivation = pendingActivation,
+      activationOrderCount = activationOrderCount,
     )
 }
 

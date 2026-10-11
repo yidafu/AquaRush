@@ -1062,10 +1062,52 @@ data class CreateReviewRequestInput(
   )
 }
 
+data class CreateSubscriptionInput(
+    @field:Positive(message = "收货地址ID必须为正数")
+    val addressId: kotlin.Long,
+    val cycleType: SubscriptionCycleType,
+    val endDate: kotlin.String? = null,
+    val items: kotlin.collections.List<SubscriptionItemInput>,
+    val maxPeriods: kotlin.Int? = null,
+    val monthDay: kotlin.Int? = null,
+    @field:Size(max = 500, message = "备注长度不能超过500个字符")
+    val remark: kotlin.String? = null,
+    @field:NotBlank(message = "生效日期不能为空")
+    val startDate: kotlin.String,
+    val timeSlot: DeliveryTimeSlot,
+    @field:Positive(message = "用户ID必须为正数")
+    val userId: kotlin.Long,
+    val weekdays: kotlin.collections.List<kotlin.Int>? = null,
+    val workerId: kotlin.Long? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["addressId"] as kotlin.Long,
+      args["cycleType"] as SubscriptionCycleType,
+      args["endDate"] as kotlin.String?,
+      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { SubscriptionItemInput(it) } },
+      args["maxPeriods"] as kotlin.Int?,
+      args["monthDay"] as kotlin.Int?,
+      args["remark"] as kotlin.String?,
+      args["startDate"] as kotlin.String,
+      args["timeSlot"] as DeliveryTimeSlot,
+      args["userId"] as kotlin.Long,
+      args["weekdays"] as kotlin.collections.List<kotlin.Int>?,
+      args["workerId"] as kotlin.Long?
+  )
+}
+
 data class CreateTicketTypeInput(
+    @field:Min(value = 0, message = "复购激活单数无效")
+    @field:Max(value = 100, message = "复购激活单数不能超过100")
+    val activationOrderCount: kotlin.Int? = null,
     @field:Min(value = 0, message = "赠送张数无效")
     @field:Max(value = 1000, message = "赠送张数不能超过1000")
     val giftCount: kotlin.Int,
+    val isLeadGeneration: kotlin.Boolean? = null,
+    @field:Min(value = 0, message = "单次核销上限无效")
+    @field:Max(value = 100, message = "单次核销上限不能超过100")
+    val maxRedeemPerOrder: kotlin.Int? = null,
     @field:NotBlank(message = "票种名称不能为空")
     @field:Size(max = 100, message = "票种名称不能超过100个字")
     val name: kotlin.String,
@@ -1090,7 +1132,10 @@ data class CreateTicketTypeInput(
     val validityType: ValidityType
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["activationOrderCount"] as kotlin.Int?,
       args["giftCount"] as kotlin.Int,
+      args["isLeadGeneration"] as kotlin.Boolean?,
+      args["maxRedeemPerOrder"] as kotlin.Int?,
       args["name"] as kotlin.String,
       args["packageCount"] as kotlin.Int,
       args["packagePriceCents"] as kotlin.Long,
@@ -1357,8 +1402,29 @@ data class DeliveryAreaVo(
     val province: kotlin.String
 )
 
+data class DeliveryDistanceTierInput(
+    @field:Min(value = 0, message = "距离档金额无效")
+    @field:Max(value = 99900, message = "距离档金额无效")
+    val feeCents: kotlin.Long,
+    val upToKm: kotlin.Float? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["feeCents"] as kotlin.Long,
+      args["upToKm"] as kotlin.Float?
+  )
+}
+
+data class DeliveryDistanceTierVo(
+    val feeCents: kotlin.Long,
+    val upToKm: kotlin.Float?
+)
+
 data class DeliveryFeeRuleVo(
+    val distanceTiers: kotlin.collections.List<DeliveryDistanceTierVo>?,
     val freeFloorLimit: kotlin.Int,
+    val minimumOrderCents: kotlin.Long,
+    val storeLatitude: kotlin.Float?,
+    val storeLongitude: kotlin.Float?,
     val surchargeCents: kotlin.Long,
     val tiers: kotlin.collections.List<DeliveryFeeTierVo>?,
     val updatedAt: java.time.LocalDateTime?
@@ -1683,7 +1749,20 @@ enum class DepositStatus(val label: String) {
   }
 }
 
+enum class DiscrepancyResolveAction(val label: String) {
+      IGNORE("IGNORE"),
+      RESOLVE("RESOLVE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DiscrepancyResolveAction? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 enum class DiscrepancyStatus(val label: String) {
+      IGNORED("IGNORED"),
       RESOLVED("RESOLVED"),
       UNRESOLVED("UNRESOLVED");
 
@@ -2628,6 +2707,14 @@ data class MutationCreateReviewArgs(
       CreateReviewRequestInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateSubscriptionArgs(
+    val input: CreateSubscriptionInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateSubscriptionInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateTicketTypeArgs(
     val input: CreateTicketTypeInput
 ) {
@@ -2807,6 +2894,13 @@ data class MutationOnlineProductArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationPauseSubscriptionArgs(
+    val subscriptionId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["subscriptionId"] as kotlin.Long
+  )
+}
 data class MutationProcessRefundArgs(
     val input: ProcessRefundInput
 ) {
@@ -2909,6 +3003,13 @@ data class MutationRestoreSystemConfigArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["settingKey"] as kotlin.String
+  )
+}
+data class MutationResumeSubscriptionArgs(
+    val subscriptionId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["subscriptionId"] as kotlin.Long
   )
 }
 data class MutationReviewDeliveryPhotoArgs(
@@ -3033,6 +3134,13 @@ data class MutationSubmitFeedbackArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       FeedbackSubmitInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationTerminateSubscriptionArgs(
+    val subscriptionId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["subscriptionId"] as kotlin.Long
   )
 }
 data class MutationToggleProductFavoritesArgs(
@@ -3284,6 +3392,7 @@ data class Mutation(
     val createProductOption: ProductOptionVo,
     val createPromotionActivity: PromotionActivityVo,
     val createReview: ReviewVo,
+    val createSubscription: SubscriptionVo,
     val createTicketType: TicketTypeAdminVo,
     val createUser: UserVo,
     val deleteAddress: kotlin.Boolean,
@@ -3311,6 +3420,7 @@ data class Mutation(
     val markWorkerNotificationRead: kotlin.Boolean,
     val offlineProduct: ProductVo,
     val onlineProduct: ProductVo,
+    val pauseSubscription: SubscriptionVo,
     val processRefund: RefundRequestVo,
     val publishNotice: NoticeVo,
     val purchaseTickets: TicketPurchaseVo,
@@ -3324,6 +3434,7 @@ data class Mutation(
     val resetDeliveryWorkerPassword: kotlin.Boolean,
     val resolveDiscrepancy: kotlin.Boolean,
     val restoreSystemConfig: SystemConfigVo,
+    val resumeSubscription: SubscriptionVo,
     val reviewDeliveryPhoto: OrderVo,
     val reviewFeedback: FeedbackVo,
     val reviewReconciliation: DailyReconciliationVo,
@@ -3339,6 +3450,7 @@ data class Mutation(
     val submitDailyCollection: DailyCollectionRecordVo,
     val submitDepositRefund: DepositRefundApplicationVo,
     val submitFeedback: kotlin.Boolean,
+    val terminateSubscription: SubscriptionVo,
     val toggleProductFavorites: kotlin.Boolean,
     val updateAddress: AddressVo,
     val updateAdmin: AdminVo,
@@ -3467,6 +3579,7 @@ enum class NotificationChannelStatus(val label: String) {
 }
 
 enum class NotificationReceiverType(val label: String) {
+      ADMIN("ADMIN"),
       USER("USER"),
       WORKER("WORKER");
 
@@ -3669,6 +3782,7 @@ data class OrderPreviewItemVo(
 data class OrderPreviewVo(
     val availableCoupons: kotlin.collections.List<UserCouponVo>,
     val availableTicketCount: kotlin.Int,
+    val belowMinimum: kotlin.Boolean,
     val cashSubtotalCents: kotlin.Long,
     val couponDiscountCents: kotlin.Long,
     val couponOptions: kotlin.collections.List<CouponOptionVo>,
@@ -3679,6 +3793,7 @@ data class OrderPreviewVo(
     val firstOrderDiscountCents: kotlin.Long,
     val giftItems: kotlin.collections.List<GiftItemVo>,
     val items: kotlin.collections.List<OrderPreviewItemVo>,
+    val minimumOrderCents: kotlin.Long,
     val payAmountCents: kotlin.Long,
     val payableProductCents: kotlin.Long,
     val priceSource: PriceSource,
@@ -5034,12 +5149,14 @@ data class QueryPromotionActivityUsageArgs(
   )
 }
 data class QueryReconciliationDiscrepanciesArgs(
+    val discrepancyType: DiscrepancyType? = null,
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
     val status: DiscrepancyStatus? = null,
     val taskId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["discrepancyType"] as DiscrepancyType?,
       args["page"] as kotlin.Int? ?: 0,
       args["size"] as kotlin.Int? ?: 20,
       args["status"] as DiscrepancyStatus?,
@@ -5148,6 +5265,21 @@ data class QuerySearchAllAddressesArgs(
       args["keyword"] as kotlin.String?,
       args["page"] as kotlin.Int? ?: 0,
       args["size"] as kotlin.Int? ?: 10
+  )
+}
+data class QuerySubscriptionArgs(
+    val subscriptionId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["subscriptionId"] as kotlin.Long
+  )
+}
+data class QuerySubscriptionsArgs(
+    val input: SubscriptionListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { SubscriptionListInput(it as Map<String, Any>) }
   )
 }
 data class QuerySystemConfigsArgs(
@@ -5333,6 +5465,8 @@ data class Query(
     val stockWarningThresholds: StockWarningThresholdsVo,
     val storeProfile: StoreProfileVo?,
     val subscribeTemplates: kotlin.collections.List<SubscribeTemplateVo>,
+    val subscription: SubscriptionVo?,
+    val subscriptions: SubscriptionVoPage,
     val systemConfigs: kotlin.collections.List<SystemConfigVo>,
     val ticketShop: kotlin.collections.List<TicketTypeVo>,
     val ticketType: TicketTypeAdminVo?,
@@ -5404,6 +5538,7 @@ enum class ReconciliationTaskStatus(val label: String) {
       FAILED("FAILED"),
       PENDING("PENDING"),
       RUNNING("RUNNING"),
+      SKIPPED("SKIPPED"),
       SUCCESS("SUCCESS");
 
   companion object {
@@ -5431,7 +5566,10 @@ data class ReconciliationTaskVo(
     val createdAt: java.time.LocalDateTime,
     val endTime: java.time.LocalDateTime?,
     val errorMessage: kotlin.String?,
+    val executedBy: kotlin.Long?,
     val id: kotlin.Long,
+    val localTotalAmountCents: kotlin.Long,
+    val localTotalCount: kotlin.Int,
     val matchedRecords: kotlin.Int,
     val startTime: java.time.LocalDateTime?,
     val status: ReconciliationTaskStatus,
@@ -5439,8 +5577,11 @@ data class ReconciliationTaskVo(
     val taskId: kotlin.String,
     val taskType: ReconciliationTaskType,
     val totalRecords: kotlin.Int,
+    val triggerType: ReconciliationTriggerType,
     val unmatchedRecords: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime
+    val updatedAt: java.time.LocalDateTime,
+    val wechatTotalAmountCents: kotlin.Long,
+    val wechatTotalCount: kotlin.Int
 )
 
 data class ReconciliationTaskVoPage(
@@ -5450,6 +5591,18 @@ data class ReconciliationTaskVoPage(
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
 )
+
+enum class ReconciliationTriggerType(val label: String) {
+      MANUAL("MANUAL"),
+      SCHEDULED("SCHEDULED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ReconciliationTriggerType? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class RefreshTokenInput(
     @field:NotBlank(message = "刷新令牌不能为空")
@@ -5603,10 +5756,12 @@ data class ReportTrajectoryInput(
 }
 
 data class ResolveDiscrepancyInput(
+    val action: DiscrepancyResolveAction,
     val discrepancyId: kotlin.Long,
     val resolutionNotes: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["action"] as DiscrepancyResolveAction,
       args["discrepancyId"] as kotlin.Long,
       args["resolutionNotes"] as kotlin.String
   )
@@ -5684,8 +5839,13 @@ data class SalesReportVo(
 )
 
 data class SaveDeliveryFeeRuleInput(
+    val distanceTiers: kotlin.collections.List<DeliveryDistanceTierInput>,
     @field:Min(value = 0, message = "免费楼层不能小于0")
     val freeFloorLimit: kotlin.Int,
+    @field:Min(value = 0, message = "起送门槛金额无效")
+    val minimumOrderCents: kotlin.Long,
+    val storeLatitude: kotlin.Float? = null,
+    val storeLongitude: kotlin.Float? = null,
     @field:Min(value = 0, message = "运费金额无效")
     @field:Max(value = 99900, message = "运费金额无效")
     val surchargeCents: kotlin.Long,
@@ -5693,7 +5853,11 @@ data class SaveDeliveryFeeRuleInput(
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
+      args["distanceTiers"]!!.let { distanceTiers -> (distanceTiers as List<Map<String, Any>>).map { DeliveryDistanceTierInput(it) } },
       args["freeFloorLimit"] as kotlin.Int,
+      args["minimumOrderCents"] as kotlin.Long,
+      args["storeLatitude"] as kotlin.Float?,
+      args["storeLongitude"] as kotlin.Float?,
       args["surchargeCents"] as kotlin.Long,
       args["tiers"]!!.let { tiers -> (tiers as List<Map<String, Any>>).map { DeliveryFeeTierInput(it) } }
   )
@@ -5863,6 +6027,100 @@ data class SubscribeTemplateVo(
     val templateId: kotlin.String
 )
 
+enum class SubscriptionCycleType(val label: String) {
+      BIWEEKLY("BIWEEKLY"),
+      MONTHLY("MONTHLY"),
+      WEEKLY("WEEKLY");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SubscriptionCycleType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class SubscriptionItemInput(
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "数量必须大于0")
+    @field:Max(value = 999, message = "数量不能超过999")
+    val quantity: kotlin.Int
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long,
+      args["quantity"] as kotlin.Int
+  )
+}
+
+data class SubscriptionItemVo(
+    val productId: kotlin.Long,
+    val productName: kotlin.String,
+    val quantity: kotlin.Int
+)
+
+data class SubscriptionListInput(
+    val nextRunFrom: kotlin.String? = null,
+    val nextRunTo: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val search: kotlin.String? = null,
+    val size: kotlin.Int? = 20,
+    val status: SubscriptionStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["nextRunFrom"] as kotlin.String?,
+      args["nextRunTo"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["search"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as SubscriptionStatus?
+  )
+}
+
+enum class SubscriptionStatus(val label: String) {
+      ACTIVE("ACTIVE"),
+      PAUSED("PAUSED"),
+      TERMINATED("TERMINATED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SubscriptionStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class SubscriptionVo(
+    val address: AddressVo?,
+    val createdAt: java.time.LocalDateTime,
+    val cycleType: SubscriptionCycleType,
+    val endDate: kotlin.String?,
+    val executedPeriods: kotlin.Int,
+    val id: kotlin.Long,
+    val items: kotlin.collections.List<SubscriptionItemVo>,
+    val lastError: kotlin.String?,
+    val lastRunAt: java.time.LocalDateTime?,
+    val maxPeriods: kotlin.Int?,
+    val monthDay: kotlin.Int?,
+    val nextRunDate: kotlin.String,
+    val remark: kotlin.String?,
+    val startDate: kotlin.String,
+    val status: SubscriptionStatus,
+    val timeSlot: DeliveryTimeSlot,
+    val user: UserVo?,
+    val weekdays: kotlin.collections.List<kotlin.Int>,
+    val workerId: kotlin.Long?,
+    val workerName: kotlin.String?
+)
+
+data class SubscriptionVoPage(
+    val content: kotlin.collections.List<SubscriptionVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class SuspiciousTransactionVo(
     val adminNote: kotlin.String?,
     val amountCents: kotlin.Long,
@@ -5967,9 +6225,12 @@ data class TicketStatsSummaryVo(
 )
 
 data class TicketTypeAdminVo(
+    val activationOrderCount: kotlin.Int?,
     val createdAt: java.time.LocalDateTime,
     val giftCount: kotlin.Int,
     val id: kotlin.Long,
+    val isLeadGeneration: kotlin.Boolean,
+    val maxRedeemPerOrder: kotlin.Int?,
     val name: kotlin.String,
     val packageCount: kotlin.Int,
     val packagePriceCents: kotlin.Long,
@@ -6032,8 +6293,10 @@ enum class TicketTypeStatus(val label: String) {
 }
 
 data class TicketTypeVo(
+    val activationOrderCount: kotlin.Int?,
     val giftCount: kotlin.Int,
     val id: kotlin.Long,
+    val isLeadGeneration: kotlin.Boolean,
     val myPurchasedCount: kotlin.Int,
     val name: kotlin.String,
     val packageCount: kotlin.Int,
@@ -6556,9 +6819,16 @@ data class UpdatePromotionActivityInput(
 }
 
 data class UpdateTicketTypeInput(
+    @field:Min(value = 0, message = "复购激活单数无效")
+    @field:Max(value = 100, message = "复购激活单数不能超过100")
+    val activationOrderCount: kotlin.Int? = null,
     @field:Min(value = 0, message = "赠送张数无效")
     @field:Max(value = 1000, message = "赠送张数不能超过1000")
     val giftCount: kotlin.Int,
+    val isLeadGeneration: kotlin.Boolean? = null,
+    @field:Min(value = 0, message = "单次核销上限无效")
+    @field:Max(value = 100, message = "单次核销上限不能超过100")
+    val maxRedeemPerOrder: kotlin.Int? = null,
     @field:NotBlank(message = "票种名称不能为空")
     @field:Size(max = 100, message = "票种名称不能超过100个字")
     val name: kotlin.String,
@@ -6583,7 +6853,10 @@ data class UpdateTicketTypeInput(
     val validityType: ValidityType
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["activationOrderCount"] as kotlin.Int?,
       args["giftCount"] as kotlin.Int,
+      args["isLeadGeneration"] as kotlin.Boolean?,
+      args["maxRedeemPerOrder"] as kotlin.Int?,
       args["name"] as kotlin.String,
       args["packageCount"] as kotlin.Int,
       args["packagePriceCents"] as kotlin.Long,
@@ -6835,9 +7108,11 @@ enum class UserTicketStatus(val label: String) {
 }
 
 data class UserTicketVo(
+    val activationOrderCount: kotlin.Int?,
     val expireTime: java.time.LocalDateTime,
     val id: kotlin.Long,
     val isGift: kotlin.Boolean,
+    val pendingActivation: kotlin.Boolean,
     val specification: kotlin.String?,
     val status: UserTicketStatus,
     val ticketNo: kotlin.String,

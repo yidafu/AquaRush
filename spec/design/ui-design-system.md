@@ -1,4 +1,4 @@
-# AquaRush 三端 UI 设计系统（Design System）
+# 奔泉（AquaRush）三端 UI 设计系统（Design System）
 
 > 文档版本：V1.1 ｜ 适用范围：user-weapp（小程序）、admin-client（管理后台）、delivery-app（配送端）
 >

@@ -10,6 +10,7 @@ import ProductFormPage from './pages/products/form';
 import ProductOptionsPage from './pages/products/options';
 import Orders from './pages/orders';
 import OrderDetailPage from './pages/orders/detail';
+import Subscriptions from './pages/subscriptions';
 import Statistics from './pages/statistics';
 import UserStatistics from './pages/statistics/users';
 import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
@@ -52,6 +53,7 @@ import NotificationMessages from './pages/notifications/messages';
 import SystemDataMaintenanceConfig from './pages/system/data';
 import DeliveryTrajectories from './pages/trajectories';
 import RefundManagementPage from './pages/payments/refunds';
+import PaymentReconciliationPage from './pages/payments/reconciliation';
 import BarrelManagementPage from './pages/barrels';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
@@ -90,6 +92,7 @@ const App: React.FC = () => {
         <Route path="products/options" element={page('规格与水源地配置', <ProductOptionsPage />)} />
         <Route path="orders" element={page('订单管理', <Orders />)} />
         <Route path="orders/:id" element={page('订单详情', <OrderDetailPage />)} />
+        <Route path="subscriptions" element={page('周期订购计划', <Subscriptions />)} />
         <Route path="statistics" element={page('营收统计', <Statistics />)} />
         <Route path="statistics/users" element={page('用户统计', <UserStatistics />)} />
         <Route path="statistics/delivery-workers" element={page('送水员统计', <DeliveryWorkerStatistics />)} />
@@ -103,6 +106,7 @@ const App: React.FC = () => {
         <Route path="logs/business" element={page('业务日志', <BusinessLogs />)} />
         <Route path="daily-collection" element={page('收银对账', <DailyCollection />)} />
         <Route path="payments/refunds" element={page('退款管理', <RefundManagementPage />)} />
+        <Route path="payments/reconciliation" element={page('支付对账', <PaymentReconciliationPage />)} />
         <Route path="barrels" element={page('押金管理', <BarrelManagementPage />)} />
         <Route path="ops/banners" element={page('首页轮播', <OpsBanners />)} />
         <Route path="ops/feedbacks" element={page('意见反馈', <OpsFeedbacks />)} />

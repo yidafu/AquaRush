@@ -146,6 +146,8 @@ class ClientMarketingResolverTest :
         validFrom = LocalDateTime.now().minusDays(1),
         validTo = LocalDateTime.now().plusDays(365),
         perUserLimit = 0,
+        // G97 复购激活票种(展示文案「需复购 1 单后可核销」)
+        activationOrderCount = 1,
         status = TicketTypeStatus.ACTIVE,
       )
 
@@ -198,6 +200,8 @@ class ClientMarketingResolverTest :
       couponQueryApiService = mockk()
       couponMutationApiService = mockk()
       ticketQueryApiService = mockk()
+      // 默认无待激活票(G97 复购激活展示态;具体用例覆盖)
+      every { ticketQueryApiService.findPendingActivationIds(any(), any()) } returns emptySet()
       ticketMutationApiService = mockk()
       ticketTypeQueryService = mockk()
       marketingPricingQueryApiService = mockk()
@@ -270,6 +274,18 @@ class ClientMarketingResolverTest :
       result[0].ticketTypeName shouldBe "通兑19L"
       result[0].specification shouldBe "19L"
       result[0].ticketNo shouldBe "SP20260800000001"
+      result[0].pendingActivation shouldBe false
+      result[0].activationOrderCount shouldBe 1
+    }
+    test("myTickets marks pending activation ticket") {
+      every { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) } returns listOf(userTicket())
+      every { ticketQueryApiService.findPendingActivationIds(1L, any()) } returns setOf(1L)
+      every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
+      val resolver = ClientTicketQueryResolver(ticketQueryApiService, ticketTypeQueryService)
+
+      val result = resolver.myTickets(GraphQLUserTicketStatus.UNUSED, principal)
+
+      result[0].pendingActivation shouldBe true
     }
     test("purchaseTickets marks simulation when payment stubbed") {
       val purchase =
@@ -404,7 +420,107 @@ class ClientMarketingResolverTest :
       result.payableProductCents shouldBe 4200L
       result.deliveryFeeCents shouldBe 200L
       result.payAmountCents shouldBe 4400L
+      // 起送门槛未启用(默认 0)→ 不拦
+      result.minimumOrderCents shouldBe 0L
+      result.belowMinimum shouldBe false
       verify { orderMutationService.confirmOrderPreview(any<OrderPricingRequest>()) }
+    }
+    test("orderPreview stacks distance fee and reports belowMinimum (R-OPS-03/G96)") {
+      val pricing =
+        OrderPricingResult(
+          items =
+            listOf(
+              OrderPricingItemResult(
+                productId = 1L,
+                quantity = 2,
+                unitPriceCents = 2100,
+                priceSource = PriceSource.CATALOG_PRICE,
+                catalogPriceCents = 2100,
+                subtotalCents = 4200,
+                ticketCoveredQuantity = 0,
+                cashSubtotalCents = 4200,
+              ),
+            ),
+          unitPriceCents = 2100,
+          priceSource = PriceSource.CATALOG_PRICE,
+          subtotalCents = 4200,
+          ticketRedeemCount = 0,
+          ticketCoveredQuantity = 0,
+          cashSubtotalCents = 4200,
+          promotionDiscountCents = 0,
+          promotionActivityId = null,
+          promotionActivityName = null,
+          firstOrderDiscountCents = 0,
+          firstOrderActivityId = null,
+          firstOrderActivityName = null,
+          couponDiscountCents = 0,
+          selectedCouponId = null,
+          selectedCouponName = null,
+          totalDiscountCents = 0,
+          payableProductCents = 4200,
+          availableTicketCount = 0,
+          couponOptions = emptyList(),
+          giftItems = emptyList(),
+        )
+      every { orderMutationService.confirmOrderPreview(any()) } returns pricing
+      val farAddress =
+        AddressModel(
+          id = 1L,
+          userId = 1L,
+          receiverName = "张三",
+          phone = "13800138000",
+          province = "广东省",
+          city = "深圳市",
+          district = "南山区",
+          detailAddress = "测试地址1号",
+          floor = 7,
+          longitude = 113.97,
+          latitude = 22.53,
+        )
+      every { addressQueryApiService.findById(1L) } returns farAddress
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(
+          freeFloorLimit = 4,
+          surchargeCents = 200,
+          minimumOrderCents = 5000L,
+          distanceTiers =
+            listOf(
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = 3.0, feeCents = 0L),
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = 5.0, feeCents = 300L),
+              dev.yidafu.aqua.common.domain.model
+                .DeliveryDistanceTier(upToKm = null, feeCents = 600L),
+            ),
+          storeLongitude = 113.93,
+          storeLatitude = 22.53,
+        )
+      val resolver =
+        ClientOrderPreviewResolver(
+          orderMutationService,
+          deliveryFeeRuleQueryApiService,
+          addressQueryApiService,
+          couponQueryApiService,
+          depositMutationApiService,
+        )
+
+      val result =
+        resolver.orderPreview(
+          OrderPreviewInput(
+            items = listOf(OrderItemInput(productId = 1L, quantity = 2)),
+            addressId = 1L,
+            preferredCouponId = null,
+            ticketRedeemCount = 0,
+          ),
+          principal,
+        )
+
+      // 楼层 7-9 档 +500 与 3-5km 档 +300 叠加
+      result.deliveryFeeCents shouldBe 800L
+      // 商品小计 4200 < 门槛 5000 → 未达门槛(前端禁提交,服务端 createOrder 二次拦截)
+      result.minimumOrderCents shouldBe 5000L
+      result.belowMinimum shouldBe true
+      result.payAmountCents shouldBe 4200L + 800L
     }
     test("orderPreview rejects foreign address") {
       val otherAddress = address().apply { userId = 999L }

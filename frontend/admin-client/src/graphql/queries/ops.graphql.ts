@@ -136,6 +136,13 @@ export const GET_DELIVERY_FEE_RULE_QUERY = gql`
         toFloor
         feeCents
       }
+      minimumOrderCents
+      distanceTiers {
+        upToKm
+        feeCents
+      }
+      storeLongitude
+      storeLatitude
       updatedAt
     }
   }

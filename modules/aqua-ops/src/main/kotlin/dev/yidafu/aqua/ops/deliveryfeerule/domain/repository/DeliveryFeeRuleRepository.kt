@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.ops.deliveryfeerule.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.DeliveryDistanceTier
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeTier
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.table.DeliveryFeeRuleTable
@@ -81,6 +82,10 @@ class DeliveryFeeRuleRepository(
           it[freeFloorLimit] = rule.freeFloorLimit
           it[surchargeCents] = rule.surchargeCents
           it[tiers] = rule.tiers?.let { list -> tierMapper.writeValueAsString(list) }
+          it[minimumOrderCents] = rule.minimumOrderCents
+          it[distanceTiers] = rule.distanceTiers?.let { list -> tierMapper.writeValueAsString(list) }
+          it[storeLongitude] = rule.storeLongitude
+          it[storeLatitude] = rule.storeLatitude
           it[deletedAt] = rule.deletedAt
           it[deletedBy] = rule.deletedBy
           it[updatedAt] = now
@@ -93,6 +98,10 @@ class DeliveryFeeRuleRepository(
           it[freeFloorLimit] = rule.freeFloorLimit
           it[surchargeCents] = rule.surchargeCents
           it[tiers] = rule.tiers?.let { list -> tierMapper.writeValueAsString(list) }
+          it[minimumOrderCents] = rule.minimumOrderCents
+          it[distanceTiers] = rule.distanceTiers?.let { list -> tierMapper.writeValueAsString(list) }
+          it[storeLongitude] = rule.storeLongitude
+          it[storeLatitude] = rule.storeLatitude
           it[deletedAt] = rule.deletedAt
           it[deletedBy] = rule.deletedBy
           it[createdAt] = rule.createdAt
@@ -120,6 +129,10 @@ class DeliveryFeeRuleRepository(
       freeFloorLimit = row[DeliveryFeeRuleTable.freeFloorLimit],
       surchargeCents = row[DeliveryFeeRuleTable.surchargeCents],
       tiers = row[DeliveryFeeRuleTable.tiers]?.let(::parseTiers),
+      minimumOrderCents = row[DeliveryFeeRuleTable.minimumOrderCents],
+      distanceTiers = row[DeliveryFeeRuleTable.distanceTiers]?.let(::parseDistanceTiers),
+      storeLongitude = row[DeliveryFeeRuleTable.storeLongitude],
+      storeLatitude = row[DeliveryFeeRuleTable.storeLatitude],
       deletedAt = row[DeliveryFeeRuleTable.deletedAt],
       deletedBy = row[DeliveryFeeRuleTable.deletedBy],
       createdAt = row[DeliveryFeeRuleTable.createdAt],
@@ -130,6 +143,13 @@ class DeliveryFeeRuleRepository(
   private fun parseTiers(json: String): List<DeliveryFeeTier>? =
     runCatching {
       val list: List<DeliveryFeeTier> = tierMapper.readValue(json)
+      list.ifEmpty { null }
+    }.getOrNull()
+
+  /** 解析距离阶梯 JSON;空串/坏数据回退 null(距离计费不启用)。 */
+  private fun parseDistanceTiers(json: String): List<DeliveryDistanceTier>? =
+    runCatching {
+      val list: List<DeliveryDistanceTier> = tierMapper.readValue(json)
       list.ifEmpty { null }
     }.getOrNull()
 }

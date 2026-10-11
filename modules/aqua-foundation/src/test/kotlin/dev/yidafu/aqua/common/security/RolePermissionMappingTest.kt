@@ -30,16 +30,17 @@ import io.kotest.matchers.shouldBe
 class RolePermissionMappingTest :
   FunSpec({
 
-    test("permission catalog should contain exactly 40 codes") {
-      AdminPermission.entries.size shouldBe 40
+    test("permission catalog should contain exactly 44 codes") {
+      // 40 → 44:G77 周期订购 SUBSCRIPTION_READ/WRITE + G93 支付对账 PAYMENT_RECONCILIATION_READ/EXECUTE(各 +2)
+      AdminPermission.entries.size shouldBe 44
     }
     test("SUPER_ADMIN should have all permissions") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.SUPER_ADMIN)
       permissions shouldBe AdminPermission.entries.toSet()
     }
-    test("ADMIN should have 35 permissions excluding admin-user and system-config ops") {
+    test("ADMIN should have 39 permissions excluding admin-user and system-config ops") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-      permissions.size shouldBe 35
+      permissions.size shouldBe 39
       (AdminPermission.ADMIN_USER_READ !in permissions) shouldBe true
       (AdminPermission.ADMIN_USER_WRITE !in permissions) shouldBe true
       (AdminPermission.SYSTEM_CONFIG_READ !in permissions) shouldBe true
@@ -50,6 +51,9 @@ class RolePermissionMappingTest :
       (AdminPermission.DELIVERY_TASK in permissions) shouldBe true
       (AdminPermission.ORDER_CREATE in permissions) shouldBe true
       (AdminPermission.RECONCILIATION_SUBMIT in permissions) shouldBe true
+      // 周期订购计划(G77/F-ORD-026 后台入口):读/写均授予管理员,送水工无
+      (AdminPermission.SUBSCRIPTION_READ in permissions) shouldBe true
+      (AdminPermission.SUBSCRIPTION_WRITE in permissions) shouldBe true
       // 运营配置/意见反馈/营销 6 码属于管理员
       (AdminPermission.OPS_CONFIG_READ in permissions) shouldBe true
       (AdminPermission.OPS_CONFIG_WRITE in permissions) shouldBe true
@@ -57,6 +61,9 @@ class RolePermissionMappingTest :
       (AdminPermission.FEEDBACK_REVIEW in permissions) shouldBe true
       (AdminPermission.MKT_READ in permissions) shouldBe true
       (AdminPermission.MKT_WRITE in permissions) shouldBe true
+      // 支付对账(F-ORD-031/G93):独立权限码,管理员可查可执行
+      (AdminPermission.PAYMENT_RECONCILIATION_READ in permissions) shouldBe true
+      (AdminPermission.PAYMENT_RECONCILIATION_EXECUTE in permissions) shouldBe true
     }
     test("DELIVERY_WORKER should have 8 permissions") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.DELIVERY_WORKER)
@@ -68,6 +75,9 @@ class RolePermissionMappingTest :
       (AdminPermission.PRODUCT_READ in permissions) shouldBe true
       (AdminPermission.FEEDBACK_REVIEW !in permissions) shouldBe true
       (AdminPermission.OPS_CONFIG_READ !in permissions) shouldBe true
+      // 支付对账不授送水工(F-ORD-031:管理后台资金对账)
+      (AdminPermission.PAYMENT_RECONCILIATION_READ !in permissions) shouldBe true
+      (AdminPermission.PAYMENT_RECONCILIATION_EXECUTE !in permissions) shouldBe true
     }
     test("SUPER_ADMIN authorities should include ROLE_ADMIN and all permissions") {
       val authorities = AdminRoleModel.SUPER_ADMIN.toPermissionAuthorities()

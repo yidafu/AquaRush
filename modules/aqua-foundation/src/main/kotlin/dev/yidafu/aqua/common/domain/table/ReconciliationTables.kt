@@ -37,6 +37,14 @@ object ReconciliationTasksTable : SoftDeletableTable("reconciliation_tasks") {
   val matchedRecords = integer("matched_records")
   val unmatchedRecords = integer("unmatched_records")
   val errorMessage = text("error_message").nullable()
+
+  /** 触发方式:SCHEDULED-每日调度 / MANUAL-管理员手动(F-ORD-031) */
+  val triggerType = varchar("trigger_type", 20)
+  val executedBy = long("executed_by").nullable()
+  val wechatTotalCount = integer("wechat_total_count")
+  val wechatTotalAmountCents = long("wechat_total_amount_cents")
+  val localTotalCount = integer("local_total_count")
+  val localTotalAmountCents = long("local_total_amount_cents")
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
   override val primaryKey = PrimaryKey(id)

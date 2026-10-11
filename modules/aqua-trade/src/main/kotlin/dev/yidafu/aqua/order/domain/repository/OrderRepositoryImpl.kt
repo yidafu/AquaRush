@@ -41,6 +41,7 @@ import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.coalesce
 import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
@@ -244,6 +245,46 @@ class OrderRepositoryImpl(
   ): Page<OrderModel> =
     transaction(database) {
       val condition = (OrdersTable.status eq status.name) and (OrdersTable.deliveryStartedAt less before)
+      val content =
+        OrdersTable
+          .selectAll()
+          .andWhere { condition }
+          .orderBy(*pageableOrderings(pageable).toTypedArray())
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().andWhere { condition }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
+
+  override fun findByStatusAndDispatchAnchorBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> {
+    // 待派单阶段锚点 = coalesce(paid_at, created_at):在线支付以支付时刻、代客下单以落库时刻起算(R-NTF-07)
+    val condition =
+      (OrdersTable.status eq status.name) and
+        (coalesce(OrdersTable.paidAt, OrdersTable.createdAt) less before)
+    return pageOrdersBy(condition, pageable)
+  }
+
+  override fun findByStatusAndAssignedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> {
+    // assigned_at 为 NULL(未派单)时 SQL 比较不命中,天然排除
+    val condition = (OrdersTable.status eq status.name) and (OrdersTable.assignedAt less before)
+    return pageOrdersBy(condition, pageable)
+  }
+
+  /** 扫描类分页查询共用:软删过滤走 selectAll 入口(规则 13),同条件计数取总数 */
+  private fun pageOrdersBy(
+    condition: Op<Boolean>,
+    pageable: Pageable,
+  ): Page<OrderModel> =
+    transaction(database) {
       val content =
         OrdersTable
           .selectAll()

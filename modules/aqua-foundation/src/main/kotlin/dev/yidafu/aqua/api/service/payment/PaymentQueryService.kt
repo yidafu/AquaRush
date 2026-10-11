@@ -17,6 +17,17 @@ interface PaymentQueryService {
   ): List<PaymentModel>
 
   /**
+   * 日期窗口内成功支付流水分页查询(微信资金对账 R-PAY-04 本地账实基准):
+   * 按支付时间窗口过滤,游标式逐页拉取(规则 10 禁全量);按创建时间倒序。
+   */
+  fun getPaidByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentModel>
+
+  /**
    * 退款申请分页查询(R-PAY-02 后台退款管理页):status 为空=全部状态;
    * 日期按创建时间过滤(空=不限);按创建时间倒序。
    */

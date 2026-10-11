@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>管理后台 · 配送费规则配置｜AquaRush UI 设计稿</title>
+<title>管理后台 · 配送费规则配置｜奔泉 UI 设计稿</title>
 <link rel="stylesheet" href="../../assets/tokens.css">
 <link rel="stylesheet" href="../../assets/ui.css">
 </head>
@@ -18,7 +18,7 @@
     <div class="chips">
       <span class="chip">F-OPS-005</span>
       <span class="chip chip-partial">部分实现（楼层分档已实现）</span>
-      <span class="chip chip-plan">G96 起送门槛 / 距离阶梯 规划中</span>
+      <span class="chip chip-ok">G96 起送门槛 / 距离阶梯 已实现 2026-10-11</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -36,7 +36,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
@@ -151,11 +151,11 @@
                   </div>
                 </div>
 
-                <!-- 起送门槛与距离阶梯运费（目标形态，R-OPS-03/G96） -->
+                <!-- 起送门槛与距离阶梯运费（R-OPS-03/G96，已实现 2026-10-11） -->
                 <div class="card">
                   <div class="card-head">
-                    <div class="card-title sm">起送门槛与距离阶梯运费 <span class="tag tag-goal"></span></div>
-                    <span class="f-note t-sub">目标形态 · 2026-10-11 立项（R-OPS-03，缺口 G96）· 排期待定</span>
+                    <div class="card-title sm">起送门槛与距离阶梯运费 <span class="tag tag-ok"></span></div>
+                    <span class="f-note t-sub">已实现 2026-10-11（R-OPS-03，缺口 G96 已解决）</span>
                   </div>
 
                   <div class="field">
@@ -167,6 +167,16 @@
                       <span class="f-note t-sub">启用</span>
                     </div>
                     <div class="f-note t-weak mt2">订单商品金额低于门槛时<strong>服务端拦截下单</strong>并提示「未达起送金额」（AC-OPS-005-07）；客户端确认订单页提交前同步预检提示。</div>
+                  </div>
+
+                  <div class="field">
+                    <label>门店经纬度（WGS84） <span class="f-note t-weak">｜ InputNumber ×2 ｜ 距离阶梯计费基准，有距离档必填，未配置则距离档不生效</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>113.930000</span></div>
+                      <span class="f-note t-sub">经度</span>
+                      <div class="input" style="width:180px"><span>22.530000</span></div>
+                      <span class="f-note t-sub">纬度</span>
+                    </div>
                   </div>
 
                   <div class="field mb0">
@@ -242,7 +252,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi">工作台</div>
@@ -331,7 +341,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi">工作台</div>
@@ -400,7 +410,7 @@
         <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
         <p><strong>入口：</strong>运营配置 → 运费规则；路由 <code>operations/delivery-fee</code></p>
         <p><strong>下游：</strong>订单域消费（R-MON-02，F-ORD-001/020）；用户端确认订单页费用明细</p>
-        <p><strong>状态：</strong><span class="chip chip-partial">部分实现</span>（楼层分档已实现 2026-08，2026-10 分档化）；起送门槛 / 距离阶梯运费 <span class="chip chip-plan">规划中</span>（R-OPS-03，2026-10-11 依调研报告 v2 F13 立项，缺口 G96）</p>
+        <p><strong>状态：</strong><span class="chip chip-ok">已实现</span>（楼层分档 2026-08、2026-10 分档化；起送门槛 / 距离阶梯运费 2026-10-11 实现——R-OPS-03，缺口 G96 已解决）</p>
       </div>
 
       <div class="note-card">
@@ -409,7 +419,7 @@
           <li>免费楼层配置：免费楼层（默认 4）+ 楼层为空免运费说明</li>
           <li>楼层分档加价表：可增删档位，每档含起始楼层 / 结束楼层（可空 = 以上）/ 加价金额（元）</li>
           <li>自提订单免运费开关</li>
-          <li>起送门槛 + 距离阶梯运费表 <span class="tag tag-goal"></span>（目标形态：门槛金额 + 启用开关；距离档位可增删行，与楼层分档叠加计算）</li>
+          <li>起送门槛 + 距离阶梯运费表 <span class="tag tag-ok"></span>（已实现：门槛金额 + 启用开关；距离档位可增删行，与楼层分档叠加计算；门店经纬度为距离计费基准）</li>
           <li>下单时快照落库说明（R-MON-02）+ 修改记录</li>
           <li>费用试算器（输入楼层 → 实时试算）+ 边界用例速查；保存二次确认</li>
         </ol>
@@ -438,7 +448,7 @@
         <p>保存<strong>二次确认须说明对已生成订单无影响</strong>：「确定保存新的配送费规则吗？修改将影响新订单，已生成订单不受影响」。</p>
         <p>由单档改分档（解决 7 楼与 27 楼同价）；金额一律分存储、展示层转元（¥0.00 形式）。</p>
         <p><span class="tag tag-goal"></span> 缺口 <strong>G62</strong>：规则口径由订单域 R-MON-02 定义，本域仅提供配置能力。</p>
-        <p><span class="tag tag-goal"></span> 起送门槛 / 距离阶梯运费缺口 <strong>G96</strong>（R-OPS-03，2026-10-11 立项，排期待定）：原「距离计费」开放问题由 R-OPS-03 承接；距离阶梯与楼层分档为<strong>叠加计算</strong>（互补），已生成订单不受后续配置变更影响。</p>
+        <p><span class="tag tag-ok"></span> 起送门槛 / 距离阶梯运费缺口 <strong>G96</strong> 已解决（R-OPS-03，2026-10-11 实现）：距离口径裁决为门店与地址经纬度 Haversine 直线距离（坐标缺失不加收），门店经纬度就近配置于本页；距离阶梯与楼层分档为<strong>叠加计算</strong>（互补），已生成订单不受后续配置变更影响。</p>
       </div>
     </div>
 

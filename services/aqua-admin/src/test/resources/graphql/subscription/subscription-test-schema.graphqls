@@ -1,0 +1,118 @@
+# Test Schema for Admin Subscription Resolver GraphQL Integration Tests
+# 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/subscription/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/subscription.graphqls 保持一致
+# (G77/F-ORD-026 后台入口:列表/创建/暂停/恢复/终止;测试内 id 用 Long 简化标量)
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  _dummy: String
+  subscriptions(input: SubscriptionListInput): SubscriptionVoPage!
+  subscription(subscriptionId: Long!): SubscriptionVo
+}
+
+type Mutation {
+  createSubscription(input: CreateSubscriptionInput!): SubscriptionVo!
+  pauseSubscription(subscriptionId: Long!): SubscriptionVo!
+  resumeSubscription(subscriptionId: Long!): SubscriptionVo!
+  terminateSubscription(subscriptionId: Long!): SubscriptionVo!
+}
+
+type SubscriptionVo {
+  id: Long!
+  user: UserVo
+  address: AddressVo
+  workerId: Long
+  workerName: String
+  cycleType: SubscriptionCycleType!
+  weekdays: [Int!]!
+  monthDay: Int
+  timeSlot: DeliveryTimeSlot!
+  startDate: String!
+  endDate: String
+  nextRunDate: String!
+  maxPeriods: Int
+  executedPeriods: Int!
+  status: SubscriptionStatus!
+  remark: String
+  lastError: String
+  lastRunAt: LocalDateTime
+  items: [SubscriptionItemVo!]!
+  createdAt: LocalDateTime!
+}
+
+type SubscriptionItemVo {
+  productId: Long!
+  productName: String!
+  quantity: Int!
+}
+
+type SubscriptionVoPage {
+  content: [SubscriptionVo!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 用户/地址取共享类型被本测试查询的子集(未查询字段不参与序列化)
+type UserVo {
+  id: Long!
+  nickname: String
+  phone: String
+}
+
+type AddressVo {
+  id: Long!
+  receiverName: String
+  detailAddress: String
+}
+
+input SubscriptionListInput {
+  page: Int = 0
+  size: Int = 20
+  search: String
+  status: SubscriptionStatus
+  nextRunFrom: String
+  nextRunTo: String
+}
+
+input CreateSubscriptionInput {
+  userId: Long!
+  addressId: Long!
+  workerId: Long
+  items: [SubscriptionItemInput!]!
+  cycleType: SubscriptionCycleType!
+  weekdays: [Int!]
+  monthDay: Int
+  timeSlot: DeliveryTimeSlot!
+  startDate: String!
+  endDate: String
+  maxPeriods: Int
+  remark: String
+}
+
+input SubscriptionItemInput {
+  productId: Long!
+  quantity: Int!
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  TERMINATED
+}
+
+enum SubscriptionCycleType {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum DeliveryTimeSlot {
+  IMMEDIATE
+  MORNING
+  AFTERNOON
+  EVENING
+}

@@ -27,7 +27,7 @@ users ─┬─ addresses                admins(账号,含送水工) ─ deliver
        │          ├─ reviews
        │          ├─ payments ─ payment_refunds
        │          ├─ order_transfers
-       │          └─ subscriptions ─ subscription_items（**暂缓** 2026-10-10 决策）
+       │          └─ subscriptions ─ subscription_items（**后台侧已实现** 2026-10-11,V347）
        ├─ deposit_records / deposit_refund_applications / barrel_recovery_records
        ├─ user_coupons / user_tickets / user_package_cards / points_accounts
        ├─ feedbacks / notifications / user_subscription_auths
@@ -332,7 +332,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | user_id | BIGINT → users | 归属客户（代客下单=地址所属客户，G51 口径） |
 | client_request_id | VARCHAR(64) | 可空;`uk_orders_user_client_request(user_id, client_request_id)` 下单幂等（R-ORD-06）；周期订购服务端生成 `sub-{计划id}-{期次}` |
 | delivery_time_slot | VARCHAR(20) | 时段快照：IMMEDIATE(30 分钟内)/MORNING(09:00-12:00)/AFTERNOON(14:00-18:00)/EVENING(18:00-21:00)，由 F-SYS-002 配置下发（枚举 `DeliveryTimeSlot`） |
-| source / subscription_id+period_no / enterprise_customer_id | — | 来源与周期/月结标记为**规划列**（现状未建;G77/G83 **[暂缓]** 2026-10-10 决策不排期,周期/企业单现状以 payment_method 等区分） |
+| source / subscription_id+period_no / enterprise_customer_id | — | 来源与月结标记为**规划列**（现状未建;G83 **[暂缓]** 2026-10-10 决策不排期,企业单以 payment_method 等区分）;**G77 周期订购 2026-10-11 后台侧已实现,不新增 orders 列**——周期单走代客下单链路(payment=CASH),以 client_request_id `sub-{计划id}-{期次}` 关联计划(见 §4.9) |
 | is_self_collect | BOOLEAN DEFAULT false | 自提：免运费、记录已收款（R-ORD-09;列名 `is_self_collect`,非 self_pickup） |
 | address_id | BIGINT NOT NULL → addresses | 收货地址引用（**现状无地址快照列**,见 §0 快照行;订单地址修正回写 addresses,F-ORD-024 现状口径） |
 
@@ -392,7 +392,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 
 **月结/开票**：`bill_id → enterprise_monthly_bills` 与发票 invoices 聚合为**规划域**（G83 **[暂缓]**,现状未建列/表）。
 
-索引：`uk_orders_no(order_no)`、`uk_orders_user_client_request`、`idx_orders_user(user_id, created_at DESC)`、`idx_orders_status(status, created_at)`、`idx_orders_worker(delivery_worker_id, status)`、`idx_orders_completed(completed_at)`（营收统计）、`idx_orders_coupon(coupon_id)`、`idx_orders_promotion(promotion_activity_id)`;`idx_orders_enterprise`/`idx_orders_subscription` 随 G77/G83（**[暂缓]**）再评估。
+索引：`uk_orders_no(order_no)`、`uk_orders_user_client_request`、`idx_orders_user(user_id, created_at DESC)`、`idx_orders_status(status, created_at)`、`idx_orders_worker(delivery_worker_id, status)`、`idx_orders_completed(completed_at)`（营收统计）、`idx_orders_coupon(coupon_id)`、`idx_orders_promotion(promotion_activity_id)`;周期单经 `uk_orders_user_client_request` 幂等关联计划,不设 `idx_orders_subscription`（G77 后台侧已实现 2026-10-11）;`idx_orders_enterprise` 随 G83（**[暂缓]**）再评估。
 
 ### 4.2 `order_items` 订单商品明细（订单商品权威数据）
 
@@ -473,21 +473,26 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 
 `order_id / from_worker_id / to_worker_id / reason / status(PENDING_ACCEPT→ACCEPTED/REJECTED/TIMEOUT) / created_at / responded_at`；仅「待配送/配送中」可转；目标须在线且可接单（R-ORD-08 口径）；拒绝/超时回退原送水工；收款归属建议按实际完成人计入日报（【开放决策】）。
 
-### 4.9 `subscriptions` + `subscription_items` 周期订购计划（G77 **[暂缓]** 2026-10-10 决策——保留编号与设计,不进当期排期,勿重复立项;现状未建表）
+### 4.9 `subscriptions` + `subscription_items` 周期订购计划（G77 **后台侧已实现** 2026-10-11 恢复开发并变更方向——入口仅管理后台;V347 迁移,普通表非软删,计划终止是状态而非删除,历史计划长期可查）
 
 | 列 | 类型 | 说明 |
 | --- | --- | --- |
-| id / user_id | BIGINT | |
+| id / user_id | BIGINT | 计划主键 / 归属小程序用户 |
+| address_id | BIGINT → addresses | 绑定收货地址；**生成订单时取当时值快照**；地址失效生成失败记 last_error 不静默（R-ORD-13） |
+| worker_id | BIGINT 可空 | 绑定送水工：生成成功后定向提醒;未绑定则广播全部在线送水工（F-NTF-003） |
 | cycle_type | VARCHAR(16) | WEEKLY（指定星期，可多选）/ BIWEEKLY / MONTHLY（指定日） |
-| weekdays | JSONB / month_day INT | 周期参数 |
-| time_slot | VARCHAR(32) | 配送时段（F-SYS-002 口径） |
-| address_id | BIGINT → addresses | 计划引用地址簿；**生成订单时取当时值快照**；地址失效（删除）转提醒不静默（R-ORD-13） |
-| start_date / end_date / max_periods / executed_periods | DATE/INT | 生效/终止条件（随时终止） |
-| order_mode | VARCHAR(16) | AUTO_ORDER（自动下单）/ REMIND_ONLY（仅提醒） |
-| next_run_date | DATE | 调度扫描键（`idx_subscription_next(status, next_run_date)`） |
+| weekdays / month_day | VARCHAR(64) 可空 / INT 可空 | 周期参数：逗号分隔 ISO 星期 1-7（如 `1,3,5`,MONTHLY 为 null）/ 每月 1~31 日（WEEKLY/BIWEEKLY 为 null） |
+| time_slot | VARCHAR(20) | 配送时段（F-SYS-002 口径,枚举 `DeliveryTimeSlot`） |
+| start_date / end_date / max_periods | DATE / DATE 可空 / INT 可空 | 生效与终止条件（随时终止;end_date/max_periods 可空=不设该项上限） |
+| executed_periods / next_run_date | INT / DATE | 已执行期次 / 调度扫描键（`idx_subscription_next(status, next_run_date)`） |
 | status | VARCHAR(16) | ACTIVE / PAUSED / TERMINATED（终止不可恢复） |
+| remark / last_error | VARCHAR(500) 可空 | 备注 / 最近一次生成失败原因（后台列表可见,不静默,次日重试） |
+| last_run_at / created_by | DATETIME 可空 / BIGINT 可空 | 最近调度执行时间 / 创建计划的管理员 id |
+| created_at / updated_at | DATETIME | |
 
-`subscription_items`：`subscription_id + product_id + quantity`（生成订单按当期营销链路重算价格）。同期次幂等：生成订单 client_request_id = `sub-{id}-{period}` 复用下单唯一索引。
+索引：`idx_subscription_next(status, next_run_date)`、`idx_subscription_user(user_id)`。
+
+`subscription_items`：`id / subscription_id + product_id + quantity`（+ created_at/updated_at；生成订单按当期营销链路重算价格），索引 `idx_subscription_items_sub(subscription_id)`。同期次幂等：生成订单 client_request_id = `sub-{计划id}-{期次}` 复用下单唯一索引（`uk_orders_user_client_request(user_id, client_request_id)` 兜底）。**不做 order_mode**（本期恒为自动下单，无「仅提醒」模式）。
 
 ### 4.10 企业客户月结（R-ORD-14;G83 **[暂缓]** 2026-10-10 决策——保留编号与设计,不进当期排期,勿重复立项;现状未建表）
 
@@ -634,7 +639,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 
 **ticket_types**：`name / ticket_type(SPECIFIED_PRODUCT 指定商品票 / UNIVERSAL 通兑票;列名 ticket_type,非 kind) / product_id(单商品列,非 product_ids JSONB) / specification(通兑票适用规格，跨规格不通用) / package_count(套餐张数>0;列名 package_count,非 bundle_count) / package_price_cents(列名 package_price_cents,非 price_cents) / gift_count(买N送M，赠送票同池同口径) / validity_type(FIXED/AFTER_PURCHASE_DAYS)+valid_from/valid_to/valid_days / per_user_limit(非 purchase_limit) / status(ON_SHELF/OFF_SHELF)`。
 
-**运营策略规划列**（R-MKT-08 修订,G97 排期待定,票种级可配开关、默认不启用）：`is_lead_generation BOOLEAN DEFAULT false`（引流票标记——低面值拉新票,用于运营分析与购票页标签,不改变核销语义）、`activation_order_count INT NULL`（复购激活——NULL/0=不启用;N=购票后需再完成 N 单方可核销,防「囤票不复购」。判定基线为**购票时刻**的已完成订单数,建议记 `ticket_purchases.completed_orders_at_purchase` 规划列,核销前置校验=当前已完成订单数 − 基线 ≥ N,避免历史订单误激活）、`max_redeem_per_order INT NULL`（单次核销上限——NULL=不限;单笔订单该票种核销张数 ≤ N,createOrder 计价入口截断+校验）。
+**运营策略列**（R-MKT-08 修订,**已落列 2026-10 G97,V348**,票种级可配开关、默认不启用）：`is_lead_generation BOOLEAN NOT NULL DEFAULT false`（引流票标记——低面值拉新票,购票页「拉新专享」标签 + **新客购买门禁**(仅无已完成订单用户可购,口径同 R-MKT-10),不改变核销语义）、`activation_order_count INT NULL`（复购激活——NULL/0=不启用;N=购票后需再完成 N 单方可核销,防「囤票不复购」。判定基线为**购票时刻**的已完成订单数,落 `ticket_purchases.completed_orders_at_purchase INT NULL`（V348,启用票种购票时写入,未启用为 NULL）,核销前置校验=当前已完成订单数 − 基线 ≥ N,避免历史订单误激活;启用前已购存量单不落基线、不参与判定——配置变更不影响已购票）、`max_redeem_per_order INT NULL`（单次核销上限——NULL/0=不限;单笔订单该票种核销张数 ≤ N,计价入口按票种截断 + 超限拒绝）。**`user_tickets` 不增列**：「待激活」为查询侧派生展示态（`UserTicketVo.pendingActivation`,服务端按基线差判定）,持久化状态仍 UNUSED/USED/RETURNED/EXPIRED 四态,`redeemAtomically` 原子条件不变。
 
 **ticket_purchases**：`order_no / user_id / ticket_type_id / package_count(1~10，GraphQL+服务层双重校验) / gift_count / total_count / package_price_cents / payment_status(PENDING/PAID/REFUNDED) / transaction_id / paid_at`（购票走微信支付,回调按 order_no 匹配入账）。
 
@@ -695,7 +700,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 ### 7.3 `store_profiles` 店铺信息（F-OPS-004;原设计名单数 store_profile,现状复数表名）
 
 `shop_name(≤20;列名 shop_name) / logo_url / service_hotline(列名 service_hotline,非 service_phone) / business_hours_start + business_hours_end(TIME 两列,非单列 business_hours) / shop_intro(≤100;列名 shop_intro,非 intro) / about_us(≤2000) / created_at / updated_at`（**无 updated_by 列**,操作人留痕走业务日志）。用户端 about/feedback 页动态读取，未配置按默认值兜底。
-**规划列**（R-OPS-03 距离阶梯运费的输入,G96 排期待定）：`longitude / latitude`（门店经纬度,WGS-84,后台店铺信息表单维护）——现状无此两列,距离计算落地时随迁移补建。
+**门店经纬度裁决（2026-10-11,G96 落地）**：原规划在本表补 `longitude / latitude`（店铺信息表单维护）；实际就近落 `delivery_fee_rules.store_longitude/store_latitude`（随距离阶梯同页配置,见 §7.4 V347）,本表不增列（F-OPS-004 店铺信息维持现状字段）。
 
 ### 7.4 `delivery_fee_rules` 配送费规则（F-OPS-005,单行）
 
@@ -703,10 +708,10 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 `tiers: [{fromFloor:5,toFloor:6,feeCents:200},{fromFloor:7,toFloor:9,feeCents:500},{fromFloor:10,toFloor:null,feeCents:800}]`（存量行已回填该默认三档）;校验（服务层）：free_floor ≥0;档位非空、按起始楼层严格升序、区间不重叠、起始楼层 > 免费楼层、末档 toFloor=null（不封顶）、各档 0-999 元 ≤2 位小数。
 计费口径（R-MON-02 2026-10 分档修订）：楼层为空 → 0；楼层 ≤ free_floor → 0；否则命中档位 [fromFloor..toFloor|null=∞] 取 feeCents,tiers 为空回退 surcharge_cents；自提 → 0。下单服务端快照落 `orders.delivery_fee_cents`，配置变更不追溯。
 
-**规划列**（R-OPS-03 起送门槛与距离阶梯运费,G96 排期待定,与楼层分档互补叠加计算）：
+**已落列（V347,R-OPS-03 起送门槛与距离阶梯运费,G96 已实现 2026-10-11,与楼层分档互补叠加计算）**：
 
-- `minimum_order_cents BIGINT DEFAULT 0`——起送门槛（0=不启用,默认）。createOrder 前置校验：商品金额（未扣优惠）< 门槛 → 拦截下单（BUSINESS_RULE「未达起送金额」）；自提订单不受限（R-OPS-03）；
-- `distance_tiers JSON`——按距离阶梯加价表,结构与 tiers 同构：`[{fromKm:0,toKm:3,feeCents:0},{fromKm:3,toKm:5,feeCents:300},{fromKm:5,toKm:null,feeCents:600}]`（默认示例=PRD 示例,存量行回填全 0 档等效不启用）;校验（服务层）：按起始距离升序、区间不重叠、末档 toKm=null（不封顶）、各档金额 ≥0 且 ≤2 位小数。距离 = 收货地址经纬度与门店经纬度（store_profiles 规划列）的**直线距离（Haversine）**【开放决策：PRD 留口径开放,默认直线;若改骑行/驾车需外部路径服务,与单服务器轻量定位冲突】。坐标体系：地址 WGS-84（提交端已转换）对门店 WGS-84,同系直接计算。
+- `minimum_order_cents BIGINT DEFAULT 0`——起送门槛（0=不启用,默认;存量行 0 行为不变）。createOrder/createDeliveryOrder 前置校验：商品金额（成交小计,未扣优惠）< 门槛 → 拦截下单（BUSINESS_RULE「商品金额未达起送金额 ¥X，还差 ¥Y」,自提单豁免,R-OPS-03）；
+- `distance_tiers JSON`——按距离阶梯加价表,**按距离上限档位结构（实现形态,与设计稿「距离上限」表单一致,原 fromKm/toKm 同构规划收口为本形态）**：`[{upToKm:3,feeCents:0},{upToKm:5,feeCents:300},{upToKm:null,feeCents:600}]`（upToKm=null 不封顶且必须末档;默认空=不启用,存量行 NULL 行为不变）;校验（服务层）：按距离上限严格升序、区间不重叠、不封顶仅末档、距离上限 >0、各档 0-999 元 ≤2 位小数;配置了距离档必须同时配置门店坐标（成对且经纬度值域内）。距离 = 收货地址经纬度与门店经纬度（同表 `store_longitude/store_latitude`,WGS-84）的**直线距离（Haversine）**【开放决策收口 2026-10-11：默认直线;若改骑行/驾车需外部路径服务,与单服务器轻量定位冲突】。坐标体系：地址 WGS-84（提交端已转换）对门店 WGS-84,同系直接计算;任一侧坐标缺失 → 距离档不加收。
 
 计价叠加顺序（R-MON-02 扩展,快照语义不变）：楼层分档运费 + 距离阶梯加价 → `orders.delivery_fee_cents` 一次快照合计；配置变更即时生效但不追溯已生成订单。
 
@@ -722,8 +727,8 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | | `delivery.immediate_minutes` | 30 | 立即配送时限文案 |
 | | `delivery.slot_morning/afternoon/evening.enabled` + `.window` | true / 09:00-12:00 / 14:00-18:00 / 18:00-21:00 | `deliverySlots` 下发（F-SYS-002） |
 | | `delivery.assign_timeout_remind_minutes` | — | 派单超时提醒 |
-| | `order_accept_timeout_minutes` | 30 | 接单超时预警·「待派单」超阈值（ORDER_ACCEPT_TIMEOUT 推送管理员；F-NTF-008/G94 规划中） |
-| | `delivery_start_timeout_minutes` | 60 | 接单超时预警·「待配送」未开始配送超阈值（DELIVERY_START_TIMEOUT；F-NTF-008/G94 规划中） |
+| | `order_accept_timeout_minutes` | 30 | 接单超时预警·「待派单」超阈值（ORDER_ACCEPT_TIMEOUT 推送管理员；F-NTF-008/G94 已实现 2026-10） |
+| | `delivery_start_timeout_minutes` | 60 | 接单超时预警·「待配送」未开始配送超阈值（DELIVERY_START_TIMEOUT；F-NTF-008/G94 已实现 2026-10） |
 | | `delivery.timeout_minutes` | 120 | 配送超时推送（DELIVERY_TIMEOUT） |
 | STOCK | `stock.warning_threshold` | 10 | 库存预警（R-PRO-02，F-STA-006 同源） |
 | | `stock.warning_tiers` | <10 红/<50 橙/≥50 绿 | 列表着色 |
@@ -843,7 +848,7 @@ barrel_fees / barrel_purchases(G06 现状) ＋ deposit_records(押金台账,B2 �
 | 10 | 套餐卡↔订单 | usages `uk(card_id, order_id)` + remaining 条件更新 |
 | 11 | 积分↔订单 | 余额=Σ流水恒等；扣回/作废走 RETURN/EXPIRE 流水 |
 | 12 | 桶账↔押金/回收/订单 | 桶账为实时聚合视图（不落独立表），口径公式见 §3.5/3.7；退押条件更新幂等 |
-| 13 | 周期计划↔订单 | orders `idx(subscription_id, period_no)` + client_request_id 复用唯一索引（**[暂缓]** G77） |
+| 13 | 周期计划↔订单 | client_request_id = `sub-{计划id}-{期次}` 复用 `uk_orders_user_client_request(user_id, client_request_id)` 唯一索引（G77 后台侧已实现 2026-10-11） |
 | 14 | 企业↔应收/发票 | 账单聚合=已完成订单；开票金额 ≤ 已结金额（服务层校验）；信用额度条件更新（**[暂缓]** G83） |
 | 15 | 工资↔日报/订单 | 结算单生成前对账校验，差异挂起；`uk_payroll` 同周期同人唯一 |
 | 16 | 水票↔订单/日报 | ticket_no UK；核销原子条件更新 + used_order_id 留痕；日报水票栏与核销同源 |

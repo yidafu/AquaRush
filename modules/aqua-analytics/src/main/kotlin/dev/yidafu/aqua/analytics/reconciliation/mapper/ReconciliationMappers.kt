@@ -29,6 +29,7 @@ import dev.yidafu.aqua.common.graphql.generated.ReconciliationReportVo
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskType
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTaskVo
+import dev.yidafu.aqua.common.graphql.generated.ReconciliationTriggerType
 import dev.yidafu.aqua.common.graphql.generated.SourceSystem
 import dev.yidafu.aqua.common.util.JsonHelper
 import java.time.LocalDateTime
@@ -53,6 +54,12 @@ fun ReconciliationTaskModel.toGraphQL(): ReconciliationTaskVo =
     matchedRecords = matchedRecords,
     unmatchedRecords = unmatchedRecords,
     errorMessage = errorMessage,
+    triggerType = triggerType.toGraphQL(),
+    executedBy = executedBy,
+    wechatTotalCount = wechatTotalCount,
+    wechatTotalAmountCents = wechatTotalAmountCents,
+    localTotalCount = localTotalCount,
+    localTotalAmountCents = localTotalAmountCents,
     createdAt = createdAt,
     updatedAt = updatedAt,
   )
@@ -109,6 +116,7 @@ private fun dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.t
     dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.RUNNING -> ReconciliationTaskStatus.RUNNING
     dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SUCCESS -> ReconciliationTaskStatus.SUCCESS
     dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.FAILED -> ReconciliationTaskStatus.FAILED
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.SKIPPED -> ReconciliationTaskStatus.SKIPPED
   }
 
 private fun dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.toGraphQL(): DiscrepancyType =
@@ -128,4 +136,11 @@ private fun dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.toGraphQ
   when (this) {
     dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.UNRESOLVED -> DiscrepancyStatus.UNRESOLVED
     dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.RESOLVED -> DiscrepancyStatus.RESOLVED
+    dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.IGNORED -> DiscrepancyStatus.IGNORED
+  }
+
+private fun dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType.toGraphQL(): ReconciliationTriggerType =
+  when (this) {
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType.SCHEDULED -> ReconciliationTriggerType.SCHEDULED
+    dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType.MANUAL -> ReconciliationTriggerType.MANUAL
   }

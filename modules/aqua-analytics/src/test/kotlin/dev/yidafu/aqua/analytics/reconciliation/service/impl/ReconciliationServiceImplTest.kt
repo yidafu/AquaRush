@@ -34,10 +34,12 @@ import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyResolveAction
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundType
@@ -217,7 +219,9 @@ class ReconciliationServiceImplTest :
       paymentQueryService = mockk(relaxed = true)
       weChatApi = mockk(relaxed = true)
       eventPublishService = mockk(relaxed = true)
-      val config = ReconciliationConfig()
+      // 已配置真实商户参数(否则任务会走 SKIPPED 分支)
+      val config =
+        ReconciliationConfig(weChatAppId = "wx-app", weChatMchId = "mch-1", weChatApiKey = "api-key")
       // 同步执行,便于断言 CompletableFuture 结果
       val executor = Executor { it.run() }
       service =
@@ -248,7 +252,23 @@ class ReconciliationServiceImplTest :
       task.taskDate shouldBe date.atStartOfDay()
       task.status shouldBe ReconciliationTaskStatus.PENDING
       task.taskId.isNotBlank() shouldBe true
+      // 默认调度触发;手动触发时记操作人(F-ORD-031)
+      task.triggerType shouldBe ReconciliationTriggerType.SCHEDULED
+      task.executedBy.shouldBeNull()
       verify(exactly = 1) { taskRepository.save(task) }
+    }
+    test("createPaymentReconciliationTask records manual trigger with admin id") {
+      every { taskRepository.save(any()) } answers { firstArg() }
+
+      val task =
+        service.createPaymentReconciliationTask(
+          date,
+          ReconciliationTriggerType.MANUAL,
+          executedBy = 42L,
+        )
+
+      task.triggerType shouldBe ReconciliationTriggerType.MANUAL
+      task.executedBy shouldBe 42L
     }
     test("createRefundReconciliationTask creates refund task") {
       every { taskRepository.save(any()) } answers { firstArg() }
@@ -270,7 +290,8 @@ class ReconciliationServiceImplTest :
       val task = newTask()
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
       val weChatTx = newWeChatTransaction(transactionId = "wx1", amount = 1000L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
       every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
@@ -279,23 +300,29 @@ class ReconciliationServiceImplTest :
       result.totalRecords shouldBe 2
       result.matchedRecords shouldBe 1
       result.unmatchedRecords shouldBe 0
-      result.errorMessage.shouldBeNull()
+      // 三方校验汇总(R-PAY-04)
+      result.wechatTotalCount shouldBe 1
+      result.wechatTotalAmountCents shouldBe 1000L
+      result.localTotalCount shouldBe 1
+      result.localTotalAmountCents shouldBe 1000L
       verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
       verify { reportRepository.save(any()) }
       verify { discrepancyRepository.saveAll(any<List<ReconciliationDiscrepancyModel>>()) }
     }
-    test("executePaymentReconciliation marks FAILED when internal payment missing in wechat") {
+    test("executePaymentReconciliation succeeds with discrepancy rows and keeps task SUCCESS (R-PAY-04: 对账完成≠无差异)") {
       val task = newTask()
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "internal-only")
-      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
       every { weChatApi.fetchTransactions(date) } returns emptyList()
 
       val result = service.executePaymentReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
       result.unmatchedRecords shouldBe 1
-      result.errorMessage.shouldNotBeNull()
-      verify { eventPublishService.publishDomainEvent("RECONCILIATION_FAILED", task.taskId, any()) }
+      result.localTotalCount shouldBe 1
+      result.wechatTotalCount shouldBe 0
+      verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -304,12 +331,14 @@ class ReconciliationServiceImplTest :
       val task = newTask()
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
       val weChatTx = newWeChatTransaction(transactionId = "wx1", amount = 950L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
       every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.unmatchedRecords shouldBe 1
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -320,20 +349,45 @@ class ReconciliationServiceImplTest :
     test("executePaymentReconciliation records extra wechat transaction") {
       val task = newTask()
       val weChatTx = newWeChatTransaction(transactionId = "wechat-only", amount = 1000L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns emptyList()
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(emptyList<PaymentModel>(), PageRequest.of(0, 100), 0)
       every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.wechatTotalCount shouldBe 1
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
       saved.captured[0].recordDetails!!.containsKey("wechat") shouldBe true
     }
+    test("executePaymentReconciliation marks SKIPPED when wechat credentials not configured") {
+      val task = newTask()
+      // 未配置商户参数的服务(假支付模式)
+      val unconfigured =
+        ReconciliationServiceImpl(
+          taskRepository,
+          discrepancyRepository,
+          reportRepository,
+          paymentService,
+          paymentQueryService,
+          weChatApi,
+          eventPublishService,
+          ReconciliationConfig(),
+          Executor { it.run() },
+        )
+
+      val result = unconfigured.executePaymentReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.SKIPPED
+      result.errorMessage.shouldNotBeNull()
+      verify(exactly = 0) { weChatApi.fetchTransactions(any()) }
+      verify { eventPublishService.publishDomainEvent("RECONCILIATION_SKIPPED", task.taskId, any()) }
+    }
     test("executePaymentReconciliation rethrows and marks failed on exception") {
       val task = newTask()
-      every { paymentQueryService.getByDateRange(any(), any()) } throws RuntimeException("boom")
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } throws RuntimeException("boom")
 
       val future = service.executePaymentReconciliation(task)
 
@@ -370,7 +424,8 @@ class ReconciliationServiceImplTest :
       result.totalRecords shouldBe 2
       result.matchedRecords shouldBe 1
       result.unmatchedRecords shouldBe 0
-      result.errorMessage.shouldBeNull()
+      result.wechatTotalAmountCents shouldBe 1000L
+      result.localTotalAmountCents shouldBe 1000L
       verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
       verify { reportRepository.save(any()) }
     }
@@ -399,7 +454,8 @@ class ReconciliationServiceImplTest :
 
       val result = service.executeRefundReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.unmatchedRecords shouldBe 1
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -416,7 +472,7 @@ class ReconciliationServiceImplTest :
 
       val result = service.executeRefundReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -432,7 +488,7 @@ class ReconciliationServiceImplTest :
 
       val result = service.executeRefundReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -452,7 +508,8 @@ class ReconciliationServiceImplTest :
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
       val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 1000L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
       every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
@@ -461,7 +518,6 @@ class ReconciliationServiceImplTest :
       result.totalRecords shouldBe 2
       result.matchedRecords shouldBe 1
       result.unmatchedRecords shouldBe 0
-      result.errorMessage.shouldBeNull()
       verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
       verify { reportRepository.save(any()) }
     }
@@ -469,12 +525,14 @@ class ReconciliationServiceImplTest :
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
       val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 980L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
       every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.unmatchedRecords shouldBe 1
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -483,12 +541,13 @@ class ReconciliationServiceImplTest :
     test("executeSettlementReconciliation records MISSING for wechat-only settlement") {
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
       val settlement = newWeChatSettlement(transactionId = "wechat-only", outTradeNo = "OUT_wechat-only", amount = 1000L)
-      every { paymentQueryService.getByDateRange(any(), any()) } returns emptyList()
+      every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(emptyList<PaymentModel>(), PageRequest.of(0, 100), 0)
       every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
-      result.status shouldBe ReconciliationTaskStatus.FAILED
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
       val saved = slot<List<ReconciliationDiscrepancyModel>>()
       verify { discrepancyRepository.saveAll(capture(saved)) }
       saved.captured.size shouldBe 1
@@ -592,12 +651,13 @@ class ReconciliationServiceImplTest :
       val pageable = PageRequest.of(0, 20)
       val expected = PageImpl(listOf(mockk<ReconciliationDiscrepancyModel>(relaxed = true)), pageable, 1)
       every {
-        discrepancyRepository.findDiscrepanciesPaged("T1", DiscrepancyStatus.UNRESOLVED, pageable)
+        discrepancyRepository.findDiscrepanciesPaged("T1", DiscrepancyType.MISSING, DiscrepancyStatus.UNRESOLVED, pageable)
       } returns expected
 
       val result =
         service.getDiscrepanciesPaged(
           "T1",
+          DiscrepancyType.MISSING,
           DiscrepancyStatus.UNRESOLVED,
           pageable,
         )
@@ -632,7 +692,7 @@ class ReconciliationServiceImplTest :
         }
       every { discrepancyRepository.findById(1L) } returns Optional.of(discrepancy)
 
-      val resolved = service.resolveDiscrepancy(1L, "核对无误", "admin")
+      val resolved = service.resolveDiscrepancy(1L, DiscrepancyResolveAction.RESOLVE, "核对无误", "admin")
 
       resolved shouldBe true
       discrepancy.status shouldBe DiscrepancyStatus.RESOLVED
@@ -642,14 +702,31 @@ class ReconciliationServiceImplTest :
       verify { discrepancyRepository.save(discrepancy) }
       verify { eventPublishService.publishDomainEvent("DISCREPANCY_RESOLVED", "T1", any()) }
     }
+    test("resolveDiscrepancy marks ignored when action is IGNORE") {
+      val discrepancy =
+        ReconciliationDiscrepancyModel().apply {
+          taskId = "T1"
+          discrepancyType = dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.MISSING
+          sourceSystem = dev.yidafu.aqua.common.domain.model.enums.SourceSystem.INTERNAL
+          recordId = "R2"
+          status = DiscrepancyStatus.UNRESOLVED
+        }
+      every { discrepancyRepository.findById(2L) } returns Optional.of(discrepancy)
+
+      val resolved = service.resolveDiscrepancy(2L, DiscrepancyResolveAction.IGNORE, "跨日边界差异", "admin")
+
+      resolved shouldBe true
+      discrepancy.status shouldBe DiscrepancyStatus.IGNORED
+      verify { eventPublishService.publishDomainEvent("DISCREPANCY_RESOLVED", "T1", any()) }
+    }
     test("resolveDiscrepancy returns false when discrepancy missing") {
       every { discrepancyRepository.findById(99L) } returns Optional.empty()
 
-      service.resolveDiscrepancy(99L, "notes", "admin") shouldBe false
+      service.resolveDiscrepancy(99L, DiscrepancyResolveAction.RESOLVE, "notes", "admin") shouldBe false
     }
     test("resolveDiscrepancy returns false on repository exception") {
       every { discrepancyRepository.findById(1L) } throws RuntimeException("db down")
 
-      service.resolveDiscrepancy(1L, "notes", "admin") shouldBe false
+      service.resolveDiscrepancy(1L, DiscrepancyResolveAction.RESOLVE, "notes", "admin") shouldBe false
     }
   })

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>用户端 · 水票商城｜AquaRush UI 设计稿</title>
+<title>用户端 · 水票商城｜奔泉 UI 设计稿</title>
 <link rel="stylesheet" href="../../assets/tokens.css">
 <link rel="stylesheet" href="../../assets/ui.css">
 <link rel="stylesheet" href="../../assets/weui.css">
@@ -19,7 +19,7 @@
     <div class="chips">
       <span class="chip">F-MKT-007</span>
       <span class="chip chip-ok">已实现</span>
-      <span class="chip chip-plan">G97 运营策略标识 规划中</span>
+      <span class="chip chip-ok">G97 运营策略标识 已实现</span>
       <span class="chip chip-plain">user-weapp · WeUI</span>
     </div>
   </header>
@@ -105,7 +105,7 @@
               </div>
 
               <!-- 通兑 / 限规格说明 -->
-              <div class="weui-cells__tips">通兑票按规格限定，跨容量不通用；限购与购票张数上限 10 张，超出按限购校验拦截。复购激活票需完成一次复购后方可核销；单张票单笔订单核销张数以票种上限为准（运营策略 <span class="weui-tag weui-tag--goal"></span> 缺口 G97）。</div>
+              <div class="weui-cells__tips">通兑票按规格限定，跨容量不通用；限购与购票张数上限 10 张，超出按限购校验拦截。复购激活票需完成复购后方可核销（完成复购自动激活）；单笔订单同票种核销张数以票种上限为准（运营策略已实现，缺口 G97）。</div>
 
               <!-- 购票须知 -->
               <div class="weui-cells__title">购票须知</div>
@@ -262,7 +262,7 @@
         <h3>设计要点 / 禁忌</h3>
         <p><strong>水票用品牌蓝：</strong>票卡形态、规格限定标签、购买按钮统一使用品牌蓝 <code>var(--brand)</code>，<strong>不使用强调橙</strong>（非券品牌元素，规避「强调橙仅限 CTA」红线）。</p>
         <p><strong>金额：</strong>套餐价与单张面值统一用 <code>.weui-price</code>（微信电商红），划线原价用 <code>.weui-price--origin</code>；禁止手拼「¥」字符串。</p>
-        <p><span class="weui-tag weui-tag--goal"></span> 运营策略标识（缺口 <strong>G97</strong>，R-MKT-08 修订，规划中）：引流票「拉新专享」、复购激活票「需复购 1 单后可核销」须在购票前明示（防歧义）；画布内两处策略标签为目标形态。</p>
+        <p>运营策略标识（缺口 <strong>G97</strong>，R-MKT-08 修订，<strong>已实现 2026-10</strong>）：引流票「拉新专享」+「仅新用户（无已完成订单）可购」、复购激活票「需复购 N 单后可核销，完成复购自动激活」须在购票前明示（防歧义）；画布内两处策略标签为已实现形态（N 为票种配置）。</p>
         <p>套餐卡金额与「买 N 送 M」是决策关键，需突出；有效期与退款规则须明示（合规）；通兑票按规格限定，禁止跨容量套利。</p>
         <p>票 / 商品图一律用 <code>.weui-media-box__thumb</code> 占位并标注「实拍图占位」，严禁卡通插画。</p>
       </div>

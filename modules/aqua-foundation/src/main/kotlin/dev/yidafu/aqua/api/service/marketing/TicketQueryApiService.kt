@@ -47,6 +47,16 @@ interface TicketQueryApiService {
   fun findUsableTickets(userId: Long): List<UserTicketModel>
 
   /**
+   * 复购激活待激活判定(G97,R-MKT-08 运营策略):给定票中因复购条件未满足而不可核销的票 id 集合。
+   * 口径:票种启用复购激活且购票单落了基线时,当前已完成订单数 − 基线 < activation_order_count → 待激活;
+   * 无待激活候选时不做订单数查询(短路)。
+   */
+  fun findPendingActivationIds(
+    userId: Long,
+    tickets: List<UserTicketModel>,
+  ): Set<Long>
+
+  /**
    * 该商品上下文下可用张数(指定商品票按 productId,通兑票按 specification 字符串匹配)
    */
   fun countUsableFor(

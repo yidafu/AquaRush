@@ -19,9 +19,11 @@
 
 package dev.yidafu.aqua.marketing.ticket.service.impl
 
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.UserTicketModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
@@ -34,6 +36,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -43,6 +46,7 @@ class TicketQueryApiServiceImplTest :
     var ticketTypeRepository: TicketTypeRepository = mockk()
     var userTicketRepository: UserTicketRepository = mockk()
     var ticketPurchaseRepository: TicketPurchaseRepository = mockk()
+    var orderQueryApiService: OrderQueryApiService = mockk()
     var service: TicketQueryApiServiceImpl = mockk()
     val now: LocalDateTime = LocalDateTime.now()
 
@@ -73,12 +77,13 @@ class TicketQueryApiServiceImplTest :
       typeId: Long,
       expireTime: LocalDateTime = now.plusDays(30),
       status: UserTicketStatus = UserTicketStatus.UNUSED,
+      purchaseId: Long = 1L,
     ): UserTicketModel =
       UserTicketModel(
         id = id,
         userId = 1L,
         ticketTypeId = typeId,
-        purchaseId = 1L,
+        purchaseId = purchaseId,
         status = status,
         expireTime = expireTime,
         isGift = false,
@@ -88,7 +93,8 @@ class TicketQueryApiServiceImplTest :
       ticketTypeRepository = mockk()
       userTicketRepository = mockk()
       ticketPurchaseRepository = mockk()
-      service = TicketQueryApiServiceImpl(ticketTypeRepository, userTicketRepository, ticketPurchaseRepository)
+      orderQueryApiService = mockk()
+      service = TicketQueryApiServiceImpl(ticketTypeRepository, userTicketRepository, ticketPurchaseRepository, orderQueryApiService)
     }
     test("findActiveTicketTypes") {
       every { ticketTypeRepository.findByStatus(TicketTypeStatus.ACTIVE) } returns listOf(ticketType(1L))
@@ -157,5 +163,59 @@ class TicketQueryApiServiceImplTest :
       service.findPurchaseById(99L).shouldBeNull()
       service.findPurchaseByOrderNo("TP5")?.orderNo shouldBe "TP5"
       service.findPurchaseByOrderNo("NOPE").shouldBeNull()
+    }
+    test("findPendingActivationIds empty tickets short-circuits without order query") {
+      service.findPendingActivationIds(1L, emptyList()) shouldBe emptySet()
+      verify(exactly = 0) { orderQueryApiService.countByUserIdGroupByStatus(any()) }
+    }
+    test("findPendingActivationIds pending when completed below baseline plus required") {
+      val t = ticket(1L, 1L)
+      every { ticketPurchaseRepository.findByIds(listOf(1L)) } returns
+        listOf(
+          TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 1L, orderNo = "TP1", completedOrdersAtPurchase = 0),
+        )
+      every { ticketTypeRepository.findAllById(listOf(1L)) } returns
+        listOf(ticketType(1L).apply { activationOrderCount = 1 })
+      every { orderQueryApiService.countByUserIdGroupByStatus(1L) } returns emptyMap()
+
+      service.findPendingActivationIds(1L, listOf(t)) shouldBe setOf(1L)
+    }
+    test("findPendingActivationIds activated when completed reaches baseline plus required") {
+      val t = ticket(1L, 1L)
+      every { ticketPurchaseRepository.findByIds(listOf(1L)) } returns
+        listOf(
+          TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 1L, orderNo = "TP1", completedOrdersAtPurchase = 1),
+        )
+      every { ticketTypeRepository.findAllById(listOf(1L)) } returns
+        listOf(ticketType(1L).apply { activationOrderCount = 1 })
+      every { orderQueryApiService.countByUserIdGroupByStatus(1L) } returns mapOf(OrderModelStatus.COMPLETED to 2L)
+
+      service.findPendingActivationIds(1L, listOf(t)) shouldBe emptySet()
+    }
+    test("findPendingActivationIds ignores purchases without baseline") {
+      val t = ticket(1L, 1L)
+      every { ticketPurchaseRepository.findByIds(listOf(1L)) } returns
+        listOf(TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 1L, orderNo = "TP1", completedOrdersAtPurchase = null))
+
+      service.findPendingActivationIds(1L, listOf(t)) shouldBe emptySet()
+      verify(exactly = 0) { orderQueryApiService.countByUserIdGroupByStatus(any()) }
+    }
+    test("findPendingActivationIds ignores types without activation enabled") {
+      val t = ticket(1L, 1L)
+      every { ticketPurchaseRepository.findByIds(listOf(1L)) } returns
+        listOf(
+          TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 1L, orderNo = "TP1", completedOrdersAtPurchase = 0),
+        )
+      every { ticketTypeRepository.findAllById(listOf(1L)) } returns listOf(ticketType(1L))
+
+      service.findPendingActivationIds(1L, listOf(t)) shouldBe emptySet()
+      verify(exactly = 0) { orderQueryApiService.countByUserIdGroupByStatus(any()) }
+    }
+    test("findPendingActivationIds ignores used and expired tickets") {
+      val used = ticket(1L, 1L, status = UserTicketStatus.USED)
+      val expired = ticket(2L, 1L, now.minusDays(1))
+
+      service.findPendingActivationIds(1L, listOf(used, expired)) shouldBe emptySet()
+      verify(exactly = 0) { ticketPurchaseRepository.findByIds(any()) }
     }
   })

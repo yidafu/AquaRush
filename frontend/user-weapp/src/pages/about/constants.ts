@@ -6,7 +6,6 @@
 export const BRAND_INFO = {
   NAME: '好喝山泉',
   SUBTITLE: '源自大山深处，滴滴甘甜入心',
-  LOGO_EMOJI: '⛰️',
   DESCRIPTION: '让每个家庭都能喝上真正的好水'
 } as const
 

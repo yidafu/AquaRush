@@ -29,7 +29,7 @@ export default defineAppConfig({
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: 'AquaRush',
+    navigationBarTitleText: '奔泉',
     navigationBarTextStyle: 'black'
   },
 

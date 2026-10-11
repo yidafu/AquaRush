@@ -33,6 +33,7 @@ import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
 import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderVo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.service.DeliveryPhotoReviewService
@@ -84,6 +85,14 @@ class AdminOrderMutationResolverTest :
         _username = "admin",
         userType = "ADMIN",
         _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
+
+    fun workerPrincipal(): UserPrincipal =
+      UserPrincipal(
+        id = 2L,
+        _username = "worker1",
+        userType = "DELIVERY_WORKER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_DELIVERY_WORKER")),
       )
 
     beforeTest {
@@ -235,7 +244,7 @@ class AdminOrderMutationResolverTest :
       every { deliveryTaskMutationService.startDelivery(1L) } returns orderModel
 
       // When
-      val result = resolver.startDelivery(1L)
+      val result = resolver.startDelivery(1L, principal())
 
       // Then
       result.shouldNotBeNull()
@@ -246,12 +255,38 @@ class AdminOrderMutationResolverTest :
       every { deliveryTaskMutationService.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, "已收款") } returns orderModel
 
       // When
-      val result = resolver.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, "已收款")
+      val result = resolver.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, "已收款", null, principal())
 
       // Then
       result.shouldNotBeNull()
       (result === order) shouldBe true
       verify { deliveryTaskMutationService.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, "已收款") }
+    }
+    test("completeDelivery should mask contacts for worker after completion (F-ORD-032)") {
+      // Given:完成后进入已完成(非配送阶段),送水工视角回显脱敏、完整号码不下发
+      every { deliveryTaskMutationService.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, null) } returns orderModel
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.COMPLETED)
+
+      // When
+      val result = resolver.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, null, null, workerPrincipal())
+
+      // Then
+      result.shouldNotBeNull()
+      result.address?.phone shouldBe "138****1234"
+      result.user?.phone shouldBe "138****1234"
+    }
+    test("completeDelivery should keep full phone for admin after completion (F-ORD-032 管理员不受限)") {
+      // Given
+      every { deliveryTaskMutationService.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, null) } returns orderModel
+      every { adminOrderMapper.map(any()) } returns testOrderVo(OrderStatus.COMPLETED)
+
+      // When
+      val result = resolver.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, null, null, principal())
+
+      // Then
+      result.shouldNotBeNull()
+      result.address?.phone shouldBe "13812341234"
+      result.user?.phone shouldBe "13812341234"
     }
     test("reviewDeliveryPhoto should delegate approve with principal id and username") {
       // Given

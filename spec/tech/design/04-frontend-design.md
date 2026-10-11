@@ -26,18 +26,18 @@
 | 商品列表 | `product-list` | 搜索/排序/筛选（首页搜索入口跳转至此） |
 | 商品详情 | `product-detail?id=` | 图集画廊/全屏预览；价格按登录用户解析（分组价/特价/新人价+划线）；库存/销量；收藏；立即购买（BuyModal 1~库存 → pendingOrder 本地缓存 → order-confirm）；售罄/非在售禁购；加载失败重试 3 次间隔 1s |
 | 购物车 | `cart` | 本地存储（同商品合并数量）；勾选/步进/删除/全选/合计实时；超库存拦截；部分缺货整体拦截提示缺货项；去结算写 pendingOrder |
-| 确认订单 | `order-confirm` | **单请求 orderPreview**：地址卡（默认回显/切换，范围校验标红+「更换地址/联系客服」）、商品卡、配送时段 2×2 芯片（deliverySlots 配置驱动，停用回退立即配送）、备注 ≤200、费用明细（商品/优惠/水票抵扣/赠品行/配送费/押金/合计）、券选择、水票核销数、积分抵扣区（预留；**无余额抵扣——用户储值 2026-10-09 决策不做**）、服务条款；**起送门槛**（R-OPS-03 规划中 G96）：orderPreview 返回 belowMinimum 时禁提交+「未达起送金额 ¥X」提示；提交前 `Taro.requestSubscribeMessage` 订阅授权 |
+| 确认订单 | `order-confirm` | **单请求 orderPreview**：地址卡（默认回显/切换，范围校验标红+「更换地址/联系客服」）、商品卡、配送时段 2×2 芯片（deliverySlots 配置驱动，停用回退立即配送）、备注 ≤200、费用明细（商品/优惠/水票抵扣/赠品行/配送费/押金/合计）、券选择、水票核销数、积分抵扣区（预留；**无余额抵扣——用户储值 2026-10-09 决策不做**）、服务条款；**起送门槛**（R-OPS-03，G96 已实现 2026-10-11）：orderPreview 返回 belowMinimum 时禁提交+「商品金额未达起送金额 ¥X，还差 ¥Y」红字提示（@aquarush/common `minimumOrderHint`）；提交前 `Taro.requestSubscribeMessage` 订阅授权 |
 | 订单列表 | `order-list?tab=` | Tab 全部/待付款/待配送/配送中/已完成（10/页）；按状态操作集（取消+立即支付/查看详情/再次购买） |
 | 订单详情 | `order-detail?id=` | 状态步骤条（下单→支付→派单→配送→完成）、地址/商品/配送信息卡（送水工电话可拨、实时位置入口）、费用明细、时间线（order_operations）、操作（催单 5 分钟防抖提示、评价、再来一单、联系客服=拨店铺电话） |
 | 评价 | `order-review?id=` | 1-5 星 + ≤500 字 + 匿名开关 |
 | 配送跟踪 | `delivery-tracking?orderId=` | 状态门控；双标记地图（概略位置+地址）、ETA；送达「已送达」停止刷新 |
-| 周期订购 | `subscriptions`（新增） | 计划列表/创建（商品/周期/时段/地址/终止条件/自动或提醒）/暂停/恢复/终止（**[暂缓]** 2026-10-10 决策，不实现） |
+| 周期订购 | `subscriptions` | **用户端入口本期不开发（继续暂缓，2026-10-11 新方向：入口仅管理后台）**；后台侧见 §3.1 |
 | 企业下单 | `enterprise-order`（新增） | 多地址多商品批量提交；拆单结果回显；月结标识（**[暂缓]** 随 F-ORD-027，不实现） |
 | 地址列表/编辑 | `address-list?select=true` / `address-edit` | 选择模式回填；三级联动；地图选点（GCJ-02→WGS-84 转换后提交，失败可手填坐标可空）；默认唯一切换 |
 | 我的 | `my` | 头像昵称（编辑弹层）、订单角标（myOrderStatistics 单请求，>99 显 99+）、资产入口（收藏/地址/水桶账户/会员/积分/水票/优惠券）、消息中心角标、客服拨号、反馈、关于 |
 | 消息中心 | `message-center` | 双行筛选（类型×已读）；点击先标已读再跳转；全部已读 |
 | 水桶账户 | `barrel-mine`（新增） | 按规格在租/欠桶/押金合计 + 押金记录 + 申请退桶退押（文案统一押金桶口径） |
-| 水票 | `ticket-shop` / `ticket-list` | 购票（1~10）/票包（票号/状态/有效期） |
+| 水票 | `ticket-shop` / `ticket-list` | 购票（1~10）/票包（票号/状态/有效期）；G97 运营策略：商城「拉新专享」角标与复购激活明示、票夹待激活置灰 |
 | 优惠券 | `coupon-center` / `coupon-list` | 领券/券包（状态筛选） |
 | 会员/积分 | `member-center` / `points`（新增） | 等级成长进度与权益/积分明细与兑换；**储值/充值页 `recharge` 不设**（用户储值 2026-10-09 决策不做，G79 收敛为套餐卡 `package-plans`） |
 | 反馈 | `feedback` / `feedback-records` | 类型胶囊/10-500 字/图≤3；记录页回传处理结果 |
@@ -59,7 +59,7 @@
 | 登录 | `login` | 账号密码（`delivery_{id}`）；角色分流：WORKER→任务首页 / ADMIN·SUPER_ADMIN→`/manage`（看板/全部订单/送水工 深链） |
 | 工作台 | `(tabs)/index` | 今日四卡 + 近 7 天双折线（`todayStatistics`+`weekStatistics` 单请求双字段取回，30s 轮询；折线为自绘组件 `WeekLineChart`，victory-native 绘制，非共享图表库）+ 快捷入口九宫格（经营看板[兼送水]/每日收款/对账记录/历史订单/消息中心…） |
 | 任务列表 | 任务首页 | 三栏 未接单/已接单/配送中（workerTasks）；WS 实时刷新 + 轮询降级 |
-| 订单详情 | `order/[orderNo]` | 收货地址卡（内嵌目的地地图 MapLibre+天地图 WGS-84；无坐标/未配 Key 降级文字坐标）、「导航」按钮唤起第三方地图（微信/高德/百度 URI，WGS-84 终点；无坐标降级复制地址）、修改地址（updateOrderAddress）、转单入口、完成配送表单（照片≥1 上传、收款方式三选、空桶回收数、备注）、配送地图卡（地址标记+当前位置蓝点）；**号码保护**（F-ORD-032/R-ORD-17 规划中 G95）：收货人电话按接口返回渲染——非配送阶段（待支付/待派单/已完成/已取消/已退款）服务端只下发脱敏串，前端无完整号码即不显示拨号按钮（`tel:` 仅完整号码阶段渲染） |
+| 订单详情 | `order/[orderNo]` | 收货地址卡（内嵌目的地地图 MapLibre+天地图 WGS-84；无坐标/未配 Key 降级文字坐标）、「导航」按钮唤起第三方地图（微信/高德/百度 URI，WGS-84 终点；无坐标降级复制地址）、修改地址（updateOrderAddress）、转单入口、完成配送表单（照片≥1 上传、收款方式三选、空桶回收数、备注）、配送地图卡（地址标记+当前位置蓝点）；**号码保护**（F-ORD-032/R-ORD-17 已实现 2026-10-11，G95 已闭环）：收货人电话按接口返回渲染——非配送阶段（待支付/待派单/已完成/已取消/已退款）服务端只下发脱敏串，前端无完整号码即不显示拨号按钮（`tel:` 仅完整号码阶段渲染） |
 | 代客下单 | `create-order` | 商品搜索（防抖 300ms）/多选/行内步进；选用户地址；自提开关；提交进待派单 |
 | 历史订单 | `history-orders` | 状态 Tab；工作台统计卡跳转 |
 | 每日收款 | `daily-collection` | 系统预计算三栏回显 + 填报 + 差异实时计算；超容差弹差异确认（说明必填）；状态卡四态 |
@@ -86,15 +86,15 @@
 | 商品管理 | `products/list`（筛选/多条件/着色/快速操作：导出+批量导入）/ `products/new·:id/edit`（分组表单+小程序实时预览）/ `products/options`（规格/水源地字典）/ `group-prices`（分组价） | PRODUCT_* / MKT_* |
 | 押金管理 | `barrel-ledger`（桶账台账+导出）/ 退押申请处理 / 押金价目 | PRODUCT_* |
 | 订单管理 | `orders`（筛选/多选批量派单/导出）/ `orders/detail`（时间线/交付照片核验/取消/地址修正入口） | ORDER_* |
-| 周期订购 | `subscriptions` | ORDER_READ（**[暂缓]** G77，不实现） |
+| 周期订购计划 | `subscriptions`（菜单「订单管理 → 周期订购计划」） | SUBSCRIPTION_READ / SUBSCRIPTION_WRITE（G77 后台侧已实现 2026-10-11：列表筛选分页、新建（绑定用户/地址/可选送水工）、暂停/恢复/终止、lastError 展示） |
 | 企业客户 | `enterprise-customers`（档案/账单/开票） | ORDER_*（**[暂缓]** G83，不实现） |
 | 收银对账 | `daily-collection`（每日收款记录 Tab + 对账记录 Tab）/ `payroll`（工资结算） | RECONCILIATION_* |
 | 用户管理 | `users/customers`（列表+分组列）/ `users/:id`（信息卡+统计卡+7 Tab）/ `users/accounts`（账号列表，用户类型下拉）/ `users/accounts/:id`（统一账号详情：管理员 8 Tab / 送水工 6 Tab） | USER_* / ADMIN_USER_* / DELIVERY_WORKER_* |
 | 客户分组 | `customer-groups`（成员覆盖式管理+价格策略入口） | MKT_* |
-| 营销管理 | `coupons` / `promotion-full-reduce` / `flash-sale` / `buy-gift` / `newcomer` / `water-tickets`（+`:id` 票种统计；票种表单含运营策略区【引流票/复购激活/单次核销上限，G97 规划中】）/ `member-levels` / `package-plans` / `points-rules`（新增页随 F-MKT-010~012） | MKT_READ / MKT_WRITE |
+| 营销管理 | `coupons` / `promotion-full-reduce` / `flash-sale` / `buy-gift` / `newcomer` / `water-tickets`（+`:id` 票种统计；票种表单含运营策略区【引流票/复购激活+需复购单数/单次核销上限，G97 已实现 2026-10】）/ `member-levels` / `package-plans` / `points-rules`（新增页随 F-MKT-010~012） | MKT_READ / MKT_WRITE |
 | 地址管理 | `addresses`（筛选分页/编辑/导入弹窗）/ `addresses/map`（热力图+片区维度视图） | ADDRESS_* |
 | 配送管理 | `trajectories`（实时位置+回放）/ `areas`（配送片区） | DELIVERY_WORKER_READ / OPS_CONFIG_* |
-| 运营配置 | `banners` / `notices` / `feedbacks` / `store-profile`（含门店经纬度【R-OPS-03 距离计算输入，G96 规划中】）/ `delivery-fee-rule`（楼层分档已落地；表单扩展起送门槛+距离阶梯档位表【R-OPS-03 规划中 G96】） | OPS_CONFIG_* / FEEDBACK_* |
+| 运营配置 | `banners` / `notices` / `feedbacks` / `store-profile`（门店经纬度不落此页——G96 裁决就近配送费规则页）/ `delivery-fee-rule`（楼层分档已落地；起送门槛开关+金额、距离阶梯档位表、门店经纬度【R-OPS-03，G96 已实现 2026-10-11】） | OPS_CONFIG_* / FEEDBACK_* |
 | 系统设置 | `system-config/parameters·order·stock·security·notifications·data`（仅超管可见） | SYSTEM_CONFIG_* |
 | 消息通知 | `notifications/messages`（筛选/详情/失败重发[仅超管]） | NOTIFICATION_READ / WRITE |
 | 日志管理 | `logs/api` / `logs/user-actions` / `logs/business`（表格/时间线双视图） | LOG_READ |

@@ -19,6 +19,8 @@ export const SystemSettingKeys = {
   DELIVERY_SLOT_EVENING_START: 'delivery_slot_evening_start',
   DELIVERY_SLOT_EVENING_END: 'delivery_slot_evening_end',
   DISPATCH_TIMEOUT_REMINDER_MINUTES: 'dispatch_timeout_reminder_minutes', // 派单超时提醒(分钟)
+  ORDER_ACCEPT_TIMEOUT_MINUTES: 'order_accept_timeout_minutes', // 接单超时预警阈值(分钟),默认 30(R-NTF-07/G94)
+  DELIVERY_START_TIMEOUT_MINUTES: 'delivery_start_timeout_minutes', // 开始配送超时预警阈值(分钟),默认 60(R-NTF-07/G94)
 
   // 库存预警参数组(F-SYS-003,R-PRO-02)
   LOW_STOCK_THRESHOLD: 'low_stock_threshold', // 低库存阈值(件),默认 10

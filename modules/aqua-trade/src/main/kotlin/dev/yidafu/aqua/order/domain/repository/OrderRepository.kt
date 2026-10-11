@@ -77,6 +77,27 @@ interface OrderRepository {
     pageable: Pageable,
   ): Page<OrderModel>
 
+  /**
+   * 分页查询指定状态且「待派单阶段锚点」早于截止时刻的订单(接单超时扫描 G94/F-NTF-008,分页游标,规则 13)。
+   * 锚点 = coalesce(payment_time, created_at):在线支付订单以支付成功时刻起算,代客下单以落库时刻起算(R-NTF-07)。
+   * 排序与破平同 [findByStatusAndDeliveryStartedAtBefore]。
+   */
+  fun findByStatusAndDispatchAnchorBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
+
+  /**
+   * 分页查询指定状态且派单时间(assigned_at)早于截止时刻的订单(开始配送超时扫描 G94/F-NTF-008)。
+   * assigned_at 为 null(未派单)不命中。
+   */
+  fun findByStatusAndAssignedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
+
   fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
 
   fun findByAddressId(addressId: Long): List<OrderModel>

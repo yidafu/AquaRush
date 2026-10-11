@@ -21,6 +21,7 @@ package dev.yidafu.aqua.notification.gateway
 
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
@@ -650,6 +651,81 @@ class DeliveryTimeoutNotificationHandler(
 }
 
 /**
+ * 接单超时预警通知(PRD 13-notification.md F-NTF-008 / R-NTF-07,缺口 G94):
+ * 「待派单」超阈值无人接单 → 全体管理员站内预警(后台消息列表 F-NTF-006 可查),
+ * 摘要含订单号/金额/超时时长。幂等键 = 订单号:ORDER_ACCEPT_TIMEOUT:阶段锚点(扫描载荷 eventTime,
+ * 同一订单同一阶段仅预警一次);消费时订单已被接单/取消则不预警(状态谓词,AC-NTF-008-04)。
+ */
+@Component
+class OrderAcceptTimeoutNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_ACCEPT_TIMEOUT
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val order = orderQueryApiService.findById(orderId)
+    if (order == null || order.status != OrderModelStatus.PENDING_DISPATCH) {
+      logger.debug("订单状态已变化,跳过接单超时预警: orderId={}", orderId)
+      return
+    }
+    val timeoutMinutes = longOrNull(data, "timeoutMinutes") ?: 0L
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "ADMIN",
+        messageType = "ORDER",
+        scene = DomainEventType.ORDER_ACCEPT_TIMEOUT.value,
+        title = "订单接单超时",
+        summary = "订单 ${order.orderNo}(¥${yuan(order.amountCents)})已待派单超 $timeoutMinutes 分钟无人接单,请及时处理。",
+        relatedNo = order.orderNo,
+        eventTime = longOrNull(data, "eventTime") ?: eventTimeMillis(data),
+      ),
+    )
+  }
+}
+
+/**
+ * 开始配送超时预警通知(PRD 13-notification.md F-NTF-008 / R-NTF-07,缺口 G94):
+ * 「待配送」超阈值未开始配送 → 全体管理员站内预警;幂等键锚点 = 派单时间(扫描载荷 eventTime);
+ * 消费时订单已开始配送/取消/完成则不预警(状态谓词,AC-NTF-008-04)。
+ */
+@Component
+class DeliveryStartTimeoutNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.DELIVERY_START_TIMEOUT
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val order = orderQueryApiService.findById(orderId)
+    if (order == null || order.status != OrderModelStatus.PENDING_DELIVERY) {
+      logger.debug("订单状态已变化,跳过开始配送超时预警: orderId={}", orderId)
+      return
+    }
+    val timeoutMinutes = longOrNull(data, "timeoutMinutes") ?: 0L
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "ADMIN",
+        messageType = "ORDER",
+        scene = DomainEventType.DELIVERY_START_TIMEOUT.value,
+        title = "开始配送超时",
+        summary = "订单 ${order.orderNo}(¥${yuan(order.amountCents)})派单后超 $timeoutMinutes 分钟未开始配送,请及时处理。",
+        relatedNo = order.orderNo,
+        eventTime = longOrNull(data, "eventTime") ?: eventTimeMillis(data),
+      ),
+    )
+  }
+}
+
+/**
  * 订单完成通知:用户端「订单完成」
  */
 @Component
@@ -680,4 +756,59 @@ class OrderCompletedNotificationHandler(
       ),
     )
   }
+}
+
+/**
+ * 周期订购到期订单通知(G77/F-ORD-026 新方向:提醒送水工按时配送,非提醒用户):
+ * 计划绑定送水工 → 定向落站内消息 + WebSocket/系统通知栏推送;
+ * 未绑定 → 广播推送全部在线送水工(广播不落库,与「新订单可抢单」同口径);
+ * 开关 `delivery_push_subscription_enabled`(默认开)。幂等键 = 订单号:场景:eventTime(R-NTF-02,
+ * eventTime 锚定计划到期日,重复发布不重复提醒)。
+ */
+@Component
+class SubscriptionOrderNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.SUBSCRIPTION_ORDER_CREATED
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val orderNo = data["orderNo"]?.toString() ?: orderId.toString()
+    val period = longOrNull(data, "period") ?: 1L
+    val timeSlot = data["deliveryTimeSlot"]?.toString() ?: ""
+    val workerId = longOrNull(data, "workerId")
+    val eventTime = eventTimeMillis(data)
+
+    val pushEnabled = systemConfigQueryApiService.getBooleanValue("delivery_push_subscription_enabled", true)
+    if (!pushEnabled) {
+      return
+    }
+
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "WORKER",
+        workerId = workerId,
+        messageType = "ORDER",
+        scene = DomainEventType.SUBSCRIPTION_ORDER_CREATED.value,
+        title = "周期配送提醒",
+        summary = "周期订购第${period}期订单($orderNo)已生成,${slotLabel(timeSlot)},请按时接单配送。",
+        relatedNo = orderNo,
+        eventTime = eventTime,
+        broadcast = workerId == null,
+      ),
+    )
+  }
+
+  private fun slotLabel(slot: String): String =
+    when (slot) {
+      "MORNING" -> "配送时段:上午(9:00-12:00)"
+      "AFTERNOON" -> "配送时段:下午(14:00-18:00)"
+      "EVENING" -> "配送时段:晚上(18:00-21:00)"
+      "IMMEDIATE" -> "配送时段:立即配送"
+      else -> "配送时段:$slot"
+    }
 }

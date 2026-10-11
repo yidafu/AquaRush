@@ -137,6 +137,20 @@ export const buildCostRows = (snapshot: OrderCostSnapshot): CostRow[] => {
   return rows
 }
 
+/**
+ * 起送门槛提示文案(R-OPS-03/G96):服务端 belowMinimum=true(商品成交小计 < 启用中的门槛)时返回
+ * 「商品金额未达起送金额 ¥30.00，还差 ¥5.00」,否则 null;与服务端 createOrder 拦截同口径(小于拦、等于放行)。
+ */
+export const minimumOrderHint = (
+  preview: Pick<OrderPreviewVo, 'minimumOrderCents' | 'belowMinimum' | 'subtotalCents'>
+): string | null => {
+  if (!preview.belowMinimum) return null
+  const minimum = normalizeCents(preview.minimumOrderCents) ?? 0
+  if (minimum <= 0) return null
+  const gap = Math.max(0, minimum - (normalizeCents(preview.subtotalCents) ?? 0))
+  return `商品金额未达起送金额 ${displayCents(minimum)}，还差 ${displayCents(gap)}`
+}
+
 /** 水票抵扣金额(分):覆盖桶按 ¥0 计入,差额即抵扣额(确认订单页计价口径:subtotalCents - cashSubtotalCents) */
 export const ticketDiscountCentsOf = (
   subtotalCents: number | string | null | undefined,

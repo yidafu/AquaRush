@@ -74,25 +74,28 @@ class NotificationGatewayService(
     }
 
     val receiverType = NotificationReceiverType.fromValue(data.receiverType)
-    val receiverId: Long
-    when (receiverType) {
-      NotificationReceiverType.USER -> {
-        val userId = data.userId
-        if (userId == null) {
-          logger.warn("通知事件缺少 userId,跳过: {}", data.idempotencyKey)
-          return
+    val receiverId: Long? =
+      when (receiverType) {
+        NotificationReceiverType.USER -> {
+          val userId = data.userId
+          if (userId == null) {
+            logger.warn("通知事件缺少 userId,跳过: {}", data.idempotencyKey)
+            return
+          }
+          userId
         }
-        receiverId = userId
-      }
-      NotificationReceiverType.WORKER -> {
-        val workerId = data.workerId
-        if (workerId == null) {
-          logger.warn("通知事件缺少 workerId,跳过: {}", data.idempotencyKey)
-          return
+        NotificationReceiverType.WORKER -> {
+          val workerId = data.workerId
+          if (workerId == null) {
+            logger.warn("通知事件缺少 workerId,跳过: {}", data.idempotencyKey)
+            return
+          }
+          workerId
         }
-        receiverId = workerId
+        // 全体管理员共享预警站内消息(F-NTF-008 接单超时预警):不绑定具体接收人,
+        // 读取面 = 后台消息列表(F-NTF-006);微信订阅消息与 WS 定向推送仅覆盖 USER/WORKER 会话
+        NotificationReceiverType.ADMIN -> null
       }
-    }
 
     // 幂等落库(R-NTF-02):重复事件跳过;并发竞态由唯一键兜底,冲突抛错触发重投
     if (notificationRepository.existsByIdempotencyKey(data.idempotencyKey)) {
@@ -125,6 +128,8 @@ class NotificationGatewayService(
     // 事务提交后再异步分发(避免分发线程读到未提交数据)
     afterCommit {
       try {
+        // 管理员预警(receiverId=null)仅落库:无定向接收人,不走 WS/微信通道
+        if (receiverId == null) return@afterCommit
         val unread = notificationRepository.countUnread(receiverType, receiverId)
         val payload = buildPushPayload(saved, unread)
         notificationPushEventPublisher.publish(

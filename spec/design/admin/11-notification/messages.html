@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>管理后台 · 消息列表｜AquaRush UI 设计稿</title>
+<title>管理后台 · 消息列表｜奔泉 UI 设计稿</title>
 <link rel="stylesheet" href="../../assets/tokens.css">
 <link rel="stylesheet" href="../../assets/ui.css">
 </head>
@@ -19,7 +19,7 @@
       <span class="chip">F-NTF-006</span>
       <span class="chip chip-ok">已实现</span>
       <span class="chip chip-goal">关联单号跳转 目标形态</span>
-      <span class="chip chip-plan">F-NTF-008 接单超时预警 规划中</span>
+      <span class="chip chip-ok">F-NTF-008 接单超时预警 已实现</span>
       <span class="chip chip-plain">admin-client</span>
     </div>
   </header>
@@ -37,7 +37,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
@@ -186,7 +186,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi">工作台</div>
@@ -285,7 +285,7 @@
           </div>
           <div class="browser-body">
             <aside class="admin-side">
-              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="logo"><span class="mark">A</span>奔泉运营后台</div>
               <div class="admin-menu">
                 <div class="group-lbl">经营</div>
                 <div class="mi">工作台</div>
@@ -359,7 +359,7 @@
         <p><strong>入口：</strong>通知与消息 → 消息列表；路由 <code>notifications/messages</code></p>
         <p><strong>权限：</strong><code>NOTIFICATION_READ</code>（管理员 / 超管）；失败重发 <code>NOTIFICATION_WRITE</code>（仅超管）</p>
         <p><strong>状态：</strong><span class="chip chip-ok">已实现</span>（缺口 G68 已解决）</p>
-        <p><strong>预警消息（F-NTF-008 <span class="chip chip-plan" style="margin-left:4px">规划中</span>）：</strong>「订单接单超时 / 开始配送超时」预警复用本列表触达管理员（站内 + WebSocket 实时推送），摘要含订单号 / 金额 / 超时时长，点关联单号跳订单详情处理（缺口 G94，阈值参数见「系统设置 → 订单与履约参数」F-SYS-002）。</p>
+        <p><strong>预警消息（F-NTF-008 <span class="chip chip-ok" style="margin-left:4px">已实现</span>）：</strong>「订单接单超时 / 开始配送超时」预警复用本列表触达管理员（站内消息落库，接收人类型 ADMIN 全体管理员共享；WebSocket 实时推送为目标形态），摘要含订单号 / 金额 / 超时时长，点关联单号跳订单详情处理（缺口 G94 已解决 2026-10，阈值参数见「系统设置 → 订单与履约参数」F-SYS-002）。</p>
       </div>
 
       <div class="note-card">

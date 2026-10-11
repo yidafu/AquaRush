@@ -8,6 +8,7 @@ import { OrderPreviewVo, PriceSource } from '../types/graphql'
 import {
   buildCostRows,
   maxTicketRedeem,
+  minimumOrderHint,
   orderCostFromPreview,
   ticketDiscountCentsOf,
   type OrderCostSnapshot,
@@ -16,6 +17,7 @@ import {
 const makePreview = (overrides: Partial<OrderPreviewVo> = {}): OrderPreviewVo => ({
   availableCoupons: [],
   availableTicketCount: 0,
+  belowMinimum: false,
   cashSubtotalCents: 0,
   couponDiscountCents: 0,
   couponOptions: [],
@@ -24,6 +26,7 @@ const makePreview = (overrides: Partial<OrderPreviewVo> = {}): OrderPreviewVo =>
   firstOrderDiscountCents: 0,
   giftItems: [],
   items: [],
+  minimumOrderCents: 0,
   payAmountCents: 0,
   payableProductCents: 0,
   priceSource: PriceSource.CATALOG_PRICE,
@@ -209,5 +212,21 @@ describe('orderCostFromPreview', () => {
 
     const rows = buildCostRows(snapshot)
     expect(rows[1]).toMatchObject({ label: '水票抵扣（3桶）', value: '-¥50.00', discount: true })
+  })
+})
+
+describe('minimumOrderHint (R-OPS-03 起送门槛提示)', () => {
+  it('未达门槛:返回差额文案', () => {
+    const preview = makePreview({ belowMinimum: true, minimumOrderCents: 3000, subtotalCents: 2500 })
+    expect(minimumOrderHint(preview)).toBe('商品金额未达起送金额 ¥30.00，还差 ¥5.00')
+  })
+
+  it('已达/等于门槛(belowMinimum=false):返回 null', () => {
+    expect(minimumOrderHint(makePreview({ belowMinimum: false, minimumOrderCents: 3000, subtotalCents: 3000 }))).toBeNull()
+    expect(minimumOrderHint(makePreview({ belowMinimum: false, minimumOrderCents: 3000, subtotalCents: 4000 }))).toBeNull()
+  })
+
+  it('门槛未启用(0):即使 belowMinimum 也返回 null', () => {
+    expect(minimumOrderHint(makePreview({ belowMinimum: true, minimumOrderCents: 0, subtotalCents: 0 }))).toBeNull()
   })
 })

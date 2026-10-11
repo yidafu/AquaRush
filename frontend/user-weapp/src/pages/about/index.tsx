@@ -5,6 +5,7 @@ import * as stylex from '@stylexjs/stylex'
 import { props } from '@aquarush/common/stylex'
 import { tokens } from '@aquarush/common/theme/tokens.stylex'
 import { pageTheme, gradientBox } from '../../styles/theme.stylex'
+import brandLogo from '@/assets/brand-logo.png'
 
 // 导入拆分出的组件
 import ContentSection from './components/ContentSection'
@@ -62,10 +63,6 @@ const styles = stylex.create({
   heroLogoImg: {
     width: '100%',
     height: '100%',
-  },
-  heroLogoEmoji: {
-    fontSize: '56rpx',
-    lineHeight: 1,
   },
   heroName: {
     fontSize: '40rpx',
@@ -164,7 +161,7 @@ const About: React.FC = () => {
           {storeProfile?.logoUrl ? (
             <Image {...stylex.props(styles.heroLogoImg)} src={storeProfile.logoUrl} mode='aspectFit' />
           ) : (
-            <Text {...stylex.props(styles.heroLogoEmoji)}>{BRAND_INFO.LOGO_EMOJI}</Text>
+            <Image {...stylex.props(styles.heroLogoImg)} src={brandLogo} mode='aspectFit' />
           )}
         </View>
         <Text {...stylex.props(styles.heroName)}>{shopName}</Text>

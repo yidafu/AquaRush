@@ -44,6 +44,13 @@ open class TicketTypeModel(
   var validTo: LocalDateTime? = null,
   var validDays: Int? = null,
   var perUserLimit: Int = 0,
+  // G97 运营策略(R-MKT-08 修订):票种级可配开关,默认不启用
+  // 引流票:小额票拉新,仅无已完成订单的新用户可购(判定口径同 R-MKT-10),不改变核销语义
+  var isLeadGeneration: Boolean = false,
+  // 复购激活:NULL=不启用;N=购票后需再完成 N 单方可核销(基线 ticket_purchases.completed_orders_at_purchase)
+  var activationOrderCount: Int? = null,
+  // 单次核销上限:NULL=不限;单笔订单该票种核销张数 ≤ N
+  var maxRedeemPerOrder: Int? = null,
   var status: TicketTypeStatus = TicketTypeStatus.ACTIVE,
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),

@@ -127,6 +127,9 @@ export const WATER_TICKETS_PAGE_DATA_QUERY = gql`
         validDays
         perUserLimit
         status
+        isLeadGeneration
+        activationOrderCount
+        maxRedeemPerOrder
         createdAt
         updatedAt
       }

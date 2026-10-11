@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, InputNumber, Radio, DatePicker } from 'antd';
+import { Form, Input, InputNumber, Radio, DatePicker, Switch } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
@@ -30,6 +30,10 @@ export interface TicketTypeFormPayload {
   validTo?: string | null;
   validDays?: number | null;
   perUserLimit: number;
+  // G97 运营策略(R-MKT-08 修订):引流票 / 复购激活单数(null=关) / 单次核销上限(0=不限)
+  isLeadGeneration: boolean;
+  activationOrderCount: number | null;
+  maxRedeemPerOrder: number;
 }
 
 interface FormValues {
@@ -44,6 +48,10 @@ interface FormValues {
   timeWindow?: [Dayjs, Dayjs];
   validDays?: number;
   perUserLimit: number;
+  isLeadGeneration: boolean;
+  activationEnabled: boolean;
+  activationOrderCount?: number;
+  maxRedeemPerOrder: number;
 }
 
 interface Props {
@@ -68,12 +76,13 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
   const [form] = Form.useForm<FormValues>();
   const ticketType = Form.useWatch('ticketType', form) ?? 'SPECIFIC_PRODUCT';
   const validityType = Form.useWatch('validityType', form) ?? 'FIXED_RANGE';
+  const activationEnabled = Form.useWatch('activationEnabled', form) ?? false;
 
   useEffect(() => {
     if (!open) return;
     if (!record) {
       form.resetFields();
-      form.setFieldsValue({ ticketType: TicketTypeKind.SPECIFIC_PRODUCT, validityType: ValidityType.FIXED_RANGE, perUserLimit: 0 });
+      form.setFieldsValue({ ticketType: TicketTypeKind.SPECIFIC_PRODUCT, validityType: ValidityType.FIXED_RANGE, perUserLimit: 0, isLeadGeneration: false, activationEnabled: false, activationOrderCount: 1, maxRedeemPerOrder: 0 });
       return;
     }
     form.setFieldsValue({
@@ -91,6 +100,10 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           : undefined,
       validDays: record.validityType === 'DAYS_AFTER_PURCHASE' ? (record.validDays ?? undefined) : undefined,
       perUserLimit: record.perUserLimit,
+      isLeadGeneration: record.isLeadGeneration,
+      activationEnabled: (record.activationOrderCount ?? 0) > 0,
+      activationOrderCount: record.activationOrderCount ?? 1,
+      maxRedeemPerOrder: record.maxRedeemPerOrder ?? 0,
     });
   }, [open, record, form]);
 
@@ -116,6 +129,9 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           : null,
       validDays: values.validityType === 'DAYS_AFTER_PURCHASE' ? values.validDays ?? null : null,
       perUserLimit: values.perUserLimit,
+      isLeadGeneration: values.isLeadGeneration ?? false,
+      activationOrderCount: values.activationEnabled ? values.activationOrderCount ?? 1 : null,
+      maxRedeemPerOrder: values.maxRedeemPerOrder ?? 0,
     };
     onSubmit(payload, record);
   };
@@ -246,6 +262,58 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           extra="0 = 不限购"
         >
           <InputNumber min={0} max={1000} precision={0} {...stylex.props(styles.fullWidth)} placeholder="0 = 不限购" />
+        </Form.Item>
+        <Form.Item label="运营策略" style={{ marginBottom: 0 }}>
+          <Form.Item
+            name="isLeadGeneration"
+            valuePropName="checked"
+            style={{ marginBottom: 12 }}
+            extra="引流票:小额票拉新,仅无已完成订单的新用户可购买(判定口径同首单立减)"
+          >
+            <Switch />
+          </Form.Item>
+          <Form.Item
+            name="activationEnabled"
+            valuePropName="checked"
+            style={{ marginBottom: activationEnabled ? 8 : 12 }}
+            extra="复购激活:购票后需再完成 N 单复购方可核销,防囤票不复购"
+          >
+            <Switch />
+          </Form.Item>
+          {activationEnabled && (
+            <Form.Item
+              name="activationOrderCount"
+              label="需复购单数"
+              style={{ marginBottom: 12 }}
+              rules={[
+                {
+                  validator: (_, value: number | undefined) =>
+                    value !== undefined && value >= 1 && value <= 100
+                      ? Promise.resolve()
+                      : Promise.reject(new Error('复购单数必须为1-100')),
+                },
+              ]}
+              extra="如 1 = 购票后完成 1 单复购即激活,可核销"
+            >
+              <InputNumber min={1} max={100} precision={0} style={{ width: '100%' }} placeholder="如 1" />
+            </Form.Item>
+          )}
+          <Form.Item
+            name="maxRedeemPerOrder"
+            label="单次核销上限"
+            style={{ marginBottom: 0 }}
+            rules={[
+              {
+                validator: (_, value: number | undefined) =>
+                  value !== undefined && value >= 0 && value <= 100
+                    ? Promise.resolve()
+                    : Promise.reject(new Error('单次核销上限无效(0-100)')),
+              },
+            ]}
+            extra="0 = 不限;单笔订单该票种最多核销 N 张,防一次性清票"
+          >
+            <InputNumber min={0} max={100} precision={0} style={{ width: '100%' }} placeholder="0 = 不限" />
+          </Form.Item>
         </Form.Item>
       </Form>
     </FormModal>

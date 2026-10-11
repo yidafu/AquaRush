@@ -2,9 +2,10 @@
 # 分页/筛选(AGENTS.md 规则 10 禁止全量查询):dailyCollections / dailyReconciliations
 # 均返回分页结果;对账详情逐单明细(G29)经 dailyReconciliationOrderDetails 分页取回。
 #
-# 微信资金对账(类型定义见 shared-types.graphqls §微信资金对账域):对账任务/差异/报表查询与
-# 手动执行/差异解决 mutation。权限:查询 RECONCILIATION_READ、执行 RECONCILIATION_EXECUTE、
-# 差异解决 RECONCILIATION_REVIEW。
+# 微信资金对账(F-ORD-031/R-PAY-04,G93;类型定义见 shared-types.graphqls §微信资金对账域):
+# 对账任务/差异/报表查询与手动执行/差异处置(解决/忽略) mutation。
+# 权限:查询 PAYMENT_RECONCILIATION_READ、执行与差异处置 PAYMENT_RECONCILIATION_EXECUTE
+# (与 RECONCILIATION_* 送水工收款日报对账相互独立,见 spec/prd/01-overview.md §权限码目录)。
 
 # 收款记录分页输入
 input DailyCollectionListInput {
@@ -108,9 +109,10 @@ extend type Query {
   ): ReconciliationTaskVoPage!
   # 对账任务详情
   reconciliationTask(taskId: String!): ReconciliationTaskVo
-  # 对账差异分页查询(任务ID/解决状态筛选)
+  # 对账差异分页查询(任务ID/差异类型/解决状态筛选)
   reconciliationDiscrepancies(
     taskId: String
+    discrepancyType: DiscrepancyType
     status: DiscrepancyStatus
     page: Int = 0
     size: Int = 20
@@ -127,8 +129,8 @@ extend type Mutation {
   reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliationVo!
   executeDailyReconciliation(reconciliationDate: String): DailyReconciliationVo!
 
-  # 微信资金对账:手动执行对账(创建任务并异步执行)
+  # 微信资金对账:手动执行对账(创建任务并异步执行;账单日限 T-1~T-30,R-PAY-04)
   executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTaskVo!
-  # 解决对账差异(审核处理,备注留痕)
+  # 差异处置(解决/忽略,备注必填留痕;已处置不可再改)
   resolveDiscrepancy(input: ResolveDiscrepancyInput!): Boolean!
 }

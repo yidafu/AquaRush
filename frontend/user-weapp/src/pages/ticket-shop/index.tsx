@@ -130,6 +130,10 @@ const styles = stylex.create({
     lineHeight: 1.5,
     color: 'var(--weui-FG-1)',
   },
+  // G97 复购激活警示文案(原 scss .ticket-meta-line--warn,ticket-mall.html f-note t-warn)
+  ticketMetaLineWarn: {
+    color: 'var(--weui-ORANGE)',
+  },
   // 价格行:套餐价(金额红)+ 立即购买(品牌蓝)
   ticketPriceRow: {
     marginTop: '32rpx',
@@ -352,14 +356,29 @@ const TicketShopPage: React.FC = () => {
                   {ticketType.giftCount > 0 && (
                     <Text className='weui-tag weui-tag--red weui-tag--md'>买 {ticketType.packageCount} 送 {ticketType.giftCount}</Text>
                   )}
+                  {/* G97 运营策略标识:引流票「拉新专享」/ 复购激活票「复购激活」(购票前明示,防歧义) */}
+                  {ticketType.isLeadGeneration && (
+                    <Text className='weui-tag weui-tag--brand'>拉新专享</Text>
+                  )}
+                  {(ticketType.activationOrderCount ?? 0) > 0 && (
+                    <Text className='weui-tag weui-tag--orange'>复购激活</Text>
+                  )}
                   {ticketType.specification && (
                     <Text className='weui-tag weui-tag--brand'>限 {ticketType.specification}</Text>
                   )}
                 </View>
               </View>
 
-              {/* 说明行:有效期 / 限购 */}
+              {/* 说明行:运营策略明示(G97)/ 有效期 / 限购 */}
               <View {...stylex.props(styles.ticketMeta)}>
+                {ticketType.isLeadGeneration && (
+                  <Text {...stylex.props(styles.ticketMetaLine)}>引流票 · 仅新用户(无已完成订单)可购</Text>
+                )}
+                {(ticketType.activationOrderCount ?? 0) > 0 && (
+                  <Text {...stylex.props(styles.ticketMetaLine, styles.ticketMetaLineWarn)}>
+                    需复购 {ticketType.activationOrderCount} 单后可核销,完成复购自动激活
+                  </Text>
+                )}
                 <Text {...stylex.props(styles.ticketMetaLine)}>有效期:{getValidityText(ticketType)}</Text>
                 <Text {...stylex.props(styles.ticketMetaLine)}>
                   {ticketType.perUserLimit === 0
@@ -426,6 +445,9 @@ const TicketShopPage: React.FC = () => {
       <View className='weui-cells__tips'>· 水票为电子票,购票成功后逐张生成唯一票号入账票夹。</View>
       <View className='weui-cells__tips'>· 有效期自购票成功之日起算,过期作废不可使用。</View>
       <View className='weui-cells__tips'>· 单次购票张数上限 10 张,超出按限购校验拦截。</View>
+      {ticketTypes.some(t => (t.activationOrderCount ?? 0) > 0) && (
+        <View className='weui-cells__tips'>· 复购激活票需完成复购后方可核销,完成复购自动激活;单笔订单核销张数以票种上限为准。</View>
+      )}
     </BasePageLayout>
   )
 }

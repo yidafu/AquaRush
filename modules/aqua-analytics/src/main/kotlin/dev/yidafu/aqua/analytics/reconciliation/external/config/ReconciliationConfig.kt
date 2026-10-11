@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
 
 /**
- * 对账配置属性
+ * 对账配置属性(wechat 凭据字段为 var:JavaBean 绑定需要 setter,测试环境经 properties 注入)
  */
 @Component
 @ConfigurationProperties(prefix = "aqua.reconciliation")
@@ -34,13 +34,20 @@ data class ReconciliationConfig(
   val retryAttempts: Int = 3,
   val alertThreshold: Double = 0.01,
   val wechat: WeChatConfig = WeChatConfig(),
-  val weChatAppId: String = "",
-  val weChatMchId: String = "",
-  val weChatApiKey: String = "",
+  var weChatAppId: String = "",
+  var weChatMchId: String = "",
+  var weChatApiKey: String = "",
 ) {
   data class WeChatConfig(
     val apiUrl: String = "https://api.mch.weixin.qq.com",
     val timeout: Int = 30000,
     val retryDelay: Int = 5000,
   )
+
+  /**
+   * 真实商户参数是否已配置(R-PAY-04:未配置 = 假支付模式,对账任务置 SKIPPED 并说明原因;
+   * 口径对齐 aqua-trade SdkWechatPayGateway.isConfigured —— appid/mchId/apiKey 任一缺失即视为未配置)。
+   */
+  val weChatConfigured: Boolean
+    get() = weChatAppId.isNotBlank() && weChatMchId.isNotBlank() && weChatApiKey.isNotBlank()
 }

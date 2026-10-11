@@ -35,9 +35,12 @@ import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyResolveAction
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.util.MoneyUtils
@@ -72,38 +75,52 @@ class ReconciliationServiceImpl(
   private val logger = LoggerFactory.getLogger(ReconciliationService::class.java)
 
   /**
-   * 创建支付对账任务
+   * 创建支付对账任务(triggerType/executedBy:调度为 SCHEDULED/null,手动触发为 MANUAL/管理员 id)
    */
-  override fun createPaymentReconciliationTask(date: LocalDate): ReconciliationTaskModel {
-    logger.info("创建支付对账任务，日期: $date")
+  override fun createPaymentReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType,
+    executedBy: Long?,
+  ): ReconciliationTaskModel {
+    logger.info("创建支付对账任务，日期: $date, 触发: $triggerType")
 
-    val task = ReconciliationTaskModel.createPaymentTask(date.atStartOfDay())
+    val task = ReconciliationTaskModel.createPaymentTask(date.atStartOfDay(), triggerType, executedBy)
     return reconciliationTaskRepository.save(task)
   }
 
   /**
    * 创建退款对账任务
    */
-  override fun createRefundReconciliationTask(date: LocalDate): ReconciliationTaskModel {
-    logger.info("创建退款对账任务，日期: $date")
+  override fun createRefundReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType,
+    executedBy: Long?,
+  ): ReconciliationTaskModel {
+    logger.info("创建退款对账任务，日期: $date, 触发: $triggerType")
 
-    val task = ReconciliationTaskModel.createRefundTask(date.atStartOfDay())
+    val task = ReconciliationTaskModel.createRefundTask(date.atStartOfDay(), triggerType, executedBy)
     return reconciliationTaskRepository.save(task)
   }
 
   /**
    * 创建结算对账任务
    */
-  override fun createSettlementReconciliationTask(date: LocalDate): ReconciliationTaskModel {
-    logger.info("创建结算对账任务，日期: $date")
+  override fun createSettlementReconciliationTask(
+    date: LocalDate,
+    triggerType: ReconciliationTriggerType,
+    executedBy: Long?,
+  ): ReconciliationTaskModel {
+    logger.info("创建结算对账任务，日期: $date, 触发: $triggerType")
 
-    val task = ReconciliationTaskModel.createSettlementTask(date.atStartOfDay())
+    val task = ReconciliationTaskModel.createSettlementTask(date.atStartOfDay(), triggerType, executedBy)
     return reconciliationTaskRepository.save(task)
   }
 
   /**
    * 执行支付对账任务
-   * 微信交易账单 vs 内部支付流水(payments),按微信交易号(transactionId)匹配,金额按分比对。
+   * 微信交易账单 vs 内部支付流水(payments,paid_at 落账单日且 status ∈ SUCCESS/REFUNDING/REFUNDED,
+   * R-PAY-04 本地账实基准),按微信交易号(transactionId)匹配,金额按分比对。
+   * 未配置真实商户参数(假支付模式)→ 任务置 SKIPPED(R-PAY-04)。
    */
   @Async("reconciliationExecutor")
   @Transactional
@@ -112,15 +129,16 @@ class ReconciliationServiceImpl(
       try {
         logger.info("开始执行支付对账任务: ${task.taskId}")
 
+        if (skipIfWeChatNotConfigured(task, "PAYMENT")) {
+          return@supplyAsync task
+        }
+
         markTaskRunning(task, "PAYMENT")
 
-        // 获取内部支付记录
-        val internalPayments =
-          paymentQueryService
-            .getByDateRange(
-              task.taskDate!!.toLocalDate().atStartOfDay(),
-              task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999),
-            )
+        // 获取内部支付记录(分页拉取,R-PAY-04 本地基准:paid_at 落账单日的成功支付)
+        val dayStart = task.taskDate!!.toLocalDate().atStartOfDay()
+        val dayEnd = task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999)
+        val internalPayments = fetchPaidByWindow(dayStart, dayEnd)
 
         // 获取微信支付记录
         val weChatTransactions = weChatReconciliationApi.fetchTransactions(task.taskDate!!.toLocalDate())
@@ -154,6 +172,10 @@ class ReconciliationServiceImpl(
     CompletableFuture.supplyAsync({
       try {
         logger.info("开始执行退款对账任务: ${task.taskId}")
+
+        if (skipIfWeChatNotConfigured(task, "REFUND")) {
+          return@supplyAsync task
+        }
 
         markTaskRunning(task, "REFUND")
 
@@ -201,15 +223,16 @@ class ReconciliationServiceImpl(
       try {
         logger.info("开始执行结算对账任务: ${task.taskId}")
 
+        if (skipIfWeChatNotConfigured(task, "SETTLEMENT")) {
+          return@supplyAsync task
+        }
+
         markTaskRunning(task, "SETTLEMENT")
 
-        // 获取内部支付记录
-        val internalPayments =
-          paymentQueryService
-            .getByDateRange(
-              task.taskDate!!.toLocalDate().atStartOfDay(),
-              task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999),
-            )
+        // 获取内部支付记录(分页拉取,与支付对账同基准口径)
+        val dayStart = task.taskDate!!.toLocalDate().atStartOfDay()
+        val dayEnd = task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999)
+        val internalPayments = fetchPaidByWindow(dayStart, dayEnd)
 
         // 获取微信结算记录
         val weChatSettlements = weChatReconciliationApi.fetchSettlements(task.taskDate!!.toLocalDate())
@@ -294,9 +317,11 @@ class ReconciliationServiceImpl(
    */
   override fun getDiscrepanciesPaged(
     taskId: String?,
+    discrepancyType: DiscrepancyType?,
     status: DiscrepancyStatus?,
     pageable: Pageable,
-  ): Page<ReconciliationDiscrepancyModel> = reconciliationDiscrepancyRepository.findDiscrepanciesPaged(taskId, status, pageable)
+  ): Page<ReconciliationDiscrepancyModel> =
+    reconciliationDiscrepancyRepository.findDiscrepanciesPaged(taskId, discrepancyType, status, pageable)
 
   /**
    * 获取未解决的差异
@@ -318,11 +343,27 @@ class ReconciliationServiceImpl(
     }
 
   /**
-   * 解决对账差异
+   * 清理过期对账数据(R-PAY-04/设计 07 §3.4):reports 30 天;已处置(已解决/已忽略)差异 180 天。
+   * 软删(UPDATE is_deleted=true),UNRESOLVED 差异永不清理;返回 (清理报表数, 清理差异数)。
+   */
+  override fun cleanupExpiredData(): Pair<Int, Int> {
+    val now = LocalDateTime.now()
+    val cleanedReports = reconciliationReportRepository.deleteReportsBefore(now.minusDays(REPORT_RETENTION_DAYS))
+    val cleanedDiscrepancies =
+      reconciliationDiscrepancyRepository.deleteResolvedBefore(now.minusDays(DISCREPANCY_RETENTION_DAYS))
+    if (cleanedReports > 0 || cleanedDiscrepancies > 0) {
+      logger.info("对账数据清理完成: reports={}, discrepancies={}", cleanedReports, cleanedDiscrepancies)
+    }
+    return cleanedReports to cleanedDiscrepancies
+  }
+
+  /**
+   * 解决对账差异(action=RESOLVE/IGNORE,备注必填,处置留痕;已处置差异不可再改)
    */
   @Transactional
   override fun resolveDiscrepancy(
     discrepancyId: Long,
+    action: DiscrepancyResolveAction,
     resolutionNotes: String,
     resolvedBy: String,
   ): Boolean {
@@ -331,7 +372,11 @@ class ReconciliationServiceImpl(
         reconciliationDiscrepancyRepository.findById(discrepancyId).orElse(null)
           ?: return false
 
-      discrepancy.status = DiscrepancyStatus.RESOLVED
+      discrepancy.status =
+        when (action) {
+          DiscrepancyResolveAction.RESOLVE -> DiscrepancyStatus.RESOLVED
+          DiscrepancyResolveAction.IGNORE -> DiscrepancyStatus.IGNORED
+        }
       discrepancy.resolutionNotes = resolutionNotes
       discrepancy.resolvedBy = resolvedBy
       discrepancy.resolvedAt = LocalDateTime.now()
@@ -346,16 +391,17 @@ class ReconciliationServiceImpl(
           mapOf<String, Any>(
             "discrepancyId" to discrepancyId,
             "discrepancyType" to discrepancy.discrepancyType.name,
+            "action" to action.name,
             "resolvedBy" to resolvedBy,
             "resolvedAt" to (discrepancy.resolvedAt ?: LocalDateTime.now()),
             "resolutionNotes" to resolutionNotes,
           ),
       )
 
-      logger.info("对账差异已解决: $discrepancyId, 解决人: $resolvedBy")
+      logger.info("对账差异已处置: $discrepancyId, 动作: $action, 处置人: $resolvedBy")
       return true
     } catch (e: Exception) {
-      logger.error("解决对账差异失败: $discrepancyId", e)
+      logger.error("处置对账差异失败: $discrepancyId", e)
       return false
     }
   }
@@ -475,7 +521,15 @@ class ReconciliationServiceImpl(
       }
     }
 
-    return finalizeDiscrepancies(discrepancies, internalPayments.size + weChatTransactions.size, matchedCount)
+    return finalizeDiscrepancies(
+      discrepancies,
+      internalPayments.size + weChatTransactions.size,
+      matchedCount,
+      wechatTotalCount = weChatTransactions.size,
+      wechatTotalAmountCents = weChatTransactions.sumOf { it.amount },
+      localTotalCount = internalPayments.size,
+      localTotalAmountCents = internalPayments.sumOf { it.amount },
+    )
   }
 
   /**
@@ -600,7 +654,15 @@ class ReconciliationServiceImpl(
       }
     }
 
-    return finalizeDiscrepancies(discrepancies, internalRefunds.size + weChatRefunds.size, matchedCount)
+    return finalizeDiscrepancies(
+      discrepancies,
+      internalRefunds.size + weChatRefunds.size,
+      matchedCount,
+      wechatTotalCount = weChatRefunds.size,
+      wechatTotalAmountCents = weChatRefunds.sumOf { it.refundFee.toLong() },
+      localTotalCount = internalRefunds.size,
+      localTotalAmountCents = internalRefunds.sumOf { it.refundAmount },
+    )
   }
 
   /**
@@ -720,16 +782,28 @@ class ReconciliationServiceImpl(
       }
     }
 
-    return finalizeDiscrepancies(discrepancies, internalPayments.size + weChatSettlements.size, matchedCount)
+    return finalizeDiscrepancies(
+      discrepancies,
+      internalPayments.size + weChatSettlements.size,
+      matchedCount,
+      wechatTotalCount = weChatSettlements.size,
+      wechatTotalAmountCents = weChatSettlements.sumOf { it.amount.toLong() },
+      localTotalCount = internalPayments.size,
+      localTotalAmountCents = internalPayments.sumOf { it.amount },
+    )
   }
 
   /**
-   * 差异落库并汇总结果
+   * 差异落库并汇总结果(含微信/本地两侧三方校验汇总,R-PAY-04)
    */
   private fun finalizeDiscrepancies(
     discrepancies: List<ReconciliationDiscrepancyModel>,
     totalRecords: Int,
     matchedCount: Int,
+    wechatTotalCount: Int,
+    wechatTotalAmountCents: Long,
+    localTotalCount: Int,
+    localTotalAmountCents: Long,
   ): ReconciliationResult {
     // 保存差异记录
     reconciliationDiscrepancyRepository.saveAll(discrepancies)
@@ -738,9 +812,61 @@ class ReconciliationServiceImpl(
       totalRecords = totalRecords,
       matchedRecords = matchedCount,
       unmatchedRecords = discrepancies.size,
+      wechatTotalCount = wechatTotalCount,
+      wechatTotalAmountCents = wechatTotalAmountCents,
+      localTotalCount = localTotalCount,
+      localTotalAmountCents = localTotalAmountCents,
       discrepancies = discrepancies,
-      errorMessage = if (discrepancies.isEmpty()) null else "发现${discrepancies.size}个对账差异",
     )
+  }
+
+  /**
+   * 未配置真实商户参数(假支付模式)→ 任务置 SKIPPED 并说明原因(R-PAY-04,设计 07 §6-2)。
+   * 返回 true 表示已跳过。
+   */
+  private fun skipIfWeChatNotConfigured(
+    task: ReconciliationTaskModel,
+    taskType: String,
+  ): Boolean {
+    if (config.weChatConfigured) {
+      return false
+    }
+    task.status = ReconciliationTaskStatus.SKIPPED
+    task.endTime = LocalDateTime.now()
+    task.errorMessage = SKIPPED_REASON
+    reconciliationTaskRepository.save(task)
+
+    eventPublishService.publishDomainEvent(
+      eventType = "RECONCILIATION_SKIPPED",
+      aggregateId = task.taskId,
+      eventData =
+        mapOf<String, Any>(
+          "taskType" to taskType,
+          "status" to ReconciliationTaskStatus.SKIPPED.name,
+          "reason" to SKIPPED_REASON,
+          "endTime" to (task.endTime ?: LocalDateTime.now()),
+        ),
+    )
+    logger.warn("对账任务跳过(未配置真实商户参数): ${task.taskId}")
+    return true
+  }
+
+  /**
+   * 分页拉取账单日窗口内本地成功支付流水(R-PAY-04 本地账实基准,paid_at 落账单日且
+   * status ∈ SUCCESS/REFUNDING/REFUNDED;规则 10 禁全量,逐页拉取至取完)。
+   */
+  private fun fetchPaidByWindow(
+    dayStart: LocalDateTime,
+    dayEnd: LocalDateTime,
+  ): List<PaymentModel> {
+    val payments = mutableListOf<PaymentModel>()
+    var page = 0
+    do {
+      val result = paymentQueryService.getPaidByDateRange(dayStart, dayEnd, page, PAYMENT_BATCH_SIZE)
+      payments.addAll(result.content)
+      page++
+    } while (page < result.totalPages)
+    return payments
   }
 
   /**
@@ -768,23 +894,24 @@ class ReconciliationServiceImpl(
   }
 
   /**
-   * 任务收尾:状态/统计落库、生成报表、发布完成/失败事件
+   * 任务收尾:状态/统计落库、生成报表、发布完成/失败事件。
+   * R-PAY-04 口径:差异数 > 0 的任务状态仍为「成功」(对账完成 ≠ 无差异,差异经差异列表人工处置);
+   * 仅执行异常(由 failTask 处理)才置 FAILED。
    */
   private fun completeTask(
     task: ReconciliationTaskModel,
     taskType: String,
     result: ReconciliationResult,
   ) {
-    // 更新任务结果(有差异视为 FAILED,errorMessage 提示差异数)
-    task.status =
-      if (result.discrepancies.isEmpty()) ReconciliationTaskStatus.SUCCESS else ReconciliationTaskStatus.FAILED
+    task.status = ReconciliationTaskStatus.SUCCESS
     task.endTime = LocalDateTime.now()
     task.totalRecords = result.totalRecords
     task.matchedRecords = result.matchedRecords
     task.unmatchedRecords = result.unmatchedRecords
-    if (result.errorMessage != null) {
-      task.errorMessage = result.errorMessage
-    }
+    task.wechatTotalCount = result.wechatTotalCount
+    task.wechatTotalAmountCents = result.wechatTotalAmountCents
+    task.localTotalCount = result.localTotalCount
+    task.localTotalAmountCents = result.localTotalAmountCents
 
     reconciliationTaskRepository.save(task)
 
@@ -851,9 +978,17 @@ class ReconciliationServiceImpl(
           mapOf<String, Any>(
             "taskType" to taskType,
             "taskDate" to (task.taskDate ?: LocalDateTime.now()).toString(),
+            "status" to task.status.name,
+            "triggerType" to task.triggerType.name,
+            "executedBy" to (task.executedBy?.toString() ?: ""),
             "totalRecords" to result.totalRecords,
             "matchedRecords" to result.matchedRecords,
             "unmatchedRecords" to result.unmatchedRecords,
+            // 三方校验汇总(R-PAY-04):微信账单侧 / 本地账实侧(逐笔解析合计与微信账单汇总同源)
+            "wechatTotalCount" to result.wechatTotalCount,
+            "wechatTotalAmountCents" to result.wechatTotalAmountCents,
+            "localTotalCount" to result.localTotalCount,
+            "localTotalAmountCents" to result.localTotalAmountCents,
             "discrepancies" to result.discrepancies.groupingBy { it.discrepancyType.name }.eachCount(),
             "discrepancyDetails" to
               result.discrepancies.take(50).map {
@@ -907,18 +1042,33 @@ class ReconciliationServiceImpl(
   }
 
   /**
-   * 对账结果数据类(支付/退款/结算共用)
+   * 对账结果数据类(支付/退款/结算共用;含微信/本地两侧三方校验汇总)
    */
   private data class ReconciliationResult(
     val totalRecords: Int,
     val matchedRecords: Int,
     val unmatchedRecords: Int,
+    val wechatTotalCount: Int,
+    val wechatTotalAmountCents: Long,
+    val localTotalCount: Int,
+    val localTotalAmountCents: Long,
     val discrepancies: List<ReconciliationDiscrepancyModel>,
-    val errorMessage: String?,
   )
 
   companion object {
     /** 退款对账内部分批拉取每页大小(规则 #13:禁止全表,分批处理) */
     private const val REFUND_BATCH_SIZE = 100
+
+    /** 支付对账内部分批拉取每页大小(规则 #13:禁止全表,分批处理) */
+    private const val PAYMENT_BATCH_SIZE = 100
+
+    /** 报表快照保留天数(R-PAY-04/设计 07 §3.4:30 天滚动清理) */
+    private const val REPORT_RETENTION_DAYS = 30L
+
+    /** 已处置差异保留天数(已解决/已忽略;UNRESOLVED 永不清理) */
+    private const val DISCREPANCY_RETENTION_DAYS = 180L
+
+    /** 未配置真实商户参数时的跳过原因(R-PAY-04:假支付模式) */
+    private const val SKIPPED_REASON = "未配置真实商户参数(假支付模式),对账跳过"
   }
 }

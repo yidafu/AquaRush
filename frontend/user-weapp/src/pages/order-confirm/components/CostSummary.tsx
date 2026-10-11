@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text } from '@tarojs/components'
 import * as stylex from '@stylexjs/stylex'
 import { props } from '@aquarush/common/stylex'
-import { OrderPreviewVo, buildCostRows, orderCostFromPreview } from '@aquarush/common'
+import { OrderPreviewVo, buildCostRows, minimumOrderHint, orderCostFromPreview } from '@aquarush/common'
 import CostRowList from '../../../components/CostRowList'
 
 interface CostSummaryProps {
@@ -36,6 +36,11 @@ const styles = stylex.create({
     fontSize: 'var(--weui-fs-tips)',
     color: 'var(--weui-RED)',
   },
+  // 起送门槛未达提示(G96,原 scss .cost-minimum-hint)
+  costMinHint: {
+    fontSize: 'var(--weui-fs-tips)',
+    color: 'var(--weui-RED)',
+  },
 })
 const CostSummary: React.FC<CostSummaryProps> = ({
   preview,
@@ -44,6 +49,8 @@ const CostSummary: React.FC<CostSummaryProps> = ({
   onRetry
 }) => {
   const rows = preview ? buildCostRows(orderCostFromPreview(preview)) : []
+  // 起送门槛未达提示(R-OPS-03/G96):与服务端 createOrder 拦截同口径,前端先行提示并禁提交
+  const minimumHint = preview ? minimumOrderHint(preview) : null
 
   return (
     <View {...stylex.props(styles.costSection)}>
@@ -72,7 +79,17 @@ const CostSummary: React.FC<CostSummaryProps> = ({
             <CostRowList rows={rows} />
           </View>
         </View>
-      ) : (
+      ) : null}
+
+      {minimumHint && (
+        <View className='weui-cells'>
+          <View className='weui-cell'>
+            <View {...props('weui-cell__bd', styles.costMinHint)}>{minimumHint}</View>
+          </View>
+        </View>
+      )}
+
+      {rows.length === 0 &&
         !error && (
           <View className='weui-cells'>
             <View className='weui-cell'>
@@ -80,8 +97,7 @@ const CostSummary: React.FC<CostSummaryProps> = ({
               <View className='weui-cell__ft'>价格计算中...</View>
             </View>
           </View>
-        )
-      )}
+        )}
     </View>
   )
 }
