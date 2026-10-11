@@ -346,6 +346,9 @@ const styles = stylex.create({
 
 **构建管线(两端接线,改动样式方案时先读)**:
 
+- 两个工作区插件的 `dist/` 都是 gitignored 产物:全新检出或新建 worktree 后
+  须先 `pnpm --filter vite-plugin-aquarush-stylex build`(babel-plugin-aquarush-track
+  同理),否则 admin `tsc -b` 报 TS2307、weapp vite 找不到插件入口。
 - admin:`vite.config.ts` 挂 `aquarushStylexVitePlugin`(工作区包
   `vite-plugin-aquarush-stylex`),入口 `main.tsx` `import 'virtual:stylex.css'`;
   CSS 经占位规则 + generateBundle 回填进产物。
