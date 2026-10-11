@@ -10,4 +10,10 @@
     font-size: var(--weui-fs-tips);
     color: var(--weui-RED);
   }
+
+  // 起送门槛未达提示(R-OPS-03/G96)
+  .cost-minimum-hint {
+    font-size: var(--weui-fs-tips);
+    color: var(--weui-RED);
+  }
 }
