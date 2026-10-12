@@ -150,3 +150,4 @@ storage/
 !/AGENTS.md
 changelog/
 outdate/
+.agents/skills
