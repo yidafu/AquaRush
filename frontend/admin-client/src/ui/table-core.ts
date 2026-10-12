@@ -24,6 +24,116 @@ export interface PaginationSliceResult<T> {
   pageCount: number;
 }
 
+/** resolvePagination 读取的 pagination 配置子集(antd 受控/非受控判定字段)。 */
+export interface PaginationConfigSlice {
+  current?: number;
+  pageSize?: number;
+  defaultPageSize?: number;
+}
+
+export interface ResolvePaginationInput {
+  /** Table 的 pagination 配置(false/缺省 → null,完全非受控)。 */
+  config: PaginationConfigSlice | null;
+  /** 表壳内部 current 状态(仅非受控时生效)。 */
+  innerCurrent: number;
+  /** 表壳内部 pageSize 状态(仅非受控时生效)。 */
+  innerPageSize: number;
+}
+
+export interface ResolvedPagination {
+  /** 生效页码(非受控 = 内部状态;受控 = config.current 原样)。 */
+  current: number;
+  /** 生效每页条数(非受控 = 内部状态;受控 = config.pageSize 原样)。 */
+  pageSize: number;
+  /** config.current 已定义 → current 受控,内部状态不参与渲染。 */
+  controlledCurrent: boolean;
+  /** config.pageSize 已定义 → pageSize 受控,内部状态不参与渲染。 */
+  controlledPageSize: boolean;
+}
+
+/**
+ * 分页受控/非受控判定(antd 对齐:current 与 pageSize 各自独立判定)。
+ * `config.current !== undefined` → 受控(prop 优先);缺省 → 由内部状态驱动。
+ * 注意:不做越界收敛 —— 非受控 current 的收敛由 clampCurrent 在渲染期完成。
+ */
+export function resolvePagination({
+  config,
+  innerCurrent,
+  innerPageSize,
+}: ResolvePaginationInput): ResolvedPagination {
+  const configCurrent = config?.current;
+  const configPageSize = config?.pageSize;
+  const controlledCurrent = configCurrent !== undefined;
+  const controlledPageSize = configPageSize !== undefined;
+  return {
+    current: controlledCurrent ? configCurrent : innerCurrent,
+    pageSize: controlledPageSize ? configPageSize : innerPageSize,
+    controlledCurrent,
+    controlledPageSize,
+  };
+}
+
+/** 表壳内部 pageSize 初始值:config.pageSize ?? config.defaultPageSize ?? 10(antd 初始化语义)。 */
+export function initialInnerPageSize(config: PaginationConfigSlice | null | undefined): number {
+  return config?.pageSize ?? config?.defaultPageSize ?? 10;
+}
+
+/**
+ * 非受控 current 渲染期收敛:数据收缩后 current 超出页数时收敛到末页
+ * (antd 内部 current 调整的渲染期等价;受控 current 不经过此函数,由调用方原样透传)。
+ * pageSize/total 非法(≤0/NaN)时视作单页,收敛到 1(与 paginationSlice 的 pageCount=1 一致)。
+ */
+export function clampCurrent(current: number, total: number, pageSize: number): number {
+  const safePage = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 0;
+  const safeTotal = Number.isFinite(total) && total > 0 ? total : 0;
+  if (safePage === 0 || safeTotal === 0) return 1;
+  const pageCount = Math.max(1, Math.ceil(safeTotal / safePage));
+  if (!Number.isFinite(current)) return 1;
+  return Math.min(Math.max(Math.trunc(current), 1), pageCount);
+}
+
+export interface PageChangeRequest {
+  /** 当前展示页(Pagination 侧已收敛值)。 */
+  current: number;
+  /** 当前每页条数。 */
+  pageSize: number;
+  /** 目标页。 */
+  nextPage: number;
+  /** 目标每页条数(缺省 = 不变)。 */
+  nextPageSize?: number;
+  /** 数据总量(收敛目标页用)。 */
+  total: number;
+}
+
+export interface PageChangeResolution {
+  /** 有实际变化(current/pageSize 任一变化),才应触发 onChange。 */
+  changed: boolean;
+  /** 收敛后的目标页。 */
+  page: number;
+  /** pageSize 变化,应同时触发 onShowSizeChange。 */
+  sizeChanged: boolean;
+}
+
+/**
+ * Pagination 翻页/改每页条数的纯决策(antd rc-pagination 对齐):
+ * - 目标页收敛到 [1, ceil(total / nextSize)];
+ * - 页码或每页条数均未变 → 不触发任何回调;
+ * - pageSize 变化 → onChange 与 onShowSizeChange 都触发(onShowSizeChange 先发)。
+ */
+export function resolvePageChange({
+  current,
+  pageSize,
+  nextPage,
+  nextPageSize,
+  total,
+}: PageChangeRequest): PageChangeResolution {
+  const size = nextPageSize ?? pageSize;
+  const pageCount = Math.max(1, Math.ceil(total / size));
+  const page = Math.min(Math.max(Math.trunc(nextPage), 1), Math.max(pageCount, 1));
+  const sizeChanged = size !== pageSize;
+  return { changed: sizeChanged || page !== current, page, sizeChanged };
+}
+
 function clampPage(current: number | undefined, pageCount: number): number {
   if (!Number.isFinite(current) || current === undefined) return 1;
   return Math.min(Math.max(Math.trunc(current), 1), Math.max(pageCount, 1));

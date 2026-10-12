@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex';
 import type { StyleXStyles } from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { ArrowLeftOutlined } from './icons';
+import { resolvePageChange } from './table-core';
 
 export type PaginationShowTotal = boolean | ((total: number, range: [number, number]) => ReactNode);
 
@@ -13,6 +14,8 @@ export interface PaginationProps {
   defaultPageSize?: number;
   total?: number;
   onChange?: (page: number, pageSize: number) => void;
+  /** 每页条数变化时触发(current, size);与 onChange 同一次交互并发(antd 对齐)。 */
+  onShowSizeChange?: (current: number, size: number) => void;
   pageSizeOptions?: (string | number)[];
   showSizeChanger?: boolean;
   showQuickJumper?: boolean;
@@ -246,6 +249,7 @@ export const Pagination: FC<PaginationProps> = ({
   defaultPageSize = 10,
   total = 0,
   onChange,
+  onShowSizeChange,
   pageSizeOptions,
   showSizeChanger = false,
   showQuickJumper = false,
@@ -271,9 +275,16 @@ export const Pagination: FC<PaginationProps> = ({
 
   const go = (nextPage: number, nextSize: number = resolvedPageSize) => {
     if (disabled) return;
-    const clamped = Math.min(Math.max(nextPage, 1), Math.max(1, Math.ceil(total / nextSize)));
-    if (clamped === page && nextSize === resolvedPageSize) return;
-    onChange?.(clamped, nextSize);
+    const { changed, page: targetPage, sizeChanged } = resolvePageChange({
+      current: page,
+      pageSize: resolvedPageSize,
+      nextPage,
+      nextPageSize: nextSize,
+      total,
+    });
+    if (!changed) return;
+    if (sizeChanged) onShowSizeChange?.(targetPage, nextSize);
+    onChange?.(targetPage, nextSize);
   };
 
   const itemClass = (...extra: StyleXStyles[]) =>

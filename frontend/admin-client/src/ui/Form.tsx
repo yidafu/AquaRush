@@ -17,6 +17,7 @@ import * as stylex from '@stylexjs/stylex'
 import { tokens } from '@aquarush/common/theme/tokens.stylex'
 import {
   convertRules,
+  createFieldOnChange,
   normalizeName,
   useForm,
   type FormFinishFailedInfo,
@@ -480,8 +481,13 @@ export function FormItem(props: FormItemProps): React.ReactElement {
         render={({ field, fieldState }) => {
           const injected: Record<string, unknown> = {
             ...enhance,
-            // onChange 归表单接管(antd 同语义);onBlur 与子组件自身回调并存
-            onChange: (arg: unknown) => field.onChange(adaptChange(arg, vp)),
+            // onChange: 先写表单值,再以原始入参回调子组件自身 onChange
+            // (antd rc-field-form getControlled 同语义);onBlur 与子组件自身回调并存
+            onChange: createFieldOnChange(
+              (value: unknown) => field.onChange(value),
+              childProps.onChange as ((arg: unknown) => void) | undefined,
+              (arg: unknown) => adaptChange(arg, vp),
+            ),
             onBlur: (event: unknown) => {
               const own = childProps.onBlur as ((e: unknown) => void) | undefined
               own?.(event)

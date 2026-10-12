@@ -14,12 +14,14 @@ const styles = stylex.create({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: '8px',
+    rowGap: '8px',
+    columnGap: '8px',
   },
   rowMain: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    rowGap: '4px',
+    columnGap: '4px',
   },
   title: {
     fontSize: tokens.fsAux,

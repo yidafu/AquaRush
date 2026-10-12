@@ -15,9 +15,3 @@ body {
 #root {
   min-height: 100vh;
 }
-
-/* 表格数字等宽:调用点在单元格里用 <span className="num"> 包金额/数量,
-   StyleX 原子类无法作用于调用点自带的 className,保留此全局规则(非 antd 类) */
-.num {
-  font-variant-numeric: tabular-nums;
-}

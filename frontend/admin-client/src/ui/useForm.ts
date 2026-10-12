@@ -366,6 +366,31 @@ export function convertRules(
 }
 
 // ---------------------------------------------------------------------------
+// Form.Item onChange 组合(命名字段注入)
+// ---------------------------------------------------------------------------
+
+/**
+ * Form.Item(named 字段)注入子组件的 onChange 组合链 —— antd rc-field-form
+ * `getControlled` 同语义(originTriggerFunc):先写表单值,再以**原始入参**
+ * 回调子组件自身的 onChange(顺序:表单先、子组件后)。
+ *
+ * @param fieldSet 写表单值(收到 adapt 适配后的值)
+ * @param childOnChange 子组件自身 onChange(可选;缺省时只写表单值,
+ *   与无自身回调的子组件行为一致)
+ * @param adapt 事件/裸值 → 表单值(缺省恒等;Form.Item 传入 adaptChange)
+ */
+export function createFieldOnChange(
+  fieldSet: (adapted: unknown) => void,
+  childOnChange?: (arg: unknown) => void,
+  adapt: (arg: unknown) => unknown = (arg) => arg,
+): (arg: unknown) => void {
+  return (arg: unknown): void => {
+    fieldSet(adapt(arg))
+    childOnChange?.(arg)
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 门面(纯适配器)
 // ---------------------------------------------------------------------------
 
@@ -704,6 +729,7 @@ export function useForm<T extends FieldValues>(
       trigger: (names) => rhf.trigger(names as never),
       getErrors: () => flattenErrors(rhf.getErrors()),
       watch: (listener) => {
+        // eslint-disable-next-line react-hooks/incompatible-library -- RHF watch 回调无法被 React Compiler 记忆化,官方建议忽略;不影响运行时
         const subscription = rhf.watch((values, info) => {
           const name = info?.name
           listener(values as T, { name: typeof name === 'string' ? name : undefined })

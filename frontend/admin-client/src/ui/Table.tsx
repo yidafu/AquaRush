@@ -3,10 +3,11 @@
  * 契约: docs/compose/spec/admin-radix-ui.md [S2.5]
  *  - 列编译与排序状态交由 @tanstack/react-table(列定义 / sorting state / 表头切换);
  *  - 本地 sorter 函数在表壳内排序当前 dataSource;sorter:true 走服务端(仅发 onChange);
- *  - 分页为受控/手动模式:pagination.onChange 与 Table onChange 回调上报,数据获取在调用方;
+ *  - 分页支持受控/非受控(config.current / config.pageSize 各自缺省即非受控,由表壳内部状态驱动;
+ *    回调经 pagination.onChange 与 Table onChange 上报,服务端数据获取在调用方);
  *  - 行选择完全由调用方持有 selectedRowKeys,表壳只做勾选交互与回调。
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { HTMLAttributes, Key, ReactNode } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
@@ -23,8 +24,11 @@ import { Empty } from './Empty';
 import { Pagination, type PaginationShowTotal } from './Pagination';
 import {
   applySort,
+  clampCurrent,
+  initialInnerPageSize,
   paginationSlice,
   resolveDataIndex,
+  resolvePagination,
   resolveRowKey,
   toggleAll,
   toggleKey,
@@ -58,6 +62,8 @@ export interface TableChangeExtra<T> {
 export interface TablePaginationConfig {
   current?: number;
   pageSize?: number;
+  /** 非受控初始每页条数(antd 语义:仅初始化内部 pageSize,受控 pageSize 优先)。 */
+  defaultPageSize?: number;
   total?: number;
   disabled?: boolean;
   hideOnSinglePage?: boolean;
@@ -504,16 +510,25 @@ export function Table<T extends RowData>(props: TableProps<T>) {
     return applySort(rows, entry.desc ? (a, b) => cmp(b, a) : cmp);
   })();
 
-  // —— 分页配置与切片(antd 对齐:服务端单页数据不再切片) ——
+  // —— 分页配置与状态(antd 对齐:受控/非受控按字段独立判定) ——
+  // config.current / config.pageSize 缺省 → 非受控,由表壳内部状态驱动(页码按钮才可点击);
+  // 定义 → 受控,prop 原样生效,内部状态不参与渲染。
   const pag: TablePaginationConfig | null =
-    pagination === false
-      ? null
-      : { current: 1, pageSize: 10, total: dataSource.length, ...(pagination ?? {}) };
-  const current = pag?.current ?? 1;
-  const pageSize = pag?.pageSize ?? 10;
+    pagination === false ? null : { total: dataSource.length, ...(pagination ?? {}) };
+  const [innerCurrent, setInnerCurrent] = useState(1);
+  const [innerPageSize, setInnerPageSize] = useState(() =>
+    initialInnerPageSize(pagination === false ? null : pagination),
+  );
+  const resolved = resolvePagination({ config: pag, innerCurrent, innerPageSize });
+  const pageSize = resolved.pageSize;
   const total = pag?.total ?? dataSource.length;
+  // 非受控 current:数据收缩后超出页数时渲染期收敛到末页(antd 内部 current 调整的等价);
+  // 受控 current 原样透传,收敛仍由 paginationSlice / Pagination 展示层完成。
+  const current = resolved.controlledCurrent
+    ? resolved.current
+    : clampCurrent(resolved.current, total, pageSize);
   const { pageRows } = pag
-    ? paginationSlice(sortedRows, pag.current, pag.pageSize, total)
+    ? paginationSlice(sortedRows, current, pageSize, total)
     : { pageRows: sortedRows };
 
   // —— sorter 构造(antd onChange 第 3 参;清空排序时保留上次列的 field) ——
@@ -547,6 +562,10 @@ export function Table<T extends RowData>(props: TableProps<T>) {
 
   const handlePageChange = (page: number, size: number) => {
     if (!pag) return;
+    // 非受控字段:内部状态随交互更新;受控字段:prop 优先,不写内部状态
+    if (!resolved.controlledCurrent) setInnerCurrent(page);
+    if (!resolved.controlledPageSize) setInnerPageSize(size);
+    // 受控站点回调链与迁移前完全一致(onShowSizeChange 由 Pagination 侧转发,不在此重复触发)
     pag.onChange?.(page, size);
     emitChange({ ...pag, current: page, pageSize: size }, sorting, 'paginate');
   };
@@ -850,6 +869,8 @@ export function Table<T extends RowData>(props: TableProps<T>) {
             pageSize={pageSize}
             total={total}
             onChange={handlePageChange}
+            onShowSizeChange={pag.onShowSizeChange}
+            hideOnSinglePage={pag.hideOnSinglePage}
             showSizeChanger={pag.showSizeChanger ?? total > 50}
             pageSizeOptions={pag.pageSizeOptions}
             showQuickJumper={pag.showQuickJumper}

@@ -204,7 +204,6 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
       onRow={(record) => ({
         onClick: () => onViewOrder(record.id),
       })}
-      rowClassName={() => 'clickable-row'}
       pagination={pagination(total, {
         current: page + 1,
         pageSize,

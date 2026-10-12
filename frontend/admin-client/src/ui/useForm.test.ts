@@ -5,9 +5,10 @@
  * 全部走 createFormFacade + 注入的假 RhfLike —— 纯逻辑,无 React 渲染;
  * 校验规则由 convertRules 真实翻译后在假 trigger 里执行,覆盖中文文案断言。
  */
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it, jest } from '@jest/globals'
 import {
   convertRules,
+  createFieldOnChange,
   createFormFacade,
   type FormInstance,
   type RhfFieldRules,
@@ -318,6 +319,71 @@ describe('createFormFacade / warningOnly', () => {
       outOfDate: false,
     })
     expect(form.__getWarnings()).toEqual({ coverImageUrl: ['请输入有效的URL地址'] })
+  })
+})
+
+describe('createFieldOnChange / Form.Item onChange 组合链', () => {
+  /** 与 Form.tsx adaptChange 同形的事件适配(事件 → target.value) */
+  const adaptEvent = (arg: unknown): unknown =>
+    arg !== null && typeof arg === 'object' && 'target' in arg
+      ? (arg as { target: Record<string, unknown> }).target.value
+      : arg
+
+  it('先写表单值再回调子组件 onChange(antd 顺序),子组件收到原始入参', () => {
+    const order: string[] = []
+    const event = { target: { value: '广东省' } }
+    const fieldSet = jest.fn((adapted: unknown) => {
+      order.push('form')
+      expect(adapted).toBe('广东省')
+    })
+    const childOnChange = jest.fn((arg: unknown) => {
+      order.push('child')
+      expect(arg).toBe(event)
+    })
+
+    const handler = createFieldOnChange(fieldSet, childOnChange, adaptEvent)
+    handler(event)
+
+    expect(order).toEqual(['form', 'child'])
+    expect(fieldSet).toHaveBeenCalledTimes(1)
+    expect(childOnChange).toHaveBeenCalledWith(event)
+  })
+
+  it('子组件无自身 onChange 时只写表单值(行为与原实现一致)', () => {
+    const formValues: unknown[] = []
+    const handler = createFieldOnChange((adapted) => formValues.push(adapted), undefined, adaptEvent)
+
+    expect(() => handler({ target: { value: 'bare' } })).not.toThrow()
+    expect(formValues).toEqual(['bare'])
+  })
+
+  it('fieldSet 收到适配后的表单值,子组件收到原始事件对象', () => {
+    const event = { target: { value: '深圳市' } }
+    const formValues: unknown[] = []
+    const childArgs: unknown[] = []
+
+    const handler = createFieldOnChange(
+      (adapted) => formValues.push(adapted),
+      (arg) => childArgs.push(arg),
+      adaptEvent,
+    )
+    handler(event)
+
+    expect(formValues).toEqual(['深圳市'])
+    expect(childArgs).toEqual([event])
+  })
+
+  it('缺省 adapt 时透传裸值(非事件入参,如 Select/自定义组件)', () => {
+    const formValues: unknown[] = []
+    const childArgs: unknown[] = []
+    const handler = createFieldOnChange(
+      (adapted) => formValues.push(adapted),
+      (arg) => childArgs.push(arg),
+    )
+
+    handler('tier-2')
+    expect(formValues).toEqual(['tier-2'])
+    expect(childArgs).toEqual(['tier-2'])
   })
 })
 
