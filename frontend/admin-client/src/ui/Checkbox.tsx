@@ -107,7 +107,7 @@ const styles = stylex.create({
   },
 });
 
-export const Checkbox: FC<CheckboxProps> = ({
+const CheckboxImpl: FC<CheckboxProps> = ({
   checked,
   defaultChecked = false,
   onChange,
@@ -211,3 +211,6 @@ export const CheckboxGroup: FC<CheckboxGroupProps> = ({
     </GroupContext.Provider>
   );
 };
+
+/** antd 同形静态:Checkbox.Group —— 调用点 `<Checkbox.Group>` 无需改写。 */
+export const Checkbox = Object.assign(CheckboxImpl, { Group: CheckboxGroup });

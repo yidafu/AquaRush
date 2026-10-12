@@ -282,3 +282,118 @@ describe('createFormFacade / submit', () => {
     expect(finished).toEqual([{ name: 'ok' }])
   })
 })
+
+describe('createFormFacade / warningOnly', () => {
+  const urlRule = { type: 'url', message: '请输入有效的URL地址', warningOnly: true } as const
+
+  it('warningOnly 失败时 validateFields 仍 resolve,警示收集进 __getWarnings', async () => {
+    const fake = createFakeRhf({ coverImageUrl: 'not-a-url' })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    fake.registerRules('coverImageUrl', convertRules([urlRule], '封面图片URL', form, 'coverImageUrl'))
+
+    await expect(form.validateFields()).resolves.toEqual({ coverImageUrl: 'not-a-url' })
+    expect(form.__getWarnings()).toEqual({ coverImageUrl: ['请输入有效的URL地址'] })
+  })
+
+  it('修复后再次校验清除警示', async () => {
+    const fake = createFakeRhf({ coverImageUrl: 'not-a-url' })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    fake.registerRules('coverImageUrl', convertRules([urlRule], '封面图片URL', form, 'coverImageUrl'))
+    await expect(form.validateFields()).resolves.toBeDefined()
+    expect(form.__getWarnings()).toEqual({ coverImageUrl: ['请输入有效的URL地址'] })
+
+    fake.rhf.setValue('coverImageUrl', 'https://example.com/a.png')
+    await expect(form.validateFields()).resolves.toBeDefined()
+    expect(form.__getWarnings()).toEqual({})
+  })
+
+  it('同批硬错误仍 reject,且 errorFields 不含 warningOnly 警示', async () => {
+    const fake = createFakeRhf({ coverImageUrl: 'not-a-url', username: '' })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    fake.registerRules('coverImageUrl', convertRules([urlRule], '封面图片URL', form, 'coverImageUrl'))
+    fake.registerRules('username', convertRules([{ required: true, message: '用户名必填' }], '用户名', form, 'username'))
+
+    await expect(form.validateFields()).rejects.toEqual({
+      errorFields: [{ name: ['username'], errors: ['用户名必填'] }],
+      outOfDate: false,
+    })
+    expect(form.__getWarnings()).toEqual({ coverImageUrl: ['请输入有效的URL地址'] })
+  })
+})
+
+describe('createFormFacade / Form.List rules', () => {
+  const listValidator = (_rule: unknown, value: unknown): Promise<void> =>
+    Array.isArray(value) && value.length > 0
+      ? Promise.resolve()
+      : Promise.reject(new Error('请至少配置一个档位'))
+
+  it('列表 rules 失败:validateFields reject 且 errorFields.name = 列表路径', async () => {
+    const fake = createFakeRhf({ tiers: [] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules('tiers', [{ validator: listValidator }])
+
+    await expect(form.validateFields()).rejects.toEqual({
+      errorFields: [{ name: ['tiers'], errors: ['请至少配置一个档位'] }],
+      outOfDate: false,
+    })
+    expect(form.__getListErrors('tiers')).toEqual(['请至少配置一个档位'])
+
+    fake.rhf.setValue('tiers', [{ fromFloor: 1 }])
+    await expect(form.validateFields()).resolves.toBeDefined()
+    expect(form.__getListErrors('tiers')).toEqual([])
+  })
+
+  it('列表 rules 的 warningOnly:警示进 __getListErrors 但不阻断 validateFields', async () => {
+    const fake = createFakeRhf({ tiers: [] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules('tiers', [{ validator: listValidator, warningOnly: true }])
+
+    await expect(form.validateFields()).resolves.toBeDefined()
+    expect(form.__getListErrors('tiers')).toEqual(['请至少配置一个档位'])
+  })
+
+  it('__validateList 单路径重跑(Form.List add/remove 后 live 刷新)', async () => {
+    const fake = createFakeRhf({ tiers: [] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules('tiers', [{ validator: listValidator }])
+
+    await form.__validateList('tiers')
+    expect(form.__getListErrors('tiers')).toEqual(['请至少配置一个档位'])
+
+    fake.rhf.setValue('tiers', [{ fromFloor: 5 }])
+    await form.__validateList('tiers')
+    expect(form.__getListErrors('tiers')).toEqual([])
+  })
+
+  it('__registerListRules(undefined) 摘除后不再产出列表错误', async () => {
+    const fake = createFakeRhf({ tiers: [] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules('tiers', [{ validator: listValidator }])
+    await expect(form.validateFields()).rejects.toBeDefined()
+
+    form.__registerListRules('tiers', undefined)
+    await expect(form.validateFields()).resolves.toBeDefined()
+    expect(form.__getListErrors('tiers')).toEqual([])
+  })
+
+  it('__clearErrors 清除列表级错误(Form.List add/remove 入口语义)', async () => {
+    const fake = createFakeRhf({ tiers: [] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules('tiers', [{ validator: listValidator }])
+    await expect(form.validateFields()).rejects.toBeDefined()
+
+    form.__clearErrors(['tiers'])
+    expect(form.__getListErrors('tiers')).toEqual([])
+  })
+
+  it('嵌套列表路径以点分归一进 errorFields.name', async () => {
+    const fake = createFakeRhf({ orders: [{ items: [] }] })
+    const form = createFormFacade<Record<string, unknown>>(fake.rhf)
+    form.__registerListRules(['orders', 0, 'items'], [{ validator: listValidator }])
+
+    await expect(form.validateFields()).rejects.toEqual({
+      errorFields: [{ name: ['orders', '0', 'items'], errors: ['请至少配置一个档位'] }],
+      outOfDate: false,
+    })
+  })
+})

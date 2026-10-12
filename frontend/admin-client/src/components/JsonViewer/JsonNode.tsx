@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- 拆分自 JsonViewer/index:渲染辅助(isObjectLike/renderPrimitive)与 JsonNode 内聚同文件,调用点仅 index.tsx 引用 */
 import React, { useMemo, useState } from 'react';
 import { Button, Text } from '@/ui';
 import { DownOutlined, RightOutlined } from '@/ui/icons';

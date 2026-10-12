@@ -84,7 +84,7 @@ export interface TrackingOptions {
  * track-* props 契约(声明式埋点,由 babel-plugin-aquarush-track 编译为 <Track> 包裹)。
  *
  * 自研组件:props 接口 extends TrackAttributes;
- * 三方组件(antd / taro-ui 等):`{...( { trackTarget: 'x' } as TrackAttributes )}` 断言后 spread。
+ * 三方组件(taro-ui 等):`{...( { trackTarget: 'x' } as TrackAttributes )}` 断言后 spread。
  */
 export interface TrackAttributes {
   /** 操作对象标识(必填;缺失时插件跳过该元素并告警) */

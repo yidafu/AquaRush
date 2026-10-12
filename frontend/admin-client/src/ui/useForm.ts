@@ -7,9 +7,11 @@
  * - `useForm<T>()` 是真实 hook:内部调用 react-hook-form 的 `useForm`,
  *   把 methods 适配成 RhfLike 后组装门面,返回 antd 同款元组 `[form]`;
  * - 规则翻译:antd `rules` 子集(required/message/min/max/len/pattern/type/
- *   validator/whitespace,以及 `(form) => rule` 函数型规则)经 `convertRules`
- *   转为 RHF 规则。message 覆盖优先;缺省中文文案对齐 antd zh-CN 默认
+ *   validator/whitespace/warningOnly,以及 `(form) => rule` 函数型规则)经
+ *   `convertRules` 转为 RHF 规则。message 覆盖优先;缺省中文文案对齐 antd zh-CN 默认
  *   (required → `请输入${label}`;其余见 convertRules 内注释)。
+ * - warningOnly 失败只收集警示(`__getWarnings`,不阻断);Form.List 级 `rules`
+ *   经 `__registerListRules` 登记,validateFields 一并校验(name=列表路径)。
  */
 import { useRef } from 'react'
 import { useForm as useRhfForm } from 'react-hook-form'

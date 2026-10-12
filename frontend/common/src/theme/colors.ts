@@ -1,7 +1,7 @@
 /**
  * 设计 token 的「真实值」常量表(三端共享)
  *
- * 用途:需要真实色值的场景 —— 图表填充(recharts)、antd Tag color、
+ * 用途:需要真实色值的场景 —— 图表填充(recharts)、标签色、
  * ConfigProvider theme 等;样式表场景请用 tokens.stylex(CSS 变量)。
  * 值必须与 tokens.stylex.ts 严格一致,由 tokens.test.ts 守卫。
  */
