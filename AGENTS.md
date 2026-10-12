@@ -12,7 +12,7 @@ AquaRush — WeChat Mini Program bottled-water ordering & delivery system. Kotli
 
 - **Backend modules** (`modules/`): `aqua-foundation` (shared infra: domain models, Exposed table mappings, cross-module DTOs/services, GraphQL config, messaging, security), `aqua-user`, `aqua-product`, `aqua-trade` (order/delivery/payment/review), `aqua-analytics`, `aqua-platform`, `aqua-ops` (运营配置), `aqua-marketing` (营销 + `barrel/` 水桶费 — merged from former `aqua-deposit`)
 - **Services** (the only two deployable entrypoints): `services/aqua-admin` (admin dashboard backend), `services/aqua-client` (Mini Program backend)
-- **Frontends** (pnpm workspace): `frontend/user-weapp` (Taro 4 Mini Program; npm package name `user-miniapp`), `frontend/delivery-app` (Expo SDK 57 React Native), `frontend/admin-client` (React + Vite;内部 `src/ui` 组件库 = Radix + StyleX,已移除 antd), `frontend/common` (`@aquarush/common` — shared money/status utils, tracking SDK)
+- **Frontends** (pnpm workspace): `frontend/user-weapp` (Taro 4 Mini Program; npm package name `user-miniapp`), `frontend/delivery-app` (Expo SDK 57 React Native) + `frontend/delivery-ui` (`@aquarush/delivery-ui` — `@rn-primitives` headless 层), `frontend/admin-client` (React + Vite;已移除 antd) + `frontend/admin-ui` (`@aquarush/admin-ui` — Radix + StyleX 组件库), `frontend/common` (`@aquarush/common` — shared money/status utils, tracking SDK)
 - Root `package.json` scripts: `pnpm dev:admin` / `pnpm dev:client` (Gradle bootRun), `pnpm dev:weapp`, `pnpm dev:pc`.
 
 ## spec/ — 规格、设计稿与技术文档

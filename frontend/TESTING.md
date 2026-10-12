@@ -8,7 +8,7 @@
 - **统一使用 jest(不用 vitest)**:weapp(Taro 4.1.9)与 delivery-app(Expo SDK 57 / RN)的
   生态工具链(测试 preset、babel 转换、mock)都围绕 jest 构建,vitest 对这两者支持不足
   (如 Taro 官方 preset 来自 `@tarojs/test-utils-react`、RN 走 `@react-native/jest-preset` +
-  `jest-expo`),故四个前端包统一 jest 29;
+  `jest-expo`),故五个测试包统一 jest 29;
 - 禁止引入 vitest / jest 30 / babel 8(与 Taro 4.1.9 生态不兼容,见文末「已知事项」);
 - TS 源码经 **babel-jest**(`@babel/preset-env` + `@babel/preset-typescript`)转换;
 - 覆盖率收集器:jest 内置 istanbul(`--coverage`)。
@@ -18,6 +18,7 @@
 ```bash
 # 单包
 cd frontend/common && pnpm test          # 或 npm run test
+cd frontend/admin-ui && pnpm test        # 组件库(迁移自 admin-client src/ui)
 cd frontend/admin-client && pnpm test
 cd frontend/user-weapp && pnpm test
 cd frontend/delivery-app && pnpm test    # jest-expo(SDK 57)
@@ -29,9 +30,12 @@ cd frontend/common && pnpm test:coverage
 | 包 | 命令 | 说明 |
 | --- | --- | --- |
 | `@aquarush/common` | `test` / `test:coverage` | 纯业务 utils + tracking SDK |
-| `@aquarush/admin-client` | `test` / `test:coverage` | 非 UI 工具(debounce/http 封装) |
+| `@aquarush/admin-ui` | `test` / `test:coverage` | 组件库 DOM/logic 测试(Form/Table DOM、table-core、picker-core、toast-core、useForm、icons) |
+| `@aquarush/admin-client` | `test` / `test:coverage` | 非 UI 工具(debounce/http 封装)+ 架构约束(architecture.test.ts) |
 | `user-weapp` | `test` / `test:coverage` | 非 UI 业务 utils(cart/marketing/feedback 等) |
 | `delivery-app` | `test` / `test:coverage` | jest-expo 57 预设;非 UI 纯业务逻辑(constants / url / storage / tracking 适配器) |
+
+> `delivery-ui`(`@aquarush/delivery-ui`)当前无测试,故未纳入根 `pnpm test:frontend`。
 
 ## 测试文件位置与覆盖范围
 
@@ -49,6 +53,8 @@ cd frontend/common && pnpm test:coverage
 | common | `src/tracking/tracker.ts` | 埋点队列、去重、token 门控、失败重入队、dispose(94.9%) |
 | admin-client | `src/utils/debounce.ts` | 防抖合并、计时重置、参数透传(100%) |
 | admin-client | `src/utils/http.ts` | 拦截器:token 注入、success 解包、业务失败抛错、错误提示(94.4%) |
+| admin-ui | `src/table-core.ts` / `picker-core.ts` / `toast-core.ts` / `useForm.ts` | 表格列/筛选态推导、日期选择器草稿、message/toast 队列、表单状态机 |
+| admin-ui | `src/Form.dom.test.tsx` / `Table.dom.test.tsx` / `icons/*` | 组件 DOM 行为(React act + react-dom/client 直驱) |
 | user-weapp | `src/utils/cart.ts` | 购物车增删改、合并、勾选、合计(95.9%) |
 | user-weapp | `src/utils/feedback.ts` | 反馈状态色(CSS 变量,100%) |
 | user-weapp | `src/styles/tokens.test.ts` | theme.scss `--status-*` ↔ common STATUS_TONE_COLORS 同步守卫 |

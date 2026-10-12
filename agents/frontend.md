@@ -46,7 +46,9 @@ A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-clie
 ### 前端架构约束（ArchUnitTS）
 
 - admin-client 用 [`archunit`](https://github.com/LukasNiessen/ArchUnitTS)（npm `archunit`）写架构测试：`frontend/admin-client/src/architecture.test.ts`，随 `pnpm --filter admin-client test` 一起跑，无需单独命令。
-- 行数硬约束（物理行数，wc -l 语义）：`src/components/**` 与 `src/pages/**` 下的 `.tsx` **≤ 300 行**，无豁免——超标就拆子组件到同目录新文件；`src/ui/**`（Radix 封装组件库）单独 **≤ 1200 行**。
+- 行数硬约束（物理行数，wc -l 语义）：`src/components/**` 与 `src/pages/**` 下的 `.tsx` **≤ 300 行**，无豁免——超标就拆子组件到同目录新文件；组件库 `frontend/admin-ui/src/**`（独立包 `@aquarush/admin-ui`，Radix 封装）单独 **≤ 1200 行**——该规则仍由 `src/architecture.test.ts` 执行（直接扫包内文件）。
+- 组件库已从 `src/ui` 迁出为 workspace 包 `@aquarush/admin-ui`：业务代码一律 `import ... from '@aquarush/admin-ui'`（图标走 `@aquarush/admin-ui/icons`），不再有 `@/ui` 路径；组件自带的测试随库在 `frontend/admin-ui` 下跑（`pnpm --filter @aquarush/admin-ui test`，已并入根 `test:frontend`）。
+- 同理，delivery-app 的 headless primitive 层为独立包 `@aquarush/delivery-ui`（`frontend/delivery-ui`，`@rn-primitives` 统一出口），业务样式层从 `@aquarush/delivery-ui` 引用，不直接依赖 `@rn-primitives/*`。
 - 改动组件后如行数逼近上限，先拆再提交；收紧阈值或新增规则（分层依赖、无环等）都改 `src/architecture.test.ts`。
 
 ## 声明式埋点（用户操作上报）
