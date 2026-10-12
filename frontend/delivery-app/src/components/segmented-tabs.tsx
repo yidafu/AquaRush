@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ToggleGroup } from '@/components/ui';
+import { ToggleGroup } from '@aquarush/delivery-ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 

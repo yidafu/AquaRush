@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
-import { SwitchPrimitive } from '@/components/ui';
+import { SwitchPrimitive } from '@aquarush/delivery-ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 

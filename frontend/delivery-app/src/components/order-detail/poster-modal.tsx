@@ -4,7 +4,7 @@ import type { RefObject } from 'react';
 import { Button } from '@/components/button';
 import { PosterView, toPosterOrderData } from '@/components/order-poster';
 import { ThemedText } from '@/components/themed-text';
-import { DialogFrame } from '@/components/ui';
+import { DialogFrame } from '@aquarush/delivery-ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { OrderVo } from '@aquarush/common';

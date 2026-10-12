@@ -6,7 +6,7 @@ import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { DialogFrame } from '@/components/ui';
+import { DialogFrame } from '@aquarush/delivery-ui';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { searchProducts } from '@/services/delivery';

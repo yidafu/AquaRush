@@ -5,7 +5,7 @@ import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { DialogFrame } from '@/components/ui';
+import { DialogFrame } from '@aquarush/delivery-ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { resolveAssetUrl } from '@/utils/url';

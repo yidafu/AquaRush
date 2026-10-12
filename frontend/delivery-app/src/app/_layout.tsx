@@ -11,7 +11,7 @@ import { Toaster } from 'sonner-native';
 import { LoadingScreen } from '@/components/loading-screen';
 import { RootStatusBar } from '@/components/root-status-bar';
 // Dialog Portal 的宿主:弹层内容渲染到此处(位于导航之上、Toast 之下),挂载于 AuthProvider 内以继承认证上下文
-import { PortalHost } from '@/components/ui';
+import { PortalHost } from '@aquarush/delivery-ui';
 import { TypeScale } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { usePageViewTracking } from '@/hooks/usePageViewTracking';
