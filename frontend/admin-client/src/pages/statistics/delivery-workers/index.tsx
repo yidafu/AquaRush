@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Table } from '@/ui';
+import { Card, Row, Col, Table } from '@aquarush/admin-ui';
 import {
   BarChart,
   Bar,

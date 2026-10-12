@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from "react";
-import { Input, Button, Space, Collapse, message, Typography } from '@/ui';
+import { Input, Button, Space, Collapse, message, Typography } from '@aquarush/admin-ui';
 import {
   FormatPainterOutlined,
   CopyOutlined,
   CheckOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import * as stylex from "@stylexjs/stylex";
 import { tokens } from "@aquarush/common/theme/tokens.stylex";
 

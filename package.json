@@ -13,8 +13,8 @@
     "dev:admin": "./gradlew :services:aqua-admin:bootRun",
     "dev": "run-p dev:*",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:frontend": "pnpm --filter @aquarush/common test && pnpm --filter @aquarush/admin-client test && pnpm --filter user-miniapp test && pnpm --filter delivery-app test",
-    "test:frontend:coverage": "pnpm --filter @aquarush/common test:coverage && pnpm --filter @aquarush/admin-client test:coverage && pnpm --filter user-miniapp test:coverage && pnpm --filter delivery-app test:coverage",
+    "test:frontend": "pnpm --filter @aquarush/common test && pnpm --filter @aquarush/admin-ui test && pnpm --filter @aquarush/admin-client test && pnpm --filter user-miniapp test && pnpm --filter delivery-app test",
+    "test:frontend:coverage": "pnpm --filter @aquarush/common test:coverage && pnpm --filter @aquarush/admin-ui test:coverage && pnpm --filter @aquarush/admin-client test:coverage && pnpm --filter user-miniapp test:coverage && pnpm --filter delivery-app test:coverage",
     "codegen": "graphql-codegen --config graphql-codegen.yml"
   },
   "repository": {

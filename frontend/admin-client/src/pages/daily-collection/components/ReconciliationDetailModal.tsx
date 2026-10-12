@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Row, Col, Statistic, Tag, Form, Input, Button, Table, Empty } from '@/ui';
+import { Modal, Row, Col, Statistic, Tag, Form, Input, Button, Table, Empty } from '@aquarush/admin-ui';
 import { centsToYuan, displayCents } from '@aquarush/common';
 import { useQuery } from '@apollo/client';
-import type { ColumnsType } from '@/ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { GET_RECONCILIATION_ORDER_DETAILS } from '../../../graphql/queries/daily-collection.graphql';
 import type {
   DailyReconciliation,

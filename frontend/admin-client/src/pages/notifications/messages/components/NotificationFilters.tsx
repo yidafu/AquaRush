@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, Input, DatePicker, Space, Button } from '@/ui';
+import { Select, Input, DatePicker, Space, Button } from '@aquarush/admin-ui';
 import type { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { TYPE_LABELS, RECEIVER_LABELS } from './constants';

@@ -8,8 +8,8 @@ import {
   InputNumber,
   Button,
   Typography,
-} from '@/ui';
-import type { ColumnsType } from '@/ui';
+} from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import type { DeliveryPushScenario } from './constants';
 

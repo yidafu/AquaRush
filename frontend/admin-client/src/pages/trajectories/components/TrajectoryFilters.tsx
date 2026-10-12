@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from '@/ui';
-import { ReloadOutlined } from '@/ui/icons';
+import { Card, Row, Col, Space, Select, DatePicker, Button, Typography } from '@aquarush/admin-ui';
+import { ReloadOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import type { DeliveryWorkerVo } from '@aquarush/common';
 

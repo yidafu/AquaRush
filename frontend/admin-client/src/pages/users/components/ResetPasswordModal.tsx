@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Modal } from '@/ui';
+import { Form, Input, Modal } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

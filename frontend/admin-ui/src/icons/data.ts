@@ -1,7 +1,7 @@
 /**
  * 本地图标数据（自建 SVG 图标集）。
  * 路径数据源自 @ant-design/icons-svg v4.4.2（MIT License, Ant Design）
- * 由 scripts 生成思路手工固化于 src/ui/icons：仅保留 viewBox 与路径，
+ * 由 scripts 生成思路手工固化于本目录（frontend/admin-ui/src/icons）：仅保留 viewBox 与路径，
  * 运行时零依赖。勿手改 inner（如需新图标：补 data + index 导出）。
  */
 export type IconName =

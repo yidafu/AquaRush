@@ -6,7 +6,7 @@ import {
   Collapse,
   Row,
   Col,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import { ProductBasicPanel } from './ProductFormBasicPanel';
 import {
   ProductDetailPanel,

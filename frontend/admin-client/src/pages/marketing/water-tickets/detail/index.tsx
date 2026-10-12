@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Space, DatePicker, Statistic, Row, Col, Spin, Empty, Alert, Tag, Button } from '@/ui';
-import { ArrowLeftOutlined } from '@/ui/icons';
+import { Card, Space, DatePicker, Statistic, Row, Col, Spin, Empty, Alert, Tag, Button } from '@aquarush/admin-ui';
+import { ArrowLeftOutlined } from '@aquarush/admin-ui/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';

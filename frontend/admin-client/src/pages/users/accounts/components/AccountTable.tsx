@@ -1,13 +1,13 @@
 import React from 'react';
-import { Table, Space, Tag, Avatar, Button } from '@/ui';
+import { Table, Space, Tag, Avatar, Button } from '@aquarush/admin-ui';
 import {
   EditOutlined,
   LockOutlined,
   DeleteOutlined,
   EyeOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import { avatarFromName } from '@aquarush/common/utils';
-import type { ColumnsType } from '@/ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { AccountRow } from '../types';
 import { ROLE_MAPPINGS, WORKER_STATUS_MAPPINGS } from '../../components/types';
 

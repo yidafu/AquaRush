@@ -1,5 +1,5 @@
 import React from 'react';
-import type { MenuProps } from '@/ui';
+import type { MenuProps } from '@aquarush/admin-ui';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -33,7 +33,7 @@ import {
   BellOutlined,
   DatabaseOutlined,
   CalendarOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 
 /* ===================== 侧边栏菜单三分组(spec/design/_spec/_CONTRACT.md 侧边栏菜单 / 原型 admin/*.html) =====================
  * 「经营 / 客户与营销 / 平台」三分组,仅收录 App.tsx 已实现的路由;

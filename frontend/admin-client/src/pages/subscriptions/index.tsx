@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Button, message } from '@/ui';
-import type { TableProps } from '@/ui';
+import { Button, message } from '@aquarush/admin-ui';
+import type { TableProps } from '@aquarush/admin-ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { SUBSCRIPTIONS_PAGE_DATA_QUERY } from '../../graphql/queries/subscription.graphql';
 import {

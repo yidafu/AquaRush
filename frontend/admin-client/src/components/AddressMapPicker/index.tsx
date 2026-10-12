@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 import { gcj02ToWgs84, wgs84ToGcj02 } from '@aquarush/common';
 import { geocodeAddress, reverseGeocodeAddress } from '../../lib/map/geocoding';
 import AddressMapPickerView from './AddressMapPickerView';

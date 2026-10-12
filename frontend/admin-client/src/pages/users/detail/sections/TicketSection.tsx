@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Select, Table, Tag, Empty, Alert } from '@/ui';
+import { Card, Select, Table, Tag, Empty, Alert } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import { USER_TICKETS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { UserTicketVo, UserTicketStatus } from '@aquarush/common';

@@ -28,8 +28,8 @@ module.exports = {
   // jsdom 无 TextEncoder/TextDecoder(react-router 7 需要),启动前 polyfill
   setupFiles: ['<rootDir>/jest.setup.cjs'],
   testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/src/**/*.test.tsx'],
-  // `@/` 别名与 vite 对齐(http.ts 等已从 `@/ui` 导入 message);
-  // 测试用 jest.mock('@/ui', factory) 拦截。
+  // `@/` 别名与 vite 对齐(仅覆盖业务代码);组件库走包名 `@aquarush/admin-ui`,
+  // 测试用 jest.mock('@aquarush/admin-ui', factory) 拦截。
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   transform: {
     '^.+\\.[tj]sx?$': [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Select } from '@/ui';
+import { Modal, Select } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

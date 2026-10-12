@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Button, Space, Tag, message, Popconfirm, type PaginationProps } from '@/ui';
-import { EditOutlined, DeleteOutlined, EyeOutlined } from '@/ui/icons';
+import { Table, Button, Space, Tag, message, Popconfirm, type PaginationProps } from '@aquarush/admin-ui';
+import { EditOutlined, DeleteOutlined, EyeOutlined } from '@aquarush/admin-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteProduct } from '../../../services/product-graphql';
 import { displayCents } from '@aquarush/common'

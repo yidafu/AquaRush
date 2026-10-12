@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message } from '@/ui';
+import { Card, Table, Tag, Button, Space, Modal, Form, Input, Select, message } from '@aquarush/admin-ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { REFUND_REQUESTS_PAGE_QUERY, REFUND_REQUESTS_PAGE } from '../../../graphql/queries/refund.graphql';
 import { PROCESS_REFUND_MUTATION } from '../../../graphql/mutations/refund.graphql';
 import type { RefundRequest } from '../../../types/refund';
-import type { ColumnsType } from '@/ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import { pagination } from '@/utils/table';
 import * as stylex from '@stylexjs/stylex';

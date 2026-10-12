@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Button, Space } from '@/ui';
-import { ClearOutlined } from '@/ui/icons';
+import { Card, Button, Space } from '@aquarush/admin-ui';
+import { ClearOutlined } from '@aquarush/admin-ui/icons';
 
 export interface FilterCardProps {
   /** 重置按钮点击(通常接 useDebouncedFilters.reset) */

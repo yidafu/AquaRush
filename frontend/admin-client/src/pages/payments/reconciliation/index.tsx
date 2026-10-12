@@ -3,7 +3,7 @@ import {
   Form,
   Modal,
   message,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import { useQuery, useMutation } from '@apollo/client';
 import dayjs, { type Dayjs } from 'dayjs';
 import {

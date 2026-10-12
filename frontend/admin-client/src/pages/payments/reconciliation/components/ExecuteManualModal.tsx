@@ -1,6 +1,6 @@
 import React from 'react';
-import { DatePicker, Form, Modal, Radio, RadioGroup } from '@/ui';
-import type { FormInstance } from '@/ui';
+import { DatePicker, Form, Modal, Radio, RadioGroup } from '@aquarush/admin-ui';
+import type { FormInstance } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 

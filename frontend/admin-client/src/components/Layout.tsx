@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Dropdown, Avatar, Breadcrumb, message } from '@/ui';
-import type { DropdownMenuItem } from '@/ui';
+import { Menu, Dropdown, Avatar, Breadcrumb, message } from '@aquarush/admin-ui';
+import type { DropdownMenuItem } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { usePageViewTracking } from '../hooks/usePageViewTracking';
 import { userActionTracker } from '../utils/tracking';
 import { avatarFromName } from '@aquarush/common/utils';
 import { logout } from '../services/auth';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@/ui/icons';
+import { UserOutlined, LogoutOutlined, SettingOutlined } from '@aquarush/admin-ui/icons';
 import { buildMenuItems, collectLeafKeys, findOpenKeys } from './LayoutMenu';
 import { resolveCrumbs } from './LayoutCrumbs';
 

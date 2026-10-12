@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Space, Select, Input, DatePicker, Button, Segmented } from '@/ui';
+import { Card, Space, Select, Input, DatePicker, Button, Segmented } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { DOMAIN_OPTIONS, LOG_LEVEL_OPTIONS } from './constants';
 import type { BizLogFilters } from './constants';

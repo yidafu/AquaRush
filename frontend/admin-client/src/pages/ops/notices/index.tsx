@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Popconfirm, Switch } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Space, Button, Card, Popconfirm, Switch } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { formatDateTime } from '@aquarush/common';
 import type { NoticeVo, NoticeStatus } from '@aquarush/common';
 import {

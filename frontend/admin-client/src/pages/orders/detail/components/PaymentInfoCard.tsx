@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Descriptions, Space } from '@/ui';
-import { DollarOutlined } from '@/ui/icons';
+import { Card, Descriptions, Space } from '@aquarush/admin-ui';
+import { DollarOutlined } from '@aquarush/admin-ui/icons';
 import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import * as stylex from '@stylexjs/stylex';
 

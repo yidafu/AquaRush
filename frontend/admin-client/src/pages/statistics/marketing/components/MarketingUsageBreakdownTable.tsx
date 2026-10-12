@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Segmented, Table, Tooltip, Tag, Spin, Empty, Button } from '@/ui';
-import { LinkOutlined } from '@/ui/icons';
-import type { ColumnsType } from '@/ui';
+import { Card, Segmented, Table, Tooltip, Tag, Spin, Empty, Button } from '@aquarush/admin-ui';
+import { LinkOutlined } from '@aquarush/admin-ui/icons';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { useNavigate } from 'react-router-dom';
 import { centsToYuan, MarketingBreakdownKind } from '@aquarush/common';
 import type { MarketingUsageBreakdownRowVo } from '@aquarush/common';

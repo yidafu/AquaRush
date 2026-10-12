@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Switch, Modal } from '@/ui';
+import { Form, Input, Select, Switch, Modal } from '@aquarush/admin-ui';
 import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { AdminFormData, FormModalProps } from './types';
 
@@ -89,7 +89,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
           rules={[
             {
               validator: (_, rawValue) => {
-                // @/ui AntdRule.validator 的 value 上下文类型为 {},按字符串窄化(运行时语义不变)
+                // @aquarush/admin-ui AntdRule.validator 的 value 上下文类型为 {},按字符串窄化(运行时语义不变)
                 const value = rawValue as string;
                 if (isDeliveryWorker && !value) {
                   return Promise.resolve();

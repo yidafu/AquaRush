@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Radio, Select, Alert, message } from '@/ui';
+import { Modal, Form, Radio, Select, Alert, message } from '@aquarush/admin-ui';
 import { useLazyQuery } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { IssueTargetType } from '@aquarush/common';

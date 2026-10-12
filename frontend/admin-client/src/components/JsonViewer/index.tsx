@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Space, message } from '@/ui';
+import { Button, Space, message } from '@aquarush/admin-ui';
 import {
   CopyOutlined,
   CheckOutlined,
   MinusSquareOutlined,
   PlusSquareOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import JsonNode, { renderPrimitive } from './JsonNode';

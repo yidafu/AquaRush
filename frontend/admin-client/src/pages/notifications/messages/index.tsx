@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Card, Space, message } from '@/ui';
+import { Card, Space, message } from '@aquarush/admin-ui';
 import {
   useNotificationsQuery,
   useNotificationDetail,

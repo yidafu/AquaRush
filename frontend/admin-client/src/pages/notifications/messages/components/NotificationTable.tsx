@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Button } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import type { NotificationRecord } from './constants';
 import { TYPE_LABELS, RECEIVER_LABELS } from './constants';

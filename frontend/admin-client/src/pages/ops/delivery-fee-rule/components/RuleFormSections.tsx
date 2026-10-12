@@ -7,8 +7,8 @@ import {
   Row,
   Switch,
   Typography,
-} from '@/ui';
-import { PlusOutlined, MinusCircleOutlined } from '@/ui/icons';
+} from '@aquarush/admin-ui';
+import { PlusOutlined, MinusCircleOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 

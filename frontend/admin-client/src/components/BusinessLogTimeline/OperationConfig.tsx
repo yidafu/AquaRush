@@ -15,9 +15,9 @@ import {
   EditOutlined,
   StopOutlined,
   TeamOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 
-// antd Timeline 预设色 → 真实色值(与 @/ui Tag 预设文字色一致);
+// antd Timeline 预设色 → 真实色值(与 @aquarush/admin-ui Tag 预设文字色一致);
 // tokens 无对应值,字面量保留
 export const TIMELINE_COLORS: Record<string, string> = {
   blue: '#1677FF',

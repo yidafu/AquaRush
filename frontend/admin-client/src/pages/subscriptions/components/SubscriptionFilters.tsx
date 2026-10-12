@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col, Input, Select, DatePicker } from '@/ui';
-import { SearchOutlined } from '@/ui/icons';
+import { Row, Col, Input, Select, DatePicker } from '@aquarush/admin-ui';
+import { SearchOutlined } from '@aquarush/admin-ui/icons';
 import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 import { SUBSCRIPTION_STATUS_TEXT } from '@/utils/subscription';

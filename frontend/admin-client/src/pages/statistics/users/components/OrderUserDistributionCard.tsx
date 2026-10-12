@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Spin, Row, Col, Statistic } from '@/ui';
+import { Card, Spin, Row, Col, Statistic } from '@aquarush/admin-ui';
 import {
   PieChart,
   Pie,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Space, Select, Input, DatePicker, Button } from '@/ui';
+import { Card, Space, Select, Input, DatePicker, Button } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import type { ApiLogQueryParams } from '../../../../services/logs';
 

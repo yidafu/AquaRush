@@ -1,11 +1,11 @@
 import React from 'react';
-import { Card, Col, Row, Statistic } from '@/ui';
+import { Card, Col, Row, Statistic } from '@aquarush/admin-ui';
 import {
   ShoppingOutlined,
   CheckCircleOutlined,
   StarOutlined,
   DollarOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';

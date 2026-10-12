@@ -1,5 +1,5 @@
 import { useLazyQuery, useMutation } from '@apollo/client';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 import {
   GET_BANNERS_QUERY,
   GET_BANNER_QUERY,

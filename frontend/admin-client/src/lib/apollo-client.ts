@@ -8,7 +8,7 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { isGraphQLNullBubbleError } from '@aquarush/common/utils/network';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 
 // HTTP 连接到 GraphQL 服务器
 const httpLink = createHttpLink({

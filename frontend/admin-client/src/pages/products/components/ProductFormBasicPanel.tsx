@@ -1,6 +1,6 @@
 import React from 'react';
-import { Form, Input, Select, Row, Col, Space } from '@/ui';
-import { SettingOutlined } from '@/ui/icons';
+import { Form, Input, Select, Row, Col, Space } from '@aquarush/admin-ui';
+import { SettingOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Col, Spin, Space, Button, Select, Slider, Typography } from '@/ui';
-import { PauseCircleOutlined, PlayCircleOutlined } from '@/ui/icons';
+import { Card, Col, Spin, Space, Button, Select, Slider, Typography } from '@aquarush/admin-ui';
+import { PauseCircleOutlined, PlayCircleOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

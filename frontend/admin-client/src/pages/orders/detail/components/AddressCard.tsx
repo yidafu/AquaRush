@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Descriptions, Space } from '@/ui';
-import { EnvironmentOutlined, PhoneOutlined } from '@/ui/icons';
+import { Card, Descriptions, Space } from '@aquarush/admin-ui';
+import { EnvironmentOutlined, PhoneOutlined } from '@aquarush/admin-ui/icons';
 import { useOrderDetail } from '../OrderDetailContext';
 import * as stylex from '@stylexjs/stylex';
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Card, Descriptions, Modal, Select, Statistic, Table, Tag } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Button, Card, Descriptions, Modal, Select, Statistic, Table, Tag } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { pagination } from '@/utils/table';

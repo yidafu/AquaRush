@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Space, Select, Input } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
+import { Button, Space, Select, Input } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Statistic } from '@/ui';
-import { ArrowUpOutlined, ArrowDownOutlined } from '@/ui/icons';
+import { Card, Statistic } from '@aquarush/admin-ui';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { COLOR_SUCCESS, COLOR_ERROR, TEXT_SECONDARY } from '../../config/theme';
 

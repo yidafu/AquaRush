@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, message } from '@/ui';
+import { Modal, message } from '@aquarush/admin-ui';
 import { useNavigate } from 'react-router-dom';
 import {
   useDeleteAdmin,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Button, Space, DatePicker, Row, Col } from '@/ui';
+import { Alert, Button, Space, DatePicker, Row, Col } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import type { MarketingStatisticsVo as MarketingStatisticsVO } from '@aquarush/common';

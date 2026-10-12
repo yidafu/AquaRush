@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Descriptions } from '@/ui';
+import { Alert, Descriptions } from '@aquarush/admin-ui';
 import { formatDateTime, centsToYuan } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DeliveryFeeRuleData, DistanceTierVo, FeeTierVo } from '../types';

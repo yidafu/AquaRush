@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Descriptions, Tag, Button, Popconfirm, Space } from '@/ui';
+import { Modal, Descriptions, Tag, Button, Popconfirm, Space } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import type { NotificationRecord } from './constants';

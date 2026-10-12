@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Space, Button, Card, Popconfirm } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
-import type { ColumnsType } from '@/ui';
+import { Table, Space, Button, Card, Popconfirm } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { formatDateTime } from '@aquarush/common';
 import type { CustomerGroupVo } from '@aquarush/common';
 import {

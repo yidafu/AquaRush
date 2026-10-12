@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Button } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { LogBackupRecordVo, LogTableType } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
 import { pagination } from '@/utils/table';

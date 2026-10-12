@@ -1,6 +1,6 @@
 /**
  * Http 请求封装单测
- * mock axios 实例与 @/ui message,验证:
+ * mock axios 实例与 @aquarush/admin-ui message,验证:
  * - 请求拦截器:token 注入 Authorization;
  * - 响应拦截器:success 解包 / 业务失败抛错 / 网络错误提示;
  * - get/post/put/delete 透传到 axios 实例。
@@ -9,7 +9,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
 
-// ---- mock 环境(localStorage)与 axios/@/ui ----
+// ---- mock 环境(localStorage)与 axios/@aquarush/admin-ui ----
 const storage = new Map<string, string>()
 
 Object.defineProperty(globalThis, 'localStorage', {
@@ -35,7 +35,7 @@ jest.mock('axios', () => {
   return { create: jest.fn(() => instance) }
 })
 
-jest.mock('@/ui', () => ({
+jest.mock('@aquarush/admin-ui', () => ({
   message: { error: jest.fn() },
 }))
 
@@ -56,7 +56,7 @@ interface MockAxiosInstance {
 const instance = (
   jest.requireMock('axios') as { create: jest.Mock<() => MockAxiosInstance> }
 ).create()
-const messageError = (jest.requireMock('@/ui') as { message: { error: jest.Mock } }).message.error
+const messageError = (jest.requireMock('@aquarush/admin-ui') as { message: { error: jest.Mock } }).message.error
 
 const requestInterceptor = (
   instance.interceptors.request.use as jest.Mock

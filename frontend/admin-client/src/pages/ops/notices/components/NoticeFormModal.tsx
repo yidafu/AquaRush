@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Select, Switch, DatePicker, Spin } from '@/ui';
+import { Form, Input, Select, Switch, DatePicker, Spin } from '@aquarush/admin-ui';
 import dayjs, { Dayjs } from 'dayjs';
 import { NoticeType } from '@aquarush/common';
 import type { NoticeVo } from '@aquarush/common';

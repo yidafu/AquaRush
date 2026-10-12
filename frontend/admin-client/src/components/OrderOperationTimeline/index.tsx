@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Tag, Text } from '@/ui';
+import { Card, Tag, Text } from '@aquarush/admin-ui';
 import {
   PlusOutlined,
   DollarOutlined,
@@ -9,12 +9,12 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   SafetyOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import JsonViewer from '../JsonViewer';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 
-// antd Timeline 预设色 → 真实色值(与 @/ui Tag 预设文字色一致);
+// antd Timeline 预设色 → 真实色值(与 @aquarush/admin-ui Tag 预设文字色一致);
 // tokens 无对应值,字面量保留
 const TIMELINE_COLORS: Record<string, string> = {
   blue: '#1677FF',
@@ -44,7 +44,7 @@ const styles = stylex.create({
   time: {
     fontSize: '12px',
   },
-  // —— 垂直时间线(替代 antd Timeline mode="left";@/ui 无 Timeline)——
+  // —— 垂直时间线(替代 antd Timeline mode="left";@aquarush/admin-ui 无 Timeline)——
   timeline: {
     listStyleType: 'none',
     paddingTop: '0px',

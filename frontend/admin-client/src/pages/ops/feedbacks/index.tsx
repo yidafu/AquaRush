@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Select, Input, DatePicker } from '@/ui';
-import { SearchOutlined, ReloadOutlined } from '@/ui/icons';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Space, Button, Card, Select, Input, DatePicker } from '@aquarush/admin-ui';
+import { SearchOutlined, ReloadOutlined } from '@aquarush/admin-ui/icons';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { Dayjs } from 'dayjs';
 import {
   FEEDBACK_STATUS_OPTIONS,

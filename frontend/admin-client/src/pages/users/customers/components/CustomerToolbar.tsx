@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Input, Select, Space } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
+import { Button, Input, Select, Space } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
 import { STATUS_MAPPINGS } from '../../components/types';
 import type { UserStatus } from '@aquarush/common';
 import type { CustomerGroupOption } from './SetCustomerGroupModal';

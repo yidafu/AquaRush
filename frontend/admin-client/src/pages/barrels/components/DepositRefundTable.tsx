@@ -1,6 +1,6 @@
 import React from 'react';
-import { Space, Select, Button, Table, Tag, Tooltip, Typography } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Space, Select, Button, Table, Tag, Tooltip, Typography } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositRefundApplication } from '../../../types/barrel';

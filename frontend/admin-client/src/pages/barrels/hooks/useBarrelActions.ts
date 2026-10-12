@@ -3,7 +3,7 @@
  * 押金价目保存 / 空桶回收确认 / 退押审核(通过/驳回)mutation 与提交处理。
  */
 import { useCallback } from 'react';
-import { Modal, message } from '@/ui';
+import { Modal, message } from '@aquarush/admin-ui';
 import { useMutation } from '@apollo/client';
 import {
   UPSERT_DEPOSIT_PRICE_MUTATION,

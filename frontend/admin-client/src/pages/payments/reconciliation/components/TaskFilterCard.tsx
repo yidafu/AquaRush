@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, DatePicker, Select, Space } from '@/ui';
+import { Button, Card, DatePicker, Select, Space } from '@aquarush/admin-ui';
 import type { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { TASK_STATUS_MAP } from '../helpers';

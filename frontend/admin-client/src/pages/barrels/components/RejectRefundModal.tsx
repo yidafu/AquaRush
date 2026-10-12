@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input } from '@/ui';
+import { Modal, Form, Input } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositRefundApplication } from '../../../types/barrel';

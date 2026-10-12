@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, Switch, Typography } from '@/ui';
+import { Modal, Form, Input, Switch, Typography } from '@aquarush/admin-ui';
 import type { TemplateRow } from './constants';
 import { TEMPLATE_ID_PATTERN } from './constants';
 

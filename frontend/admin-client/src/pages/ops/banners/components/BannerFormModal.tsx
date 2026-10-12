@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from '@/ui';
+import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from '@aquarush/admin-ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { SingleImageUpload } from '../../../../components/ImageUpload';

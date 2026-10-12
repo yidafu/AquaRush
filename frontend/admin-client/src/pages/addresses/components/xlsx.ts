@@ -1,4 +1,4 @@
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 
 // 动态加载 xlsx 库
 let XLSX: any = null;

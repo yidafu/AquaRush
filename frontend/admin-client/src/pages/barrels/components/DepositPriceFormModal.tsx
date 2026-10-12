@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, InputNumber, Select } from '@/ui';
+import { Form, Input, InputNumber, Select } from '@aquarush/admin-ui';
 import { centsToYuan } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { DepositPrice } from '../../../types/barrel';

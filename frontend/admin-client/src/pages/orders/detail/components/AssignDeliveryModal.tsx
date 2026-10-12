@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Select } from '@/ui';
+import { Modal, Form, Select } from '@aquarush/admin-ui';
 import { useOrderDetail } from '../OrderDetailContext';
 
 const AssignDeliveryModal: React.FC = () => {

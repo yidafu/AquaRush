@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 import {
   GET_PRODUCT_DETAIL_QUERY,
   PRODUCTS_PAGE_DATA,

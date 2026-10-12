@@ -14,8 +14,8 @@ import {
   Tabs,
   Alert,
   message,
-} from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
+} from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
 import { formatDateTime } from '@aquarush/common';
 import {
   useProductOptionsConfig,

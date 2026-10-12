@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
+import { Button } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { ProductTable } from '../components/ProductTable';

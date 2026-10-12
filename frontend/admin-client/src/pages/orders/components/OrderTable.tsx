@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Space, Button } from '@/ui';
-import type { TableProps } from '@/ui';
+import { Table, Tag, Space, Button } from '@aquarush/admin-ui';
+import type { TableProps } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import { getOrderStatusConfig } from '../../../constants/order';
 import { toneToAntDColor } from '../../../constants/status';

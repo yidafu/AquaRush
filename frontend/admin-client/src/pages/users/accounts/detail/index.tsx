@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Spin } from '@/ui';
+import { Button, Spin } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import {
   GET_ADMIN_QUERY,

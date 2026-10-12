@@ -1,6 +1,6 @@
 import React from 'react';
-import { InputNumber, Card, Button, Input } from '@/ui';
-import { EnvironmentOutlined, AimOutlined, ReloadOutlined } from '@/ui/icons';
+import { InputNumber, Card, Button, Input } from '@aquarush/admin-ui';
+import { EnvironmentOutlined, AimOutlined, ReloadOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import MapLibreMap from '../MapLibreMap';

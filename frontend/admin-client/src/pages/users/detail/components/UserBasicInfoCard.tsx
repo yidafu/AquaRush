@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Avatar, Descriptions, Tag } from '@/ui';
+import { Card, Row, Col, Avatar, Descriptions, Tag } from '@aquarush/admin-ui';
 import {
   UserOutlined,
   PhoneOutlined,
@@ -7,7 +7,7 @@ import {
   DollarOutlined,
   MailOutlined,
   CalendarOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import type { UserVo, UserRole } from '@aquarush/common';
 import { UserRole as UserRoleEnum } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';

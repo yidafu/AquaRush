@@ -1,6 +1,6 @@
 import React from 'react';
-import { Alert, Card, Divider, Form, InputNumber, Space, Switch, Button, Typography } from '@/ui';
-import type { FormInstance } from '@/ui';
+import { Alert, Card, Divider, Form, InputNumber, Space, Switch, Button, Typography } from '@aquarush/admin-ui';
+import type { FormInstance } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import type { DataMaintenanceValues } from './constants';
 

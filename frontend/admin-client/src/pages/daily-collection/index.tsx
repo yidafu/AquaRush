@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Card, Space, Modal, Tabs, message, DatePicker, Tag } from '@/ui';
+import { Card, Space, Modal, Tabs, message, DatePicker, Tag } from '@aquarush/admin-ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { DAILY_COLLECTION_PAGE_DATA_QUERY } from '../../graphql/queries/daily-collection.graphql';
 import { CONFIRM_DAILY_COLLECTION, REJECT_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql';

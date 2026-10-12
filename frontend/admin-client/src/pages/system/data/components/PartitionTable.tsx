@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button, Tooltip } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Button, Tooltip } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { LogPartitionVo } from '@aquarush/common';
 import { formatBytes } from './constants';
 

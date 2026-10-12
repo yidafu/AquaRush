@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 export interface ApiResponse<T> {
   success: boolean,
   data?: T,

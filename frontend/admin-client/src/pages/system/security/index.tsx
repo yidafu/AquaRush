@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, InputNumber, Switch, Button, Alert, Space, Modal, Typography, Divider, message } from '@/ui';
+import { Card, Form, InputNumber, Switch, Button, Alert, Space, Modal, Typography, Divider, message } from '@aquarush/admin-ui';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';

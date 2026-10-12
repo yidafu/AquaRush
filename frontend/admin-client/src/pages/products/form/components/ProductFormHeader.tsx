@@ -1,11 +1,11 @@
 import React from 'react';
-import { Button, Space, Typography } from '@/ui';
+import { Button, Space, Typography } from '@aquarush/admin-ui';
 import {
   ArrowLeftOutlined,
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

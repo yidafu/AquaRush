@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button, Space } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Button, Space } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

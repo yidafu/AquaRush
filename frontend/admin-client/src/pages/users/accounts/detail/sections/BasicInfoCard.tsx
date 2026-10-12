@@ -1,6 +1,6 @@
 import React from 'react';
-import { Avatar, Card, Col, Descriptions, Row, Tag, Typography } from '@/ui';
-import { UserOutlined } from '@/ui/icons';
+import { Avatar, Card, Col, Descriptions, Row, Tag, Typography } from '@aquarush/admin-ui';
+import { UserOutlined } from '@aquarush/admin-ui/icons';
 import { avatarFromName } from '@aquarush/common/utils';
 import * as stylex from '@stylexjs/stylex';
 import { ROLE_MAPPINGS } from '../../../components/types';

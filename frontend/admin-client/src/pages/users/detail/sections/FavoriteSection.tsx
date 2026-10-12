@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Table, Tag, Empty, Alert, Image } from '@/ui';
+import { Card, Table, Tag, Empty, Alert, Image } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import { USER_FAVORITES_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { FavoriteProductVo, ProductStatus } from '@aquarush/common';

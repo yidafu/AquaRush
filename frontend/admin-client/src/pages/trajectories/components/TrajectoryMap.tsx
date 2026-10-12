@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card } from '@/ui';
-import { EnvironmentOutlined } from '@/ui/icons';
+import { Card } from '@aquarush/admin-ui';
+import { EnvironmentOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import MapLibreMap from '../../../components/MapLibreMap';

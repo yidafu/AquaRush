@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col, Input, Select, DatePicker } from '@/ui';
-import { SearchOutlined } from '@/ui/icons';
+import { Row, Col, Input, Select, DatePicker } from '@aquarush/admin-ui';
+import { SearchOutlined } from '@aquarush/admin-ui/icons';
 import { ORDER_STATUS_TEXT } from '@aquarush/common';
 import type { OrderStatus } from '@aquarush/common';
 import FilterCard from '@/components/FilterCard';

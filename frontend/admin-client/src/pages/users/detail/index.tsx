@@ -6,7 +6,7 @@ import {
   Spin,
   Empty,
   Tabs,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import {
   USER_DETAIL_PAGE_DATA_QUERY,

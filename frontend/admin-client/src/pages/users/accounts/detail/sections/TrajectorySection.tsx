@@ -12,13 +12,13 @@ import {
   Statistic,
   Typography,
   message,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import {
   AimOutlined,
   EnvironmentOutlined,
   ReloadOutlined,
   SyncOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import { useQuery } from '@apollo/client';
 import MapLibreMap from '../../../../../components/MapLibreMap';
 import type { MapLine, MapMarker } from '../../../../../components/MapLibreMap';

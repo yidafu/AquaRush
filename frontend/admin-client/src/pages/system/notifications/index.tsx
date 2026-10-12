@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, Card, Typography, Modal, message } from '@/ui';
+import { Alert, Card, Typography, Modal, message } from '@aquarush/admin-ui';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';

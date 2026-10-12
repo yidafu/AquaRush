@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Checkbox, message, Spin } from '@/ui';
-import { UserOutlined, LockOutlined } from '@/ui/icons';
+import { Form, Input, Button, Card, Checkbox, message, Spin } from '@aquarush/admin-ui';
+import { UserOutlined, LockOutlined } from '@aquarush/admin-ui/icons';
 import { useNavigate } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

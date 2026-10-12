@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { extractErrorMessage } from '@aquarush/common/utils/network';
-import { message } from '@/ui';
+import { message } from '@aquarush/admin-ui';
 import { ORDER_DETAIL_PAGE_DATA_QUERY } from '../../../graphql/queries/order.graphql';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../../graphql/mutations/order.graphql';
 import type { OrderOperation } from '../../../components/OrderOperationTimeline';

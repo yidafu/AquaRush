@@ -1,5 +1,5 @@
 import React from 'react';
-import { Empty, List, Tag } from '@/ui';
+import { Empty, List, Tag } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import type { AddressVo as GraphQLAddress } from '@aquarush/common';
@@ -9,7 +9,7 @@ const styles = stylex.create({
   list: {
     backgroundColor: tokens.card,
   },
-  // @/ui List 无 List.Item.Meta,行内标题/描述布局等价替代
+  // @aquarush/admin-ui List 无 List.Item.Meta,行内标题/描述布局等价替代
   row: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -68,7 +68,7 @@ const AddressListUsingList: React.FC<AddressListUsingListProps> = ({
         </div>
       )}
     >
-      {/* @/ui List 无 locale.emptyText;children 仅在空数据时给出,非空仍走 dataSource/renderItem */}
+      {/* @aquarush/admin-ui List 无 locale.emptyText;children 仅在空数据时给出,非空仍走 dataSource/renderItem */}
       {addresses.length === 0 ? <Empty description="暂无收货地址" /> : null}
     </List>
   );

@@ -6,7 +6,7 @@ import {
   Space,
   Tabs,
   Tag,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -14,7 +14,7 @@ import {
   KeyOutlined,
   LockOutlined,
   UnlockOutlined,
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import type { AccountDetailActions, DeliveryRecord } from './types';
 import DeliveryStatsCards from './DeliveryStatsCards';

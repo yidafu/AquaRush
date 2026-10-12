@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, InputNumber, Switch } from '@/ui';
+import { Form, InputNumber, Switch } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

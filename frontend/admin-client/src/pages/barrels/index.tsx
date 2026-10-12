@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Tabs } from '@/ui';
+import { Card, Tabs } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import {
   DEPOSIT_PRICES_PAGE_QUERY,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Select, Table, Tag } from '@/ui';
+import { Card, Select, Table, Tag } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import { DELIVERY_WORKER_ORDERS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { OrderVo } from '@aquarush/common';

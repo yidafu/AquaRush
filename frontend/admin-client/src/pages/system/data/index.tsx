@@ -7,7 +7,7 @@ import {
   Modal,
   Tabs,
   Typography,
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import { LogTableType } from '@aquarush/common';
 import type { DataMaintenanceOverviewVo, LogBackupRecordVo, LogPartitionVo } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';

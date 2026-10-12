@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Select, message } from '@/ui';
+import { Button, Modal, Form, Select, message } from '@aquarush/admin-ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { extractErrorMessage } from '@aquarush/common/utils/network';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../graphql/mutations/order.graphql';

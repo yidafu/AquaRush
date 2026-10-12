@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, message } from '@/ui';
+import { Modal, message } from '@aquarush/admin-ui';
 
 // Import components
 import UserTable from '../components/UserTable';

@@ -1,7 +1,11 @@
 /**
  * 前端架构约束(ArchUnitTS)。
- * 组件行数硬约束 300 行;ui/ 组件库(Radix 封装)单独放宽至 1200 行。
+ * 业务组件行数硬约束 300 行;组件库(@aquarush/admin-ui,已迁出为独立包)
+ * 单独放宽至 1200 行——该规则仍由本套件执行,直接扫包内文件(archunit 的
+ * 文件读取以 cwd 为基准,跨包相对路径读不到内容)。
  */
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from '@jest/globals';
 import { projectFiles, type FileInfo } from 'archunit';
 
@@ -28,7 +32,17 @@ const summarize = (violations: readonly unknown[]): string[] =>
 
 /** src/components 与 src/pages:含根目录平铺与任意深度子目录。 */
 const COMPONENT_DIRS = /^src\/(components|pages)(\/|$)/;
-const UI_DIR = /^src\/ui(\/|$)/;
+
+/** @aquarush/admin-ui 包根(相对本文件 frontend/admin-client/src/)。 */
+const ADMIN_UI_SRC = path.resolve(__dirname, '../../admin-ui/src');
+
+/** 递归列出目录下后缀匹配的文件(相对路径,POSIX 分隔符)。 */
+const walk = (dir: string, ext: string, base = dir): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walk(abs, ext, base);
+    return entry.name.endsWith(ext) ? [path.relative(base, abs).split(path.sep).join('/')] : [];
+  });
 
 describe('admin-client 架构约束(ArchUnitTS)', () => {
   it('业务组件(components/pages 下的 .tsx)不得超过 300 行', async () => {
@@ -40,12 +54,11 @@ describe('admin-client 架构约束(ArchUnitTS)', () => {
     expect(summarize(await rule.check())).toEqual([]);
   });
 
-  it('ui/ 组件库文件不得超过 1200 行', async () => {
-    const rule = projectFiles()
-      .inFolder(UI_DIR)
-      .withName('*.tsx')
-      .should()
-      .adhereTo(lineLimit(1200), 'ui/ 组件文件超过 1200 行,请拆分');
-    expect(summarize(await rule.check())).toEqual([]);
+  it('组件库(@aquarush/admin-ui)文件不得超过 1200 行', () => {
+    const violations = walk(ADMIN_UI_SRC, '.tsx')
+      .map((rel) => ({ rel, lines: physicalLines(readFileSync(path.join(ADMIN_UI_SRC, rel), 'utf8')) }))
+      .filter(({ lines }) => lines > 1200)
+      .map(({ rel, lines }) => `${rel} (${lines} 行)`);
+    expect(violations).toEqual([]);
   });
 });

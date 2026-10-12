@@ -1,5 +1,5 @@
-import { Button, Tag } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Button, Tag } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

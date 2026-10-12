@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Table, Tag, Button } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Card, Table, Tag, Button } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { StockWarningItem } from '../data';
 import * as stylex from '@stylexjs/stylex';
 

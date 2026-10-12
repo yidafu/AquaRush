@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Tag, Image, Space, Typography, Descriptions } from '@/ui';
+import { Modal, Form, Input, Select, Tag, Image, Space, Typography, Descriptions } from '@aquarush/admin-ui';
 import {
   FEEDBACK_STATUS_LABELS,
   FEEDBACK_STATUS_OPTIONS,

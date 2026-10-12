@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, Upload, Button, Table, Alert, Space, message } from '@/ui';
-import { UploadOutlined, DownloadOutlined } from '@/ui/icons';
-import type { UploadFile } from '@/ui';
+import { Modal, Upload, Button, Table, Alert, Space, message } from '@aquarush/admin-ui';
+import { UploadOutlined, DownloadOutlined } from '@aquarush/admin-ui/icons';
+import type { UploadFile } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import type { AddressInput, ExcelRowData } from './types';
 import { downloadTemplate, getXlsx } from './xlsx';

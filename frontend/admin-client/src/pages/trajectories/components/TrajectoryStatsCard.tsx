@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Col, Row, Statistic, Tag, Typography } from '@/ui';
-import { SyncOutlined } from '@/ui/icons';
+import { Card, Col, Row, Statistic, Tag, Typography } from '@aquarush/admin-ui';
+import { SyncOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

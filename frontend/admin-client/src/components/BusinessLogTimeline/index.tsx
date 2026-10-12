@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, Text, Paragraph, Empty, Spin } from '@/ui';
+import { Tag, Text, Paragraph, Empty, Spin } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import { formatDateTime } from '@aquarush/common/utils';
@@ -42,7 +42,7 @@ const styles = stylex.create({
   timeRow: {
     marginTop: '4px',
   },
-  // —— 垂直时间线(替代 antd Timeline mode="left";@/ui 无 Timeline)——
+  // —— 垂直时间线(替代 antd Timeline mode="left";@aquarush/admin-ui 无 Timeline)——
   timeline: {
     listStyleType: 'none',
     paddingTop: '0px',

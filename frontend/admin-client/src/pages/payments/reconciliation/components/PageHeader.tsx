@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/ui';
+import { Button } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Form, Input, InputNumber, Radio, Select, Checkbox, DatePicker, Row, Col, Button } from '@/ui';
-import { PlusOutlined, DeleteOutlined } from '@/ui/icons';
+import { Form, Input, InputNumber, Radio, Select, Checkbox, DatePicker, Row, Col, Button } from '@aquarush/admin-ui';
+import { PlusOutlined, DeleteOutlined } from '@aquarush/admin-ui/icons';
 import ProductSelect from '@/components/ProductSelect';
 import { TIME_SLOT_OPTIONS, WEEKDAY_OPTIONS } from '../../../utils/subscription';
 import * as stylex from '@stylexjs/stylex';

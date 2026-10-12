@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col } from '@/ui';
+import { Col } from '@aquarush/admin-ui';
 import {
   LineChart,
   Line,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col } from '@/ui';
+import { Row, Col } from '@aquarush/admin-ui';
 import StatisticsCard from '@/components/StatisticsCard';
 import { centsToYuan } from '@aquarush/common';
 import type { MarketingStatisticsSummaryVo } from '@aquarush/common';

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from '@/ui';
-import { MinusCircleOutlined, PlusOutlined } from '@/ui/icons';
+import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from '@aquarush/admin-ui';
+import { MinusCircleOutlined, PlusOutlined } from '@aquarush/admin-ui/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';

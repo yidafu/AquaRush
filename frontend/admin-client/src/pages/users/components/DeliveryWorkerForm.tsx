@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Switch, Modal } from '@/ui';
+import { Form, Input, Select, Switch, Modal } from '@aquarush/admin-ui';
 import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { DeliveryWorkerFormData, FormModalProps } from './types';
 

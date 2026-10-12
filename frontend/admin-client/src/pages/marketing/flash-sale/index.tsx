@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '@/ui';
-import { PlusOutlined } from '@/ui/icons';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '@aquarush/admin-ui';
+import { PlusOutlined } from '@aquarush/admin-ui/icons';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { useNavigate } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Card, Form, InputNumber, Button, Modal, Col, Row, Space } from '@/ui';
+import { Card, Form, InputNumber, Button, Modal, Col, Row, Space } from '@aquarush/admin-ui';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { useDeliveryFeeRule, useSaveDeliveryFeeRule } from '../../../services/ops-graphql';
 import * as stylex from '@stylexjs/stylex';

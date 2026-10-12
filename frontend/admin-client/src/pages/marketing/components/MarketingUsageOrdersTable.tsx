@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Space, Table, Tag } from '@/ui';
-import type { ColumnsType, TablePaginationConfig } from '@/ui';
+import { Button, Space, Table, Tag } from '@aquarush/admin-ui';
+import type { ColumnsType, TablePaginationConfig } from '@aquarush/admin-ui';
 import { useNavigate } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';
 import { OrderStatus, displayCents, formatDateTime } from '@aquarush/common';

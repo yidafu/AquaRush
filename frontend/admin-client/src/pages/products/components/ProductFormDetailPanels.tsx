@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Divider, Row, Col } from '@/ui';
+import { Form, Input, Divider, Row, Col } from '@aquarush/admin-ui';
 import { SingleImageUpload, MultiImageUpload } from '../../../components/ImageUpload';
 import { SimpleRichTextEditor } from '../../../components/RichTextEditor';
 import { TagsEditor } from '../../../components/JsonEditor';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, DatePicker, Space } from '@/ui';
+import { Select, DatePicker, Space } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
@@ -59,7 +59,7 @@ const StatisticsFilters: React.FC<StatisticsFiltersProps> = ({
     <Select
       value={granularity}
       onChange={(value) => {
-        // @/ui Select onChange 泛型为 V | V[] | undefined;单选值收窄后回传
+        // @aquarush/admin-ui Select onChange 泛型为 V | V[] | undefined;单选值收窄后回传
         if (typeof value === 'string') onGranularityChange(value as StatisticsGranularity);
       }}
       {...stylex.props(styles.select)}

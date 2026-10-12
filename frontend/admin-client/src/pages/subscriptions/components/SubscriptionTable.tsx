@@ -1,7 +1,7 @@
 import React from 'react';
-import { Table, Tag, Space, Button, Popconfirm, Tooltip } from '@/ui';
-import type { TableProps } from '@/ui';
-import { WarningOutlined } from '@/ui/icons';
+import { Table, Tag, Space, Button, Popconfirm, Tooltip } from '@aquarush/admin-ui';
+import type { TableProps } from '@aquarush/admin-ui';
+import { WarningOutlined } from '@aquarush/admin-ui/icons';
 import {
   TIME_SLOT_TEXT,
   formatCycleRule,

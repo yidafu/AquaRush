@@ -3,6 +3,7 @@ packages:
   - 'babel-plugin-aquarush-track'
   - 'vite-plugin-aquarush-stylex'
   - 'frontend/common'
+  - 'frontend/admin-ui'
   - 'frontend/admin-client'
   - 'frontend/user-weapp'
   - 'frontend/delivery-app'

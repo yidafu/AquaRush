@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Select, Space, Tooltip } from '@/ui';
-import { ReloadOutlined } from '@/ui/icons';
+import { Button, Select, Space, Tooltip } from '@aquarush/admin-ui';
+import { ReloadOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { REFRESH_INTERVAL_OPTIONS } from '../../hooks/useAutoRefresh';
 
@@ -51,7 +51,7 @@ const RefreshControls: React.FC<RefreshControlsProps> = ({
       {...stylex.props(styles.select)}
       options={REFRESH_INTERVAL_OPTIONS}
       onChange={(value) => {
-        // @/ui Select onChange 泛型为 V | V[] | undefined;本组件单选 number,收窄后回传
+        // @aquarush/admin-ui Select onChange 泛型为 V | V[] | undefined;本组件单选 number,收窄后回传
         const ms = typeof value === 'number' ? value : 0;
         onIntervalChange(ms === 0 ? null : ms);
       }}

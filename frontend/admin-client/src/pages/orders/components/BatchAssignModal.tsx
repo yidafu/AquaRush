@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Form, Select, message } from '@/ui';
+import { Modal, Form, Select, message } from '@aquarush/admin-ui';
 import type { DeliveryWorkerOption } from '../types';
 
 export interface BatchAssignModalProps {

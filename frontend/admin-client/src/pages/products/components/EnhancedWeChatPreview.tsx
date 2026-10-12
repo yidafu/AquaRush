@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Alert, Button, Tooltip, Space } from '@/ui';
-import { ReloadOutlined, FullscreenOutlined, MobileOutlined } from '@/ui/icons';
+import { Alert, Button, Tooltip, Space } from '@aquarush/admin-ui';
+import { ReloadOutlined, FullscreenOutlined, MobileOutlined } from '@aquarush/admin-ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 

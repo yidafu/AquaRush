@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Form, Select, Row, Col, Spin } from '@/ui';
+import { Form, Select, Row, Col, Spin } from '@aquarush/admin-ui';
 import { useLazyQuery } from '@apollo/client';
 import type { Dayjs } from 'dayjs';
 import type { UserVo } from '@aquarush/common';

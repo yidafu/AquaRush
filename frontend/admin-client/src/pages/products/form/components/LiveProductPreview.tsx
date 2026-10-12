@@ -1,5 +1,5 @@
 import React from 'react';
-import { Empty, Tag, Typography } from '@/ui';
+import { Empty, Tag, Typography } from '@aquarush/admin-ui';
 import type { ProductFormData } from '../../components/hooks/useProductData';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

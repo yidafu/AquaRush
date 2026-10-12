@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typography, message } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typography, message } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { useLazyQuery } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { displayCents, centsToYuan, yuanToCents } from '@aquarush/common';

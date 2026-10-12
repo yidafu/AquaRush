@@ -9,11 +9,11 @@ import {
   Tag,
   Popconfirm,
   message
-} from '@/ui';
+} from '@aquarush/admin-ui';
 import {
   ArrowLeftOutlined,
   ReloadOutlined
-} from '@/ui/icons';
+} from '@aquarush/admin-ui/icons';
 import { useMutation } from '@apollo/client';
 import { CANCEL_ORDER_MUTATION } from '../../../graphql/mutations/order.graphql';
 import { OrderDetailProvider, useOrderDetail } from './OrderDetailContext';

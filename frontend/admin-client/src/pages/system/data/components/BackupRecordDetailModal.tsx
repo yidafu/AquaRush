@@ -1,5 +1,5 @@
 import React from 'react';
-import { Descriptions, Tag, Typography } from '@/ui';
+import { Descriptions, Tag, Typography } from '@aquarush/admin-ui';
 import type { LogBackupRecordVo } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
 import DetailModal from '@/components/DetailModal';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button, Typography } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Table, Tag, Button, Typography } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import type { OrderVo } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';

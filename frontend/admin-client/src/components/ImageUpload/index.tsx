@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Button, Space, message } from '@/ui';
-import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@/ui/icons';
-import type { UploadFile, UploadProps, UploadRequestOptions } from '@/ui';
+import { Upload, Button, Space, message } from '@aquarush/admin-ui';
+import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@aquarush/admin-ui/icons';
+import type { UploadFile, UploadProps, UploadRequestOptions } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

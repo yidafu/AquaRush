@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from '@/ui';
-import type { ColumnsType, TablePaginationConfig } from '@/ui';
+import { Table, Tag, Button } from '@aquarush/admin-ui';
+import type { ColumnsType, TablePaginationConfig } from '@aquarush/admin-ui';
 import type { ApiLogItem } from '../../../../services/logs';
 
 const getStatusColor = (status?: number) => {

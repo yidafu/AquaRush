@@ -1,6 +1,6 @@
 import React from 'react';
-import { Space, Input, Button, Switch, Table, Tag } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Space, Input, Button, Switch, Table, Tag } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import type { BarrelLedgerRow } from '../../../types/barrel';

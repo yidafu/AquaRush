@@ -1,6 +1,6 @@
 import React from 'react';
-import { Form, Input, Modal, Radio, RadioGroup } from '@/ui';
-import type { FormInstance } from '@/ui';
+import { Form, Input, Modal, Radio, RadioGroup } from '@aquarush/admin-ui';
+import type { FormInstance } from '@aquarush/admin-ui';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';

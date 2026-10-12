@@ -1,6 +1,6 @@
 /**
- * 内部 primitives 库统一出口（spec admin-radix-ui [S2.2]）。
- * 页面只从 '@/ui' 导入；图标单独从 '@/ui/icons' 导入。
+ * 组件库统一出口（spec admin-radix-ui [S2.2]）。
+ * 业务代码只从 '@aquarush/admin-ui' 导入；图标单独从 '@aquarush/admin-ui/icons' 导入。
  * 注意:star export 中与 Input 重名的 TextAreaProps 由显式导出仲裁。
  */
 

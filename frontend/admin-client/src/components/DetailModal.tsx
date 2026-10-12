@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Button } from '@/ui';
+import { Modal, Button } from '@aquarush/admin-ui';
 
 export interface DetailModalProps {
   title: React.ReactNode;

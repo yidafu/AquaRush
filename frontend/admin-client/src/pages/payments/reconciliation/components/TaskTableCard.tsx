@@ -1,6 +1,6 @@
 import React from 'react';
-import { Alert, Card, Table } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Alert, Card, Table } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import * as stylex from '@stylexjs/stylex';
 import { pagination } from '@/utils/table';
 import type { ReconciliationTask } from '../../../../types/reconciliation';

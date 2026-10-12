@@ -1,6 +1,6 @@
 import React from 'react';
-import { Modal } from '@/ui';
-import type { ModalProps } from '@/ui';
+import { Modal } from '@aquarush/admin-ui';
+import type { ModalProps } from '@aquarush/admin-ui';
 
 export interface FormModalProps {
   open: boolean;

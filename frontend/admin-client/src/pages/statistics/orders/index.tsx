@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Row } from '@/ui';
+import { Row } from '@aquarush/admin-ui';
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import RefreshControls from '@/components/RefreshControls';

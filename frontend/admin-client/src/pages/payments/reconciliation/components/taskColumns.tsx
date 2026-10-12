@@ -1,5 +1,5 @@
-import { Button, Space, Tag } from '@/ui';
-import type { ColumnsType } from '@/ui';
+import { Button, Space, Tag } from '@aquarush/admin-ui';
+import type { ColumnsType } from '@aquarush/admin-ui';
 import dayjs from 'dayjs';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';

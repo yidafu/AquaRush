@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, DatePicker, Space } from '@/ui';
+import { Select, DatePicker, Space } from '@aquarush/admin-ui';
 import type { Dayjs } from 'dayjs';
 import {
   LineChart,

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Radio, DatePicker } from '@/ui';
+import { Form, Input, InputNumber, Select, Radio, DatePicker } from '@aquarush/admin-ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents, COUPON_TYPE_LABELS } from '@aquarush/common';

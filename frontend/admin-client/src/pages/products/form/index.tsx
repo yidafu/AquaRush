@@ -10,8 +10,8 @@ import {
   Typography,
   Row,
   Col,
-} from '@/ui';
-import { EyeOutlined } from '@/ui/icons';
+} from '@aquarush/admin-ui';
+import { EyeOutlined } from '@aquarush/admin-ui/icons';
 import {
   useCreateProduct,
   useUpdateProduct,
