@@ -347,6 +347,54 @@ class PaymentServiceImplTest :
       service.queryPaymentStatus(2L) shouldBe "CLOSED"
       service.queryPaymentStatus(3L) shouldBe "UNKNOWN"
     }
+    test("queryPaymentStatusSyncsOrderWhenWechatQueryReturnsSuccess (查单后同步,官方查单指引 §5)") {
+      service.mockEnabled = false
+      every { wechatPayGateway.isConfigured } returns true
+      every { orderQueryService.getOrderById(1L) } returns order()
+      every { wechatPayGateway.queryTransaction("ORD-TEST-001") } returns
+        WechatTransaction(
+          outTradeNo = "ORD-TEST-001",
+          transactionId = "WX-TXN-001",
+          tradeState = "SUCCESS",
+          amountCents = 1200,
+        )
+
+      service.queryPaymentStatus(1L) shouldBe "SUCCESS"
+
+      verify(exactly = 1) { orderMutationService.handlePaymentSuccess(1L, "WX-TXN-001") }
+    }
+    test("queryPaymentStatusRejectsAmountMismatchFromWechat") {
+      service.mockEnabled = false
+      every { wechatPayGateway.isConfigured } returns true
+      every { orderQueryService.getOrderById(1L) } returns order()
+      every { wechatPayGateway.queryTransaction("ORD-TEST-001") } returns
+        WechatTransaction(
+          outTradeNo = "ORD-TEST-001",
+          transactionId = "WX-TXN-001",
+          tradeState = "SUCCESS",
+          amountCents = 999,
+        )
+
+      service.queryPaymentStatus(1L) shouldBe "UNKNOWN"
+
+      verify(exactly = 0) { orderMutationService.handlePaymentSuccess(any(), any()) }
+    }
+    test("queryPaymentStatusReturnsClosedWhenWechatQueryClosed") {
+      service.mockEnabled = false
+      every { wechatPayGateway.isConfigured } returns true
+      every { orderQueryService.getOrderById(1L) } returns order()
+      every { wechatPayGateway.queryTransaction("ORD-TEST-001") } returns
+        WechatTransaction(
+          outTradeNo = "ORD-TEST-001",
+          transactionId = "WX-TXN-001",
+          tradeState = "CLOSED",
+          amountCents = 1200,
+        )
+
+      service.queryPaymentStatus(1L) shouldBe "CLOSED"
+
+      verify(exactly = 0) { orderMutationService.handlePaymentSuccess(any(), any()) }
+    }
     test("callbackWithValidSignatureAndAmountProcessesOrder") {
       every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns callbackTransaction()
       every { orderQueryApiService.findByOrderNumber("ORD-TEST-001") } returns order()
@@ -372,6 +420,18 @@ class PaymentServiceImplTest :
       val ok = service.handleWechatPayCallback("{}", emptyMap())
 
       ok shouldBe false
+    }
+    test("callbackWithNonSuccessTradeStateAcksButDoesNotComplete (trade_state 校验)") {
+      every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns
+        callbackTransaction().copy(tradeState = "PAYERROR")
+      every { orderQueryApiService.findByOrderNumber("ORD-TEST-001") } returns order()
+
+      val ok = service.handleWechatPayCallback("{}", emptyMap())
+
+      // 验签通过但非 SUCCESS:应答成功避免重试风暴,但不流转任何业务状态
+      ok shouldBe true
+      verify(exactly = 0) { orderMutationService.handlePaymentSuccess(any(), any()) }
+      verify(exactly = 0) { orderQueryApiService.findByOrderNumber(any()) }
     }
     test("callbackRepeatIsIdempotent") {
       val paidOrder = order(status = OrderModelStatus.PENDING_DELIVERY).also { it.paymentTransactionId = "WX-TXN-001" }

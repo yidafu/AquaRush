@@ -166,7 +166,8 @@ class SdkWechatPayGateway(
         this.outRefundNo = outRefundNo
         this.transactionId = transactionId
         this.reason = reason
-        notifyUrl = notifyUrl
+        // 不回填 notify-url:退款结果通知与支付回调报文结构不同,投递到支付回调端点
+        // 无法解析只会触发重试;退款终态以查询退款接口/T+1 退款对账为准
         amount =
           AmountReq().apply {
             refund = refundAmountCents

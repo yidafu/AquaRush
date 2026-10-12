@@ -199,6 +199,13 @@ class PaymentServiceImpl(
         )
       val outTradeNo = transaction.outTradeNo
 
+      // 仅支付成功状态才流转(官方《支付回调和查单实现指引》:验签成功且 trade_state=SUCCESS 才视为支付成功);
+      // 验签通过但非 SUCCESS 的通知应答成功避免重试风暴,但不更新任何业务状态
+      if (transaction.tradeState != "SUCCESS") {
+        logger.warn("支付回调非成功状态,不流转: 单号={}, tradeState={}", outTradeNo, transaction.tradeState)
+        return true
+      }
+
       // 2. 派发:先查订单,再查购票单(桶水票购票支付,PRD 10-marketing.md §F-MKT-007)
       val order = orderQueryApiService.findByOrderNumber(outTradeNo)
       if (order != null) {
@@ -306,9 +313,13 @@ class PaymentServiceImpl(
   }
 
   /**
-   * 查询支付状态:待支付订单在假支付模式下以订单状态为准;
-   * 真实模式调用微信交易查询接口映射 SUCCESS/CLOSED/UNKNOWN。
+   * 查单确认支付状态(官方《支付回调和查单实现指引》§4/§5:前端支付返回或后台兜底轮询时,
+   * 调用微信查单接口确认订单状态并同步本地状态,不能仅依赖异步回调):
+   * - 待支付订单:真实模式调用微信交易查询接口,trade_state=SUCCESS 且金额一致时
+   *   走公共完成路径流转订单(与回调共用幂等逻辑),映射 SUCCESS/CLOSED/UNKNOWN;
+   * - 假支付模式/未配置商户参数:以订单状态为准,不发起微信查单。
    */
+  @Transactional
   override fun queryPaymentStatus(orderId: Long): String {
     val order = orderQueryService.getOrderById(orderId)
 
@@ -325,7 +336,21 @@ class PaymentServiceImpl(
     return try {
       val transaction = wechatPayGateway.queryTransaction(order.orderNo) ?: return "UNKNOWN"
       when (transaction.tradeState) {
-        "SUCCESS" -> "SUCCESS"
+        "SUCCESS" -> {
+          if (transaction.amountCents != order.payAmountCents) {
+            logger.error(
+              "查单金额不一致,不流转: 订单号={}, 查单金额={}, 订单应付={}",
+              order.orderNo,
+              transaction.amountCents,
+              order.payAmountCents,
+            )
+            "UNKNOWN"
+          } else {
+            completePaymentSuccess(orderId, transaction.transactionId)
+            logger.info("查单确认支付成功,已同步订单状态: 订单号={}, 交易号={}", order.orderNo, transaction.transactionId)
+            "SUCCESS"
+          }
+        }
         "CLOSED", "REVOKED", "PAYERROR" -> "CLOSED"
         else -> "UNKNOWN"
       }
