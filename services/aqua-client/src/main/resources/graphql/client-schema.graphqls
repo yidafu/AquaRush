@@ -42,6 +42,10 @@ type Query {
   myOrderStatistics: MyOrderStatisticsVo!
   # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
   orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckVo!
+  # 支付结果查单确认(F-ORD-005,官方《支付回调和查单实现指引》§4.1 前端支付返回处理):
+  # 前端 requestPayment 返回后调查单,服务端调微信查单接口核实并同步本地订单状态;
+  # 返回 SUCCESS(已支付)/ CLOSED(已关闭)/ UNKNOWN(未支付或暂不可知)
+  paymentStatus(orderId: PrimaryId!): String!
 
   # Operations config queries (运营配置域 F-OPS-001/002/004/005)
   activeBanners: [BannerVo!]!

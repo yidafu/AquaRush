@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.client.order.resolvers
 
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -47,13 +48,15 @@ class ClientOrderQueryResolverTest :
   FunSpec({
     var orderQueryApiService: OrderQueryApiService = mockk()
     var reviewQueryService: ReviewQueryService = mockk()
+    var paymentService: PaymentService = mockk()
     var resolver: ClientOrderQueryResolver = mockk()
     var principal: UserPrincipal = mockk()
 
     beforeTest {
       orderQueryApiService = mockk()
       reviewQueryService = mockk()
-      resolver = ClientOrderQueryResolver(orderQueryApiService, reviewQueryService)
+      paymentService = mockk(relaxed = true)
+      resolver = ClientOrderQueryResolver(orderQueryApiService, reviewQueryService, paymentService)
       // 商品明细(F-ORD-004):默认空列表,用例可按需 stub
       every { orderQueryApiService.findItemsByOrderId(any()) } returns emptyList()
       principal =
@@ -204,5 +207,38 @@ class ClientOrderQueryResolverTest :
         )
 
       shouldThrow<BadRequestException> { resolver.orderReviewCheck(1L, principal) }
+    }
+    test("paymentStatusDelegatesToQueryForOwnOrder") {
+      every { orderQueryApiService.findById(1L) } returns
+        OrderModel(
+          id = 1L,
+          orderNo = "ORD-001",
+          userId = 1L,
+          amountCents = 1000,
+          status = OrderModelStatus.PENDING_PAYMENT,
+        )
+      every { paymentService.queryPaymentStatus(1L) } returns "SUCCESS"
+
+      resolver.paymentStatus(1L, principal) shouldBe "SUCCESS"
+
+      verify(exactly = 1) { paymentService.queryPaymentStatus(1L) }
+    }
+    test("paymentStatusRejectsForeignOrder") {
+      every { orderQueryApiService.findById(1L) } returns
+        OrderModel(
+          id = 1L,
+          orderNo = "ORD-001",
+          userId = 99L,
+          amountCents = 1000,
+          status = OrderModelStatus.PENDING_PAYMENT,
+        )
+
+      shouldThrow<BadRequestException> { resolver.paymentStatus(1L, principal) }
+      verify(exactly = 0) { paymentService.queryPaymentStatus(any()) }
+    }
+    test("paymentStatusNotFoundThrows") {
+      every { orderQueryApiService.findById(1L) } returns null
+
+      shouldThrow<NotFoundException> { resolver.paymentStatus(1L, principal) }
     }
   })

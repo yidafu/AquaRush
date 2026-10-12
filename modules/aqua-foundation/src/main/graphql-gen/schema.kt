@@ -5076,6 +5076,13 @@ data class QueryOrdersArgs(
       args["input"]?.let { OrderListInput(it as Map<String, Any>) }
   )
 }
+data class QueryPaymentStatusArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
+  )
+}
 data class QueryProductArgs(
     val id: kotlin.Long
 ) {
@@ -5440,6 +5447,7 @@ data class Query(
     val orderReviewCheck: OrderReviewCheckVo,
     val orderStatistics: OrderStatisticsVo,
     val orders: OrderVoPage?,
+    val paymentStatus: kotlin.String,
     val pendingDeliveryOrders: kotlin.collections.List<OrderVo>,
     val pendingOrderBreakdown: PendingOrderBreakdownVo,
     val product: ProductVo?,

@@ -3053,6 +3053,7 @@ export type Query = {
   readonly orderReviewCheck: OrderReviewCheckVo;
   readonly orderStatistics: OrderStatisticsVo;
   readonly orders?: Maybe<OrderVoPage>;
+  readonly paymentStatus: Scalars['String']['output'];
   readonly pendingDeliveryOrders: ReadonlyArray<OrderVo>;
   readonly pendingOrderBreakdown: PendingOrderBreakdownVo;
   readonly product?: Maybe<ProductVo>;
@@ -3456,6 +3457,11 @@ export type QueryOrderStatisticsArgs = {
 
 export type QueryOrdersArgs = {
   input?: InputMaybe<OrderListInput>;
+};
+
+
+export type QueryPaymentStatusArgs = {
+  orderId: Scalars['PrimaryId']['input'];
 };
 
 

@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.client.order.resolvers
 
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.client.order.mapper.toGraphQL
 import dev.yidafu.aqua.common.annotation.ClientService
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Controller
 class ClientOrderQueryResolver(
   private val orderQueryApiService: OrderQueryApiService,
   private val reviewQueryService: ReviewQueryService,
+  private val paymentService: PaymentService,
 ) {
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
@@ -151,5 +153,25 @@ class ClientOrderQueryResolver(
       canReview = order.status == OrderModelStatus.COMPLETED && review == null,
       review = review?.toGraphQL(),
     )
+  }
+
+  /**
+   * 支付结果查单确认(F-ORD-005,官方《支付回调和查单实现指引》§4.1):
+   * 前端 requestPayment 返回(成功或报错)后调用,服务端调微信查单接口核实并同步订单状态;
+   * 仅本人订单,userId 强制比对防越权。
+   */
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun paymentStatus(
+    @Argument orderId: Long,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): String {
+    val order =
+      orderQueryApiService.findById(orderId)
+        ?: throw NotFoundException("订单不存在: $orderId")
+    if (order.userId != principal.id) {
+      throw BadRequestException("无权查看此订单")
+    }
+    return paymentService.queryPaymentStatus(orderId)
   }
 }
