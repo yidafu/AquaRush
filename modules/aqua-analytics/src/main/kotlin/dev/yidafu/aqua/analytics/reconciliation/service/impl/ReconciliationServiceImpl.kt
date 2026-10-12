@@ -22,11 +22,6 @@ package dev.yidafu.aqua.analytics.reconciliation.service.impl
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationDiscrepancyRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationReportRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationTaskRepository
-import dev.yidafu.aqua.analytics.reconciliation.external.config.ReconciliationConfig
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.WeChatReconciliationApi
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatRefundRecord
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatSettlementRecord
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatTransactionRecord
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.api.service.reconciliation.ReconciliationService
@@ -44,6 +39,10 @@ import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTriggerType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.util.MoneyUtils
+import dev.yidafu.aqua.payment.service.WechatBillGateway
+import dev.yidafu.aqua.payment.service.WechatBillType
+import dev.yidafu.aqua.payment.service.WechatFundFlowRow
+import dev.yidafu.aqua.payment.service.WechatTradeBillRow
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -67,9 +66,8 @@ class ReconciliationServiceImpl(
   private val reconciliationReportRepository: ReconciliationReportRepository,
   private val paymentService: PaymentService,
   private val paymentQueryService: PaymentQueryService,
-  private val weChatReconciliationApi: WeChatReconciliationApi,
+  private val billGateway: WechatBillGateway,
   private val eventPublishService: SimplifiedEventPublishService,
-  private val config: ReconciliationConfig,
   private val taskExecutor: Executor,
 ) : ReconciliationService {
   private val logger = LoggerFactory.getLogger(ReconciliationService::class.java)
@@ -141,7 +139,13 @@ class ReconciliationServiceImpl(
         val internalPayments = fetchPaidByWindow(dayStart, dayEnd)
 
         // 获取微信支付记录
-        val weChatTransactions = weChatReconciliationApi.fetchTransactions(task.taskDate!!.toLocalDate())
+        // 微信交易账单(V3 bill_type=ALL,T+1 10 点后可取);ALL 同时含退款单行(交易状态=REFUND,
+        // 与支付行同微信订单号),支付比对仅取支付成功行;REVOKED/USERPAYING/PAYERROR 按设计 §6 不参与比对
+        val weChatTransactions =
+          billGateway
+            .downloadTradeBill(task.taskDate!!.toLocalDate(), WechatBillType.ALL)
+            .rows
+            .filter { it.tradeState == "SUCCESS" }
 
         // 执行对账
         val result = performPaymentReconciliation(internalPayments, weChatTransactions, task.taskId)
@@ -191,7 +195,8 @@ class ReconciliationServiceImpl(
         } while (refundPage < page.totalPages)
 
         // 获取微信退款记录
-        val weChatRefunds = weChatReconciliationApi.fetchRefunds(task.taskDate!!.toLocalDate())
+        // 微信退款账单(V3 bill_type=REFUND):当日发起退款成功的退款单逐笔行
+        val weChatRefunds = billGateway.downloadTradeBill(task.taskDate!!.toLocalDate(), WechatBillType.REFUND).rows
 
         // 执行退款对账
         val result = performRefundReconciliation(internalRefunds, weChatRefunds, task.taskId)
@@ -235,7 +240,13 @@ class ReconciliationServiceImpl(
         val internalPayments = fetchPaidByWindow(dayStart, dayEnd)
 
         // 获取微信结算记录
-        val weChatSettlements = weChatReconciliationApi.fetchSettlements(task.taskDate!!.toLocalDate())
+        // 微信资金账单(V3 bill_type=fundflowbill):含手续费扣除/退款支出/提现等全部资金流水,
+        // 与支付比对仅取「交易类收入」行(业务名称=交易 且 业务类型=交易 且 收入)
+        val weChatSettlements =
+          billGateway
+            .downloadFundFlowBill(task.taskDate!!.toLocalDate())
+            .rows
+            .filter { it.bizName == "交易" && it.bizType == "交易" && it.direction == "收入" }
 
         // 执行结算对账
         val result = performSettlementReconciliation(internalPayments, weChatSettlements, task.taskId)
@@ -411,7 +422,7 @@ class ReconciliationServiceImpl(
    */
   private fun performPaymentReconciliation(
     internalPayments: List<PaymentModel>,
-    weChatTransactions: List<WeChatTransactionRecord>,
+    weChatTransactions: List<WechatTradeBillRow>,
     taskId: String,
   ): ReconciliationResult {
     val internalMap = internalPayments.associateBy { it.transactionId }
@@ -450,10 +461,10 @@ class ReconciliationServiceImpl(
           )
         }
 
-        payment.amount != weChatTx.amount -> {
-          // 金额不匹配 (both amounts are in cents)
+        payment.amount != weChatTx.settleAmountCents -> {
+          // 金额不匹配 (both amounts are in cents;微信侧取官方「应结订单金额」列,设计 §6)
           val internalAmountYuan = MoneyUtils.fromCents(payment.amount)
-          val wechatAmountYuan = MoneyUtils.fromCents(weChatTx.amount)
+          val wechatAmountYuan = MoneyUtils.fromCents(weChatTx.settleAmountCents)
           discrepancies.add(
             ReconciliationDiscrepancyModel.createMismatchRecord(
               taskId = taskId,
@@ -474,11 +485,11 @@ class ReconciliationServiceImpl(
                       "transactionId" to weChatTx.transactionId,
                       "outTradeNo" to weChatTx.outTradeNo,
                       "amount" to wechatAmountYuan,
-                      "amountCents" to weChatTx.amount,
+                      "amountCents" to weChatTx.settleAmountCents,
                       "tradeState" to weChatTx.tradeState,
                     ),
-                  "amountDifference" to MoneyUtils.fromCents(abs(payment.amount - weChatTx.amount)),
-                  "amountDifferenceCents" to abs(payment.amount - weChatTx.amount),
+                  "amountDifference" to MoneyUtils.fromCents(abs(payment.amount - weChatTx.settleAmountCents)),
+                  "amountDifferenceCents" to abs(payment.amount - weChatTx.settleAmountCents),
                 ),
             ),
           )
@@ -496,7 +507,7 @@ class ReconciliationServiceImpl(
       val internalPayment = internalMap[weChatTx.transactionId]
       if (internalPayment == null) {
         // 微信有记录，内部没有
-        val amountYuan = MoneyUtils.fromCents(weChatTx.amount)
+        val amountYuan = MoneyUtils.fromCents(weChatTx.settleAmountCents)
         discrepancies.add(
           ReconciliationDiscrepancyModel.createMissingRecord(
             taskId = taskId,
@@ -509,12 +520,12 @@ class ReconciliationServiceImpl(
                     "transactionId" to weChatTx.transactionId,
                     "outTradeNo" to weChatTx.outTradeNo,
                     "amount" to amountYuan,
-                    "amountCents" to weChatTx.amount,
+                    "amountCents" to weChatTx.settleAmountCents,
                     "tradeState" to weChatTx.tradeState,
-                    "timeEnd" to weChatTx.timeEnd,
+                    "timeEnd" to weChatTx.tradeTime,
                   ),
                 "amount" to amountYuan,
-                "amountCents" to weChatTx.amount,
+                "amountCents" to weChatTx.settleAmountCents,
               ),
           ),
         )
@@ -526,7 +537,7 @@ class ReconciliationServiceImpl(
       internalPayments.size + weChatTransactions.size,
       matchedCount,
       wechatTotalCount = weChatTransactions.size,
-      wechatTotalAmountCents = weChatTransactions.sumOf { it.amount },
+      wechatTotalAmountCents = weChatTransactions.sumOf { it.settleAmountCents },
       localTotalCount = internalPayments.size,
       localTotalAmountCents = internalPayments.sumOf { it.amount },
     )
@@ -537,11 +548,11 @@ class ReconciliationServiceImpl(
    */
   private fun performRefundReconciliation(
     internalRefunds: List<PaymentRefundModel>,
-    weChatRefunds: List<WeChatRefundRecord>,
+    weChatRefunds: List<WechatTradeBillRow>,
     taskId: String,
   ): ReconciliationResult {
     // 内部退款:优先按微信退款单号(refundId),备用商户退款单号(outRefundNo)
-    val weChatMap = weChatRefunds.associateBy { it.refundId }
+    val weChatMap = weChatRefunds.filter { it.refundId != null }.associateBy { it.refundId }
 
     val discrepancies = mutableListOf<ReconciliationDiscrepancyModel>()
     var matchedCount = 0
@@ -576,15 +587,15 @@ class ReconciliationServiceImpl(
           )
         }
 
-        refund.refundAmount != weChatRefund.refundFee.toLong() -> {
-          // 金额不匹配 (both amounts are in cents)
+        refund.refundAmount != weChatRefund.refundAmountCents -> {
+          // 金额不匹配 (both amounts are in cents;微信侧取官方「退款金额」列,设计 §6)
           val internalAmountYuan = MoneyUtils.fromCents(refund.refundAmount)
-          val wechatAmountYuan = MoneyUtils.fromCents(weChatRefund.refundFee.toLong())
+          val wechatAmountYuan = MoneyUtils.fromCents(weChatRefund.refundAmountCents)
           discrepancies.add(
             ReconciliationDiscrepancyModel.createMismatchRecord(
               taskId = taskId,
               sourceSystem = SourceSystem.INTERNAL,
-              recordId = weChatRefund.refundId,
+              recordId = weChatRefund.refundId ?: "",
               recordDetails =
                 mapOf(
                   "internal" to
@@ -602,12 +613,12 @@ class ReconciliationServiceImpl(
                       "outRefundNo" to weChatRefund.outRefundNo,
                       "transactionId" to weChatRefund.transactionId,
                       "outTradeNo" to weChatRefund.outTradeNo,
-                      "refundFeeCents" to weChatRefund.refundFee.toLong(),
+                      "refundFeeCents" to weChatRefund.refundAmountCents,
                       "refundFee" to wechatAmountYuan,
                       "refundStatus" to weChatRefund.refundStatus,
                     ),
-                  "amountDifference" to MoneyUtils.fromCents(abs(refund.refundAmount - weChatRefund.refundFee.toLong())),
-                  "amountDifferenceCents" to abs(refund.refundAmount - weChatRefund.refundFee.toLong()),
+                  "amountDifference" to MoneyUtils.fromCents(abs(refund.refundAmount - weChatRefund.refundAmountCents)),
+                  "amountDifferenceCents" to abs(refund.refundAmount - weChatRefund.refundAmountCents),
                 ),
             ),
           )
@@ -628,12 +639,12 @@ class ReconciliationServiceImpl(
         }
       if (internalRefund == null) {
         // 微信有退款，内部没有
-        val amountYuan = MoneyUtils.fromCents(weChatRefund.refundFee.toLong())
+        val amountYuan = MoneyUtils.fromCents(weChatRefund.refundAmountCents)
         discrepancies.add(
           ReconciliationDiscrepancyModel.createMissingRecord(
             taskId = taskId,
             sourceSystem = SourceSystem.INTERNAL,
-            recordId = weChatRefund.refundId,
+            recordId = weChatRefund.refundId ?: weChatRefund.outRefundNo ?: "",
             recordDetails =
               mapOf(
                 "wechat" to
@@ -642,12 +653,12 @@ class ReconciliationServiceImpl(
                     "outRefundNo" to weChatRefund.outRefundNo,
                     "transactionId" to weChatRefund.transactionId,
                     "outTradeNo" to weChatRefund.outTradeNo,
-                    "refundFeeCents" to weChatRefund.refundFee.toLong(),
+                    "refundFeeCents" to weChatRefund.refundAmountCents,
                     "refundFee" to amountYuan,
                     "refundStatus" to weChatRefund.refundStatus,
-                    "refundSuccessTime" to weChatRefund.refundSuccessTime,
+                    "refundSuccessTime" to (weChatRefund.refundSuccessTime?.toString() ?: ""),
                   ),
-                "amountCents" to weChatRefund.refundFee.toLong(),
+                "amountCents" to weChatRefund.refundAmountCents,
               ),
           ),
         )
@@ -659,7 +670,7 @@ class ReconciliationServiceImpl(
       internalRefunds.size + weChatRefunds.size,
       matchedCount,
       wechatTotalCount = weChatRefunds.size,
-      wechatTotalAmountCents = weChatRefunds.sumOf { it.refundFee.toLong() },
+      wechatTotalAmountCents = weChatRefunds.sumOf { it.refundAmountCents },
       localTotalCount = internalRefunds.size,
       localTotalAmountCents = internalRefunds.sumOf { it.refundAmount },
     )
@@ -670,7 +681,7 @@ class ReconciliationServiceImpl(
    */
   private fun performSettlementReconciliation(
     internalPayments: List<PaymentModel>,
-    weChatSettlements: List<WeChatSettlementRecord>,
+    weChatSettlements: List<WechatFundFlowRow>,
     taskId: String,
   ): ReconciliationResult {
     val internalByTransactionId = internalPayments.associateBy { it.transactionId }
@@ -680,44 +691,44 @@ class ReconciliationServiceImpl(
 
     weChatSettlements.forEach { settlement ->
       val internalPayment =
-        internalByTransactionId[settlement.transactionId]
-          ?: internalPayments.firstOrNull { it.transactionId == settlement.outTradeNo }
+        internalByTransactionId[settlement.wechatBizNo]
+          ?: internalPayments.firstOrNull { it.transactionId == settlement.voucherNo }
       when {
         internalPayment == null -> {
-          // 微信有结算，内部没有对应支付记录
-          val amountYuan = MoneyUtils.fromCents(settlement.amount.toLong())
+          // 微信有结算入账，内部没有对应支付记录
+          val amountYuan = MoneyUtils.fromCents(settlement.amountCents)
           discrepancies.add(
             ReconciliationDiscrepancyModel.createMissingRecord(
               taskId = taskId,
               sourceSystem = SourceSystem.INTERNAL,
-              recordId = settlement.transactionId,
+              recordId = settlement.wechatBizNo.ifEmpty { settlement.flowNo },
               recordDetails =
                 mapOf(
                   "wechat" to
                     mapOf(
-                      "settlementId" to settlement.settlementId,
-                      "transactionId" to settlement.transactionId,
-                      "outTradeNo" to settlement.outTradeNo,
-                      "amountCents" to settlement.amount.toLong(),
+                      "settlementId" to settlement.flowNo,
+                      "transactionId" to settlement.wechatBizNo,
+                      "outTradeNo" to (settlement.voucherNo ?: ""),
+                      "amountCents" to settlement.amountCents,
                       "amount" to amountYuan,
-                      "tradeState" to settlement.tradeState,
-                      "settlementTime" to settlement.settlementTime,
+                      "bizType" to settlement.bizType,
+                      "settlementTime" to settlement.recordTime,
                     ),
-                  "amountCents" to settlement.amount.toLong(),
+                  "amountCents" to settlement.amountCents,
                 ),
             ),
           )
         }
 
-        internalPayment.amount != settlement.amount.toLong() -> {
+        internalPayment.amount != settlement.amountCents -> {
           // 金额不匹配 (both amounts are in cents)
           val internalAmountYuan = MoneyUtils.fromCents(internalPayment.amount)
-          val wechatAmountYuan = MoneyUtils.fromCents(settlement.amount.toLong())
+          val wechatAmountYuan = MoneyUtils.fromCents(settlement.amountCents)
           discrepancies.add(
             ReconciliationDiscrepancyModel.createMismatchRecord(
               taskId = taskId,
               sourceSystem = SourceSystem.INTERNAL,
-              recordId = settlement.transactionId,
+              recordId = settlement.wechatBizNo.ifEmpty { settlement.flowNo },
               recordDetails =
                 mapOf(
                   "internal" to
@@ -730,15 +741,15 @@ class ReconciliationServiceImpl(
                     ),
                   "wechat" to
                     mapOf(
-                      "settlementId" to settlement.settlementId,
-                      "transactionId" to settlement.transactionId,
-                      "outTradeNo" to settlement.outTradeNo,
-                      "amountCents" to settlement.amount.toLong(),
+                      "settlementId" to settlement.flowNo,
+                      "transactionId" to settlement.wechatBizNo,
+                      "outTradeNo" to (settlement.voucherNo ?: ""),
+                      "amountCents" to settlement.amountCents,
                       "amount" to wechatAmountYuan,
-                      "tradeState" to settlement.tradeState,
+                      "bizType" to settlement.bizType,
                     ),
-                  "amountDifference" to MoneyUtils.fromCents(abs(internalPayment.amount - settlement.amount.toLong())),
-                  "amountDifferenceCents" to abs(internalPayment.amount - settlement.amount.toLong()),
+                  "amountDifference" to MoneyUtils.fromCents(abs(internalPayment.amount - settlement.amountCents)),
+                  "amountDifferenceCents" to abs(internalPayment.amount - settlement.amountCents),
                 ),
             ),
           )
@@ -751,14 +762,14 @@ class ReconciliationServiceImpl(
       }
     }
 
-    // 检查内部支付记录在微信结算账单中是否存在
+    // 检查内部支付记录在微信资金账单中是否存在
     internalPayments.forEach { payment ->
       val settlement =
         weChatSettlements.firstOrNull {
-          it.transactionId == payment.transactionId || it.outTradeNo == payment.transactionId
+          it.wechatBizNo == payment.transactionId || it.voucherNo == payment.transactionId
         }
       if (settlement == null) {
-        // 内部有支付，微信结算账单没有记录
+        // 内部有支付，微信资金账单没有入账记录
         discrepancies.add(
           ReconciliationDiscrepancyModel.createMissingRecord(
             taskId = taskId,
@@ -787,7 +798,7 @@ class ReconciliationServiceImpl(
       internalPayments.size + weChatSettlements.size,
       matchedCount,
       wechatTotalCount = weChatSettlements.size,
-      wechatTotalAmountCents = weChatSettlements.sumOf { it.amount.toLong() },
+      wechatTotalAmountCents = weChatSettlements.sumOf { it.amountCents },
       localTotalCount = internalPayments.size,
       localTotalAmountCents = internalPayments.sumOf { it.amount },
     )
@@ -828,7 +839,7 @@ class ReconciliationServiceImpl(
     task: ReconciliationTaskModel,
     taskType: String,
   ): Boolean {
-    if (config.weChatConfigured) {
+    if (billGateway.isConfigured) {
       return false
     }
     task.status = ReconciliationTaskStatus.SKIPPED

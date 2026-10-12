@@ -22,11 +22,6 @@ package dev.yidafu.aqua.analytics.reconciliation.service.impl
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationDiscrepancyRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationReportRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationTaskRepository
-import dev.yidafu.aqua.analytics.reconciliation.external.config.ReconciliationConfig
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.WeChatReconciliationApi
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatRefundRecord
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatSettlementRecord
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatTransactionRecord
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.domain.model.PaymentModel
@@ -44,6 +39,14 @@ import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.payment.service.WechatBillGateway
+import dev.yidafu.aqua.payment.service.WechatBillType
+import dev.yidafu.aqua.payment.service.WechatFundFlowBill
+import dev.yidafu.aqua.payment.service.WechatFundFlowRow
+import dev.yidafu.aqua.payment.service.WechatFundFlowSummary
+import dev.yidafu.aqua.payment.service.WechatTradeBill
+import dev.yidafu.aqua.payment.service.WechatTradeBillRow
+import dev.yidafu.aqua.payment.service.WechatTradeBillSummary
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -55,7 +58,6 @@ import io.mockk.verify
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
@@ -71,7 +73,7 @@ class ReconciliationServiceImplTest :
     var reportRepository: ReconciliationReportRepository = mockk()
     var paymentService: PaymentService = mockk()
     var paymentQueryService: PaymentQueryService = mockk()
-    var weChatApi: WeChatReconciliationApi = mockk()
+    var billGateway: WechatBillGateway = mockk()
     var eventPublishService: SimplifiedEventPublishService = mockk()
     var service: ReconciliationServiceImpl = mockk()
     val date = LocalDate.of(2025, 6, 1)
@@ -87,70 +89,73 @@ class ReconciliationServiceImplTest :
       return task
     }
 
+    fun newTradeBill(
+      billType: WechatBillType,
+      vararg rows: WechatTradeBillRow,
+    ): WechatTradeBill =
+      WechatTradeBill(
+        billDate = date,
+        billType = billType,
+        rows = rows.toList(),
+        summary = WechatTradeBillSummary(totalCount = rows.size, amounts = emptyMap()),
+      )
+
     fun newWeChatTransaction(
       transactionId: String,
       amount: Long,
-    ): WeChatTransactionRecord =
-      WeChatTransactionRecord(
+    ): WechatTradeBillRow =
+      WechatTradeBillRow(
+        tradeTime = LocalDateTime.of(2025, 6, 1, 10, 0),
         transactionId = transactionId,
         outTradeNo = "OUT_$transactionId",
         transactionType = "JSAPI",
         tradeState = "SUCCESS",
-        bankType = null,
-        totalFee = null,
-        feeType = null,
-        cashFee = null,
+        bankType = "CMB_CREDIT",
+        feeType = "CNY",
+        settleAmountCents = amount,
+        orderAmountCents = amount,
+        couponCents = 0L,
+        refundId = null,
+        outRefundNo = null,
+        refundAmountCents = 0L,
+        refundApplyTime = null,
+        refundSuccessTime = null,
+        refundType = null,
+        refundStatus = null,
         body = "矿泉水",
-        detail = null,
         attach = null,
         deviceInfo = null,
-        goodsTag = null,
-        timeEnd = LocalDateTime.of(2025, 6, 1, 10, 0),
-        tradeCreateTime = LocalDateTime.of(2025, 6, 1, 9, 59),
-        tradePayTime = null,
-        settlementTotalFee = null,
-        promotionInfo = null,
-        amount = amount,
-        openId = null,
-        subOpenId = null,
-        tradeBill = null,
-        goodsDetail = null,
-        costType = null,
-        profitSharing = null,
-        returnCode = "SUCCESS",
-        returnMsg = "获取成功",
-        errorCode = null,
-        errorCodeDes = null,
+        feeCents = 1L,
       )
 
     fun newWeChatRefund(
       refundId: String,
       outRefundNo: String,
-      refundFee: Long,
+      refundAmount: Long,
       transactionId: String = "tx-$refundId",
-    ): WeChatRefundRecord =
-      WeChatRefundRecord(
+    ): WechatTradeBillRow =
+      WechatTradeBillRow(
+        tradeTime = LocalDateTime.of(2025, 6, 1, 10, 0),
         transactionId = transactionId,
         outTradeNo = "OUT_$transactionId",
-        outRefundNo = outRefundNo,
+        transactionType = "JSAPI",
+        tradeState = "REFUND",
+        bankType = "CMB_CREDIT",
+        feeType = "CNY",
+        settleAmountCents = 0L,
+        orderAmountCents = 0L,
+        couponCents = 0L,
         refundId = refundId,
-        refundChannel = null,
-        refundFee = BigDecimal.valueOf(refundFee),
-        settlementRefundFee = null,
-        totalFee = null,
-        settlementTotalFee = null,
-        couponType = null,
-        amount = BigDecimal.valueOf(refundFee),
-        refundRecvAccount = null,
-        refundAccount = null,
-        refundRequestSource = null,
+        outRefundNo = outRefundNo,
+        refundAmountCents = refundAmount,
+        refundApplyTime = LocalDateTime.of(2025, 6, 1, 10, 0),
         refundSuccessTime = LocalDateTime.of(2025, 6, 1, 11, 0),
+        refundType = "ORIGINAL",
         refundStatus = "SUCCESS",
-        createTime = LocalDateTime.of(2025, 6, 1, 10, 0),
-        returnCode = "SUCCESS",
-        returnMsg = "获取成功",
-        errorCode = null,
-        errorCodeDes = null,
+        body = "矿泉水",
+        attach = null,
+        deviceInfo = null,
+        feeCents = 0L,
       )
 
     fun newInternalRefund(
@@ -174,41 +179,33 @@ class ReconciliationServiceImplTest :
       transactionId: String,
       outTradeNo: String,
       amount: Long,
-    ): WeChatSettlementRecord =
-      WeChatSettlementRecord(
-        settlementId = "settle-$transactionId",
-        transactionId = transactionId,
-        outTradeNo = outTradeNo,
-        amount = BigDecimal.valueOf(amount),
-        settlementAmount = BigDecimal.valueOf(amount),
-        mchId = "mch1",
-        subMchId = null,
-        deviceInfo = null,
-        billType = "ALL",
-        tradeType = "JSAPI",
-        tradeState = "SUCCESS",
-        bankType = null,
-        feeType = null,
-        totalFee = null,
-        settlementTotalFee = null,
-        rate = null,
-        cashFee = null,
-        refundFee = BigDecimal.ZERO,
-        settlementRefundFee = BigDecimal.ZERO,
-        body = "矿泉水",
-        detail = null,
-        attach = null,
-        goodsTag = null,
-        timeEnd = LocalDateTime.of(2025, 6, 1, 10, 0),
-        settlementTime = LocalDateTime.of(2025, 6, 1, 12, 0),
-        tradeCreateTime = LocalDateTime.of(2025, 6, 1, 9, 59),
-        tradePayTime = LocalDateTime.of(2025, 6, 1, 10, 0),
-        promotionInfo = null,
-        createTime = LocalDateTime.of(2025, 6, 1, 12, 0),
-        returnCode = "SUCCESS",
-        returnMsg = "获取成功",
-        errorCode = null,
-        errorCodeDes = null,
+    ): WechatFundFlowRow =
+      WechatFundFlowRow(
+        recordTime = LocalDateTime.of(2025, 6, 1, 12, 0),
+        wechatBizNo = transactionId,
+        flowNo = "flow-$transactionId",
+        bizName = "交易",
+        bizType = "交易",
+        direction = "收入",
+        amountCents = amount,
+        balanceCents = 10_000L,
+        applicant = "system",
+        remark = null,
+        voucherNo = outTradeNo,
+      )
+
+    fun newFundFlowBill(vararg rows: WechatFundFlowRow): WechatFundFlowBill =
+      WechatFundFlowBill(
+        billDate = date,
+        rows = rows.toList(),
+        summary =
+          WechatFundFlowSummary(
+            totalCount = rows.size,
+            incomeCount = rows.size,
+            incomeCents = rows.sumOf { it.amountCents },
+            expenseCount = 0,
+            expenseCents = 0L,
+          ),
       )
 
     beforeTest {
@@ -217,11 +214,10 @@ class ReconciliationServiceImplTest :
       reportRepository = mockk(relaxed = true)
       paymentService = mockk(relaxed = true)
       paymentQueryService = mockk(relaxed = true)
-      weChatApi = mockk(relaxed = true)
+      billGateway = mockk(relaxed = true)
       eventPublishService = mockk(relaxed = true)
       // 已配置真实商户参数(否则任务会走 SKIPPED 分支)
-      val config =
-        ReconciliationConfig(weChatAppId = "wx-app", weChatMchId = "mch-1", weChatApiKey = "api-key")
+      every { billGateway.isConfigured } returns true
       // 同步执行,便于断言 CompletableFuture 结果
       val executor = Executor { it.run() }
       service =
@@ -231,9 +227,8 @@ class ReconciliationServiceImplTest :
           reportRepository,
           paymentService,
           paymentQueryService,
-          weChatApi,
+          billGateway,
           eventPublishService,
-          config,
           executor,
         )
       // relaxed mock 的泛型 save() 会返回裸 Object 导致 ClassCastException,
@@ -292,7 +287,7 @@ class ReconciliationServiceImplTest :
       val weChatTx = newWeChatTransaction(transactionId = "wx1", amount = 1000L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
+      every { billGateway.downloadTradeBill(date, WechatBillType.ALL) } returns newTradeBill(WechatBillType.ALL, weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
 
@@ -314,7 +309,7 @@ class ReconciliationServiceImplTest :
       val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "internal-only")
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchTransactions(date) } returns emptyList()
+      every { billGateway.downloadTradeBill(date, WechatBillType.ALL) } returns newTradeBill(WechatBillType.ALL)
 
       val result = service.executePaymentReconciliation(task).join()
 
@@ -333,7 +328,7 @@ class ReconciliationServiceImplTest :
       val weChatTx = newWeChatTransaction(transactionId = "wx1", amount = 950L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
+      every { billGateway.downloadTradeBill(date, WechatBillType.ALL) } returns newTradeBill(WechatBillType.ALL, weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
 
@@ -351,7 +346,7 @@ class ReconciliationServiceImplTest :
       val weChatTx = newWeChatTransaction(transactionId = "wechat-only", amount = 1000L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(emptyList<PaymentModel>(), PageRequest.of(0, 100), 0)
-      every { weChatApi.fetchTransactions(date) } returns listOf(weChatTx)
+      every { billGateway.downloadTradeBill(date, WechatBillType.ALL) } returns newTradeBill(WechatBillType.ALL, weChatTx)
 
       val result = service.executePaymentReconciliation(task).join()
 
@@ -365,6 +360,7 @@ class ReconciliationServiceImplTest :
     test("executePaymentReconciliation marks SKIPPED when wechat credentials not configured") {
       val task = newTask()
       // 未配置商户参数的服务(假支付模式)
+      every { billGateway.isConfigured } returns false
       val unconfigured =
         ReconciliationServiceImpl(
           taskRepository,
@@ -372,9 +368,8 @@ class ReconciliationServiceImplTest :
           reportRepository,
           paymentService,
           paymentQueryService,
-          weChatApi,
+          billGateway,
           eventPublishService,
-          ReconciliationConfig(),
           Executor { it.run() },
         )
 
@@ -382,7 +377,7 @@ class ReconciliationServiceImplTest :
 
       result.status shouldBe ReconciliationTaskStatus.SKIPPED
       result.errorMessage.shouldNotBeNull()
-      verify(exactly = 0) { weChatApi.fetchTransactions(any()) }
+      verify(exactly = 0) { billGateway.downloadTradeBill(any(), any()) }
       verify { eventPublishService.publishDomainEvent("RECONCILIATION_SKIPPED", task.taskId, any()) }
     }
     test("executePaymentReconciliation rethrows and marks failed on exception") {
@@ -400,7 +395,7 @@ class ReconciliationServiceImplTest :
       val task = newTask(type = ReconciliationTaskType.REFUND)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(emptyList<PaymentRefundModel>(), PageRequest.of(0, 100), 0)
-      every { weChatApi.fetchRefunds(date) } returns emptyList()
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -413,10 +408,10 @@ class ReconciliationServiceImplTest :
     test("executeRefundReconciliation succeeds when all refunds match") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
       val internalRefund = newInternalRefund(refundId = "refund1", outRefundNo = "out1", amount = 1000L)
-      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundAmount = 1000L)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND, weChatRefund)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -433,10 +428,10 @@ class ReconciliationServiceImplTest :
       val task = newTask(type = ReconciliationTaskType.REFUND)
       // 内部退款无微信退款单号,以商户退款单号(outRefundNo)匹配
       val internalRefund = newInternalRefund(refundId = null, outRefundNo = "out1", amount = 1000L)
-      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundAmount = 1000L)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND, weChatRefund)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -447,10 +442,10 @@ class ReconciliationServiceImplTest :
     test("executeRefundReconciliation records MISMATCH when refund amounts differ") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
       val internalRefund = newInternalRefund(refundId = "refund1", outRefundNo = "out1", amount = 1000L)
-      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 950L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundAmount = 950L)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND, weChatRefund)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -468,7 +463,7 @@ class ReconciliationServiceImplTest :
       val internalRefund = newInternalRefund(refundId = "refund-only", outRefundNo = "out-only", amount = 1000L)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchRefunds(date) } returns emptyList()
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -481,10 +476,10 @@ class ReconciliationServiceImplTest :
     }
     test("executeRefundReconciliation records MISSING for extra wechat refund") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
-      val weChatRefund = newWeChatRefund(refundId = "wechat-only", outRefundNo = "out-wechat-only", refundFee = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "wechat-only", outRefundNo = "out-wechat-only", refundAmount = 1000L)
       every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
         PageImpl(emptyList<PaymentRefundModel>(), PageRequest.of(0, 100), 0)
-      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+      every { billGateway.downloadTradeBill(date, WechatBillType.REFUND) } returns newTradeBill(WechatBillType.REFUND, weChatRefund)
 
       val result = service.executeRefundReconciliation(task).join()
 
@@ -497,7 +492,7 @@ class ReconciliationServiceImplTest :
     }
     test("executeRefundReconciliation marks failed on exception") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
-      every { weChatApi.fetchRefunds(date) } throws RuntimeException("boom")
+      every { billGateway.downloadTradeBill(any(), any()) } throws RuntimeException("boom")
 
       val future = service.executeRefundReconciliation(task)
 
@@ -510,7 +505,7 @@ class ReconciliationServiceImplTest :
       val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 1000L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
+      every { billGateway.downloadFundFlowBill(any()) } returns newFundFlowBill(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
@@ -527,7 +522,7 @@ class ReconciliationServiceImplTest :
       val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 980L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(listOf(payment), PageRequest.of(0, 100), 1)
-      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
+      every { billGateway.downloadFundFlowBill(any()) } returns newFundFlowBill(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
@@ -543,7 +538,7 @@ class ReconciliationServiceImplTest :
       val settlement = newWeChatSettlement(transactionId = "wechat-only", outTradeNo = "OUT_wechat-only", amount = 1000L)
       every { paymentQueryService.getPaidByDateRange(any(), any(), any(), any()) } returns
         PageImpl(emptyList<PaymentModel>(), PageRequest.of(0, 100), 0)
-      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
+      every { billGateway.downloadFundFlowBill(any()) } returns newFundFlowBill(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
@@ -556,7 +551,7 @@ class ReconciliationServiceImplTest :
     }
     test("executeSettlementReconciliation marks failed on exception") {
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
-      every { weChatApi.fetchSettlements(any()) } throws RuntimeException("boom")
+      every { billGateway.downloadFundFlowBill(any()) } throws RuntimeException("boom")
 
       val future = service.executeSettlementReconciliation(task)
 

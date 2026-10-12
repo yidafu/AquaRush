@@ -39,7 +39,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ canExecute, onManualExecute }) 
     </h1>
     <div {...stylex.props(styles.subtitleRow)}>
       <div {...stylex.props(styles.subtitleText)}>
-        每日凌晨自动对账（支付 02:00 / 退款 02:05）｜ 以微信官方 T-1 账单为基准逐笔比对 ｜ 差异人工处置留痕（R-PAY-04）
+        每日上午自动对账（支付 10:30 / 退款 10:40,微信账单 T+1 10 点后可取）｜ 以微信官方 T-1 账单为基准逐笔比对 ｜ 差异人工处置留痕（R-PAY-04）
       </div>
       {canExecute && (
         <Button

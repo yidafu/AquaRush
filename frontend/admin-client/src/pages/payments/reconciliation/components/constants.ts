@@ -18,7 +18,7 @@ export const TASK_TYPE_MAP: Record<ReconciliationTaskType, { text: string; color
 
 /** 触发方式文案(F-ORD-031 详情「触发方式」) */
 export const TRIGGER_TYPE_TEXT: Record<string, string> = {
-  SCHEDULED: '每日调度(02:00/02:05)',
+  SCHEDULED: '每日调度(10:30/10:40)',
   MANUAL: '管理员手动',
 };
 

@@ -39,9 +39,11 @@ class ReconciliationScheduler(
   private val logger = LoggerFactory.getLogger(ReconciliationScheduler::class.java)
 
   /**
-   * 每日凌晨2点执行支付对账
+   * 每日上午10:30执行支付对账(T-1)。
+   * 官方约束:账单 T+1 09:00 开始生成、建议 10:00 后获取 —— 凌晨调度必然拿到
+   * STATEMENT_CREATING/NO_STATEMENT_EXIST,故安排在 10:30(下载账单-常见问题)。
    */
-  @Scheduled(cron = "0 0 2 * * ?")
+  @Scheduled(cron = "0 30 10 * * ?")
   fun executeDailyPaymentReconciliation() {
     logger.info("开始执行每日支付对账任务")
 
@@ -79,9 +81,9 @@ class ReconciliationScheduler(
   }
 
   /**
-   * 每日凌晨2点执行退款对账
+   * 每日上午10:40执行退款对账(T-1;账单生成约束同支付对账,错峰10分钟避免并发任务互斥)
    */
-  @Scheduled(cron = "0 5 2 * * ?") // 延迟5分钟执行
+  @Scheduled(cron = "0 40 10 * * ?")
   fun executeDailyRefundReconciliation() {
     logger.info("开始执行每日退款对账任务")
 
@@ -119,9 +121,9 @@ class ReconciliationScheduler(
   }
 
   /**
-   * 每日凌晨3点执行结算对账（延迟更长时间）
+   * 每日上午10:50执行资金入账对账(T-2;资金账单同为 T+1 生成,T-2 留足记账缓冲)
    */
-  @Scheduled(cron = "0 10 2 * * ?") // 延迟10分钟执行
+  @Scheduled(cron = "0 50 10 * * ?")
   fun executeDailySettlementReconciliation() {
     logger.info("开始执行每日结算对账任务")
 

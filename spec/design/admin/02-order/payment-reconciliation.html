@@ -66,7 +66,7 @@
                 <div class="page-title">
                   <div>
                     <h2>微信支付对账</h2>
-                    <div class="desc">每日凌晨自动对账（支付 02:00 / 退款 02:05）｜ 以微信官方 T-1 账单为基准逐笔比对 ｜ 差异人工处置留痕（R-PAY-04）</div>
+                    <div class="desc">每日上午自动对账（支付 10:30 / 退款 10:40）｜ 以微信官方 T-1 账单为基准逐笔比对 ｜ 差异人工处置留痕（R-PAY-04）</div>
                   </div>
                   <div class="row gap2">
                     <span class="btn sm ghost">手动对账</span>
@@ -107,7 +107,7 @@
                         <td class="num">¥3,286.00</td>
                         <td class="num">¥3,286.00</td>
                         <td class="num t-ok bold">0</td>
-                        <td class="num">10-11 02:00:12</td>
+                        <td class="num">10-11 10:30:12</td>
                         <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
                       </tr>
                       <tr>
@@ -118,7 +118,7 @@
                         <td class="num">¥86.00</td>
                         <td class="num">¥74.00</td>
                         <td class="num t-err bold">1</td>
-                        <td class="num">10-11 02:05:08</td>
+                        <td class="num">10-11 10:40:08</td>
                         <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
                       </tr>
                       <tr>
@@ -129,7 +129,7 @@
                         <td class="num">¥3,860.00</td>
                         <td class="num">¥3,848.00</td>
                         <td class="num t-err bold">2</td>
-                        <td class="num">10-10 02:00:09</td>
+                        <td class="num">10-10 10:30:09</td>
                         <td><div class="ops"><a>详情</a><a>重跑</a></div></td>
                       </tr>
                       <tr>
@@ -140,7 +140,7 @@
                         <td class="num">—</td>
                         <td class="num">—</td>
                         <td class="num">—</td>
-                        <td class="num">10-10 02:05:03</td>
+                        <td class="num">10-10 10:40:03</td>
                         <td><div class="ops"><a class="danger">重跑</a></div></td>
                       </tr>
                       <tr>
@@ -151,7 +151,7 @@
                         <td class="num">¥3,522.00</td>
                         <td class="num">¥3,522.00</td>
                         <td class="num t-ok bold">0</td>
-                        <td class="num">10-09 02:00:11</td>
+                        <td class="num">10-09 10:30:11</td>
                         <td><div class="ops"><a>详情</a></div></td>
                       </tr>
                     </tbody>
@@ -236,8 +236,8 @@
                 <div class="desc-grid two">
                   <div class="desc-item"><div class="k">账单日 / 类型</div><div class="v num">2026-10-09 · 支付账单</div></div>
                   <div class="desc-item"><div class="k">任务状态</div><div class="v"><span class="tag tag-ok">成功</span><span class="f-note t-weak" style="margin-left:6px">差异数 &gt; 0 仍为成功</span></div></div>
-                  <div class="desc-item"><div class="k">执行时间</div><div class="v num">2026-10-10 02:00:09</div></div>
-                  <div class="desc-item"><div class="k">触发方式</div><div class="v">每日调度（02:00）</div></div>
+                  <div class="desc-item"><div class="k">执行时间</div><div class="v num">2026-10-10 10:30:09</div></div>
+                  <div class="desc-item"><div class="k">触发方式</div><div class="v">每日调度（10:30）</div></div>
                 </div>
 
                 <div class="section-title" style="font-size:15px">三方校验汇总</div>
@@ -361,7 +361,7 @@
       <div class="note-card">
         <h3>关键交互</h3>
         <ol>
-          <li>每日凌晨调度自动执行支付对账（02:00）与退款对账（02:05），任务列表呈现结果</li>
+          <li>每日上午调度自动执行支付对账（10:30）与退款对账（10:40），任务列表呈现结果</li>
           <li>点任务行「详情」→ 下钻报表汇总与差异明细（三方校验）</li>
           <li>差异逐条处置：解决 = 已核实无资金损失或已修复；忽略 = 确认为跨日边界等可解释差异；<strong>均须备注</strong>（「请填写处理说明」）</li>
           <li>「重跑」同账单日任务 → 确认「重跑将重算该日对账结果，已处理的差异记录保留，确认继续？」→ 幂等重算（已处置差异保留留痕，未处置差异重算）</li>

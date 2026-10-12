@@ -55,8 +55,6 @@ dependencies {
   implementation(libs.commons.lang3)
   implementation(libs.commons.collections4)
   implementation("com.github.javafaker:javafaker:1.0.2")
-  implementation(libs.spring.retry)
-  implementation(libs.resilience4j.spring.boot3)
 
   // ========================================================
   // 测试依赖

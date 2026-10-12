@@ -10,15 +10,15 @@
 | # | 正文设计 | 实际实现 | 决策理由 |
 | --- | --- | --- | --- |
 | 1 | §3 V350 三表(bill_date UK、download_url_hash、三方汇总列) | 复用既有 reconciliation_tasks/_discrepancies/_reports(task_id 任务号、total/matched/unmatched);V347 增列 trigger_type/executed_by/wechat_total_*/local_total_* + SKIPPED/IGNORED 状态值域 | 表已随 V100 建成并有数据形态;UK(bill_type,bill_date) 不加(存量可重复,幂等靠 hasRunningTask 守卫 + 手动重跑);download_url_hash 不适用(网关无哈希校验概念) |
-| 2 | §4 wechatpay-java SDK 网关(aqua-trade `WechatBillGateway`,AES-GCM 哈希校验) | aqua-analytics `WeChatReconciliationApi`(restTemplate 直连 + 手写签名,V2 形态) | **高风险大改不做**:换 SDK 涉及凭据链路与全部网关测试重写;真实商户凭据下的账单格式联调验证列为遗留事项(差异告警/资金账单同批) |
+| 2 | §4 wechatpay-java SDK 网关(aqua-trade `WechatBillGateway`,哈希校验) | **已落地(2026-10-12 对账接口核对整改)**:aqua-trade `SdkWechatBillGateway`(wechatpay-java `BillDownloadServiceExtension`:申请→下载→SHA1 校验→CSV 解析)+ analytics 侧直接消费网关 DTO;原 restTemplate 直连/手写签名(V2 形态)与 CSV 按下标解析全部删除 | 2026-10-12 核对确认原实现端点/签名/列解析均不符合官方 APIv3(详见 spec/changelog 审查报告);真实商户凭据下的账单格式联调验证仍为遗留事项 |
 | 3 | §5 本地基准专用 Ledger API + 游标分页 | foundation `PaymentQueryService.getPaidByDateRange` 分页(paid_at 窗口 + SUCCESS/REFUNDING/REFUNDED 过滤),服务端逐页拉取 | 语义等价(规则 10 分页达标);挂在既有 PaymentQueryService 上,不新增接口面 |
 | 4 | §6 匹配键 out_trade_no + 四类差异枚举 | 匹配键 transactionId(微信支付单号,回调落库);差异枚举 MISSING/MISMATCH/EXTRA × SourceSystem(INTERNAL/WECHAT) | PaymentModel 无 orderNo 冗余;四类语义完整覆盖(短款=MISSING+WECHAT、长款=MISSING+INTERNAL、金额=MISMATCH;状态不一致语义由退款账单短款承载) |
-| 5 | §6-2 SKIPPED(未配置商户参数) | 已实现(ReconciliationConfig.weChatConfigured,任务置 SKIPPED + 原因) | 对齐 |
+| 5 | §6-2 SKIPPED(未配置商户参数) | 已实现(`WechatBillGateway.isConfigured` = wechat.pay.* 四凭据非空,任务置 SKIPPED + 原因;原 aqua.reconciliation.weChat* V2 时代门槛配置已删除) | 对齐:门槛与真实凭据源(wechat.pay.*)统一 |
 | 6 | §6/PRD 差异数>0 任务仍为成功 | 已实现(completeTask 恒 SUCCESS;FAILED 仅执行异常) | 修正原实现「有差异即 FAILED」与 PRD 冲突点 |
 | 7 | §7 报表 30 天/已处置差异 180 天清理 | 已实现(03:30 调度,softDelete 分批;UNRESOLVED 永不清理) | 对齐 |
 | 8 | §8.1 resolveDiscrepancy 带 action(RESOLVE/IGNORE) | 已实现(input.action + IGNORED 状态) | 对齐 |
 | 9 | §10 不新增 outbox 事件;差异告警通知为后续增强(§13-7) | 维持:任务事件(RECONCILIATION_COMPLETED/FAILED/SKIPPED)已发;通知触达不做(receiverType 仅 USER/WORKER,管理员触达需扩通知接收人模型,非低成本) | 与 §13-7 建议默认值一致 |
-| 10 | §7 调度 2:00/2:05/3:30(SETTLEMENT 预留) | 多实现 2:10 SETTLEMENT 调度(走 fundflowbill 形态直连) | 保守保留既有能力,不回退;资金账单(手续费/净额)精确对账仍为后续增强 |
+| 10 | §7 调度(SETTLEMENT 预留) | 实现 10:50 SETTLEMENT 调度(走官方 APIv3 `GET /v3/bill/fundflowbill`,经 WechatBillGateway 过滤「交易类收入」行与支付比对) | 保留既有能力不回退;调度时间按官方约束改为 T+1 10 点后(原 02:xx 凌晨调度必然拿到 STATEMENT_CREATING);资金账单手续费/净额精确对账仍为后续增强 |
 
 ## 文档导航
 
@@ -61,7 +61,7 @@
 
 ### 1.3 非范围(【开放决策】→ 见 §13)
 
-- **资金账单**(`fundflowbill`,手续费/净额对账):不做,后续增强——手续费不影响「单边账/金额一致」的资损判定;
+- **资金账单**(`fundflowbill`)精确对账(手续费/净额逐笔):不做,后续增强——手续费不影响「单边账/金额一致」的资损判定;既有 SETTLEMENT 任务保留但**改走官方 APIv3 `GET /v3/bill/fundflowbill`**、仅取「交易类收入」行与支付比对(差距表 #10,2026-10-12);
 - **结算账单**(SETTLEMENT):任务类型**预留枚举不实现**(wechatpay-java 无对应服务,商户平台侧导出,形态不同);
 - **差异自动修复**(自动补单/自动改支付状态):不做,一律人工处置留痕——自动修复的误判成本高于人工处置成本,资金操作不允许程序化兜底改状态;
 - 退款结果**主动查询**通道(`queryRefund` 轮询):列为 R-PAY-04 后续增强,本期以退款账单对账为兜底。
@@ -71,7 +71,7 @@
 ```
 aqua-admin(调度宿主,§21 约定:调度全部部署于 aqua-admin)
   └─ WeChatReconciliationScheduler(aqua-analytics/reconciliation)
-       │ 02:00 支付对账(T-1) / 02:05 退款对账(T-1) / 03:30 报表清理
+       │ 10:30 支付对账(T-1) / 10:40 退款对账(T-1) / 10:50 资金入账对账(T-2) / 03:30 报表清理
        ▼
   ReconciliationService(aqua-analytics/reconciliation)
        │ ① 取微信账单行                ② 取本地账实行              ③ 匹配 + 汇总校验
@@ -162,28 +162,33 @@ frontend/admin-client:「支付管理-支付对账」页(payment-reconciliation)
 
 ```
 interface WechatBillGateway {
-  /** 交易账单(ALL):返回逐笔明细行 + 汇总行;哈希校验失败抛异常。 */
-  fun downloadTradeBill(billDate: LocalDate): WechatTradeBill
-  /** 退款账单(REFUND)。 */
-  fun downloadRefundBill(billDate: LocalDate): WechatRefundBill
-  /** 商户参数是否已配置(复用 SdkWechatPayGateway.isConfigured 口径)。未配置时上层置 SKIPPED。 */
+  /** 申请并下载交易账单(V3 `GET /v3/bill/tradebill`,billType=ALL/SUCCESS/REFUND):
+   *  返回逐笔明细行 + 汇总行;SHA1 哈希校验失败、汇总与逐笔不一致均抛异常。 */
+  fun downloadTradeBill(billDate: LocalDate, billType: WechatBillType = WechatBillType.ALL): WechatTradeBill
+  /** 申请并下载资金账单(V3 `GET /v3/bill/fundflowbill`,基本账户,含收入与支出全部流水)。 */
+  fun downloadFundFlowBill(billDate: LocalDate): WechatFundFlowBill
+  /** 商户参数是否已配置(wechat.pay.* 四凭据非空,与 SdkWechatPayGateway 同源)。未配置时上层置 SKIPPED。 */
   val isConfigured: Boolean
 }
 ```
 
-真实实现 `SdkWechatBillGateway`(wechatpay-java 0.2.17,与 `SdkWechatPayGateway` 共用 `Config`):
+真实实现 `SdkWechatBillGateway`(wechatpay-java 0.2.17 `BillDownloadServiceExtension`,凭据与 `SdkWechatPayGateway` 同源于 `wechat.pay.*`,独立惰性实例不牵连支付链路):
 
-- `BillDownloadServiceExtension(getTradeBill(GetTradeBillRequest().apply { billDate = "yyyy-MM-dd"; billType = ALL/REFUND; tarType = GZIP }))` → `DigestBillEntity`;
-- SDK 内置 **下载 URL 拉取 → GZIP 解压 → AES-256-GCM 解密(APIv3 密钥) → `DigestBillEntity(inputStream, hash)`**;`verifyHash()` 通过才开始解析,失败即抛(不解析未校验账单);
-- 明文 CSV 逐行流式读取(`BufferedReader`,账单量大时不整载)。
+- `getTradeBill(GetTradeBillRequest().apply { billDate = "yyyy-MM-dd"; billType = ALL/REFUND })` → `DigestBillEntity`(SDK 内置申请 → 下载 URL 拉取 → 解压 → `DigestBillEntity(inputStream, hash)`);
+- **先完整读取流(`DigestInputStream` 边读边累积摘要)→ `verifyHash()` 校验 SHA1 → 通过才解析**,失败即抛(不解析未校验账单);
+- 不设 `tar_type`:单日账单体量小,明文流直接 UTF-8 读取,规避 GZIP 与哈希口径歧义(官方默认即不压缩);
+- 错误语义(官方错误码):`NO_STATEMENT_EXIST` 当日无记录 → 空账单(合法状态);`STATEMENT_CREATING` → 抛异常(调度已排在次日 10 点后);其余(SIGN_ERROR/PARAM_ERROR/FREQUENCY_LIMITED/SYSTEM_ERROR)→ 抛异常置任务 FAILED,**不自动重试**(§7)。
 
 ### 4.2 CSV 解析规则
 
-- 结构:头部 1~2 行说明(「微信支付账单明细,…」)+ 列头行 + 数据行 + 尾部**汇总行**(「总交易单数,应结订单总金额,退款总金额,…" + 数值行);
-- **列定位按列头行名称映射,不按固定下标**(微信侧列变更容错);引号包裹字段(商品名可能含逗号)按 CSV 规则解析;
-- 交易账单用到的列:`商户订单号`、`微信订单号`、`交易状态`(SUCCESS/REFUND/REVOKED/USERPAYING/PAYERROR)、`应结订单金额`、`退款金额`、`手续费`、`交易时间`;退款账单另用:`微信退款单号`、`商户退款单号`、`退款金额`、`退款状态`(SUCCESS)、`退款成功时间`;
-- **金额为「元两位小数」字符串 → 分**:仅接受 `\d+(\.\d{2})?`,先字符串去点再 `toLong`,**禁止 Double 中转**(R-MON-01);汇总行金额同规则解析,逐笔合计必须等于汇总行,不等 → 任务 FAILED(账单完整性可疑,宁可失败重跑不可带病入账);
-- 解析产物 DTO(`WechatTradeBillRow` 等)定义在 aqua-trade 网关层,不进 foundation。
+- 结构:可选说明行 + **列头行**(以首列「交易时间」/「记账时间」定位)+ 明细行 + 尾部**汇总表头行**(「总交易单数」/「资金流水总笔数」)+ 汇总值行;每字段前缀 1 个反引号(`),按官方规则反斜杠转义(`\,`、`\\`、`\n` 等),解析时剥离并反转义;
+- **列定位按列头行名称映射,不按固定下标**(微信侧列增减/顺序变化容错;ALL/SUCCESS/REFUND 三种列集通用);
+- 交易账单用到的列:`商户订单号`、`微信订单号`、`交易状态`、`应结订单金额`(对账比对基准,§6)、`订单金额`、`退款金额`、`手续费`、`交易时间`、`商品名称` 等;退款账单另用:`微信退款单号`、`商户退款单号`、`退款状态`、`退款成功时间`、`退款申请时间`;资金账单用:`记账时间`、`微信支付业务单号`、`资金流水单号`、`业务名称`、`业务类型`、`收支类型`、`收支金额(元)`、`业务凭证号`;
+- **隐私最小化**:官方「用户标识」(OpenID)列不解析、不落库(§9);
+- **金额为「元」字符串 → 分**:严格校验格式后字符串运算(拆整数/小数部分,小数补足 2 位),**禁止 Double 中转**(R-MON-01);手续费可为负(退款行);
+- 汇总交叉校验:逐笔合计(笔数/应结订单总金额/订单总金额/退款总金额/手续费总金额;资金账单为收支笔数与金额)必须等于汇总行,不等 → 抛异常置任务 FAILED(账单完整性可疑,宁可失败重跑不可带病入账);时间格式非法、必填列缺失同样直接失败,不回退当前时间、不静默跳行;
+- 解析产物 DTO(`WechatTradeBillRow`/`WechatFundFlowRow` 等)定义在 aqua-trade 网关层,不进 foundation;
+- 消费方过滤(ReconciliationService 取数时):支付比对取 `交易状态=SUCCESS` 行(ALL 同时含退款单行,防 transactionId 碰撞;REVOKED/USERPAYING/PAYERROR 按 §6 不参与比对);资金入账比对取 `业务名称=交易 且 业务类型=交易 且 收入` 行(排除手续费支出/退款支出/提现)。
 
 ## 5. 本地账实基准数据(aqua-foundation 只读 API)
 
@@ -253,12 +258,15 @@ fun pageCompletedByBillDate(billDate: LocalDate, cursor: Long, size: Int): List<
 
 ```
 @Component @AdminService(部署于 aqua-admin;组件在 aqua-analytics/reconciliation)
-@Scheduled(cron = "0 0 2 * * ?")   fun reconcilePayment()  = service.executeReconciliation(PAYMENT,  LocalDate.now().minusDays(1), executedBy = null)
-@Scheduled(cron = "0 5 2 * * ?")   fun reconcileRefund()   = service.executeReconciliation(REFUND,  LocalDate.now().minusDays(1), executedBy = null)
-@Scheduled(cron = "0 30 3 * * ?")  fun cleanupExpired()    = service.cleanup(报表 30 天 / 已处置差异 180 天,游标分批)
+@Scheduled(cron = "0 30 10 * * ?")  fun reconcilePayment()  = // T-1 支付对账
+@Scheduled(cron = "0 40 10 * * ?")  fun reconcileRefund()   = // T-1 退款对账
+@Scheduled(cron = "0 50 10 * * ?")  fun reconcileSettlement() = // T-2 资金入账对账
+@Scheduled(cron = "0 30 3 * * ?")   fun cleanupExpired()    = service.cleanup(报表 30 天 / 已处置差异 180 天,游标分批)
 ```
 
-- **防并发三层**:UK(bill_type, bill_date) 兜底 → `status='RUNNING'` 行存在即跳过(hasRunningTask)→ 任务认领走 `version` CAS(与 `payments.version` 同款乐观锁惯例);02:00/02:05 错峰 + 手动触发与调度互斥同一守卫;
+> **调度时间约束(官方接口)**:账单 T+1 09:00 开始生成、**建议 10:00 后获取**;原 02:xx 凌晨调度必然拿到 `STATEMENT_CREATING`/`NO_STATEMENT_EXIST`,故三类对账排在 10:30~10:50 错峰(下载账单-常见问题)。
+
+- **防并发三层**:UK(bill_type, bill_date) 兜底 → `status='RUNNING'` 行存在即跳过(hasRunningTask)→ 任务认领走 `version` CAS(与 `payments.version` 同款乐观锁惯例);10:30/10:40/10:50 错峰 + 手动触发与调度互斥同一守卫;
 - 失败处理:任务置 FAILED + `error_message`,**不自动重试**(次日账单日推进自然重跑;当日可手动重跑);调度异常记 ERROR 业务日志(§10)不中断后续调度;
 - 手动触发:`executeReconciliation` mutation 同入口,`billDate` 校验窗口 [T-1, T-30],`executed_by` 记操作人。
 

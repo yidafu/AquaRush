@@ -25,7 +25,6 @@ import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationDiscrepancyRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationReportRepository
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationTaskRepository
-import dev.yidafu.aqua.analytics.reconciliation.external.wechat.WeChatReconciliationApi
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
@@ -35,6 +34,12 @@ import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.payment.service.WechatBillGateway
+import dev.yidafu.aqua.payment.service.WechatBillType
+import dev.yidafu.aqua.payment.service.WechatFundFlowBill
+import dev.yidafu.aqua.payment.service.WechatFundFlowSummary
+import dev.yidafu.aqua.payment.service.WechatTradeBill
+import dev.yidafu.aqua.payment.service.WechatTradeBillSummary
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -71,10 +76,7 @@ import java.time.LocalDate
 @TestPropertySource(
   properties = [
     "spring.graphql.schema.locations=classpath:graphql/reconciliation/",
-    // R-PAY-04 SKIPPED 分支门槛:未配置商户参数时任务置 SKIPPED;本集成测试需走完整执行链路
-    "aqua.reconciliation.weChatAppId=wx-test-app",
-    "aqua.reconciliation.weChatMchId=mch-test",
-    "aqua.reconciliation.weChatApiKey=test-api-key",
+    // R-PAY-04 SKIPPED 分支门槛由 WechatBillGateway.isConfigured 决定(wechat.pay.*),本测试经 @MockkBean stub
   ],
 )
 @ApplyExtension(SpringExtension::class)
@@ -85,7 +87,7 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
   private val reportRepository: ReconciliationReportRepository,
 ) : FunSpec() {
   @MockkBean
-  private lateinit var weChatReconciliationApi: WeChatReconciliationApi
+  private lateinit var billGateway: WechatBillGateway
 
   @MockkBean
   private lateinit var eventPublishService: SimplifiedEventPublishService
@@ -137,10 +139,12 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
           .webAppContextSetup(context)
           .apply<DefaultMockMvcBuilder>(springSecurity())
           .build()
-      // 微信账单默认返回空(测试环境无真实商户数据)
-      every { weChatReconciliationApi.fetchTransactions(any()) } returns emptyList()
-      every { weChatReconciliationApi.fetchRefunds(any()) } returns emptyList()
-      every { weChatReconciliationApi.fetchSettlements(any()) } returns emptyList()
+      // 已配置商户参数(否则任务置 SKIPPED);微信账单默认返回空(测试环境无真实商户数据)
+      every { billGateway.isConfigured } returns true
+      every { billGateway.downloadTradeBill(any(), any()) } returns
+        WechatTradeBill(LocalDate.of(2025, 6, 1), WechatBillType.ALL, emptyList(), WechatTradeBillSummary(0, emptyMap()))
+      every { billGateway.downloadFundFlowBill(any()) } returns
+        WechatFundFlowBill(LocalDate.of(2025, 6, 1), emptyList(), WechatFundFlowSummary(0, 0, 0, 0, 0))
       // 异步对账流程会发布领域事件(RECONCILIATION_STARTED/COMPLETED/FAILED),mock 需有默认返回值
       every { eventPublishService.publishDomainEvent(any(), any(), any()) } returns true
       every { adminService.findByUsername(any()) } returns
