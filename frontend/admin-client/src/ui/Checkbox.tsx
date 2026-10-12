@@ -128,13 +128,16 @@ const CheckboxImpl: FC<CheckboxProps> = ({
       ? checked
       : innerChecked;
 
-  const handleChange = (next: boolean) => {
+  // radix 1.4 起 onCheckedChange 回调为 CheckedState(boolean | 'indeterminate');
+  // 本组件从不设置 indeterminate,收到时按未选中处理(兼容 1.3 的 boolean 签名)
+  const handleChange = (next: boolean | 'indeterminate') => {
+    const checkedNext = next === 'indeterminate' ? false : next;
     if (isGroupMember) {
-      group.toggle(value, next);
+      group.toggle(value, checkedNext);
       return;
     }
-    if (checked === undefined) setInnerChecked(next);
-    onChange?.({ target: { checked: next, value } });
+    if (checked === undefined) setInnerChecked(checkedNext);
+    onChange?.({ target: { checked: checkedNext, value } });
   };
 
   return (
