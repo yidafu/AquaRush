@@ -13,6 +13,7 @@ import OrderService from '../../services/OrderService'
 import ConfigService from '../../services/ConfigService'
 import { userActionTracker } from '../../utils/tracking'
 import { DEFAULT_DELIVERY_SLOTS } from '../../utils/deliverySlots'
+import { classifyPaymentReturn } from '../../utils/paymentResult'
 
 // 子组件
 import OrderStatusHeader from './components/OrderStatusHeader'
@@ -331,11 +332,29 @@ const OrderDetailPage: React.FC = () => {
         signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
         paySign: paymentParams.paySign as string
       })
-      showToastMessage('支付成功', 'success')
+      // 官方《支付回调和查单实现指引》§4.1:支付返回后调查单确认,不以前端返回直接判定成功
+      const status = await OrderService.getInstance().confirmOrderPayment(order.id)
+      if (status.success && status.data === 'SUCCESS') {
+        showToastMessage('支付成功', 'success')
+      } else {
+        showToastMessage('支付结果确认中，请稍后在订单详情查看', 'error')
+      }
       setTimeout(() => refresh(), 800)
     } catch (e) {
       console.error('微信支付未完成:', e)
-      showToastMessage('支付未完成，请重试', 'error')
+      if (classifyPaymentReturn(e) === 'cancel') {
+        // 用户取消:订单保持待支付,可再次发起(官方指引 §4.1)
+        showToastMessage('支付未完成，可在订单详情继续支付', 'error')
+        return
+      }
+      // 支付报错返回:仍需查单确认(可能实际已扣款成功)
+      const status = await OrderService.getInstance().confirmOrderPayment(order.id)
+      if (status.success && status.data === 'SUCCESS') {
+        showToastMessage('支付成功', 'success')
+        setTimeout(() => refresh(), 800)
+      } else {
+        showToastMessage('支付未完成，请重试', 'error')
+      }
     }
   }
 

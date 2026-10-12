@@ -200,6 +200,35 @@ class OrderService {
   }
 
   /**
+   * 支付结果查单确认(F-ORD-005,官方《支付回调和查单实现指引》§4.1 前端支付返回处理):
+   * requestPayment 返回(成功或报错)后必须调查单接口确认订单状态,不能以前端返回直接判定成功;
+   * 服务端调微信查单接口核实并同步本地订单状态,返回:
+   * - 'SUCCESS':已支付;
+   * - 'CLOSED':交易已关闭;
+   * - 'UNKNOWN':仍未支付或暂不可知(提示用户稍后在订单页核实,不要重复发起支付)。
+   */
+  public async confirmOrderPayment(orderId: string): Promise<ProductServiceResult<string>> {
+    const query = `
+      query OrderPaymentStatus($orderId: PrimaryId!) {
+        paymentStatus(orderId: $orderId)
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ paymentStatus: string }>(query, { orderId })
+      return {
+        success: true,
+        data: response.paymentStatus
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '查询支付结果失败')
+      }
+    }
+  }
+
+  /**
    * 订单详情(仅本人可见,F-ORD-003):支付结果回显与「去支付」依赖真实订单状态
    */
   public async getOrder(id: string): Promise<ProductServiceResult<OrderVo>> {

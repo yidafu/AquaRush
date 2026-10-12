@@ -20,6 +20,7 @@ import {
 } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { removeSelectedCartItems } from '../../utils/cart'
+import { classifyPaymentReturn } from '../../utils/paymentResult'
 import {
   DEFAULT_DELIVERY_SLOTS,
   enabledDeliverySlots,
@@ -446,10 +447,27 @@ const OrderConfirm: React.FC = () => {
         signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
         paySign: paymentParams.paySign as string
       })
-      Taro.showToast({ title: '支付成功', icon: 'success' })
+      // 官方《支付回调和查单实现指引》§4.1:支付返回后调查单确认,不以前端返回直接判定成功
+      const status = await OrderService.getInstance().confirmOrderPayment(orderId)
+      if (status.success && status.data === 'SUCCESS') {
+        Taro.showToast({ title: '支付成功', icon: 'success' })
+      } else {
+        Taro.showToast({ title: '支付结果确认中，请稍后在订单页查看', icon: 'none' })
+      }
     } catch (e) {
       console.error('微信支付未完成:', e)
-      Taro.showToast({ title: '支付未完成，可在订单详情继续支付', icon: 'none' })
+      if (classifyPaymentReturn(e) === 'cancel') {
+        // 用户取消:订单保持待支付,可再次发起(官方指引 §4.1)
+        Taro.showToast({ title: '支付未完成，可在订单详情继续支付', icon: 'none' })
+        return
+      }
+      // 支付报错返回:仍需查单确认(可能实际已扣款成功)
+      const status = await OrderService.getInstance().confirmOrderPayment(orderId)
+      if (status.success && status.data === 'SUCCESS') {
+        Taro.showToast({ title: '支付成功', icon: 'success' })
+      } else {
+        Taro.showToast({ title: '支付未完成，可稍后在订单页重试', icon: 'none' })
+      }
     }
   }, [])
 
