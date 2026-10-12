@@ -30,6 +30,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNotNull
@@ -146,6 +147,25 @@ class PaymentRepositoryImpl(
       }
     return PageImpl(content, pageable, total)
   }
+
+  override fun findPollableByStatusAfterId(
+    status: PaymentStatus,
+    expiredAt: LocalDateTime,
+    afterId: Long,
+    limit: Int,
+  ): List<PaymentModel> =
+    transaction(database) {
+      PaymentsTable
+        .selectAll()
+        .andWhere {
+          (PaymentsTable.status eq status.name) and
+            (PaymentsTable.expiredAt greater expiredAt) and
+            (PaymentsTable.id greater afterId)
+        }.orderBy(PaymentsTable.id to SortOrder.ASC)
+        .limit(limit.coerceAtLeast(1))
+        .toList()
+        .map(::toModel)
+    }
 
   override fun findByCreatedAtBetween(
     startDate: LocalDateTime,

@@ -211,6 +211,24 @@ class PaymentRepositoryImplTest :
       page1.hasNext() shouldBe false
     }
 
+    test("findPollableByStatusAfterId:过滤 + 严格大于边界 + id 游标 + limit + 软删不可见") {
+      val cursor = seedPayment(id = 910150L, status = PaymentStatus.PENDING, expiredAt = now.plusHours(1))
+      val b = seedPayment(id = 910151L, status = PaymentStatus.PENDING, expiredAt = now.plusHours(1))
+      val c = seedPayment(id = 910152L, status = PaymentStatus.PENDING, expiredAt = now.plusHours(2))
+      seedPayment(id = 910153L, status = PaymentStatus.PENDING, expiredAt = now) // 恰等于 now → 严格大于排除
+      seedPayment(id = 910154L, status = PaymentStatus.PENDING, expiredAt = now.minusHours(1)) // 已到期
+      seedPayment(id = 910155L, status = PaymentStatus.SUCCESS, expiredAt = now.plusHours(1)) // 非 PENDING
+      seedPayment(id = 910156L, status = PaymentStatus.PENDING, expiredAt = null) // 无到期时间不参与轮询
+      seedPayment(id = 910157L, status = PaymentStatus.PENDING, expiredAt = now.plusHours(1), isDeleted = true)
+
+      val result = repo.findPollableByStatusAfterId(PaymentStatus.PENDING, now, afterId = cursor, limit = 10)
+
+      result.map { it.id } shouldBe listOf(b, c)
+
+      // limit 截断(游标跨批推进的依据)
+      repo.findPollableByStatusAfterId(PaymentStatus.PENDING, now, afterId = cursor, limit = 1).map { it.id } shouldBe listOf(b)
+    }
+
     test("claimExpired 成功:PENDING 且已到期 → EXPIRED,version 不变,updatedAt = now") {
       val id = seedPayment(id = 910060L, status = PaymentStatus.PENDING, expiredAt = now.minusMinutes(1))
 

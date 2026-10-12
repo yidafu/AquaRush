@@ -48,6 +48,19 @@ interface PaymentRepository {
   ): Page<PaymentModel>
 
   /**
+   * 查单轮询兜底游标查询(回调缺失兜底,官方《支付回调和查单实现指引》§5.2 定时轮询查单):
+   * status 列等于入参 [status]、expired_at > 入参 [expiredAt](严格大于,即尚未到期)且 id > [afterId],
+   * 按 id 升序返回至多 [limit] 行——keyset 游标而非 offset 分页,轮询处理中结果集持续变动
+   * (命中支付的行离开集合)也不会跨页跳行;禁全表(AGENTS.md 规则 10)。
+   */
+  fun findPollableByStatusAfterId(
+    status: PaymentStatus,
+    expiredAt: LocalDateTime,
+    afterId: Long,
+    limit: Int,
+  ): List<PaymentModel>
+
+  /**
    * 创建时间闭区间查询:created_at >= startDate AND created_at <= endDate
    * (同原 PaymentSpecifications.createdAtBetween,两端闭区间),结果无排序。
    */
