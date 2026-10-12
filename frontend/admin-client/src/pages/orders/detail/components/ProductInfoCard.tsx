@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Image, Typography, Space, List, Tag } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import { Card, Image, Typography, Space, List, Tag } from '@/ui';
+import { ShoppingCartOutlined } from '@/ui/icons';
 import { useOrderDetail } from '../OrderDetailContext';
 import { displayCents } from '@aquarush/common';
 import * as stylex from '@stylexjs/stylex';
@@ -74,43 +74,41 @@ const ProductInfoCard: React.FC = () => {
         <List
           dataSource={items}
           renderItem={(item) => (
-            <List.Item>
-              <div {...stylex.props(styles.itemRow)}>
-                {item.product?.coverImageUrl ? (
-                  <Image
-                    src={item.product.coverImageUrl}
-                    alt={item.product.name}
-                    width={64}
-                    height={64}
-                    {...stylex.props(styles.cover)}
-                  />
-                ) : (
-                  <div {...stylex.props(styles.placeholder)}>
-                    <ShoppingCartOutlined {...stylex.props(styles.placeholderIcon)} />
-                  </div>
-                )}
-                <div {...stylex.props(styles.main)}>
-                  <Space>
-                    <Text strong>{item.product?.name || '商品'}</Text>
-                    {item.product?.specification && (
-                      <Tag>{item.product.specification}</Tag>
-                    )}
-                  </Space>
-                  <div>
-                    <Text type="secondary">商品ID: {item.productId}</Text>
-                  </div>
+            <div {...stylex.props(styles.itemRow)}>
+              {item.product?.coverImageUrl ? (
+                <Image
+                  src={item.product.coverImageUrl}
+                  alt={item.product.name}
+                  width={64}
+                  height={64}
+                  {...stylex.props(styles.cover)}
+                />
+              ) : (
+                <div {...stylex.props(styles.placeholder)}>
+                  <ShoppingCartOutlined {...stylex.props(styles.placeholderIcon)} />
                 </div>
-                <div {...stylex.props(styles.priceCol)}>
-                  <div>
-                    <Text strong {...stylex.props(styles.price)}>
-                      {displayCents(Number(item.unitPriceCents) || 0)}
-                    </Text>
-                    <Text type="secondary"> × {item.quantity}</Text>
-                  </div>
-                  <Text type="secondary">小计 {displayCents(Number(item.totalPriceCents) || 0)}</Text>
+              )}
+              <div {...stylex.props(styles.main)}>
+                <Space>
+                  <Text strong>{item.product?.name || '商品'}</Text>
+                  {item.product?.specification && (
+                    <Tag>{item.product.specification}</Tag>
+                  )}
+                </Space>
+                <div>
+                  <Text type="secondary">商品ID: {item.productId}</Text>
                 </div>
               </div>
-            </List.Item>
+              <div {...stylex.props(styles.priceCol)}>
+                <div>
+                  <Text strong {...stylex.props(styles.price)}>
+                    {displayCents(Number(item.unitPriceCents) || 0)}
+                  </Text>
+                  <Text type="secondary"> × {item.quantity}</Text>
+                </div>
+                <Text type="secondary">小计 {displayCents(Number(item.totalPriceCents) || 0)}</Text>
+              </div>
+            </div>
           )}
         />
       )}

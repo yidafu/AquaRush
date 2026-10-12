@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Cascader, Spin } from 'antd';
+import { Cascader, Spin } from '@/ui';
+import type { CascaderOption } from '@/ui';
 import { useApolloClient } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
@@ -39,6 +40,8 @@ interface RegionOption {
   children?: RegionOption[];
   isLeaf?: boolean;
   loading?: boolean;
+  /** 与 @/ui CascaderOption 的索引签名对齐,便于互相断言/赋值 */
+  [key: string]: unknown;
 }
 
 const toOption = (region: Region): RegionOption => ({
@@ -134,9 +137,11 @@ export const RegionCascader: React.FC<RegionCascaderProps> = ({
   }, [value?.provinceCode, value?.cityCode, value?.districtCode, options, fetchChildren]);
 
   // Handle region selection change
+  // (@/ui Cascader onChange 第二参为 CascaderOption[],运行时即本组件的 RegionOption,收窄后使用)
   const handleChange = useCallback(
-    (_selectedValues: string[], selectedOptions: RegionOption[]) => {
-      if (!selectedOptions || selectedOptions.length === 0) {
+    (_selectedValues: string[], selectedOptions: CascaderOption[]) => {
+      const regionOptions = selectedOptions as RegionOption[];
+      if (!regionOptions || regionOptions.length === 0) {
         onChange?.({
           province: '',
           city: '',
@@ -148,9 +153,9 @@ export const RegionCascader: React.FC<RegionCascaderProps> = ({
         return;
       }
 
-      const lastOption = selectedOptions[selectedOptions.length - 1];
-      const provinceOption = selectedOptions[0];
-      const cityOption = selectedOptions[1];
+      const lastOption = regionOptions[regionOptions.length - 1];
+      const provinceOption = regionOptions[0];
+      const cityOption = regionOptions[1];
 
       onChange?.({
         province: provinceOption?.label || '',

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Col, Spin, Space, Button, Select, Slider, Typography } from 'antd';
-import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Card, Col, Spin, Space, Button, Select, Slider, Typography } from '@/ui';
+import { PauseCircleOutlined, PlayCircleOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({
@@ -58,7 +58,7 @@ const ReplayControlsCard: React.FC<ReplayControlsCardProps> = ({
                 size="small"
                 {...stylex.props(styles.speedSelect)}
                 value={replaySpeed}
-                onChange={onSpeedChange}
+                onChange={(value: unknown) => onSpeedChange(value as number)}
                 options={[
                   { value: 1, label: '1x 慢速' },
                   { value: 2, label: '2x 标准' },

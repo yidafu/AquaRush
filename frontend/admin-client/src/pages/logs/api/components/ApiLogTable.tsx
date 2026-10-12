@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from 'antd';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
+import { Table, Tag, Button } from '@/ui';
+import type { ColumnsType, TablePaginationConfig } from '@/ui';
 import type { ApiLogItem } from '../../../../services/logs';
 
 const getStatusColor = (status?: number) => {

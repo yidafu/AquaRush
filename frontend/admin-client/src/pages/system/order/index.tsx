@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, InputNumber, Switch, TimePicker, Button, Alert, Space, Divider, Modal, Typography, message } from 'antd';
+import { Card, Form, InputNumber, Switch, TimePicker, Button, Alert, Space, Divider, Modal, Typography, message } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';

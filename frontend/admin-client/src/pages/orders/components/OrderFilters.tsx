@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col, Input, Select, DatePicker } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Row, Col, Input, Select, DatePicker } from '@/ui';
+import { SearchOutlined } from '@/ui/icons';
 import { ORDER_STATUS_TEXT } from '@aquarush/common';
 import type { OrderStatus } from '@aquarush/common';
 import FilterCard from '@/components/FilterCard';
@@ -77,9 +77,10 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
     setFilters({ ...localFilters, search: e.target.value });
   };
 
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = (status: string | string[] | undefined) => {
+    const value = typeof status === 'string' ? status : undefined;
     setFilters(
-      { ...localFilters, status: status === 'ALL' ? undefined : status },
+      { ...localFilters, status: value === 'ALL' ? undefined : value },
       { immediate: true },
     );
   };

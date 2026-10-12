@@ -1,6 +1,6 @@
 import React from 'react';
-import { Modal } from 'antd';
-import type { ModalProps } from 'antd';
+import { Modal } from '@/ui';
+import type { ModalProps } from '@/ui';
 
 export interface FormModalProps {
   open: boolean;

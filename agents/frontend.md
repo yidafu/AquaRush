@@ -43,6 +43,12 @@ A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-clie
 - Real-time order management and analytics
 - Domains surfaced as menu groups: 运营配置 (`/ops/*` — banners, notices, feedback, store profile, delivery fee rule), 营销管理 (`/marketing/*` — customer groups, group prices, coupons, promotions, water tickets, flash sale, buy-gift, newcomer), 系统设置 (`/system-config/*` — parameters, order/fulfillment params, stock thresholds), 日志管理 (`/logs/*` — API logs, user actions, business logs)
 
+### 前端架构约束（ArchUnitTS）
+
+- admin-client 用 [`archunit`](https://github.com/LukasNiessen/ArchUnitTS)（npm `archunit`）写架构测试：`frontend/admin-client/src/architecture.test.ts`，随 `pnpm --filter admin-client test` 一起跑，无需单独命令。
+- 行数硬约束（物理行数，wc -l 语义）：`src/components/**` 与 `src/pages/**` 下的 `.tsx` **≤ 300 行**，无豁免——超标就拆子组件到同目录新文件；`src/ui/**`（Radix 封装组件库）单独 **≤ 1200 行**。
+- 改动组件后如行数逼近上限，先拆再提交；收紧阈值或新增规则（分层依赖、无环等）都改 `src/architecture.test.ts`。
+
 ## 声明式埋点（用户操作上报）
 
 三端（weapp / 浏览器 / RN）统一走同一套声明式埋点：业务 JSX 只写 `track-*` props，由 `babel-plugin-aquarush-track`（仓库根目录 workspace 包）在编译期改写成 `@aquarush/common/tracking` 的 `<Track>` 包裹并自动注入 import。业务代码不 import、不调用任何上报函数。
@@ -314,7 +320,7 @@ const styles = stylex.create({
 // 页面根挂主题(weapp 无 :root,token 经页面根级联):
 //   <View {...stylex.props(pageTheme, styles.page)}>
 // admin(web)同构,单位用 px、无需 pageTheme。
-// 混入全局类(weui-* / antd 内部类)用类型放宽包装:
+// 混入全局类(weui-* 等历史全局类)用类型放宽包装:
 //   import { props } from '@aquarush/common/stylex'
 //   <View {...props('weui-cell', styles.cell)}>
 ```
@@ -323,7 +329,7 @@ const styles = stylex.create({
 
 - token 唯一来源:`@aquarush/common/theme/tokens.stylex`(禁止经
   `@aquarush/common/theme` barrel 导入 token —— stylex 插件无法跟随 re-export);
-  图表/antd color props 等需真实值的场景用 `@aquarush/common/theme` 的 `COLORS`。
+  图表等需真实值的场景用 `@aquarush/common/theme` 的 `COLORS`。
 - 禁止 CSS 简写:background/margin/padding/gap/flex/border/transition/font
   一律拆 longhand(StyleX 规则,违者编译报错);单值 `padding: '24px'` 也要拆四边。
 - 依赖 props/state 的动态值保留 `style={{ }}` 并注释;静态值全部进 stylex。
@@ -331,7 +337,7 @@ const styles = stylex.create({
   (运行时不转换内联 px)。admin 保持 px。新增尺寸优先 8 的倍数。
 - 块注释里禁止出现 `*/` 序列(如 `weui-*/at-*` 写成 `weui / at`;会提前
   终止注释导致 babel/tsc 报「Unterminated regular expression」)。
-- 颜色一律 token / `var(--weui-*)`(weapp 白名单) / `.ant-*` 保留(admin);
+- 颜色一律 token / `var(--weui-*)`(weapp 白名单);
   tokens 没有的颜色**保留字面量 + 注释并在完成报告列出**,不许自创 token。
 - weapp 页面根必须挂 pageTheme,多个顶层元素(fixed 弹层/遮罩)都要挂;
   BasePageLayout 页面用 `rootStyles={[pageTheme, styles.page]}`。
@@ -369,8 +375,7 @@ const styles = stylex.create({
   `styles/common.scss`(仅 `.safe-bottom`);`theme.scss` 已删除,
   设计 token 载体 = `@aquarush/common/theme/tokens.stylex` +
   weapp `src/styles/theme.stylex.ts`(pageTheme 覆盖 750 基准)。
-- admin `index.css` 仅保留:reset、body/#root、`.ant-*` 覆盖与后代选择器
-  (如 `.ant-table .num`);自研类(原 `.page-title`)已内联进组件 stylex。
+- admin `index.css` 仅保留:reset、body/#root;自研类(原 `.page-title`)已内联进组件 stylex。
 - tailwind 两端已移除(tailwind.config/postcss 插件/依赖);残留的
   tailwind 工具类是死类,发现即转 stylex。
 

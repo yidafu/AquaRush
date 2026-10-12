@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Avatar, Descriptions, Tag } from 'antd';
+import { Card, Row, Col, Avatar, Descriptions, Tag } from '@/ui';
 import {
   UserOutlined,
   PhoneOutlined,
@@ -7,7 +7,7 @@ import {
   DollarOutlined,
   MailOutlined,
   CalendarOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import type { UserVo, UserRole } from '@aquarush/common';
 import { UserRole as UserRoleEnum } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
@@ -46,7 +46,7 @@ const UserBasicInfoCard: React.FC<UserBasicInfoCardProps> = ({ user, lastOrderTi
         <Col span={4}>
           <Avatar
             size={120}
-            src={user.avatarUrl}
+            src={user.avatarUrl ?? undefined}
             icon={<UserOutlined />}
             {...stylex.props(styles.avatar)}
           />

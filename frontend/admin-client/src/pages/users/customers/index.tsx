@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, message } from 'antd';
+import { Modal, message } from '@/ui';
 
 // Import components
 import UserTable from '../components/UserTable';

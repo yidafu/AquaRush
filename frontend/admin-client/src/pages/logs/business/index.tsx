@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Card, Pagination } from 'antd';
+import { Card, Pagination } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { BusinessLogVo } from '@aquarush/common';
 import { useBusinessLogs } from '../../../services/log-graphql';

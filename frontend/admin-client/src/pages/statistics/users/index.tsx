@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col } from 'antd';
+import { Row, Col } from '@/ui';
 import { useQuery } from '@apollo/client';
 import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';

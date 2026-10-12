@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, Col, DatePicker, Row, Segmented, Space, Tooltip } from 'antd';
-import { ClockCircleOutlined, DollarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Alert, Button, Col, DatePicker, Row, Segmented, Space, Tooltip } from '@/ui';
+import { ClockCircleOutlined, DollarOutlined, ShoppingCartOutlined } from '@/ui/icons';
 import { useQuery } from '@apollo/client';
 import { centsToYuan, normalizeCents } from '@aquarush/common';
 import type { DailyStatisticVo, PendingOrderBreakdownVo } from '@aquarush/common';

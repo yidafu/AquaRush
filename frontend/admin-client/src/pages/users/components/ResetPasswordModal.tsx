@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Modal } from 'antd';
+import { Form, Input, Modal } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

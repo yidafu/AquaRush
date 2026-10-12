@@ -14,8 +14,8 @@ import {
   Tabs,
   Alert,
   message,
-} from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+} from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
 import { formatDateTime } from '@aquarush/common';
 import {
   useProductOptionsConfig,

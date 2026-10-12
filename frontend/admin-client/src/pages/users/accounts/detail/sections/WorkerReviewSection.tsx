@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Card, Col, Empty, Progress, Rate, Row, Spin, Statistic, Table, Tag } from 'antd';
+import { Alert, Card, Col, Empty, Progress, Rate, Row, Spin, Statistic, Table, Tag } from '@/ui';
 import { useQuery } from '@apollo/client';
 import {
   DELIVERY_WORKER_RATING_STATISTICS_QUERY,

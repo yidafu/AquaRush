@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Select } from 'antd';
+import { Modal, Select } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({
@@ -65,7 +65,7 @@ const SetCustomerGroupModal: React.FC<SetCustomerGroupModalProps> = ({
     <Select
       {...stylex.props(styles.select)}
       value={selectedGroup}
-      onChange={onSelectedGroupChange}
+      onChange={(value) => onSelectedGroupChange(value as string | undefined)}
       showSearch
       optionFilterProp="label"
       options={[

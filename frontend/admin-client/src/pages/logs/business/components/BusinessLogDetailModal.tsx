@@ -1,6 +1,6 @@
 import React from 'react';
-import { Descriptions, Tag, Button } from 'antd';
-import { CopyOutlined } from '@ant-design/icons';
+import { Descriptions, Tag, Button } from '@/ui';
+import { CopyOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import type { BusinessLogVo } from '@aquarush/common';
 import JsonViewer from '../../../../components/JsonViewer';

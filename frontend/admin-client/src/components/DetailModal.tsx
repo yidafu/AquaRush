@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Button } from 'antd';
+import { Modal, Button } from '@/ui';
 
 export interface DetailModalProps {
   title: React.ReactNode;

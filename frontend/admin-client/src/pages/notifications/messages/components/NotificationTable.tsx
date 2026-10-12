@@ -1,6 +1,6 @@
 import React from 'react';
-import { Table, Tag, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Button } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import dayjs from 'dayjs';
 import type { NotificationRecord } from './constants';
 import { TYPE_LABELS, RECEIVER_LABELS } from './constants';

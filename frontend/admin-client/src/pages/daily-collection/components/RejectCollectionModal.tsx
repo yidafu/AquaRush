@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input } from 'antd';
+import { Modal, Form, Input } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import type { DailyCollectionRecord } from '../../../types/daily-collection';
 

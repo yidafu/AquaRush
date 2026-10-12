@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Select, Switch, Modal } from 'antd';
+import { Form, Input, Select, Switch, Modal } from '@/ui';
 import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { DeliveryWorkerFormData, FormModalProps } from './types';
 
@@ -10,7 +10,7 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
   onSubmit,
   loading = false,
 }) => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<DeliveryWorkerFormData>();
   // 头像/姓名联动:未上传头像时预览根据姓名自动生成的默认头像
   const name = Form.useWatch('name', form);
 

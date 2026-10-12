@@ -1,6 +1,6 @@
 import React from 'react';
-import { Avatar, Button, Card, Col, Descriptions, Row, Tabs, Tag, Typography } from 'antd';
-import { UserOutlined, PhoneOutlined, EnvironmentOutlined, CarryOutOutlined } from '@ant-design/icons';
+import { Avatar, Button, Card, Col, Descriptions, Row, Tabs, Tag, Typography } from '@/ui';
+import { UserOutlined, PhoneOutlined, EnvironmentOutlined, CarryOutOutlined } from '@/ui/icons';
 import { avatarFromName } from '@aquarush/common/utils';
 import type { DeliveryRecord } from './types';
 import DeliveryStatsCards from './DeliveryStatsCards';

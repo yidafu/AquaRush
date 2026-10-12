@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, Form, Select, message } from 'antd';
+import { Button, Modal, Form, Select, message } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import { extractErrorMessage } from '@aquarush/common/utils/network';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../graphql/mutations/order.graphql';
@@ -71,7 +71,7 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
       message.success('分配送水员成功');
       setModalVisible(false);
       onAssigned?.();
-    } catch (err: any) {
+    } catch (err) {
       message.error(extractErrorMessage(err, '分配送水员失败'));
     }
   };
@@ -95,9 +95,9 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
               placeholder="选择送水员"
               loading={loading}
               value={selectedWorkerId}
-              onChange={setSelectedWorkerId}
+              onChange={(value) => setSelectedWorkerId(typeof value === 'string' ? value : null)}
             >
-              {workers.map((worker: any) => (
+              {workers.map((worker: AssignDeliveryWorker) => (
                 <Select.Option key={worker.id} value={worker.id}>
                   {worker.name} - {worker.phone}
                 </Select.Option>

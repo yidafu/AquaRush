@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Select, Table, Tag, Empty, Alert } from 'antd';
+import { Card, Select, Table, Tag, Empty, Alert } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { USER_COUPONS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { UserCouponVo, CouponType, UserCouponStatus } from '@aquarush/common';
@@ -129,7 +129,7 @@ const CouponSection: React.FC<CouponSectionProps> = ({ userId }) => {
           <span>优惠券</span>
           <Select
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => setStatusFilter(value as string)}
             options={STATUS_OPTIONS}
             {...stylex.props(styles.select)}
             size="small"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import { useNavigate } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';
 import { displayCents, formatDateTime } from '@aquarush/common';

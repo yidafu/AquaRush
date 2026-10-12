@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Select, Switch, DatePicker, Spin } from 'antd';
+import { Form, Input, Select, Switch, DatePicker, Spin } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import { NoticeType } from '@aquarush/common';
 import type { NoticeVo } from '@aquarush/common';
@@ -127,7 +127,7 @@ const NoticeFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           <Input.TextArea placeholder="请输入公告内容" maxLength={2000} showCount rows={6} />
         </Form.Item>
         <Form.Item name="type" label="类型" rules={[{ required: true, message: '请选择公告类型' }]}>
-          <Select options={NOTICE_TYPE_OPTIONS} onChange={(value: NoticeType) => setType(value)} />
+          <Select options={NOTICE_TYPE_OPTIONS} onChange={(value: unknown) => setType(value as NoticeType)} />
         </Form.Item>
         <Form.Item name="timeWindow" label="时间窗(空 = 长期)">
           <RangePicker showTime {...stylex.props(styles.fullWidth)} />

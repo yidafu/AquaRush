@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Select, Space, Tooltip } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Button, Select, Space, Tooltip } from '@/ui';
+import { ReloadOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import { REFRESH_INTERVAL_OPTIONS } from '../../hooks/useAutoRefresh';
 
@@ -50,7 +50,11 @@ const RefreshControls: React.FC<RefreshControlsProps> = ({
       value={interval ?? 0}
       {...stylex.props(styles.select)}
       options={REFRESH_INTERVAL_OPTIONS}
-      onChange={(value: number) => onIntervalChange(value === 0 ? null : value)}
+      onChange={(value) => {
+        // @/ui Select onChange 泛型为 V | V[] | undefined;本组件单选 number,收窄后回传
+        const ms = typeof value === 'number' ? value : 0;
+        onIntervalChange(ms === 0 ? null : ms);
+      }}
     />
     <Tooltip title="手动刷新数据">
       <Button size="small" icon={<ReloadOutlined />} loading={refreshing} onClick={onRefresh}>

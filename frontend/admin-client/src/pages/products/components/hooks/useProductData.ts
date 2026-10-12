@@ -23,7 +23,9 @@ export interface Product {
   updatedAt: string;
 }
 
-export interface ProductFormData {
+// type 别名(非 interface):需要隐式索引签名,才能赋给 Form 的 initialValues
+// (Record<string, unknown>)—— interface 无隐式索引签名会编译失败。
+export type ProductFormData = {
   name: string;
   subtitle?: string;
   price: number; // in yuan (元) for form display

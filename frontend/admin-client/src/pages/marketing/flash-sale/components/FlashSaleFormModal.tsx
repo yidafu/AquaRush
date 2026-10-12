@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, DatePicker, message } from 'antd';
+import { Modal, Form, Input, InputNumber, DatePicker, message } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
@@ -111,8 +111,8 @@ const FlashSaleFormModal: React.FC<Props> = ({ open, record, submitting, onCance
           rules={[
             { required: true, message: '请输入特价' },
             {
-              validator: (_, value: number | undefined) =>
-                value !== undefined && value >= 0.01 && value <= 99999
+              validator: (_, value: unknown) =>
+                typeof value === 'number' && value >= 0.01 && value <= 99999
                   ? Promise.resolve()
                   : Promise.reject(new Error('特价无效(0.01-99999元)')),
             },

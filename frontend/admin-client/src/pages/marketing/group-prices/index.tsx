@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typography, message } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typography, message } from '@/ui';
+import type { ColumnsType } from '@/ui';
 import { useLazyQuery } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { displayCents, centsToYuan, yuanToCents } from '@aquarush/common';
@@ -206,7 +206,7 @@ const GroupPrices: React.FC = () => {
           {...stylex.props(styles.groupSelect)}
           placeholder="请选择客户分组"
           value={groupId ?? undefined}
-          onChange={handleGroupChange}
+          onChange={(value) => handleGroupChange(value as string)}
           showSearch
           optionFilterProp="label"
           options={groups.map((g: CustomerGroupVo) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}

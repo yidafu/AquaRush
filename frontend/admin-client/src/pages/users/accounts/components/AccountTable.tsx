@@ -1,13 +1,13 @@
 import React from 'react';
-import { Table, Space, Tag, Avatar, Button } from 'antd';
+import { Table, Space, Tag, Avatar, Button } from '@/ui';
 import {
   EditOutlined,
   LockOutlined,
   DeleteOutlined,
   EyeOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import { avatarFromName } from '@aquarush/common/utils';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from '@/ui';
 import type { AccountRow } from '../types';
 import { ROLE_MAPPINGS, WORKER_STATUS_MAPPINGS } from '../../components/types';
 

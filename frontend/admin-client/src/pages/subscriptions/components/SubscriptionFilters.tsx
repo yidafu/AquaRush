@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col, Input, Select, DatePicker } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Row, Col, Input, Select, DatePicker } from '@/ui';
+import { SearchOutlined } from '@/ui/icons';
 import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 import { SUBSCRIPTION_STATUS_TEXT } from '@/utils/subscription';
@@ -109,7 +109,9 @@ export const SubscriptionFilters: React.FC<SubscriptionFiltersProps> = ({
             <Select
               {...stylex.props(styles.fullWidth)}
               value={localFilters.status || 'ALL'}
-              onChange={handleStatusChange}
+              onChange={(value: string | string[] | undefined) =>
+                handleStatusChange(value as string)
+              }
               placeholder="选择状态"
             >
               <Option value="ALL">全部</Option>

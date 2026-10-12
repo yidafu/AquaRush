@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Input, Select, Space } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Input, Select, Space } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
 import { STATUS_MAPPINGS } from '../../components/types';
 import type { UserStatus } from '@aquarush/common';
 import type { CustomerGroupOption } from './SetCustomerGroupModal';
@@ -65,7 +65,7 @@ const CustomerToolbar: React.FC<CustomerToolbarProps> = ({
         placeholder="筛选客户分组"
         {...stylex.props(styles.groupSelect)}
         value={groupFilter}
-        onChange={onGroupFilterChange}
+        onChange={(value) => onGroupFilterChange(value as string | undefined)}
         showSearch
         optionFilterProp="label"
         options={[
@@ -78,11 +78,11 @@ const CustomerToolbar: React.FC<CustomerToolbarProps> = ({
         placeholder="筛选账户状态"
         {...stylex.props(styles.statusSelect)}
         value={statusFilter}
-        onChange={onStatusFilterChange}
+        onChange={(value) => onStatusFilterChange(value as UserStatus | undefined)}
         options={(
           ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'DELETED'] as const
         ).map((status) => ({
-          value: status,
+          value: status as UserStatus,
           label: STATUS_MAPPINGS[status].text,
         }))}
       />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Card, Button, Space, Input, message } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
-import type { TablePaginationConfig } from 'antd/es/table';
+import { Card, Button, Space, Input, message } from '@/ui';
+import { PlusOutlined, UploadOutlined } from '@/ui/icons';
+import type { TablePaginationConfig } from '@/ui';
 import { useQuery, useMutation } from '@apollo/client';
 import * as stylex from '@stylexjs/stylex';
 import { SEARCH_ALL_ADDRESSES_QUERY } from '../../../graphql/queries/address.graphql';

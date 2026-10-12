@@ -15,22 +15,3 @@ body {
 #root {
   min-height: 100vh;
 }
-
-/* 可点击表格行(如订单记录下钻) */
-.ant-table-row.clickable-row {
-  cursor: pointer;
-}
-.ant-table-row.clickable-row:hover td {
-  background-color: rgba(58, 155, 217, 0.10) !important;
-}
-
-/* 白卡软投影(spec/design/assets/tokens.css --sh-card);
-   antd6 Card 未暴露 boxShadow 组件 token,统一以 .ant-card 覆盖 */
-.ant-card {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-}
-
-/* 表格数字等宽(给金额/数量列单元格或文本加 .num,避免跳动) */
-.ant-table .num {
-  font-variant-numeric: tabular-nums;
-}

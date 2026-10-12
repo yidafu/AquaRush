@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Tag, Image, Space, Typography, Descriptions } from 'antd';
+import { Modal, Form, Input, Select, Tag, Image, Space, Typography, Descriptions } from '@/ui';
 import {
   FEEDBACK_STATUS_LABELS,
   FEEDBACK_STATUS_OPTIONS,
@@ -141,7 +141,7 @@ const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCanc
             <Form.Item name="status" label="处理状态" rules={[{ required: true, message: '请选择处理状态' }]}>
               <Select
                 options={FEEDBACK_STATUS_OPTIONS}
-                onChange={(value: FeedbackStatus) => setCurrentStatus(value)}
+                onChange={(value: unknown) => setCurrentStatus(value as FeedbackStatus)}
                 disabled={currentStatus === 'RESOLVED'}
               />
             </Form.Item>

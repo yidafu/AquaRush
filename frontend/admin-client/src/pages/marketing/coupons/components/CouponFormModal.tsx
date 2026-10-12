@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Radio, DatePicker } from 'antd';
+import { Form, Input, InputNumber, Select, Radio, DatePicker } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents, COUPON_TYPE_LABELS } from '@aquarush/common';
@@ -177,8 +177,8 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             rules={[
               { required: true, message: '请输入面额' },
               {
-                validator: (_, value: number | undefined) =>
-                  value !== undefined && value >= 0.01 && value <= 99999
+                validator: (_, value: unknown) =>
+                  typeof value === 'number' && value >= 0.01 && value <= 99999
                     ? Promise.resolve()
                     : Promise.reject(new Error('面额无效(0.01-99999元)')),
               },
@@ -193,8 +193,8 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             rules={[
               { required: true, message: '请输入折扣率' },
               {
-                validator: (_, value: number | undefined) =>
-                  value !== undefined && value >= 0.1 && value <= 9.9
+                validator: (_, value: unknown) =>
+                  typeof value === 'number' && value >= 0.1 && value <= 9.9
                     ? Promise.resolve()
                     : Promise.reject(new Error('折扣率超出范围(0.1-9.9折)')),
               },
@@ -210,8 +210,8 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             label="门槛(元)"
             rules={[
               {
-                validator: (_, value: number | undefined) =>
-                  value === undefined || (value >= 0 && value <= 99999)
+                validator: (_, value: unknown) =>
+                  value === undefined || value === null || (typeof value === 'number' && value >= 0 && value <= 99999)
                     ? Promise.resolve()
                     : Promise.reject(new Error('门槛金额无效')),
               },
@@ -243,8 +243,8 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
             rules={[
               { required: true, message: '请输入有效天数' },
               {
-                validator: (_, value: number | undefined) =>
-                  value !== undefined && value >= 1 && value <= 3650
+                validator: (_, value: unknown) =>
+                  typeof value === 'number' && value >= 1 && value <= 3650
                     ? Promise.resolve()
                     : Promise.reject(new Error('有效天数无效(1-3650天)')),
               },
@@ -263,8 +263,8 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           rules={[
             { required: true, message: '请输入每人限领张数' },
             {
-              validator: (_, value: number | undefined) =>
-                value !== undefined && value >= 1 && value <= 100
+              validator: (_, value: unknown) =>
+                typeof value === 'number' && value >= 1 && value <= 100
                   ? Promise.resolve()
                   : Promise.reject(new Error('限领数无效(1-100)')),
             },

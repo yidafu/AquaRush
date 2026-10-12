@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Space, Button, Card, Popconfirm } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Space, Button, Card, Popconfirm } from '@/ui';
+import { PlusOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import { formatDateTime } from '@aquarush/common';
 import type { CustomerGroupVo } from '@aquarush/common';
 import {

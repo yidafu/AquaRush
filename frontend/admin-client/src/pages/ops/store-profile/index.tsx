@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Card, Form, Input, Button, TimePicker, Alert, Space } from 'antd';
+import { Card, Form, Input, Button, TimePicker, Alert, Space } from '@/ui';
 import dayjs, { Dayjs } from 'dayjs';
 import { SingleImageUpload } from '../../../components/ImageUpload';
 import { useStoreProfile, useSaveStoreProfile } from '../../../services/ops-graphql';

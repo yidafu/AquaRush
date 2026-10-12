@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Tag } from 'antd';
+import { Empty, List, Tag } from '@/ui';
 import * as stylex from '@stylexjs/stylex';
 import { tokens } from '@aquarush/common/theme/tokens.stylex';
 import type { AddressVo as GraphQLAddress } from '@aquarush/common';
@@ -8,6 +8,31 @@ import type { AddressVo as GraphQLAddress } from '@aquarush/common';
 const styles = stylex.create({
   list: {
     backgroundColor: tokens.card,
+  },
+  // @/ui List 无 List.Item.Meta,行内标题/描述布局等价替代
+  row: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    rowGap: '8px',
+    columnGap: '8px',
+  },
+  rowMain: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '4px',
+    columnGap: '4px',
+  },
+  title: {
+    fontSize: tokens.fsAux,
+    lineHeight: tokens.lhAux,
+    fontWeight: '500',
+    color: tokens.text,
+  },
+  description: {
+    fontSize: tokens.fsNote,
+    lineHeight: tokens.lhNote,
+    color: tokens.textSub,
   },
 });
 
@@ -30,20 +55,22 @@ const AddressListUsingList: React.FC<AddressListUsingListProps> = ({
       bordered
       {...stylex.props(styles.list)}
       renderItem={(address) => (
-        <List.Item
-          extra={address.isDefault ? <Tag color="blue">默认地址</Tag>  : ''}
-        >
-          <List.Item.Meta
-            title={`${address.receiverName}  ${address.phone}`}
-            description={`${address.province} ${address.city} ${address.district} ${address.detailAddress}`}
-          />
-        </List.Item>
-
+        <div {...stylex.props(styles.row)}>
+          <div {...stylex.props(styles.rowMain)}>
+            <div {...stylex.props(styles.title)}>
+              {`${address.receiverName}  ${address.phone}`}
+            </div>
+            <div {...stylex.props(styles.description)}>
+              {`${address.province} ${address.city} ${address.district} ${address.detailAddress}`}
+            </div>
+          </div>
+          {address.isDefault ? <Tag color="blue">默认地址</Tag> : null}
+        </div>
       )}
-      locale={{
-        emptyText: '暂无收货地址',
-      }}
-    />
+    >
+      {/* @/ui List 无 locale.emptyText;children 仅在空数据时给出,非空仍走 dataSource/renderItem */}
+      {addresses.length === 0 ? <Empty description="暂无收货地址" /> : null}
+    </List>
   );
 };
 

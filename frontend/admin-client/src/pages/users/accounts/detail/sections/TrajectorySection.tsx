@@ -12,13 +12,13 @@ import {
   Statistic,
   Typography,
   message,
-} from 'antd';
+} from '@/ui';
 import {
   AimOutlined,
   EnvironmentOutlined,
   ReloadOutlined,
   SyncOutlined,
-} from '@ant-design/icons';
+} from '@/ui/icons';
 import { useQuery } from '@apollo/client';
 import MapLibreMap from '../../../../../components/MapLibreMap';
 import type { MapLine, MapMarker } from '../../../../../components/MapLibreMap';

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Card, Segmented, Table, Tooltip, Tag, Spin, Empty, Button } from 'antd';
-import { LinkOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Card, Segmented, Table, Tooltip, Tag, Spin, Empty, Button } from '@/ui';
+import { LinkOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import { useNavigate } from 'react-router-dom';
 import { centsToYuan, MarketingBreakdownKind } from '@aquarush/common';
 import type { MarketingUsageBreakdownRowVo } from '@aquarush/common';
@@ -86,7 +86,7 @@ const MarketingUsageBreakdownTable: React.FC<MarketingUsageBreakdownTableProps> 
             {
               title: (
                 <Tooltip title="券/满减/首单立减=订单快照列优惠金额(精确);赠品=赠品件数×当前目录价(估算)">
-                  {cfg.benefitColumn}(¥)
+                  <span>{cfg.benefitColumn}(¥)</span>
                 </Tooltip>
               ),
               dataIndex: 'benefitCents',

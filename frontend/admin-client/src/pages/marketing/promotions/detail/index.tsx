@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Alert, Button, Card, Descriptions, Space, Spin, Tag } from 'antd';
-import type { TablePaginationConfig } from 'antd/es/table';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Descriptions, Space, Spin, Tag } from '@/ui';
+import type { TablePaginationConfig } from '@/ui';
+import { ArrowLeftOutlined } from '@/ui/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import * as stylex from '@stylexjs/stylex';

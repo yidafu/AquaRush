@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Select, Table, Tag } from 'antd';
+import { Card, Select, Table, Tag } from '@/ui';
 import { useQuery } from '@apollo/client';
 import { DELIVERY_WORKER_ORDERS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { OrderVo } from '@aquarush/common';
@@ -180,7 +180,7 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
       <div {...stylex.props(styles.filterWrap)}>
         <Select
           value={statusFilter}
-          onChange={handleStatusChange}
+          onChange={(value) => handleStatusChange(value as string)}
           options={STATUS_FILTER_OPTIONS}
           {...stylex.props(styles.statusSelect)}
         />

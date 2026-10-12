@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Col, Row, Statistic, Tag, Typography } from 'antd';
-import { SyncOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Statistic, Tag, Typography } from '@/ui';
+import { SyncOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 
 const styles = stylex.create({

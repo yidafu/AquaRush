@@ -1,5 +1,5 @@
 import { useLazyQuery, useMutation } from '@apollo/client';
-import { message } from 'antd';
+import { message } from '@/ui';
 import {
   GET_CUSTOMER_GROUPS_QUERY,
   GET_GROUP_PRODUCT_PRICES_QUERY,

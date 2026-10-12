@@ -1,7 +1,7 @@
 import React from 'react';
-import { Table, Tag, Space, Button, Popconfirm, Tooltip } from 'antd';
-import type { TableProps } from 'antd';
-import { WarningOutlined } from '@ant-design/icons';
+import { Table, Tag, Space, Button, Popconfirm, Tooltip } from '@/ui';
+import type { TableProps } from '@/ui';
+import { WarningOutlined } from '@/ui/icons';
 import {
   TIME_SLOT_TEXT,
   formatCycleRule,

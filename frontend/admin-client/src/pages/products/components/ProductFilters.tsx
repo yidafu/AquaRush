@@ -1,6 +1,6 @@
 import React from 'react';
-import { Row, Col, Input, Select, InputNumber, Space, Button } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Row, Col, Input, Select, InputNumber, Space, Button } from '@/ui';
+import { SearchOutlined } from '@/ui/icons';
 import FilterCard from '@/components/FilterCard';
 import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 import * as stylex from '@stylexjs/stylex';
@@ -148,7 +148,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
             <Select
               {...stylex.props(styles.fullWidth)}
               value={localFilters.status || 'ALL'}
-              onChange={handleStatusChange}
+              onChange={(value) => handleStatusChange(value as NonNullable<ProductFilters['status']>)}
               placeholder="选择状态"
             >
               <Option value="ALL">全部</Option>
@@ -235,7 +235,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
             <Select
               {...stylex.props(styles.fullWidth)}
               value={localFilters.sortBy || 'CREATED_AT_DESC'}
-              onChange={handleSortByChange}
+              onChange={(value) => handleSortByChange(value as ProductSortByOption)}
               placeholder="排序方式"
             >
               <Option value="CREATED_AT_DESC">创建时间 ↓</Option>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, DatePicker, Space } from 'antd';
+import { Select, DatePicker, Space } from '@/ui';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
@@ -58,7 +58,10 @@ const StatisticsFilters: React.FC<StatisticsFiltersProps> = ({
     <span>日期粒度:</span>
     <Select
       value={granularity}
-      onChange={onGranularityChange}
+      onChange={(value) => {
+        // @/ui Select onChange 泛型为 V | V[] | undefined;单选值收窄后回传
+        if (typeof value === 'string') onGranularityChange(value as StatisticsGranularity);
+      }}
       {...stylex.props(styles.select)}
     >
       <Select.Option value="DAY">按日</Select.Option>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, DatePicker, Space } from 'antd';
+import { Select, DatePicker, Space } from '@/ui';
 import type { Dayjs } from 'dayjs';
 import {
   LineChart,
@@ -57,7 +57,7 @@ const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
           allowClear
           {...stylex.props(styles.productSelect)}
           value={selectedProductId}
-          onChange={onProductChange}
+          onChange={(v) => onProductChange((v as number | undefined) ?? null)}
           options={productList.map((p) => ({
             value: p.id,
             label: p.name,

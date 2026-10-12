@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Tag, Space, Button, Card, Image, Popconfirm, Switch } from 'antd';
-import { PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import { Table, Tag, Space, Button, Card, Image, Popconfirm, Switch } from '@/ui';
+import { PlusOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@/ui/icons';
+import type { ColumnsType } from '@/ui';
 import { formatDateTime } from '@aquarush/common';
 import type { BannerVo } from '@aquarush/common';
 import {

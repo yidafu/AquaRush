@@ -1,7 +1,7 @@
 import React from 'react';
-import { Table, Tag, Button, Space, Popconfirm } from 'antd';
-import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Space, Popconfirm } from '@/ui';
+import type { ColumnsType, TablePaginationConfig } from '@/ui';
+import { EditOutlined, DeleteOutlined } from '@/ui/icons';
 import * as stylex from '@stylexjs/stylex';
 import type { Address } from './types';
 import { pagination } from '@/utils/table';

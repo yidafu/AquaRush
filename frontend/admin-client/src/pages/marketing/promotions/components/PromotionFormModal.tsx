@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from '@/ui';
+import { MinusCircleOutlined, PlusOutlined } from '@/ui/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import * as stylex from '@stylexjs/stylex';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
@@ -218,8 +218,8 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                       rules={[
                         { required: true, message: '请输入门槛' },
                         {
-                          validator: (_, value: number | undefined) =>
-                            value !== undefined && value >= 0.01 && value <= 99999
+                          validator: (_, value: unknown) =>
+                            typeof value === 'number' && value >= 0.01 && value <= 99999
                               ? Promise.resolve()
                               : Promise.reject(new Error('门槛无效(0.01-99999元)')),
                         },
@@ -235,8 +235,8 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                         rules={[
                           { required: true, message: '请输入减金额' },
                           {
-                            validator: (_, value: number | undefined) =>
-                              value !== undefined && value >= 0.01 && value <= 99999
+                            validator: (_, value: unknown) =>
+                              typeof value === 'number' && value >= 0.01 && value <= 99999
                                 ? Promise.resolve()
                                 : Promise.reject(new Error('减金额无效')),
                           },
@@ -252,8 +252,8 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
                         rules={[
                           { required: true, message: '请输入折扣' },
                           {
-                            validator: (_, value: number | undefined) =>
-                              value !== undefined && value >= 1 && value <= 9.9
+                            validator: (_, value: unknown) =>
+                              typeof value === 'number' && value >= 1 && value <= 9.9
                                 ? Promise.resolve()
                                 : Promise.reject(new Error('折扣率超出范围(1-9.9折)')),
                           },
