@@ -11,13 +11,7 @@ import {
   Row,
   Col,
 } from '@/ui';
-import {
-  ArrowLeftOutlined,
-  EditOutlined,
-  SaveOutlined,
-  CloseOutlined,
-  EyeOutlined,
-} from '@/ui/icons';
+import { EyeOutlined } from '@/ui/icons';
 import {
   useCreateProduct,
   useUpdateProduct,
@@ -29,6 +23,7 @@ import type { ProductFormData } from '../components/hooks/useProductData';
 import { EnhancedWeChatPreview } from '../components/EnhancedWeChatPreview';
 import { FloatingBubblingWall } from '../components/FloatingBubblingWall';
 import LiveProductPreview from './components/LiveProductPreview';
+import { ProductFormHeader } from './components/ProductFormHeader';
 import { uniq, toProductInput } from './form-utils';
 import { debounce } from '../../../utils/debounce';
 import * as stylex from '@stylexjs/stylex';
@@ -48,18 +43,6 @@ const styles = stylex.create({
     paddingBottom: '24px',
     paddingLeft: '24px',
   },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '24px',
-  },
-  title: {
-    marginTop: '0px',
-    marginRight: '0px',
-    marginBottom: '0px',
-    marginLeft: '0px',
-  },
   previewCard: {
     position: 'relative',
     overflow: 'hidden',
@@ -69,7 +52,7 @@ const styles = stylex.create({
   },
 });
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 /**
  * 商品统一页面(新增/编辑/详情,不弹框):
@@ -193,45 +176,16 @@ const ProductFormPage: React.FC = () => {
   return (
     <div {...stylex.props(styles.page)}>
       {/* 页面头部:返回 + 标题 + 操作按钮 */}
-      <div {...stylex.props(styles.header)}>
-        <Space>
-          <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
-            返回列表
-          </Button>
-          <Title level={2} {...stylex.props(styles.title)}>
-            {pageTitle}
-          </Title>
-        </Space>
-        <Space>
-          {isView && (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/products/${id}/edit`)}
-            >
-              编辑商品
-            </Button>
-          )}
-          {editable && (
-            <>
-              <Button
-                icon={<CloseOutlined />}
-                onClick={handleCancel}
-              >
-                取消
-              </Button>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={submitting}
-                onClick={() => form.submit()}
-              >
-                保存
-              </Button>
-            </>
-          )}
-        </Space>
-      </div>
+      <ProductFormHeader
+        pageTitle={pageTitle}
+        isView={isView}
+        editable={editable}
+        submitting={submitting}
+        onBack={handleBack}
+        onEdit={() => navigate(`/products/${id}/edit`)}
+        onCancel={handleCancel}
+        onSave={() => form.submit()}
+      />
 
       <Row gutter={24}>
         {/* 左侧:商品表单(详情模式只读,新增/编辑模式可编辑) */}

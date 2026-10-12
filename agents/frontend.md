@@ -43,6 +43,12 @@ A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-clie
 - Real-time order management and analytics
 - Domains surfaced as menu groups: 运营配置 (`/ops/*` — banners, notices, feedback, store profile, delivery fee rule), 营销管理 (`/marketing/*` — customer groups, group prices, coupons, promotions, water tickets, flash sale, buy-gift, newcomer), 系统设置 (`/system-config/*` — parameters, order/fulfillment params, stock thresholds), 日志管理 (`/logs/*` — API logs, user actions, business logs)
 
+### 前端架构约束（ArchUnitTS）
+
+- admin-client 用 [`archunit`](https://github.com/LukasNiessen/ArchUnitTS)（npm `archunit`）写架构测试：`frontend/admin-client/src/architecture.test.ts`，随 `pnpm --filter admin-client test` 一起跑，无需单独命令。
+- 行数硬约束（物理行数，wc -l 语义）：`src/components/**` 与 `src/pages/**` 下的 `.tsx` **≤ 300 行**，无豁免——超标就拆子组件到同目录新文件；`src/ui/**`（Radix 封装组件库）单独 **≤ 1200 行**。
+- 改动组件后如行数逼近上限，先拆再提交；收紧阈值或新增规则（分层依赖、无环等）都改 `src/architecture.test.ts`。
+
 ## 声明式埋点（用户操作上报）
 
 三端（weapp / 浏览器 / RN）统一走同一套声明式埋点：业务 JSX 只写 `track-*` props，由 `babel-plugin-aquarush-track`（仓库根目录 workspace 包）在编译期改写成 `@aquarush/common/tracking` 的 `<Track>` 包裹并自动注入 import。业务代码不 import、不调用任何上报函数。
